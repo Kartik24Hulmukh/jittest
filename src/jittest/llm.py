@@ -19,7 +19,7 @@ import sqlite3
 import time
 import urllib.error
 import urllib.request
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 __all__ = [
@@ -272,7 +272,7 @@ class HTTPLLM(BaseLLM):
         temp = self.temperature if temperature is None else temperature
         key = hashlib.sha256(
             f"{self.provider}|{self.model_name}|{system}|{user}|{n}|{temp}"
-            .encode("utf-8")).hexdigest()
+            .encode()).hexdigest()
         cached = self.cache.get(key)
         if cached is not None:
             return json.loads(cached)
