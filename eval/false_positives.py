@@ -11,6 +11,9 @@ human review load, which is a precision claim, not a recall claim.
 Usage:
     python eval/false_positives.py --repo ~/src/requests --count 40
 
+    # Dry run (no network, no key, no cost):
+    python eval/false_positives.py --repo ~/src/requests --count 5 --dry-run
+
 Selection heuristic for "clean" PRs: merge commits older than 90 days whose
 merged branch was never touched by a later commit message containing revert,
 hotfix, or fixes #<pr>.
@@ -55,28 +58,41 @@ def clean_merges(repo: Path, count: int) -> list[tuple[str, str]]:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(
+        description="Measure false-positive rate on clean merged PRs")
     ap.add_argument("--repo", type=Path, required=True)
     ap.add_argument("--count", type=int, default=40)
     ap.add_argument("--model", default=None)
     ap.add_argument("--budget", type=float, default=1.0)
     ap.add_argument("--out", type=Path, default=Path("false-positives.json"))
+    ap.add_argument("--dry-run", action="store_true",
+                    help="Run with a stub model: no network, no key, no cost")
     args = ap.parse_args()
 
-    from jittest import pipeline
+    from jittest.config import Config
+    from jittest.llm import build_llm
+    from jittest.pipeline import run as run_pipeline
 
     pairs = clean_merges(args.repo, args.count)
     rows = []
     for base, head in pairs:
         try:
-            rep = pipeline.run(repo=args.repo, base_rev=base, head_rev=head,
-                               model=args.model, budget_usd=args.budget)
+            cfg = Config(model=args.model or "anthropic/claude-sonnet-4-5",
+                         budget_usd=args.budget, max_targets=5,
+                         candidates_per_target=4, risk_threshold=0.35)
+            llm = build_llm(cfg.model, dry_run=args.dry_run,
+                            budget_usd=cfg.budget_usd,
+                            temperature=cfg.temperature)
+            rep = run_pipeline(repo=args.repo, base=base, head=head,
+                               cfg=cfg, llm=llm)
             reported = [f for f in rep.findings if f.assessment.should_report]
             rows.append({
                 "base": base[:8], "head": head[:8],
                 "reported": len(reported),
                 "cost_usd": rep.cost_usd,
-                "claims": [f.assessment.one_line for f in reported],
+                "priced": rep.priced,
+                "claims": [f.assessment.summary for f in reported],
+                "telemetry": [t.as_dict() for t in rep.telemetry],
             })
         except Exception as exc:  # noqa: BLE001
             rows.append({"base": base[:8], "head": head[:8], "error": str(exc)})

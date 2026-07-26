@@ -16,6 +16,9 @@ Usage:
     git clone https://github.com/soarsmu/BugsInPy /tmp/BugsInPy
     python eval/run_bugsinpy.py --bugsinpy /tmp/BugsInPy --limit 50 --out results.json
 
+    # Dry run (no network, no key, no cost):
+    python eval/run_bugsinpy.py --bugsinpy /tmp/BugsInPy --limit 5 --dry-run
+
 HONESTY RULE: never publish catch rate without false-positive rate and cost.
 Also report GitBug-Java or another recent-bug set alongside, because BugsInPy
 is in public training corpora and memorisation inflates results.
@@ -46,21 +49,29 @@ class BugSpec:
 class BugResult:
     project: str
     bug_id: str
-    caught: bool = False
+    status: str = "pending"  # pending, caught, missed, skipped, error
     candidates: int = 0
-    mechanically_catching: int = 0
+    catching_candidates: int = 0
     reported: int = 0
     cost_usd: float = 0.0
+    priced: bool = True
     seconds: float = 0.0
     error: str = ""
+    telemetry: list[dict] = field(default_factory=list)
     reasons: list[str] = field(default_factory=list)
 
 
-def discover(bugsinpy: Path, limit: int | None) -> list[BugSpec]:
+def discover(bugsinpy: Path, limit: int | None,
+             project_filter: list[str] | None = None) -> list[BugSpec]:
     """Walk projects/<name>/bugs/<id>/bug.info and parse the commit pair."""
     specs: list[BugSpec] = []
-    projects = sorted((bugsinpy / "projects").iterdir())
+    projects_dir = bugsinpy / "projects"
+    if not projects_dir.is_dir():
+        return specs
+    projects = sorted(projects_dir.iterdir())
     for project in projects:
+        if project_filter and project.name not in project_filter:
+            continue
         info_root = project / "bugs"
         if not info_root.is_dir():
             continue
@@ -107,68 +118,112 @@ def clone(spec: BugSpec, workdir: Path) -> Path | None:
     return dest if r.returncode == 0 else None
 
 
-def evaluate_one(spec: BugSpec, repo: Path, model: str, budget: float) -> BugResult:
-    from jittest import pipeline
+def evaluate_one(spec: BugSpec, repo: Path, model: str, budget: float,
+                 dry_run: bool = False) -> BugResult:
+    """Run the jittest pipeline against a single BugsInPy bug.
+
+    Uses the INVERTED setup: base = fixed commit, head = buggy commit.
+    """
+    from jittest.config import Config
+    from jittest.llm import build_llm
+    from jittest.pipeline import run as run_pipeline
 
     res = BugResult(project=spec.project, bug_id=spec.bug_id)
     t0 = time.time()
+
+    if not spec.buggy_commit or not spec.fixed_commit:
+        res.status = "skipped"
+        res.error = "missing commit IDs in bug.info"
+        res.seconds = round(time.time() - t0, 1)
+        return res
+
     try:
-        report = pipeline.run(
+        cfg = Config(model=model or "anthropic/claude-sonnet-4-5",
+                     budget_usd=budget, max_targets=5,
+                     candidates_per_target=4, risk_threshold=0.35)
+        llm = build_llm(cfg.model, dry_run=dry_run, budget_usd=cfg.budget_usd,
+                        temperature=cfg.temperature)
+        report = run_pipeline(
             repo=repo,
-            base_rev=spec.fixed_commit,   # correct behaviour
-            head_rev=spec.buggy_commit,   # the synthetic regression
-            model=model,
-            budget_usd=budget,
+            base=spec.fixed_commit,
+            head=spec.buggy_commit,
+            cfg=cfg,
+            llm=llm,
         )
         res.candidates = report.candidates_generated
-        res.mechanically_catching = report.mechanically_catching
+        res.catching_candidates = len(report.findings)
         res.reported = len([f for f in report.findings if f.assessment.should_report])
         res.cost_usd = report.cost_usd
+        res.priced = report.priced
         res.caught = res.reported > 0
-        res.reasons = [f.assessment.one_line for f in report.findings]
+        res.status = "caught" if res.reported > 0 else "missed"
+        res.reasons = [f.assessment.summary for f in report.findings]
+        res.telemetry = [t.as_dict() for t in report.telemetry]
     except Exception as exc:  # noqa: BLE001 - eval harness must not die on one bug
+        res.status = "error"
         res.error = f"{type(exc).__name__}: {exc}"
     res.seconds = round(time.time() - t0, 1)
     return res
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--bugsinpy", type=Path, required=True)
+    ap = argparse.ArgumentParser(
+        description="Evaluate jittest against BugsInPy (inverted setup)")
+    ap.add_argument("--bugsinpy", type=Path, required=True,
+                    help="Path to a local clone of soarsmu/BugsInPy")
     ap.add_argument("--workdir", type=Path, default=Path("/tmp/jittest-eval"))
-    ap.add_argument("--limit", type=int, default=50)
-    ap.add_argument("--model", default=None)
+    ap.add_argument("--limit", type=int, default=50,
+                    help="Maximum number of bugs to evaluate")
+    ap.add_argument("--model", default=None,
+                    help="Model identifier (default: from config)")
     ap.add_argument("--budget", type=float, default=1.0)
     ap.add_argument("--out", type=Path, default=Path("eval-results.json"))
+    ap.add_argument("--dry-run", action="store_true",
+                    help="Run with a stub model: no network, no key, no cost")
+    ap.add_argument("--project", action="append", default=None,
+                    help="Filter to specific projects (repeatable)")
     args = ap.parse_args()
 
     args.workdir.mkdir(parents=True, exist_ok=True)
-    specs = discover(args.bugsinpy, args.limit)
+    specs = discover(args.bugsinpy, args.limit, args.project)
     print(f"Discovered {len(specs)} bugs", file=sys.stderr)
 
     results: list[BugResult] = []
     for i, spec in enumerate(specs, 1):
         repo = clone(spec, args.workdir)
         if repo is None:
-            results.append(BugResult(spec.project, spec.bug_id, error="clone failed"))
+            r = BugResult(spec.project, spec.bug_id,
+                          status="skipped", error="clone failed")
+            results.append(r)
+            print(f"[{i}/{len(specs)}] {spec.project}-{spec.bug_id} "
+                  f"SKIPPED: clone failed", file=sys.stderr)
             continue
-        r = evaluate_one(spec, repo, args.model, args.budget)
+        r = evaluate_one(spec, repo, args.model, args.budget, args.dry_run)
         results.append(r)
         print(f"[{i}/{len(specs)}] {spec.project}-{spec.bug_id} "
-              f"caught={r.caught} cost=${r.cost_usd:.2f} {r.error}", file=sys.stderr)
+              f"status={r.status} candidates={r.candidates} "
+              f"catching={r.catching_candidates} reported={r.reported} "
+              f"cost={'unpriced' if not r.priced else f'${r.cost_usd:.3f}'} "
+              f"{r.error}", file=sys.stderr)
 
-    usable = [r for r in results if not r.error]
+    usable = [r for r in results if r.status not in ("error", "skipped")]
+    caught = [r for r in usable if r.status == "caught"]
     summary = {
         "bugs_attempted": len(results),
         "bugs_usable": len(usable),
-        "catch_rate": round(sum(r.caught for r in usable) / max(len(usable), 1), 3),
-        "mean_candidates": round(statistics.fmean([r.candidates for r in usable] or [0]), 1),
-        "mechanical_yield": round(
-            sum(r.mechanically_catching for r in usable)
-            / max(sum(r.candidates for r in usable), 1), 3
-        ),
-        "mean_cost_usd": round(statistics.fmean([r.cost_usd for r in usable] or [0]), 3),
-        "mean_seconds": round(statistics.fmean([r.seconds for r in usable] or [0]), 1),
+        "bugs_skipped": len([r for r in results if r.status == "skipped"]),
+        "bugs_errored": len([r for r in results if r.status == "error"]),
+        "catch_rate": round(len(caught) / max(len(usable), 1), 3),
+        "mean_candidates": round(
+            statistics.fmean([r.candidates for r in usable] or [0]), 1),
+        "oracle_yield": round(
+            sum(r.catching_candidates for r in usable)
+            / max(sum(r.candidates for r in usable), 1), 3),
+        "mean_cost_usd": round(
+            statistics.fmean([r.cost_usd for r in usable] or [0]), 3),
+        "priced": all(r.priced for r in usable) if usable else True,
+        "mean_seconds": round(
+            statistics.fmean([r.seconds for r in usable] or [0]), 1),
         "NOTE": (
             "catch_rate here is recall on seeded real bugs. It is NOT the "
             "headline number on its own. Pair it with the false-positive rate "
