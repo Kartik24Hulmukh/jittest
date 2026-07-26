@@ -107,7 +107,7 @@ class FixtureRepo:
         self.base = ""
         self.head = ""
 
-    def __enter__(self) -> "FixtureRepo":
+    def __enter__(self) -> FixtureRepo:
         _git(self.path, "init", "--quiet", "-b", "main")
         (self.path / "calc.py").write_text(BASE_SOURCE, encoding="utf-8")
         (self.path / "README.md").write_text("fixture\n", encoding="utf-8")

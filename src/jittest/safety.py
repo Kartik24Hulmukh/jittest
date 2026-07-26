@@ -64,9 +64,8 @@ def check_candidate(code: str, max_bytes: int = 20000) -> CodeCheck:
             for alias in node.names:
                 if _root(alias.name) in BANNED_MODULES:
                     return CodeCheck(False, f"imports banned module `{alias.name}`")
-        if isinstance(node, ast.ImportFrom) and node.module:
-            if _root(node.module) in BANNED_MODULES:
-                return CodeCheck(False, f"imports banned module `{node.module}`")
+        if isinstance(node, ast.ImportFrom) and node.module and _root(node.module) in BANNED_MODULES:
+            return CodeCheck(False, f"imports banned module `{node.module}`")
         if isinstance(node, ast.Call):
             func = node.func
             if isinstance(func, ast.Name) and func.id in BANNED_CALLS:
