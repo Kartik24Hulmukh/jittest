@@ -127,7 +127,7 @@ class Report:
     @property
     def cost_line(self) -> str:
         if not self.priced:
-            return "cost not priced for this model"
+            return "unpriced"
         return f"${self.cost_usd:.3f}"
 
     def as_dict(self) -> dict:
