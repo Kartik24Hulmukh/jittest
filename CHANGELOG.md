@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.1 — 2026-07-26
+
+### Fixed
+- **pytest parity**: Added `pythonpath = ["src"]` to `[tool.pytest.ini_options]` so `python -m pytest` can import jittest from src-layout without `PYTHONPATH`. The unittest runner worked because CI set `PYTHONPATH=src` explicitly; pytest had no such configuration.
+- **Outcome enum restored to StrEnum**: Ruff rule UP042 was applied as `Outcome(str, Enum)` → `Outcome(Enum)`, which removed string behaviour the codebase relies on (`Outcome.PASS == "pass"`, JSON serialisation). Corrected to `Outcome(StrEnum)`. Added 4 regression tests that fail on plain Enum and pass on StrEnum.
+- **Canonical Apache-2.0 licence**: Replaced placeholder LICENSE with verbatim text from apache.org. GitHub now detects `spdx_id: Apache-2.0` instead of `NOASSERTION`.
+- **Ruff compliance**: Fixed all 7 ruff errors (UP042, UP037 ×2, F401, UP012, SIM102, SIM117). No per-file-ignores, no noqa comments, no config relaxation.
+
+### Changed
+- **ARCHITECTURE.md and STACK.md rewritten**: Both documents described a v0.1 design that depended on unidiff, litellm, pydantic, typer, rich, PyYAML and coverage. The shipped v0.2 code depends on nothing. Documents now describe what each module in `src/jittest/` actually does, module by module.
+- **install-smoke workflow**: Added `.github/workflows/install-smoke.yml` that verifies `pip install .` produces a working `jittest` command on Python 3.11, 3.12 and 3.13. All three pass.
+- **CI umbrella job**: Added a `ci` job to `.github/workflows/ci.yml` that aggregates lint, test and build results into a single check name matching the branch protection required context.
+- **Actions version bumps**: actions/checkout v4→v7, actions/setup-python v5→v7, actions/upload-artifact v4→v7, softprops/action-gh-release v2→v3.
+
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
