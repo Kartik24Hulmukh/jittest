@@ -87,7 +87,7 @@ def score_target(target: ChangeTarget) -> RiskScore:
 
     # A two-line addition to a new helper is rarely worth a dollar of tokens.
     if target.churn <= 2 and not target.modifies_existing:
-        score *= 0.5
+        score *= 1.5
 
     reasons = [k for k, v in sorted(signals.items(), key=lambda kv: -WEIGHTS[kv[0]] * kv[1])
                if v >= 0.5]
