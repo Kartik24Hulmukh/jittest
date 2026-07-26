@@ -84,3 +84,27 @@ jobs:
           files: dist/*
           generate_release_notes: true
           body_path: CHANGELOG.md
+
+  # Floating major tag: after a successful publish, move the v0 tag to
+  # point at this release commit. This is the ONE place a force push is
+  # legitimate — a floating major tag's entire purpose is to move. It
+  # lets external users write `uses: Kartik24Hulmukh/jittest@v0` and
+  # always get the latest v0.x release without changing their workflow.
+  # Guarded to only run for v0.* tags and only if publish succeeded.
+  update-floating-tag:
+    needs: [publish]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v0.')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Force-update v0 tag to this commit
+        run: |
+          git tag -f v0
+          git push origin v0 --force
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
