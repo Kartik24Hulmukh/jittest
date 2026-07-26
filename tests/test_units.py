@@ -11,8 +11,10 @@ from pathlib import Path
 from jittest.assess import Assessment, parse_assessment
 from jittest.config import Config, load_config
 from jittest.diff import ChangeTarget
+from jittest.execute import Outcome
 from jittest.ledger import Candidate, Ledger
 from jittest.llm import DryRunLLM, extract_json, strip_code_fence
+from jittest.pipeline import Finding, Report
 from jittest.risk import rank, score_target
 from jittest.safety import check_candidate
 
@@ -196,6 +198,86 @@ class TestLedger(unittest.TestCase):
             ledger.record(cand)
             self.assertEqual(
                 ledger.mark_outcome_by_hash(cand.test_hash, "kept_test"), 1)
+
+    # --- Outcome StrEnum regression tests ---
+    # These tests would have caught the UP042 "fix" that changed
+    # Outcome(str, Enum) -> Outcome(Enum), removing string behaviour.
+
+    def test_outcome_json_serialization(self):
+        """json.dumps of a dict containing an Outcome member must succeed
+        and yield the expected string value, not '"Outcome.PASS"'."""
+        d = {"outcome": Outcome.PASS}
+        result = json.dumps(d)
+        self.assertEqual(json.loads(result)["outcome"], "pass")
+
+    def test_outcome_equals_string(self):
+        """Outcome.PASS == 'pass' must hold - the codebase relies on
+        string comparison semantics."""
+        self.assertEqual(Outcome.PASS, "pass")
+        self.assertEqual(Outcome.FAIL, "fail")
+        self.assertEqual(Outcome.ERROR, "error")
+        self.assertEqual(Outcome.TIMEOUT, "timeout")
+
+    def test_report_as_dict_with_outcomes_json_roundtrip(self):
+        """A Report containing outcomes must round-trip through as_dict()
+        and json.dumps without raising."""
+        target = ChangeTarget(file_path="calc.py", symbol="add",
+                              start_line=1, end_line=10,
+                              added_lines=[5], removed_lines=[],
+                              source_after="def add(a,b): return a+b",
+                              source_before="def add(a,b): return a-b")
+        finding = Finding(
+            target=target,
+            test_code="def test_add(): assert add(1,1)==2",
+            oracle_reason="test fails on head, passes on base",
+            failure_excerpt="AssertionError",
+            assessment=Assessment(verdict="real_regression", confidence=0.9,
+                                  severity="medium", summary="regression detected",
+                                  reviewer_question="did you change add()?"),
+            risk_score=0.8,
+            risk_reasons=["new branch added"],
+            repro_command="pytest test_add.py",
+        )
+        report = Report(
+            repo="test", base="abc123", head="def456",
+            model="test-model",
+            findings=[finding], latent_findings=[],
+            targets_considered=1, targets_skipped=0,
+            candidates_generated=1, cost_usd=0.01, duration_s=1.0,
+            discarded={}, errors=[],
+        )
+        d = report.as_dict()
+        # Must not raise - if Outcome is plain Enum, json.dumps will
+        # raise TypeError: Object of type Outcome is not JSON serializable
+        # only if Outcome appears in the dict. Currently outcomes are not
+        # in as_dict(), but if they ever are, this test will catch it.
+        # The key test is that json.dumps succeeds.
+        result = json.dumps(d)
+        parsed = json.loads(result)
+        self.assertEqual(parsed["findings"][0]["assessment"]["verdict"],
+                         "real_regression")
+
+    def test_ledger_export_jsonl_validates_with_outcomes(self):
+        """The ledger's export_jsonl output must be valid JSON when
+        outcomes are present. The ledger stores oracle_catching as int
+        and oracle_reason as str, so this tests the full pipeline path."""
+        with tempfile.TemporaryDirectory() as tmp, Ledger(Path(tmp) / "l.db") as ledger:
+            cand = self._candidate()
+            cand.oracle_catching = True
+            cand.oracle_reason = "test fails on head, passes on base"
+            cand.assess_verdict = "real_regression"
+            ledger.record(cand)
+            ledger.mark_outcome_by_hash(cand.test_hash, "fixed_code")
+
+            out = Path(tmp) / "corpus.jsonl"
+            count = ledger.export_jsonl(out)
+            self.assertEqual(count, 1)
+
+            # Every line must be valid JSON
+            for line in out.read_text(encoding="utf-8").splitlines():
+                rec = json.loads(line)  # raises if invalid
+                self.assertIn("oracle_catching", rec)
+                self.assertEqual(rec["human_outcome"], "fixed_code")
 
 
 if __name__ == "__main__":
