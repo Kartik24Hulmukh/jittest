@@ -191,12 +191,11 @@ class TestLedger(unittest.TestCase):
                 self.assertEqual(first["symbol"], "redacted")
 
     def test_outcome_by_hash(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            with Ledger(Path(tmp) / "l.db") as ledger:
-                cand = self._candidate()
-                ledger.record(cand)
-                self.assertEqual(
-                    ledger.mark_outcome_by_hash(cand.test_hash, "kept_test"), 1)
+        with tempfile.TemporaryDirectory() as tmp, Ledger(Path(tmp) / "l.db") as ledger:
+            cand = self._candidate()
+            ledger.record(cand)
+            self.assertEqual(
+                ledger.mark_outcome_by_hash(cand.test_hash, "kept_test"), 1)
 
 
 if __name__ == "__main__":

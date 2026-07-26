@@ -36,7 +36,7 @@ CANDIDATE_PREFIX = "test_jittest_candidate_"
 _PACKAGE_ROOT = str(Path(__file__).resolve().parent.parent)
 
 
-class Outcome(str, Enum):
+class Outcome(Enum):
     PASS = "pass"
     FAIL = "fail"
     ERROR = "error"       # could not be collected or imported
