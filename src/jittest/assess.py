@@ -26,7 +26,7 @@ def _coerce_confidence(raw: object) -> float:
         return 0.0
     if value > 1.0:                 # models like answering "85"
         value = value / 100.0
-    return round(min(1.0, max(0.0, value)), 3)
+    return min(1.0, max(0.0, value))
 
 
 @dataclass
