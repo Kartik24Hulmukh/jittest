@@ -425,5 +425,71 @@ class TestHTTPLLMRequestContract(unittest.TestCase):
         self.assertEqual(llm.base_url, "https://api.openai.com/v1")
 
 
+class TestUnpricedBudgetCeiling(unittest.TestCase):
+    """When a model has no known price, the budget must fail closed via a
+    request-count ceiling, not silently continue with $0.000."""
+
+    def setUp(self):
+        self._old_env = dict(os.environ)
+        os.environ["JITTEST_API_KEY"] = "test-key"
+        os.environ["JITTEST_MAX_TARGETS"] = "1"
+        os.environ["JITTEST_CANDIDATES"] = "1"
+
+    def tearDown(self):
+        os.environ.clear()
+        os.environ.update(self._old_env)
+
+    def test_unpriced_model_detected(self):
+        from jittest.llm import HTTPLLM
+        llm = HTTPLLM("z-ai/glm-5.2", api_key="test-key")
+        self.assertTrue(llm._unpriced)
+
+    def test_priced_model_not_unpriced(self):
+        from jittest.llm import HTTPLLM
+        llm = HTTPLLM("anthropic/claude-sonnet-4-5", api_key="test-key")
+        self.assertFalse(llm._unpriced)
+
+    def test_unpriced_request_ceiling_fires(self):
+        """An unpriced model must raise BudgetExceeded after hitting the
+        request ceiling, not silently continue."""
+        from jittest.llm import HTTPLLM, BudgetExceeded
+        llm = HTTPLLM("z-ai/glm-5.2", api_key="test-key")
+        # Simulate having already made enough calls to hit the ceiling
+        # ceiling = 1*1 + 5 = 6
+        llm.usage.calls = 6
+        with self.assertRaises(BudgetExceeded) as ctx:
+            llm.complete("s", "u")
+        self.assertIn("request ceiling", str(ctx.exception))
+
+    def test_unpriced_cost_reported_as_unpriced_not_zero(self):
+        """The cost_line must say 'unpriced', not '$0.000'."""
+        from jittest.pipeline import Report
+        report = Report(repo="test", base="a", head="b", model="z-ai/glm-5.2")
+        report.priced = False
+        self.assertEqual(report.cost_line, "unpriced")
+
+    def test_priced_cost_reported_as_dollar_amount(self):
+        """Priced models still report a dollar amount."""
+        from jittest.pipeline import Report
+        report = Report(repo="test", base="a", head="b", model="claude")
+        report.priced = True
+        report.cost_usd = 0.123
+        self.assertEqual(report.cost_line, "$0.123")
+
+    def test_request_ceiling_below_max_does_not_fire(self):
+        from jittest.llm import HTTPLLM
+        llm = HTTPLLM("z-ai/glm-5.2", api_key="test-key")
+        llm.usage.calls = 3  # below ceiling of 6
+        # Mock _post to avoid real HTTP
+        captured = {}
+        def _mock_post(self_llm, url, payload, headers):
+            captured["payload"] = payload
+            return {"choices": [{"message": {"content": "ok"}}],
+                    "usage": {"prompt_tokens": 1, "completion_tokens": 1}}
+        llm._post = _mock_post.__get__(llm, HTTPLLM)
+        result = llm.complete("s", "u")
+        self.assertEqual(result[0], "ok")
+
+
 if __name__ == "__main__":
     unittest.main()

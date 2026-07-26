@@ -175,6 +175,14 @@ class BaseLLM:
                 f"budget of ${self.budget_usd:.2f} exhausted after "
                 f"{self.usage.calls} call(s)")
 
+    def _guard_request_ceiling(self, max_calls: int) -> None:
+        """For unpriced models, enforce a request-count ceiling instead of a
+        dollar cap, so the pipeline cannot silently run forever."""
+        if self.usage.calls >= max_calls:
+            raise BudgetExceeded(
+                f"request ceiling of {max_calls} call(s) reached for "
+                f"unpriced model '{self.model}'")
+
 
 class DryRunLLM(BaseLLM):
     """A model-shaped object that costs nothing and needs no network.
@@ -230,6 +238,12 @@ class HTTPLLM(BaseLLM):
         # For built-in providers, keep the bare name for backward compatibility.
         self.api_model = model if explicit_base else self.model_name
         self.cache = _Cache(cache_path)
+        self._unpriced = self._price() is None
+        if self._unpriced:
+            import sys
+            print(f"  warning: pricing is unknown for model '{model}'. "
+                  f"A request-count ceiling will be enforced instead of a "
+                  f"dollar cap.", file=sys.stderr)
         if not self.api_key and provider != "ollama":
             raise LLMError(
                 "no API key found. Set JITTEST_API_KEY, or run with --dry-run.")
@@ -278,7 +292,13 @@ class HTTPLLM(BaseLLM):
 
     def complete(self, system: str, user: str, n: int = 1,
                  temperature: float | None = None) -> list[str]:
-        self._guard_budget()
+        if self._unpriced:
+            # max_targets * candidates_per_target + assessor calls (worst case)
+            ceiling = int(os.getenv("JITTEST_MAX_TARGETS", "5")) * \
+                      int(os.getenv("JITTEST_CANDIDATES", "4")) + 5
+            self._guard_request_ceiling(ceiling)
+        else:
+            self._guard_budget()
         temp = self.temperature if temperature is None else temperature
         key = hashlib.sha256(
             f"{self.provider}|{self.model_name}|{system}|{user}|{n}|{temp}"

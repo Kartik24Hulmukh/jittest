@@ -214,6 +214,17 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
                   ("JITTEST_API_KEY", "ANTHROPIC_API_KEY", "OPENAI_API_KEY"))
     print(f"  [{'ok  ' if has_key else 'warn'}] model API key present"
           f"{'' if has_key else ' - only --dry-run will work'}")
+
+    # Check whether the configured model has known pricing.
+    from .llm import PRICES
+    model_name = cfg.model.split("/")[-1] if "/" in cfg.model else cfg.model
+    is_priced = any(key in model_name for key in PRICES)
+    if is_priced:
+        print(f"  [ok  ] model '{cfg.model}' is priced — dollar cap active")
+    else:
+        print(f"  [warn] model '{cfg.model}' is unpriced — "
+              f"request-count ceiling will be enforced instead of a dollar cap")
+
     print(f"  [ok  ] model {cfg.model}, budget ${cfg.budget_usd:.2f}, "
           f"max targets {cfg.max_targets}")
     print(f"  [ok  ] ledger {repo / cfg.ledger_path}")

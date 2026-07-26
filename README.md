@@ -168,7 +168,7 @@ Precedence: defaults → `.jittest.toml` or `[tool.jittest]` in `pyproject.toml`
 ```toml
 [tool.jittest]
 model = "anthropic/claude-sonnet-4-5"
-budget_usd = 1.00          # hard cap, enforced before each request
+budget_usd = 1.00          # hard cap for priced models; unpriced models use a request-count ceiling
 max_targets = 5
 candidates_per_target = 4
 risk_threshold = 0.35
@@ -186,7 +186,7 @@ This is **v0.2.1, alpha**. What is verified and what is not:
 
 | | Status |
 | --- | --- |
-| Oracle, pipeline, safety gate, ledger, config, CLI | 36 offline tests, green, no network required |
+| Oracle, pipeline, safety gate, ledger, config, CLI, telemetry | 58 offline tests, green, no network required |
 | Oracle behaviour on a real seeded regression in a real git repo | tested |
 | Catch rate on a public benchmark (BugsInPy) | **not yet measured** — harness in `eval/` |
 | False-positive rate on real PRs | **not yet measured** |
