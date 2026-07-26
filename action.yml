@@ -43,6 +43,10 @@ inputs:
     description: "Run the full pipeline with a stub model. No key, no cost."
     required: false
     default: "false"
+  api-key:
+    description: "API key for the model provider. Pass via secrets."
+    required: false
+    default: ""
   python-version:
     required: false
     default: "3.12"
@@ -76,6 +80,7 @@ runs:
         JITTEST_BUDGET_USD: ${{ inputs.budget }}
         JITTEST_MAX_TARGETS: ${{ inputs.max-targets }}
         JITTEST_CANDIDATES: ${{ inputs.candidates }}
+        JITTEST_API_KEY: ${{ inputs.api-key }}
       run: |
         BASE="${{ inputs.base }}"
         HEAD="${{ inputs.head }}"

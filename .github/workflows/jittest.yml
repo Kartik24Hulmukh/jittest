@@ -20,11 +20,26 @@ jobs:
         with:
           fetch-depth: 0   # required: we check out both base and head
 
-      - uses: Kartik24Hulmukh/jittest@v0
+      # Determine whether we have an API key. When absent, run in dry-run
+      # mode so the workflow exercises the full pipeline without cost.
+      # This is NOT continue-on-error: the step explicitly branches.
+      - name: Check for API key
+        id: key-check
+        run: |
+          if [ -z "${{ secrets.JITTEST_API_KEY }}" ]; then
+            echo "has-key=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No JITTEST_API_KEY secret found — running in dry-run mode."
+          else
+            echo "has-key=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Use the local action (./) so each PR is tested by the code in that PR.
+      # External users should reference Kartik24Hulmukh/jittest@v0 instead.
+      - uses: ./
         with:
           model: anthropic/claude-sonnet-4-5
-          api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          api-key-env: ANTHROPIC_API_KEY
+          api-key: ${{ secrets.JITTEST_API_KEY }}
           budget: "1.00"
           max-targets: "5"
+          dry-run: ${{ steps.key-check.outputs.has-key == 'false' }}
           fail-on-regression: "false"   # advisory first. Earn the gate.
