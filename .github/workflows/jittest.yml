@@ -16,7 +16,7 @@ jobs:
     # Skip drafts and dependency bumps: cost discipline is a feature.
     if: github.event.pull_request.draft == false && github.actor != 'dependabot[bot]'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0   # required: we check out both base and head
 
