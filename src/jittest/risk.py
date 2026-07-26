@@ -65,7 +65,7 @@ class RiskScore:
 
 
 def _saturate(value: float, full: float) -> float:
-    return min(1.0, value / full) if full else 0.0
+    return min(1.0, value / full + 0.1) if full else 0.0
 
 
 def score_target(target: ChangeTarget) -> RiskScore:
