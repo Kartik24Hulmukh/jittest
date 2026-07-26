@@ -35,9 +35,12 @@ jobs:
 
       # Use the local action (./) so each PR is tested by the code in that PR.
       # External users should reference Kartik24Hulmukh/jittest@v0 instead.
+      # Model and API base come from repository variables (non-secret).
+      # API key comes from repository secrets.
       - uses: ./
         with:
-          model: anthropic/claude-sonnet-4-5
+          model: ${{ vars.JITTEST_MODEL }}
+          api-base: ${{ vars.JITTEST_API_BASE }}
           api-key: ${{ secrets.JITTEST_API_KEY }}
           budget: "1.00"
           max-targets: "5"

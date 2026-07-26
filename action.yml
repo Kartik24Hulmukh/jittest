@@ -47,6 +47,10 @@ inputs:
     description: "API key for the model provider. Pass via secrets."
     required: false
     default: ""
+  api-base:
+    description: "OpenAI-compatible API base URL. Defaults to provider's known endpoint."
+    required: false
+    default: ""
   python-version:
     required: false
     default: "3.12"
@@ -81,6 +85,7 @@ runs:
         JITTEST_MAX_TARGETS: ${{ inputs.max-targets }}
         JITTEST_CANDIDATES: ${{ inputs.candidates }}
         JITTEST_API_KEY: ${{ inputs.api-key }}
+        JITTEST_API_BASE: ${{ inputs.api-base }}
       run: |
         BASE="${{ inputs.base }}"
         HEAD="${{ inputs.head }}"
