@@ -1,0 +1,11 @@
+# Paths jittest will not spend money on, in addition to the built-in defaults.
+# One glob per line. Matched against the repo-relative path and the basename.
+#
+# The built-in defaults already cover migrations, vendored code, node_modules,
+# virtualenvs, build output, protobuf stubs, type stubs, docs and examples.
+
+# Examples - uncomment what applies to you:
+# legacy/*
+# *_generated.py
+# scripts/*
+# src/myproject/experimental/*

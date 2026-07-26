@@ -1,0 +1,91 @@
+name: "jittest"
+description: "Generate tests that FAIL on this pull request and PASS on the base branch."
+author: "jittest contributors"
+
+branding:
+  icon: "alert-triangle"
+  color: "red"
+
+inputs:
+  base:
+    description: "Base ref or SHA. Defaults to the PR base."
+    required: false
+    default: ""
+  head:
+    description: "Head ref or SHA. Defaults to the PR head."
+    required: false
+    default: ""
+  model:
+    description: "Model identifier, e.g. anthropic/claude-sonnet-4-5"
+    required: false
+    default: ""
+  budget:
+    description: "Hard USD cap for this run."
+    required: false
+    default: "1.00"
+  max-targets:
+    description: "Maximum changed symbols to analyse."
+    required: false
+    default: "5"
+  candidates:
+    description: "Candidate tests generated per target."
+    required: false
+    default: "4"
+  comment:
+    description: "Upsert a single PR comment. No comment is posted if nothing is proven."
+    required: false
+    default: "true"
+  fail-on-regression:
+    description: "Fail the job when a confident regression is found. Start with false."
+    required: false
+    default: "false"
+  dry-run:
+    description: "Run the full pipeline with a stub model. No key, no cost."
+    required: false
+    default: "false"
+  python-version:
+    required: false
+    default: "3.12"
+
+outputs:
+  regressions:
+    description: "true when a confident regression was found"
+    value: ${{ steps.jittest.outputs.regressions }}
+  findings:
+    description: "number of proven catching tests"
+    value: ${{ steps.jittest.outputs.findings }}
+  cost_usd:
+    description: "USD spent on this run"
+    value: ${{ steps.jittest.outputs.cost_usd }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install jittest
+      shell: bash
+      run: pip install --disable-pip-version-check "${{ github.action_path }}"
+
+    - name: Run jittest
+      id: jittest
+      shell: bash
+      env:
+        JITTEST_BUDGET_USD: ${{ inputs.budget }}
+        JITTEST_MAX_TARGETS: ${{ inputs.max-targets }}
+        JITTEST_CANDIDATES: ${{ inputs.candidates }}
+      run: |
+        BASE="${{ inputs.base }}"
+        HEAD="${{ inputs.head }}"
+        [ -z "$BASE" ] && BASE="${{ github.event.pull_request.base.sha }}"
+        [ -z "$HEAD" ] && HEAD="${{ github.event.pull_request.head.sha }}"
+
+        ARGS=(run --base "$BASE" --head "$HEAD")
+        [ -n "${{ inputs.model }}" ] && ARGS+=(--model "${{ inputs.model }}")
+        [ "${{ inputs.comment }}" = "true" ] && ARGS+=(--comment)
+        [ "${{ inputs.fail-on-regression }}" = "true" ] && ARGS+=(--fail-on-regression)
+        [ "${{ inputs.dry-run }}" = "true" ] && ARGS+=(--dry-run)
+
+        jittest "${ARGS[@]}"

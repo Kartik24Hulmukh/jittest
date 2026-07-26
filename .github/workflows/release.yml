@@ -1,0 +1,86 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Configure git for the fixture repositories
+        run: |
+          git config --global user.email "ci@jittest.dev"
+          git config --global user.name "jittest ci"
+          git config --global init.defaultBranch main
+
+      - name: Tests must pass before anything is published
+        run: PYTHONPATH=src python -m unittest discover -s . -p 'test_*.py' -t .
+
+      - name: Tag must match the version in pyproject.toml
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          python - <<'PY'
+          import os, tomllib, sys
+          with open("pyproject.toml", "rb") as fh:
+              version = tomllib.load(fh)["project"]["version"]
+          tag = os.environ["GITHUB_REF"].removeprefix("refs/tags/v")
+          if tag != version:
+              sys.exit(f"tag v{tag} does not match pyproject version {version}")
+          print(f"ok: releasing {version}")
+          PY
+
+      - run: pip install build twine
+      - run: python -m build
+      - run: twine check dist/*
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write        # PyPI Trusted Publishing via OIDC
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      # No API token is stored anywhere. Trusted Publishing exchanges a
+      # short-lived OIDC identity for an upload credential, so there is no
+      # long-lived secret in this repository to leak or rotate.
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+          body_path: CHANGELOG.md

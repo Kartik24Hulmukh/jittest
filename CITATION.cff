@@ -1,0 +1,49 @@
+cff-version: 1.2.0
+message: "If you use jittest in research, please cite the underlying method (preferred-citation) as well as this software."
+title: "jittest: an open-source implementation of Just-in-Time Catching Test generation"
+version: 0.1.0
+license: Apache-2.0
+type: software
+repository-code: "https://github.com/Kartik24Hulmukh/jittest"
+abstract: >-
+  jittest generates candidate unit tests for a code diff and keeps only those
+  that pass on the base commit and fail on the head commit, verified by
+  execution rather than by a language model. It is an independent community
+  implementation of the Just-in-Time Catching Test method published by Meta,
+  and a response to the Catching JiTTest Challenge posed at FSE 2025.
+keywords:
+  - software testing
+  - test generation
+  - regression testing
+  - large language models
+  - continuous integration
+authors:
+  - name: "jittest contributors"
+
+preferred-citation:
+  type: article
+  title: "Just-in-Time Catching Test Generation at Meta"
+  year: 2026
+  journal: "arXiv preprint"
+  url: "https://arxiv.org/abs/2601.22832"
+  authors:
+    - family-names: Becker
+      given-names: N.
+    - family-names: Harman
+      given-names: Mark
+
+references:
+  - type: article
+    title: "The Catching JiTTest Challenge"
+    year: 2025
+    url: "https://arxiv.org/abs/2504.16472"
+    authors:
+      - family-names: Harman
+        given-names: Mark
+  - type: article
+    title: "Automated Unit Test Improvement using Large Language Models at Meta"
+    year: 2024
+    url: "https://arxiv.org/abs/2402.09171"
+    authors:
+      - family-names: Alshahwan
+        given-names: Nadia

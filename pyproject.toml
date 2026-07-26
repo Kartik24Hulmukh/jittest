@@ -1,0 +1,75 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "jittest"
+version = "0.2.0"
+description = "Generate tests that FAIL on your pull request and PASS on main. Open reference implementation of just-in-time catching test generation."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "jittest contributors" }]
+keywords = [
+  "testing", "pytest", "regression", "code-review", "pull-request",
+  "llm", "jittest", "catching-tests", "ci",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Testing",
+  "Topic :: Software Development :: Quality Assurance",
+]
+
+# Deliberately empty. jittest runs inside other people's CI, and every
+# dependency we add is a resolver conflict in somebody's locked project.
+# Diff parsing, HTTP, config and the test-runner fallback are all stdlib.
+dependencies = []
+
+[project.optional-dependencies]
+litellm = ["litellm>=1.55.0"]
+dev = ["pytest>=8.2", "pytest-timeout>=2.3", "ruff>=0.6", "mypy>=1.10"]
+
+[project.urls]
+Homepage = "https://github.com/Kartik24Hulmukh/jittest"
+Documentation = "https://github.com/Kartik24Hulmukh/jittest/tree/main/docs"
+Source = "https://github.com/Kartik24Hulmukh/jittest"
+Issues = "https://github.com/Kartik24Hulmukh/jittest/issues"
+Changelog = "https://github.com/Kartik24Hulmukh/jittest/blob/main/CHANGELOG.md"
+
+[project.scripts]
+jittest = "jittest.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/jittest"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/", "tests/", "docs/", "eval/", "README.md", "LICENSE", "CHANGELOG.md"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+# jittest configures itself. Dogfooding is how we find out our defaults are wrong.
+[tool.jittest]
+model = "anthropic/claude-sonnet-4-5"
+budget_usd = 1.00
+max_targets = 5
+candidates_per_target = 4
+risk_threshold = 0.35

@@ -1,0 +1,106 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Configure git for the fixture repositories
+        run: |
+          git config --global user.email "ci@jittest.dev"
+          git config --global user.name "jittest ci"
+          git config --global init.defaultBranch main
+
+      # No install step on purpose: jittest has zero runtime dependencies and
+      # the suite runs on the stdlib alone. If this job ever needs `pip install`
+      # for the core tests, a dependency has crept in.
+      - name: Test with no dependencies at all
+        run: PYTHONPATH=src python -m unittest discover -s . -p 'test_*.py' -t . -v
+        shell: bash
+
+      - name: Test again with pytest present
+        run: |
+          pip install pytest pytest-timeout
+          pytest -q
+        shell: bash
+
+      - name: Verify the package still declares no dependencies
+        run: |
+          python - <<'PY'
+          import tomllib, sys
+          with open("pyproject.toml", "rb") as fh:
+              deps = tomllib.load(fh)["project"]["dependencies"]
+          if deps:
+              sys.exit(f"jittest must stay dependency-free, found: {deps}")
+          print("ok: zero dependencies")
+          PY
+        shell: bash
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff mypy
+      - run: ruff check src tests
+      - run: mypy src/jittest --ignore-missing-imports || true
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install build twine
+      - run: python -m build
+      - run: twine check dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  dogfood:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - name: Run jittest on jittest
+        run: |
+          jittest doctor
+          jittest run \
+            --base ${{ github.event.pull_request.base.sha }} \
+            --head ${{ github.event.pull_request.head.sha }} \
+            --dry-run --json
