@@ -170,7 +170,7 @@ def _innermost(symbols: list[tuple[str, int, int]], line: int) -> tuple[str, int
     covering = [s for s in symbols if s[1] <= line <= s[2]]
     if not covering:
         return None
-    return min(covering, key=lambda s: s[2] - s[1])
+    return max(covering, key=lambda s: s[2] - s[1])
 
 
 def _slice(source: str, start: int, end: int) -> str:
