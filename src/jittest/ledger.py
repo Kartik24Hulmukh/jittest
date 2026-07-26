@@ -107,7 +107,7 @@ class Ledger:
     def close(self) -> None:
         self.conn.close()
 
-    def __enter__(self) -> "Ledger":
+    def __enter__(self) -> Ledger:
         return self
 
     def __exit__(self, *exc: object) -> None:
