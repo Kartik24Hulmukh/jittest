@@ -18,7 +18,7 @@ jittest doctor
 ```
 
 ```
-jittest 0.2.0 doctor
+jittest 0.2.1 doctor
   [ok  ] python >= 3.11 - 3.13.1
   [ok  ] git available - git version 2.45.2
   [ok  ] inside a git repository - /home/you/your-repo
@@ -48,7 +48,7 @@ jittest run --base main --head HEAD --budget 0.50
 ```
 
 ```
-jittest v0.2.0  0f9e8d7c...a1b2c3d4
+jittest v0.2.1  0f9e8d7c...a1b2c3d4
   3 symbol(s) analysed | 7 candidate(s) | 1 catching | $0.214
 
   [REGRESSION] billing/calc.py::apply_discount
@@ -74,7 +74,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
-      - uses: Kartik24Hulmukh/jittest@v0.2.0
+      - uses: Kartik24Hulmukh/jittest@v0
         with:
           base: ${{ github.event.pull_request.base.sha }}
           head: ${{ github.event.pull_request.head.sha }}

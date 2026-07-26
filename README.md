@@ -80,7 +80,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0            # the oracle needs both commits
-      - uses: Kartik24Hulmukh/jittest@v0.2.0
+      - uses: Kartik24Hulmukh/jittest@v0
         with:
           base: ${{ github.event.pull_request.base.sha }}
           head: ${{ github.event.pull_request.head.sha }}
@@ -182,7 +182,7 @@ Ollama. For the long tail of providers, `pip install jittest[litellm]` and set
 
 ## Honest status
 
-This is **v0.2.0, alpha**. What is verified and what is not:
+This is **v0.2.1, alpha**. What is verified and what is not:
 
 | | Status |
 | --- | --- |
