@@ -101,5 +101,109 @@ class TestImportPath(unittest.TestCase):
         self.assertEqual(import_path_for("pkg/__init__.py"), "pkg")
 
 
+class TestCandidateTelemetry(unittest.TestCase):
+    """Prove every disposition value is reachable via scripted DryRunLLM."""
+
+    def _cfg(self, **kw):
+        base = dict(risk_threshold=0.0, max_targets=1, candidates_per_target=1,
+                    timeout_s=60, reruns=2, ledger_path=".jittest/test-tel.db")
+        base.update(kw)
+        return Config(**base)
+
+    def _dispositions(self, report):
+        return [t.disposition for t in report.telemetry]
+
+    def test_model_declined(self):
+        llm = DryRunLLM(scripted=["# NO_CANDIDATE"])
+        with FixtureRepo() as repo:
+            report = run(repo.path, repo.base, repo.head, self._cfg(), llm)
+        self.assertIn("model_declined", self._dispositions(report))
+
+    def test_parse_failed(self):
+        # Valid text but not parseable Python
+        llm = DryRunLLM(scripted=["this is not python code at all !!!"])
+        with FixtureRepo() as repo:
+            report = run(repo.path, repo.base, repo.head, self._cfg(), llm)
+        self.assertIn("parse_failed", self._dispositions(report))
+
+    def test_safety_rejected(self):
+        unsafe = "import socket\n\ndef test_x():\n    assert socket\n"
+        llm = DryRunLLM(scripted=[unsafe])
+        with FixtureRepo() as repo:
+            report = run(repo.path, repo.base, repo.head, self._cfg(), llm)
+        self.assertIn("safety_rejected", self._dispositions(report))
+
+    def test_head_passed_hardening(self):
+        llm = DryRunLLM(scripted=[HARDENING_TEST])
+        with FixtureRepo() as repo:
+            report = run(repo.path, repo.base, repo.head, self._cfg(), llm)
+        self.assertIn("head_passed", self._dispositions(report))
+
+    def test_catching(self):
+        llm = DryRunLLM(scripted=[CATCHING_TEST, ASSESSOR_REPLY])
+        with FixtureRepo() as repo:
+            report = run(repo.path, repo.base, repo.head, self._cfg(), llm,
+                         pr_title="refactor", pr_body="tidy")
+        disps = self._dispositions(report)
+        self.assertIn("catching", disps)
+        # Catching telemetry should have assessor verdict populated
+        catching_tel = [t for t in report.telemetry if t.disposition == "catching"]
+        self.assertTrue(catching_tel)
+        self.assertEqual(catching_tel[0].assessor_verdict, "real_regression")
+        self.assertGreater(catching_tel[0].assessor_confidence, 0.0)
+
+    def test_head_uncollectable(self):
+        from .helpers import BROKEN_TEST
+        llm = DryRunLLM(scripted=[BROKEN_TEST])
+        with FixtureRepo() as repo:
+            report = run(repo.path, repo.base, repo.head, self._cfg(), llm)
+        self.assertIn("head_uncollectable", self._dispositions(report))
+
+    def test_head_flaky(self):
+        from .helpers import FLAKY_TEST
+        llm = DryRunLLM(scripted=[FLAKY_TEST])
+        with FixtureRepo() as repo:
+            report = run(repo.path, repo.base, repo.head,
+                         self._cfg(reruns=2), llm)
+        self.assertIn("head_flaky", self._dispositions(report))
+
+    def test_telemetry_never_contains_source_code(self):
+        llm = DryRunLLM(scripted=[CATCHING_TEST, ASSESSOR_REPLY])
+        with FixtureRepo() as repo:
+            report = run(repo.path, repo.base, repo.head, self._cfg(), llm,
+                         pr_title="refactor", pr_body="tidy")
+        for tel in report.telemetry:
+            d = tel.as_dict()
+            # No field should contain the actual test source code body
+            for val in d.values():
+                if isinstance(val, str):
+                    self.assertNotIn("apply_discount(100.0, 150.0)", val)
+                    self.assertNotIn("assert apply_discount", val)
+
+    def test_telemetry_jsonl_serialisation(self):
+        from jittest.pipeline import CandidateTelemetry
+        tel = CandidateTelemetry(
+            target_symbol="foo", target_file="bar.py",
+            risk_score=0.5, candidate_index=1,
+            disposition="catching", head_outcome="fail",
+            base_outcome="pass", rerun_agreement=True,
+            assessor_verdict="real_regression", assessor_confidence=0.9,
+            failure_excerpt="AssertionError",
+        )
+        import json
+        d = json.loads(tel.as_jsonl())
+        self.assertEqual(d["disposition"], "catching")
+        self.assertEqual(d["target_symbol"], "foo")
+        self.assertEqual(d["head_outcome"], "fail")
+
+    def test_report_as_dict_includes_telemetry(self):
+        llm = DryRunLLM(scripted=["# NO_CANDIDATE"])
+        with FixtureRepo() as repo:
+            report = run(repo.path, repo.base, repo.head, self._cfg(), llm)
+        d = report.as_dict()
+        self.assertIn("telemetry", d)
+        self.assertTrue(isinstance(d["telemetry"], list))
+
+
 if __name__ == "__main__":
     unittest.main()

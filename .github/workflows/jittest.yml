@@ -46,3 +46,18 @@ jobs:
           max-targets: "5"
           dry-run: ${{ steps.key-check.outputs.has-key == 'false' }}
           fail-on-regression: "false"   # advisory first. Earn the gate.
+
+      # Upload telemetry and anonymised ledger export as a workflow artifact.
+      # The raw ledger database is never uploaded.
+      - name: Export ledger and upload telemetry
+        if: always()
+        run: |
+          mkdir -p jittest-telemetry
+          # Export anonymised ledger (no repo names, no PR IDs, no source code)
+          jittest export jittest-telemetry/ledger.jsonl || true
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: jittest-telemetry
+          path: jittest-telemetry/
+          retention-days: 30

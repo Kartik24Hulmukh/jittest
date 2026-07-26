@@ -97,5 +97,6 @@ runs:
         [ "${{ inputs.comment }}" = "true" ] && ARGS+=(--comment)
         [ "${{ inputs.fail-on-regression }}" = "true" ] && ARGS+=(--fail-on-regression)
         [ "${{ inputs.dry-run }}" = "true" ] && ARGS+=(--dry-run)
+        ARGS+=(--telemetry-json jittest-telemetry/telemetry.jsonl)
 
         jittest "${ARGS[@]}"
