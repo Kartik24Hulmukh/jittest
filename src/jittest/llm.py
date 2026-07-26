@@ -216,9 +216,19 @@ class HTTPLLM(BaseLLM):
             provider, name = ("anthropic" if "claude" in model else "openai"), model
         self.provider = provider
         self.model_name = name
+        # When an explicit API base is supplied (e.g. NVIDIA NIM), the full
+        # model identifier including the namespace prefix must be sent in the
+        # request payload.  Known providers (openai, anthropic, etc.) use the
+        # bare name, so we only preserve the full identifier when the base URL
+        # comes from JITTEST_API_BASE rather than the built-in provider table.
         self.api_key = api_key or self._find_key(provider)
-        self.base_url = os.getenv("JITTEST_API_BASE") or _BASES.get(
+        explicit_base = os.getenv("JITTEST_API_BASE")
+        self.base_url = explicit_base or _BASES.get(
             provider, "https://api.anthropic.com/v1")
+        # For explicit/custom API bases, send the full model string so that
+        # namespaced identifiers like "z-ai/glm-5.2" reach the provider intact.
+        # For built-in providers, keep the bare name for backward compatibility.
+        self.api_model = model if explicit_base else self.model_name
         self.cache = _Cache(cache_path)
         if not self.api_key and provider != "ollama":
             raise LLMError(
@@ -297,7 +307,7 @@ class HTTPLLM(BaseLLM):
             else:
                 body = self._post(
                     f"{self.base_url}/chat/completions",
-                    {"model": self.model_name, "temperature": temp,
+                    {"model": self.api_model, "temperature": temp,
                      "max_tokens": 2048,
                      "messages": [{"role": "system", "content": system},
                                   {"role": "user", "content": user}]},

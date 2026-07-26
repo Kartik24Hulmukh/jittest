@@ -4,6 +4,7 @@ JSON extraction and the ledger.
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -278,6 +279,150 @@ class TestLedger(unittest.TestCase):
                 rec = json.loads(line)  # raises if invalid
                 self.assertIn("oracle_catching", rec)
                 self.assertEqual(rec["human_outcome"], "fixed_code")
+
+
+class TestHTTPLLMRequestContract(unittest.TestCase):
+    """Verify the exact request contract for OpenAI-compatible providers,
+    especially NVIDIA NIM where the full namespaced model identifier must
+    be preserved in the JSON payload."""
+
+    def setUp(self):
+        # Save and restore env so tests are isolated.
+        self._old_env = dict(os.environ)
+        os.environ.pop("JITTEST_API_KEY", None)
+        os.environ.pop("JITTEST_API_BASE", None)
+
+    def tearDown(self):
+        os.environ.clear()
+        os.environ.update(self._old_env)
+
+    def _mock_post(self, captured, response_body=None, status=200):
+        """Return a function that replaces HTTPLLM._post and records the
+        request URL, payload and headers."""
+        from jittest.llm import LLMError
+        def _post(self_llm, url, payload, headers):
+            captured["url"] = url
+            captured["payload"] = payload
+            captured["headers"] = headers
+            if status != 200:
+                detail = json.dumps(response_body or {}).encode().decode()
+                raise LLMError(f"HTTP {status} from {self_llm.provider}: {detail}")
+            return response_body or {
+                "choices": [{"message": {"content": "hello"}}],
+                "usage": {"prompt_tokens": 10, "completion_tokens": 5},
+            }
+        return _post
+
+    def test_nvidia_model_identifier_preserved(self):
+        """When JITTEST_API_BASE is set, the full model id is sent."""
+        os.environ["JITTEST_API_KEY"] = "test-key-123"
+        os.environ["JITTEST_API_BASE"] = "https://integrate.api.nvidia.com/v1"
+        from jittest.llm import HTTPLLM
+        llm = HTTPLLM("z-ai/glm-5.2", api_key="test-key-123")
+        self.assertEqual(llm.api_model, "z-ai/glm-5.2")
+        self.assertEqual(llm.base_url, "https://integrate.api.nvidia.com/v1")
+
+        captured = {}
+        llm._post = self._mock_post(captured).__get__(llm, HTTPLLM)
+        llm.complete("system prompt", "user prompt")
+
+        self.assertEqual(captured["url"],
+                         "https://integrate.api.nvidia.com/v1/chat/completions")
+        self.assertEqual(captured["payload"]["model"], "z-ai/glm-5.2")
+
+    def test_nvidia_authorization_header(self):
+        """Authorization header exists but is not logged."""
+        os.environ["JITTEST_API_KEY"] = "secret-key-456"
+        os.environ["JITTEST_API_BASE"] = "https://integrate.api.nvidia.com/v1"
+        from jittest.llm import HTTPLLM
+        llm = HTTPLLM("z-ai/glm-5.2", api_key="secret-key-456")
+        captured = {}
+        llm._post = self._mock_post(captured).__get__(llm, HTTPLLM)
+        llm.complete("s", "u")
+        self.assertIn("authorization", captured["headers"])
+        self.assertTrue(captured["headers"]["authorization"].startswith("Bearer "))
+
+    def test_nvidia_response_parsed(self):
+        """NVIDIA-style response content is parsed correctly."""
+        os.environ["JITTEST_API_KEY"] = "k"
+        os.environ["JITTEST_API_BASE"] = "https://integrate.api.nvidia.com/v1"
+        from jittest.llm import HTTPLLM
+        llm = HTTPLLM("z-ai/glm-5.2", api_key="k")
+        resp = {"choices": [{"message": {"content": "test response"}}],
+                "usage": {"prompt_tokens": 10, "completion_tokens": 5}}
+        captured = {}
+        llm._post = self._mock_post(captured, resp).__get__(llm, HTTPLLM)
+        result = llm.complete("s", "u")
+        self.assertEqual(result[0], "test response")
+
+    def test_401_error_surfaced_safely(self):
+        """401 errors are surfaced without leaking the key."""
+        os.environ["JITTEST_API_KEY"] = "secret"
+        os.environ["JITTEST_API_BASE"] = "https://integrate.api.nvidia.com/v1"
+        from jittest.llm import HTTPLLM, LLMError
+        llm = HTTPLLM("z-ai/glm-5.2", api_key="secret")
+        captured = {}
+        llm._post = self._mock_post(captured, status=401,
+                                    response_body={"error": "unauthorized"}).__get__(llm, HTTPLLM)
+        with self.assertRaises(LLMError) as ctx:
+            llm.complete("s", "u")
+        self.assertIn("401", str(ctx.exception))
+        self.assertNotIn("secret", str(ctx.exception))
+
+    def test_403_error_surfaced_safely(self):
+        """403 errors are surfaced without leaking the key."""
+        os.environ["JITTEST_API_KEY"] = "secret"
+        os.environ["JITTEST_API_BASE"] = "https://integrate.api.nvidia.com/v1"
+        from jittest.llm import HTTPLLM, LLMError
+        llm = HTTPLLM("z-ai/glm-5.2", api_key="secret")
+        captured = {}
+        llm._post = self._mock_post(captured, status=403,
+                                    response_body={"error": "forbidden"}).__get__(llm, HTTPLLM)
+        with self.assertRaises(LLMError) as ctx:
+            llm.complete("s", "u")
+        self.assertIn("403", str(ctx.exception))
+
+    def test_404_error_surfaced_safely(self):
+        """404 errors are surfaced without leaking the key."""
+        os.environ["JITTEST_API_KEY"] = "secret"
+        os.environ["JITTEST_API_BASE"] = "https://integrate.api.nvidia.com/v1"
+        from jittest.llm import HTTPLLM, LLMError
+        llm = HTTPLLM("z-ai/glm-5.2", api_key="secret")
+        captured = {}
+        llm._post = self._mock_post(captured, status=404,
+                                    response_body={"error": "not found"}).__get__(llm, HTTPLLM)
+        with self.assertRaises(LLMError) as ctx:
+            llm.complete("s", "u")
+        self.assertIn("404", str(ctx.exception))
+
+    def test_anthropic_routing_unchanged(self):
+        """Anthropic provider still uses /messages with x-api-key."""
+        os.environ["JITTEST_API_KEY"] = "ant-key"
+        from jittest.llm import HTTPLLM
+        # No JITTEST_API_BASE -> uses default anthropic base
+        llm = HTTPLLM("anthropic/claude-sonnet-4-5", api_key="ant-key")
+        self.assertEqual(llm.provider, "anthropic")
+        self.assertEqual(llm.model_name, "claude-sonnet-4-5")
+        self.assertEqual(llm.api_model, "claude-sonnet-4-5")
+        self.assertEqual(llm.base_url, "https://api.anthropic.com/v1")
+
+        captured = {}
+        resp = {"content": [{"type": "text", "text": "anthropic reply"}],
+                "usage": {"input_tokens": 10, "output_tokens": 5}}
+        llm._post = self._mock_post(captured, resp).__get__(llm, HTTPLLM)
+        result = llm.complete("s", "u")
+        self.assertEqual(captured["url"], "https://api.anthropic.com/v1/messages")
+        self.assertEqual(captured["payload"]["model"], "claude-sonnet-4-5")
+        self.assertIn("x-api-key", captured["headers"])
+        self.assertEqual(result[0], "anthropic reply")
+
+    def test_builtin_provider_uses_bare_name(self):
+        """Built-in providers (openai, etc.) still use bare model name."""
+        os.environ["JITTEST_API_KEY"] = "oai-key"
+        from jittest.llm import HTTPLLM
+        llm = HTTPLLM("openai/gpt-4.1", api_key="oai-key")
+        self.assertEqual(llm.api_model, "gpt-4.1")
+        self.assertEqual(llm.base_url, "https://api.openai.com/v1")
 
 
 if __name__ == "__main__":
