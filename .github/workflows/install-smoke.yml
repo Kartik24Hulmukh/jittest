@@ -24,4 +24,6 @@ jobs:
 
       - run: cd /tmp && jittest version
 
-      - run: cd /tmp && jittest doctor
+      - run: cd $GITHUB_WORKSPACE && jittest doctor
+
+      - run: cd $GITHUB_WORKSPACE && jittest run --base HEAD~1 --head HEAD --dry-run
