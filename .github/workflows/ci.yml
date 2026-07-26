@@ -104,3 +104,18 @@ jobs:
             --base ${{ github.event.pull_request.base.sha }} \
             --head ${{ github.event.pull_request.head.sha }} \
             --dry-run --json
+
+  # Umbrella job that reports a single "ci" check name for branch protection.
+  # dogfood is deliberately excluded from needs: it is informational only and
+  # must not block a merge.
+  ci:
+    if: always()
+    needs: [lint, test, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check aggregate result
+        run: |
+          echo "lint=${{ needs.lint.result }} test=${{ needs.test.result }} build=${{ needs.build.result }}"
+          [ "${{ needs.lint.result }}" = "success" ] || exit 1
+          [ "${{ needs.test.result }}" = "success" ] || exit 1
+          [ "${{ needs.build.result }}" = "success" ] || exit 1
