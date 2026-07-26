@@ -39,7 +39,7 @@ jobs:
         with:
           model: anthropic/claude-sonnet-4-5
           api-key: ${{ secrets.JITTEST_API_KEY }}
-          api-key-env: JITTEST_API_KEY
           budget: "1.00"
           max-targets: "5"
+          dry-run: ${{ steps.key-check.outputs.has-key == 'false' }}
           fail-on-regression: "false"   # advisory first. Earn the gate.
