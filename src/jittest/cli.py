@@ -49,6 +49,8 @@ def _add_run_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("--json", dest="as_json", action="store_true")
     p.add_argument("--markdown", metavar="PATH", default=None,
                    help="also write the markdown report to this file")
+    p.add_argument("--telemetry-json", metavar="PATH", default=None,
+                   help="write one JSON object per candidate to this file")
     p.add_argument("--quiet", action="store_true")
 
 
@@ -123,6 +125,13 @@ def _cmd_run(args: argparse.Namespace) -> int:
 
     if args.markdown:
         Path(args.markdown).write_text(markdown or "", encoding="utf-8")
+
+    if args.telemetry_json:
+        tel_path = Path(args.telemetry_json)
+        tel_path.parent.mkdir(parents=True, exist_ok=True)
+        with tel_path.open("w", encoding="utf-8") as tfh:
+            for tel in report.telemetry:
+                tfh.write(tel.as_jsonl() + "\n")
 
     if args.comment:
         print(f"  github: {upsert_pr_comment(markdown)}", file=sys.stderr)

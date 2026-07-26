@@ -16,6 +16,7 @@ rerun that keeps the report trustworthy.
 """
 from __future__ import annotations
 
+import json
 import time
 from contextlib import ExitStack
 from dataclasses import dataclass, field
@@ -32,7 +33,57 @@ from .llm import BaseLLM, BudgetExceeded, LLMError, strip_code_fence
 from .risk import RiskScore, rank
 from .safety import check_candidate
 
-__all__ = ["Finding", "Report", "run", "import_path_for", "existing_tests_for"]
+__all__ = ["Finding", "Report", "CandidateTelemetry", "run",
+           "import_path_for", "existing_tests_for"]
+
+# Disposition values for per-candidate telemetry.
+DISPOSITIONS = (
+    "model_declined",          # model returned NO_CANDIDATE or empty
+    "parse_failed",            # response could not be parsed as code
+    "safety_rejected",         # static safety gate rejected the candidate
+    "head_uncollectable",      # test could not be collected/imported on head
+    "head_passed",             # test passes on head (hardening, not catching)
+    "head_failed_base_failed_latent",  # fails on both head and base
+    "head_flaky",              # non-deterministic across reruns on head
+    "catching",                # passes on base, fails on head
+)
+
+
+@dataclass
+class CandidateTelemetry:
+    """Structured per-candidate telemetry line.
+
+    Never contains candidate source code or API keys.
+    """
+    target_symbol: str = ""
+    target_file: str = ""
+    risk_score: float = 0.0
+    candidate_index: int = 0
+    disposition: str = ""
+    head_outcome: str = ""
+    base_outcome: str = ""
+    rerun_agreement: bool = True
+    assessor_verdict: str = ""
+    assessor_confidence: float = 0.0
+    failure_excerpt: str = ""
+
+    def as_dict(self) -> dict:
+        return {
+            "target_symbol": self.target_symbol,
+            "target_file": self.target_file,
+            "risk_score": self.risk_score,
+            "candidate_index": self.candidate_index,
+            "disposition": self.disposition,
+            "head_outcome": self.head_outcome,
+            "base_outcome": self.base_outcome,
+            "rerun_agreement": self.rerun_agreement,
+            "assessor_verdict": self.assessor_verdict,
+            "assessor_confidence": self.assessor_confidence,
+            "failure_excerpt": self.failure_excerpt,
+        }
+
+    def as_jsonl(self) -> str:
+        return json.dumps(self.as_dict())
 
 
 @dataclass
@@ -67,6 +118,7 @@ class Report:
     reruns: int = 2
     errors: list[str] = field(default_factory=list)
     version: str = __version__
+    telemetry: list[CandidateTelemetry] = field(default_factory=list)
 
     @property
     def has_regression(self) -> bool:
@@ -93,6 +145,7 @@ class Report:
             "duration_s": round(self.duration_s, 2),
             "has_regression": self.has_regression,
             "errors": self.errors,
+            "telemetry": [t.as_dict() for t in self.telemetry],
             "findings": [
                 {
                     "file": f.target.file_path,
@@ -160,6 +213,63 @@ def _repro(base: str, head: str, file_hint: str) -> str:
 
 def _bump(counter: dict[str, int], key: str) -> None:
     counter[key] = counter.get(key, 0) + 1
+
+
+def _disposition_from_verdict(verdict) -> str:
+    """Map a Verdict's reason string to a canonical disposition."""
+    reason = verdict.reason.lower()
+    if "could not be collected" in reason and "head" in reason:
+        return "head_uncollectable"
+    if "timed out" in reason and "head" in reason:
+        return "head_uncollectable"
+    if "passes on head" in reason:
+        return "head_passed"
+    if "non-deterministic" in reason or "flaky" in reason:
+        return "head_flaky"
+    if "fails on base too" in reason or "pre-existing" in reason:
+        return "head_failed_base_failed_latent"
+    if "could not be collected" in reason and "base" in reason:
+        return "head_failed_base_failed_latent"
+    return "head_failed_base_failed_latent"
+
+
+def _telemetry(report, target, rs, attempt, disposition,
+               verdict=None, assessment=None) -> None:
+    """Emit one structured telemetry line and append to report.telemetry."""
+    head_out = ""
+    base_out = ""
+    rerun_agree = True
+    excerpt = ""
+
+    if verdict is not None:
+        head_out = verdict.head_outcome.value if verdict.head_outcome else ""
+        base_out = verdict.base_outcome.value if verdict.base_outcome else ""
+        # Rerun agreement is False when the verdict mentions flaky/non-deterministic
+        rerun_agree = "non-deterministic" not in verdict.reason.lower()
+        excerpt = "\n".join(verdict.failure_excerpt.splitlines()[:5])
+
+    assess_v = ""
+    assess_c = 0.0
+    if assessment is not None:
+        assess_v = assessment.verdict
+        assess_c = assessment.confidence
+
+    tel = CandidateTelemetry(
+        target_symbol=target.symbol,
+        target_file=target.file_path,
+        risk_score=rs.score,
+        candidate_index=attempt,
+        disposition=disposition,
+        head_outcome=head_out,
+        base_outcome=base_out,
+        rerun_agreement=rerun_agree,
+        assessor_verdict=assess_v,
+        assessor_confidence=assess_c,
+        failure_excerpt=excerpt,
+    )
+    report.telemetry.append(tel)
+    # Emit structured line to stderr (visible in workflow logs)
+    print(f"  telemetry: {tel.as_jsonl()}", flush=True)
 
 
 def run(
@@ -249,12 +359,23 @@ def run(
                     code = strip_code_fence(raw)
                     if not code or P.NO_CANDIDATE in code:
                         _bump(report.discarded, "model_declined")
+                        _telemetry(report, t, rs, attempt, "model_declined")
+                        continue
+
+                    # Check if the response is parseable as Python code
+                    import ast as _ast
+                    try:
+                        _ast.parse(code)
+                    except SyntaxError:
+                        _bump(report.discarded, "parse_failed")
+                        _telemetry(report, t, rs, attempt, "parse_failed")
                         continue
 
                     report.candidates_generated += 1
                     check = check_candidate(code)
                     if not check.ok:
                         _bump(report.discarded, f"unsafe_or_invalid: {check.reason}")
+                        _telemetry(report, t, rs, attempt, "safety_rejected")
                         continue
 
                     verdict = differential_check(
@@ -275,6 +396,9 @@ def run(
 
                     if not verdict.is_catching:
                         _bump(report.discarded, verdict.reason)
+                        disp = _disposition_from_verdict(verdict)
+                        _telemetry(report, t, rs, attempt, disp,
+                                   verdict=verdict)
                         if verdict.latent and cfg.latent_mode:
                             finding = Finding(
                                 target=t, test_code=code,
@@ -330,6 +454,8 @@ def run(
                     finding.ledger_id = ledger.record(cand)
                     report.findings.append(finding)
                     found = True
+                    _telemetry(report, t, rs, attempt, "catching",
+                               verdict=verdict, assessment=assessment)
                     emit(f"  catching test found ({assessment.badge})")
     finally:
         report.cost_usd = llm.usage.cost_usd
