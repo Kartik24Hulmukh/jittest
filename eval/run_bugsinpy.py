@@ -124,7 +124,7 @@ def evaluate_one(spec: BugSpec, repo: Path, model: str, budget: float,
 
     Uses the INVERTED setup: base = fixed commit, head = buggy commit.
     """
-    from jittest.config import Config
+    from jittest.config import load_config
     from jittest.llm import build_llm
     from jittest.pipeline import run as run_pipeline
 
@@ -138,9 +138,28 @@ def evaluate_one(spec: BugSpec, repo: Path, model: str, budget: float,
         return res
 
     try:
-        cfg = Config(model=model or "anthropic/claude-sonnet-4-5",
-                     budget_usd=budget, max_targets=5,
-                     candidates_per_target=4, risk_threshold=0.35)
+        # Use load_config so JITTEST_MODEL and JITTEST_API_BASE from the
+        # environment are respected. The previous code created Config
+        # directly, which ignored env vars and hardcoded the model.
+        from jittest.config import load_config
+        cfg = load_config(repo, overrides={
+            "model": model,
+            "budget_usd": budget,
+            "max_targets": 5,
+            "candidates_per_target": 4,
+            "risk_threshold": 0.35,
+        })
+
+        # Fail-fast guard: if an API key is present but dry-run was selected,
+        # refuse to report an unmeasured result.
+        import os as _os
+        has_key = bool(_os.getenv("JITTEST_API_KEY"))
+        if has_key and dry_run:
+            res.status = "error"
+            res.error = "api key present but dry-run selected: refusing to report an unmeasured result"
+            res.seconds = round(time.time() - t0, 1)
+            return res
+
         llm = build_llm(cfg.model, dry_run=dry_run, budget_usd=cfg.budget_usd,
                         temperature=cfg.temperature)
         report = run_pipeline(
@@ -156,10 +175,11 @@ def evaluate_one(spec: BugSpec, repo: Path, model: str, budget: float,
         res.cost_usd = report.cost_usd
         res.priced = report.priced
         res.caught = res.reported > 0
-        # A bug with zero candidates AND zero elapsed time was not measured,
+        # A bug with zero candidates AND zero elapsed model time was not measured,
         # not missed. Reporting it as "missed" with catch_rate 0.0 is a false
         # statement about the product.
-        if res.candidates == 0 and res.seconds == 0.0:
+        elapsed = round(time.time() - t0, 1)
+        if res.candidates == 0 and elapsed == 0.0:
             res.status = "not_measured"
         else:
             res.status = "caught" if res.reported > 0 else "missed"

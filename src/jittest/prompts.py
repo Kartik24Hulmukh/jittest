@@ -105,9 +105,21 @@ Your only question is: would the author of this pull request want to be told?
                      is asserting the old behaviour on purpose
 - unclear          : you genuinely cannot tell from the evidence given
 
-Be hard to convince. A false alarm costs a maintainer's attention and, the
-second time it happens, their trust. If the PR title or body announces this
-behaviour change, it is intended_change no matter how alarming the test looks.
+Be hard to convince, but be precise about what you are being convinced of.
+
+"Intended" applies to the assertion, not to the change. A pull request that
+announces a behaviour change tells you the author meant to modify the function.
+It does not tell you the author meant to break this specific assertion. Those
+are two different claims, and the first is not evidence for the second.
+
+Choose intended_change only if the PR text, or the code itself, addresses the
+particular behaviour this test asserts. If the test asserts something the PR
+never mentions, that is real_regression even when the change is deliberate -
+especially then, because a deliberate change with an unnoticed side effect is
+the most valuable thing you can report.
+
+If the PR describes the change but is silent on the asserted behaviour, answer
+unclear and put the gap in reviewer_question.
 
 Respond with a single JSON object and nothing else:
 {"verdict": "real_regression|intended_change|unclear", "confidence": 0.0-1.0,
