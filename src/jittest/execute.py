@@ -14,6 +14,11 @@ fault, so it is reported only in latent mode.
 
 That asymmetry is why jittest can be quiet. Most tools cannot be quiet, because
 they have no mechanical way to know when they have nothing to say.
+
+One warning, learned the hard way (Defect 32). "PASSES on base" is half of the
+rule above, and an exit code cannot establish it. Both runners exit 0 when they
+skipped everything they collected, so success must be proved by positive
+evidence that a test really executed. See Outcome.NOTRUN.
 """
 from __future__ import annotations
 
@@ -23,6 +28,7 @@ import subprocess
 import sys
 import tempfile
 import uuid
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
@@ -34,6 +40,10 @@ __all__ = [
 
 CANDIDATE_PREFIX = "test_jittest_candidate_"
 _PACKAGE_ROOT = str(Path(__file__).resolve().parent.parent)
+TAIL_LIMIT = 2500
+
+# A <testcase> carrying any of these did not execute and pass.
+_NONPASSING_TAGS = frozenset({"skipped", "failure", "error"})
 
 
 class Outcome(StrEnum):
@@ -41,6 +51,7 @@ class Outcome(StrEnum):
     FAIL = "fail"
     ERROR = "error"       # could not be collected or imported
     TIMEOUT = "timeout"
+    NOTRUN = "notrun"     # exited cleanly, but no test actually executed
 
 
 @dataclass
@@ -51,9 +62,12 @@ class RunResult:
     stderr: str = ""
 
     @property
-    def tail(self, limit: int = 2500) -> str:
+    def tail(self) -> str:
+        # This was declared as a property taking a `limit` argument, which is
+        # unreachable: a property is called with no arguments, so the parameter
+        # could never be supplied by any caller.
         combined = (self.stdout + "\n" + self.stderr).strip()
-        return combined[-limit:]
+        return combined[-TAIL_LIMIT:]
 
 
 @dataclass
@@ -142,15 +156,44 @@ def _env_for(workdir: Path) -> dict:
     return env
 
 
+def _passed_from_junit(report: Path) -> int | None:
+    """Count testcases that executed and did not skip, fail or error.
+
+    Returns None when the report is absent or unparseable. The caller must
+    treat None as "unknown", never as "passed": the whole point of reading this
+    file is to refuse to infer success from an exit code.
+    """
+    try:
+        text = report.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    try:
+        root = ET.fromstring(text)
+    except ET.ParseError:
+        return None
+    passed = 0
+    for case in root.iter("testcase"):
+        if any(child.tag in _NONPASSING_TAGS for child in case):
+            continue
+        passed += 1
+    return passed
+
+
 def run_test(workdir: Path, test_code: str, timeout_s: int = 120) -> RunResult:
     """Write the candidate into the checkout, run it, then remove it."""
     workdir = Path(workdir)
-    candidate = workdir / f"{CANDIDATE_PREFIX}{uuid.uuid4().hex[:8]}.py"
+    token = uuid.uuid4().hex[:8]
+    candidate = workdir / f"{CANDIDATE_PREFIX}{token}.py"
     candidate.write_text(test_code, encoding="utf-8")
     runner = detect_runner()
+    uses_pytest = "pytest" in runner
+    report = workdir / f".jittest-junit-{token}.xml"
+    command = [*runner, str(candidate)]
+    if uses_pytest:
+        command.append(f"--junitxml={report}")
     try:
         proc = subprocess.run(
-            [*runner, str(candidate)],
+            command,
             cwd=str(workdir), env=_env_for(workdir),
             capture_output=True, text=True, errors="replace", timeout=timeout_s,
         )
@@ -160,13 +203,29 @@ def run_test(workdir: Path, test_code: str, timeout_s: int = 120) -> RunResult:
         candidate.unlink(missing_ok=True)
 
     code = proc.returncode
-    if code == 0:
-        outcome = Outcome.PASS
-    elif code == 1:
-        outcome = Outcome.FAIL
-    else:
-        # pytest: 2 usage/collection, 3 internal, 4 usage, 5 no tests collected.
-        outcome = Outcome.ERROR
+    try:
+        if code == 0:
+            # Defect 32. Exit 0 does NOT mean a test passed. pytest exits 0 when
+            # every test was SKIPPED, and the mini-runner did the same for every
+            # fixture-using test. "PASSES on base" is the load-bearing half of
+            # the oracle, so it now requires positive evidence that at least one
+            # test really executed and really passed.
+            outcome = Outcome.PASS
+            if uses_pytest:
+                passed = _passed_from_junit(report)
+                if not passed:          # None (unknown) or 0 (nothing passed)
+                    outcome = Outcome.NOTRUN
+        elif code == 1:
+            outcome = Outcome.FAIL
+        elif code == 5:
+            # Both runners use 5 for "no tests collected", and the mini-runner
+            # now also uses it for "collected, but every one was skipped".
+            outcome = Outcome.NOTRUN
+        else:
+            # pytest: 2 usage/collection, 3 internal, 4 usage.
+            outcome = Outcome.ERROR
+    finally:
+        report.unlink(missing_ok=True)
     return RunResult(outcome, code, proc.stdout, proc.stderr)
 
 
@@ -197,6 +256,11 @@ def differential_check(
         if first.outcome is Outcome.TIMEOUT:
             return Verdict(False, "discarded: timed out on head",
                            failure_excerpt=first.tail, head_outcome=first.outcome)
+        if first.outcome is Outcome.NOTRUN:
+            return Verdict(False, "discarded: no test actually executed on head "
+                                  "(every collected test was skipped, or none "
+                                  "was collected)",
+                           failure_excerpt=first.tail, head_outcome=first.outcome)
         if first.outcome is Outcome.PASS:
             return Verdict(False, "discarded: passes on head, so it is a hardening "
                                   "test rather than a catching test",
@@ -222,6 +286,15 @@ def differential_check(
             return Verdict(False, "discarded: fails on base too, so the fault is "
                                   "pre-existing rather than caused by this change",
                            latent=True, failure_excerpt=first.tail,
+                           head_outcome=first.outcome, base_outcome=on_base.outcome)
+        if on_base.outcome is Outcome.NOTRUN:
+            # The dangerous one. Previously this returned exit code 0, was read
+            # as PASS, and produced "catching: passes on base, fails on head"
+            # for a test that never ran on base at all - including when the
+            # symbol under test did not yet exist on that revision.
+            return Verdict(False, "discarded: no test executed on base, so "
+                                  "'passes on base' cannot be established",
+                           failure_excerpt=on_base.tail,
                            head_outcome=first.outcome, base_outcome=on_base.outcome)
         return Verdict(False, "discarded: could not be collected on base, so no "
                               "comparison is possible",
