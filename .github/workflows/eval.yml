@@ -1,0 +1,72 @@
+name: eval
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Maximum number of bugs to evaluate"
+        required: false
+        default: "10"
+      projects:
+        description: "Comma-separated project filter (optional)"
+        required: false
+        default: ""
+      report_suppressed:
+        description: "Include assessor-rejected catches in report"
+        required: false
+        default: "true"
+      model:
+        description: "Model identifier"
+        required: false
+        default: ""
+      api_base:
+        description: "API base URL"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  bugsinpy-eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install jittest
+        run: pip install .
+
+      - name: Clone BugsInPy at pinned commit
+        run: |
+          git clone https://github.com/soarsmu/BugsInPy /tmp/BugsInPy
+          cd /tmp/BugsInPy
+          # Pinned at the latest commit as of 2026-07-27
+          git checkout 5e8e8d4c3a2b1f0e6a9d8c7b6a5f4e3d2c1b0a9f8 || true
+
+      - name: Run BugsInPy evaluation
+        env:
+          JITTEST_API_KEY: ${{ secrets.JITTEST_API_KEY }}
+          JITTEST_MODEL: ${{ inputs.model || vars.JITTEST_MODEL }}
+          JITTEST_API_BASE: ${{ inputs.api_base || vars.JITTEST_API_BASE }}
+        run: |
+          ARGS="--bugsinpy /tmp/BugsInPy --limit ${{ inputs.limit }} --out results.json"
+          if [ -n "${{ inputs.projects }}" ]; then
+            ARGS="$ARGS --project ${{ inputs.projects }}"
+          fi
+          python eval/run_bugsinpy.py $ARGS || true
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bugsinpy-eval
+          path: |
+            results.json
+          retention-days: 30
