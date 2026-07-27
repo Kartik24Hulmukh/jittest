@@ -37,7 +37,7 @@ def _git(repo: Path, *args: str) -> str:
 class _Pair:
     """A repo with two commits: an older 'buggy' one and a newer 'fixed' one."""
 
-    def __enter__(self) -> "_Pair":
+    def __enter__(self) -> _Pair:
         self.tmp = tempfile.TemporaryDirectory()
         self.repo = Path(self.tmp.name)
         _git(self.repo, "init", "-q", "-b", "main", ".")
