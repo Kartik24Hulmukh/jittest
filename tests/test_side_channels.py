@@ -71,23 +71,34 @@ class TestUnwritableSideChannels(unittest.TestCase):
         )
         return proc.returncode, proc.stdout + proc.stderr
 
+    def _unwritable_path(self, suffix: str) -> str:
+        """A path that cannot be created on any OS.
+
+        On POSIX, /proc is a virtual filesystem and writes to non-existent
+        paths under it fail. On Windows there is no /proc, so we use a
+        path inside a null device descriptor instead.
+        """
+        if os.name == "nt":
+            return f"NUL/does-not-exist/{suffix}"
+        return f"/proc/does-not-exist/{suffix}"
+
     def test_unwritable_github_output_is_a_warning(self):
         rc, out = self._run(
-            {"GITHUB_OUTPUT": "/proc/does-not-exist/github_output.txt"})
+            {"GITHUB_OUTPUT": self._unwritable_path("github_output.txt")})
         self.assertNotIn("Traceback (most recent call last)", out)
         self.assertIn("could not write GITHUB_OUTPUT", out)
         self.assertEqual(rc, 0)
 
     def test_unwritable_markdown_path_is_a_warning(self):
         rc, out = self._run(
-            extra_args=("--markdown", "/proc/does-not-exist/report.md"))
+            extra_args=("--markdown", self._unwritable_path("report.md")))
         self.assertNotIn("Traceback (most recent call last)", out)
         self.assertIn("could not write markdown", out)
         self.assertEqual(rc, 0)
 
     def test_unwritable_telemetry_path_is_a_warning(self):
         rc, out = self._run(
-            extra_args=("--telemetry-json", "/proc/does-not-exist/tel.jsonl"))
+            extra_args=("--telemetry-json", self._unwritable_path("tel.jsonl")))
         self.assertNotIn("Traceback (most recent call last)", out)
         self.assertIn("could not write telemetry", out)
         self.assertEqual(rc, 0)
