@@ -31,7 +31,7 @@ SUSPECT = re.compile(r"\b(revert|hotfix|regression|rollback)\b", re.I)
 
 def git(repo: Path, *args: str) -> str:
     return subprocess.run(
-        ["git", "-C", str(repo), *args], capture_output=True, text=True
+        ["git", "-C", str(repo), *args], capture_output=True, text=True, errors="replace"
     ).stdout
 
 

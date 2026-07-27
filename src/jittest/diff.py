@@ -220,13 +220,27 @@ def _slice(source: str, start: int, end: int) -> str:
 
 
 def git_diff(repo: Path | str, base: str, head: str) -> str:
-    """Three-dot diff (merge-base), falling back to two-dot for shallow clones."""
+    """Diff between two revisions, as unified text.
+
+    Tries the three-dot (merge-base) spec first, because that is what a pull
+    request means: what head introduced, not what base did after they diverged.
+
+    Falls through to the two-dot spec when the three-dot spec SUCCEEDS but
+    produces no output. That is not an exotic edge case. Whenever head is an
+    ancestor of base - a revert, or the BugsInPy inversion where base is the
+    fixed commit and head is the buggy one - merge-base(base, head) IS head, so
+    the three-dot diff is legitimately empty and exits zero. Returning that
+    empty result made jittest report "no changes" for every such comparison,
+    silently and successfully, which is the worst possible way to be wrong.
+
+    Returns "" only when both specs produce nothing.
+    """
     for spec in (f"{base}...{head}", f"{base}..{head}"):
         res = subprocess.run(
             ["git", "-C", str(repo), "diff", "--unified=3", "--no-color", spec],
-            capture_output=True, text=True,
+            capture_output=True, text=True, errors="replace",
         )
-        if res.returncode == 0:
+        if res.returncode == 0 and res.stdout.strip():
             return res.stdout
     return ""
 
@@ -234,7 +248,7 @@ def git_diff(repo: Path | str, base: str, head: str) -> str:
 def git_show(repo: Path | str, rev: str, path: str) -> str:
     res = subprocess.run(
         ["git", "-C", str(repo), "show", f"{rev}:{path}"],
-        capture_output=True, text=True,
+        capture_output=True, text=True, errors="replace",
     )
     return res.stdout if res.returncode == 0 else ""
 

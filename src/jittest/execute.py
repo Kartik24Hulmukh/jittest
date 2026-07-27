@@ -71,7 +71,7 @@ def detect_runner() -> list[str]:
     if os.getenv("JITTEST_FORCE_MINIRUNNER") == "1":
         return [sys.executable, "-m", "jittest._minirunner"]
     probe = subprocess.run(
-        [sys.executable, "-c", "import pytest"], capture_output=True, text=True,
+        [sys.executable, "-c", "import pytest"], capture_output=True, text=True, errors="replace",
     )
     if probe.returncode == 0:
         return [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider"]
@@ -96,7 +96,7 @@ class Worktree:
         added = subprocess.run(
             ["git", "-C", str(self.repo), "worktree", "add", "--detach",
              "--force", str(self.path), self.rev],
-            capture_output=True, text=True,
+            capture_output=True, text=True, errors="replace",
         )
         if added.returncode == 0:
             self._added = True
@@ -108,13 +108,13 @@ class Worktree:
         cloned = subprocess.run(
             ["git", "clone", "--quiet", "--shared", "--no-checkout",
              str(self.repo), str(self.path)],
-            capture_output=True, text=True,
+            capture_output=True, text=True, errors="replace",
         )
         if cloned.returncode != 0:
             raise RuntimeError(f"cannot materialise {self.rev}: {cloned.stderr.strip()}")
         subprocess.run(
             ["git", "-C", str(self.path), "checkout", "--quiet", "--detach", self.rev],
-            capture_output=True, text=True, check=True,
+            capture_output=True, text=True, errors="replace", check=True,
         )
         return self.path
 
@@ -123,7 +123,7 @@ class Worktree:
             subprocess.run(
                 ["git", "-C", str(self.repo), "worktree", "remove", "--force",
                  str(self.path)],
-                capture_output=True, text=True,
+                capture_output=True, text=True, errors="replace",
             )
         shutil.rmtree(self.path, ignore_errors=True)
 
@@ -152,7 +152,7 @@ def run_test(workdir: Path, test_code: str, timeout_s: int = 120) -> RunResult:
         proc = subprocess.run(
             [*runner, str(candidate)],
             cwd=str(workdir), env=_env_for(workdir),
-            capture_output=True, text=True, timeout=timeout_s,
+            capture_output=True, text=True, errors="replace", timeout=timeout_s,
         )
     except subprocess.TimeoutExpired:
         return RunResult(Outcome.TIMEOUT, -1, "", f"timed out after {timeout_s}s")
