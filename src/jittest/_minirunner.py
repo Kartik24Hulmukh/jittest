@@ -8,10 +8,14 @@ runner.
 
 Exit codes deliberately mirror pytest so the oracle needs no special cases:
 
-    0  all tests passed
+    0  at least one test executed and every executed test passed
     1  at least one test failed
     2  the file could not be imported or collected
-    5  no tests were collected
+    5  nothing executed: no tests collected, or every collected test skipped
+
+Exit 0 deliberately requires a test to have ACTUALLY RUN. Returning 0 after
+skipping everything is what let the differential oracle conclude "passes on
+base" about code it never executed (Defect 32).
 """
 from __future__ import annotations
 
@@ -20,6 +24,7 @@ import importlib.util
 import inspect
 import sys
 import traceback
+import unittest
 from pathlib import Path
 
 EXIT_OK = 0
@@ -72,6 +77,7 @@ def run_file(path: Path) -> int:
         return EXIT_NO_TESTS
 
     failures = 0
+    executed = 0
     for label, target in tests:
         try:
             if isinstance(target, tuple):
@@ -89,13 +95,24 @@ def run_file(path: Path) -> int:
                           "mini-runner; install pytest", file=sys.stderr)
                     continue
                 _call(target)
+            executed += 1
             print(f"PASS {label}")
+        except unittest.SkipTest as exc:
+            # A skipped test asserted nothing. It must not count as a pass.
+            print(f"SKIP {label}: {exc}", file=sys.stderr)
         except BaseException as exc:
+            executed += 1
             failures += 1
             print(f"FAIL {label}: {type(exc).__name__}: {exc}", file=sys.stderr)
             traceback.print_exc()
 
-    return EXIT_FAILED if failures else EXIT_OK
+    if failures:
+        return EXIT_FAILED
+    if executed == 0:
+        print("no tests executed (every collected test was skipped)",
+              file=sys.stderr)
+        return EXIT_NO_TESTS
+    return EXIT_OK
 
 
 def main(argv: list[str] | None = None) -> int:
