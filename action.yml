@@ -16,7 +16,7 @@ inputs:
     required: false
     default: ""
   model:
-    description: "Model identifier, e.g. anthropic/claude-sonnet-4-5"
+    description: "Model identifier for any OpenAI-compatible provider, e.g. z-ai/glm-5.2"
     required: false
     default: ""
   budget:

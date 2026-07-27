@@ -186,7 +186,7 @@ This is **v0.2.1, alpha**. What is verified and what is not:
 
 | | Status |
 | --- | --- |
-| Oracle, pipeline, safety gate, ledger, config, CLI, telemetry | 92 offline tests, green, no network required |
+| Oracle, pipeline, safety gate, ledger, config, CLI, telemetry | 144 offline tests, green, no network required |
 | Oracle behaviour on a real seeded regression in a real git repo | tested |
 | Catch rate on a public benchmark (BugsInPy) | **not yet measured** — harness in `eval/` |
 | False-positive rate on real PRs | **not yet measured** |

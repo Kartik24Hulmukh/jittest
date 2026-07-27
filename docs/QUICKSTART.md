@@ -24,7 +24,7 @@ jittest 0.2.1 doctor
   [ok  ] inside a git repository - /home/you/your-repo
   [ok  ] test runner: pytest
   [warn] model API key present - only --dry-run will work
-  [ok  ] model anthropic/claude-sonnet-4-5, budget $1.00, max targets 5
+  [ok  ] model z-ai/glm-5.2, budget $1.00, max targets 5
   [ok  ] ledger /home/you/your-repo/.jittest/ledger.db
   [ok  ] 15 ignore pattern(s)
 ```

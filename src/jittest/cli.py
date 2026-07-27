@@ -124,23 +124,39 @@ def _cmd_run(args: argparse.Namespace) -> int:
         print(to_terminal(report))
 
     if args.markdown:
-        Path(args.markdown).write_text(markdown or "", encoding="utf-8")
+        try:
+            Path(args.markdown).write_text(markdown or "", encoding="utf-8")
+        except OSError as exc:
+            print(f"  warning: could not write markdown to {args.markdown}: "
+                  f"{exc}", file=sys.stderr)
 
     if args.telemetry_json:
-        tel_path = Path(args.telemetry_json)
-        tel_path.parent.mkdir(parents=True, exist_ok=True)
-        with tel_path.open("w", encoding="utf-8") as tfh:
-            for tel in report.telemetry:
-                tfh.write(tel.as_jsonl() + "\n")
+        # Side-channel output must never lose a finding that was already proven.
+        try:
+            tel_path = Path(args.telemetry_json)
+            tel_path.parent.mkdir(parents=True, exist_ok=True)
+            with tel_path.open("w", encoding="utf-8") as tfh:
+                for tel in report.telemetry:
+                    tfh.write(tel.as_jsonl() + "\n")
+        except OSError as exc:
+            print(f"  warning: could not write telemetry to "
+                  f"{args.telemetry_json}: {exc}", file=sys.stderr)
 
     if args.comment:
         print(f"  github: {upsert_pr_comment(markdown)}", file=sys.stderr)
 
     if os.getenv("GITHUB_OUTPUT"):
-        with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
-            fh.write(f"regressions={'true' if report.has_regression else 'false'}\n")
-            fh.write(f"findings={len(report.findings)}\n")
-            fh.write(f"cost_usd={report.cost_usd:.4f}\n")
+        # A CI runner with an unwritable or stale GITHUB_OUTPUT path must not
+        # turn a completed analysis into a crash with a non-zero exit code.
+        try:
+            with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+                fh.write(
+                    f"regressions={'true' if report.has_regression else 'false'}\n")
+                fh.write(f"findings={len(report.findings)}\n")
+                fh.write(f"cost_usd={report.cost_usd:.4f}\n")
+        except OSError as exc:
+            print(f"  warning: could not write GITHUB_OUTPUT: {exc}",
+                  file=sys.stderr)
 
     if (args.fail_on_regression or cfg.fail_on_regression) and report.has_regression:
         return 1
@@ -194,12 +210,12 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
     print(f"jittest {__version__} doctor")
     check("python >= 3.11", sys.version_info >= (3, 11), sys.version.split()[0])
 
-    git = subprocess.run(["git", "--version"], capture_output=True, text=True)
+    git = subprocess.run(["git", "--version"], capture_output=True, text=True, errors="replace")
     check("git available", git.returncode == 0, git.stdout.strip())
 
     inside = subprocess.run(
         ["git", "-C", str(repo), "rev-parse", "--is-inside-work-tree"],
-        capture_output=True, text=True)
+        capture_output=True, text=True, errors="replace")
     check("inside a git repository", inside.stdout.strip() == "true", str(repo))
 
     runner = detect_runner()
@@ -212,8 +228,8 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
 
     has_key = any(os.getenv(k) for k in
                   ("JITTEST_API_KEY", "ANTHROPIC_API_KEY", "OPENAI_API_KEY"))
-    print(f"  [{'ok  ' if has_key else 'warn'}] model API key present"
-          f"{'' if has_key else ' - only --dry-run will work'}")
+    print(f"  [{'ok  ' if has_key else 'warn'}] model API key "
+          f"{'found' if has_key else 'NOT found - only --dry-run will work'}")
 
     # Check whether the configured model has known pricing.
     from .llm import PRICES

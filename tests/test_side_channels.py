@@ -1,19 +1,15 @@
-"""Regression tests for Defect 29: reporting a finding could destroy it.
+"""Regression tests for Defect 29: side-channel writes could kill a good run.
 
-By the time jittest writes a side channel it has already done the expensive,
-valuable work: found a risky changed symbol, generated a candidate test, run it
-on both revisions, confirmed it passes on base and fails on head, reran it to
-rule out flakiness, and had an assessor judge it a real regression.
+The run had already completed, the oracle had already proven a regression, and
+the assessor had already approved it - and then jittest crashed with an
+unhandled OSError because the *reporting side channel* was not writable:
+GITHUB_OUTPUT pointing at a path that no longer exists, a read-only artifact
+directory, a full disk. On a CI runner that turns a successful analysis into a
+red build with a traceback, which is exactly the behaviour that gets a tool
+removed from a repository.
 
-Then it wrote `GITHUB_OUTPUT`, or a `--markdown` file, or a `--telemetry-json`
-file, unguarded. If that path was not writable - a read-only mount, a stale
-`GITHUB_OUTPUT` from a cancelled job, a `--markdown` path inside a directory
-that does not exist, a full disk - the process raised OSError and exited
-non-zero. The user saw a crash, not a regression. The act of reporting the
-finding destroyed the finding.
-
-A failure to write a convenience artifact is never a reason to discard a proven
-result. All three writes now warn and continue.
+The rule this file locks in: a failure to *write about* the result must never
+destroy the result. Every optional output path degrades to a warning.
 """
 import os
 import subprocess
@@ -22,58 +18,87 @@ import tempfile
 import unittest
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-SRC = REPO_ROOT / "src"
-
-# A path that cannot be created or written on Linux CI runners.
-UNWRITABLE = "/proc/does-not-exist/jittest-output"
+ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
 
 
-def run_cli(args, env_extra=None, cwd=None):
-    env = dict(os.environ)
-    env["PYTHONPATH"] = str(SRC)
-    env.pop("JITTEST_API_KEY", None)
-    if env_extra:
-        env.update(env_extra)
+def _git(repo, *args):
     return subprocess.run(
-        [sys.executable, "-m", "jittest.cli", *args],
-        capture_output=True, text=True, errors="replace", env=env,
-        cwd=str(cwd or REPO_ROOT), timeout=300,
+        ["git", "-C", str(repo), *args],
+        capture_output=True, text=True, errors="replace",
     )
 
 
 class TestUnwritableSideChannels(unittest.TestCase):
-    """An unwritable side channel must warn, not crash."""
+    """Optional outputs degrade to warnings; the run still exits cleanly."""
 
-    def assert_no_crash(self, proc, expected_warning):
-        combined = proc.stdout + proc.stderr
-        self.assertNotIn("Traceback (most recent call last)", combined,
-                         f"crashed instead of warning:\n{combined[-2000:]}")
-        self.assertIn(expected_warning, combined,
-                      f"no warning emitted:\n{combined[-2000:]}")
+    @classmethod
+    def setUpClass(cls):
+        cls.repo = Path(tempfile.mkdtemp())
+        _git(cls.repo, "init", "-q", "-b", "main", ".")
+        _git(cls.repo, "config", "user.email", "t@x.dev")
+        _git(cls.repo, "config", "user.name", "t")
+        _git(cls.repo, "config", "commit.gpgsign", "false")
+        (cls.repo / "money.py").write_text(
+            "def apply_discount(price, pct):\n"
+            "    return max(0.0, price - price * pct / 100.0)\n",
+            encoding="utf-8",
+        )
+        _git(cls.repo, "add", "-A")
+        _git(cls.repo, "commit", "-qm", "base")
+        cls.base = _git(cls.repo, "rev-parse", "HEAD").stdout.strip()
+        (cls.repo / "money.py").write_text(
+            "def apply_discount(price, pct):\n"
+            "    return price - price * pct / 100.0\n",
+            encoding="utf-8",
+        )
+        _git(cls.repo, "add", "-A")
+        _git(cls.repo, "commit", "-qm", "head")
+        cls.head = _git(cls.repo, "rev-parse", "HEAD").stdout.strip()
+
+    def _run(self, extra_env=None, extra_args=()):
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(SRC)
+        env.pop("JITTEST_API_KEY", None)
+        env.pop("GITHUB_OUTPUT", None)
+        env.update(extra_env or {})
+        proc = subprocess.run(
+            [sys.executable, "-m", "jittest.cli", "run",
+             "--repo", str(self.repo), "--base", self.base,
+             "--head", self.head, "--dry-run", *extra_args],
+            capture_output=True, text=True, errors="replace", env=env,
+            timeout=300,
+        )
+        return proc.returncode, proc.stdout + proc.stderr
 
     def test_unwritable_github_output_is_a_warning(self):
-        proc = run_cli(["run", "--dry-run"],
-                       {"GITHUB_OUTPUT": UNWRITABLE})
-        self.assert_no_crash(proc, "could not write GITHUB_OUTPUT")
+        rc, out = self._run(
+            {"GITHUB_OUTPUT": "/proc/does-not-exist/github_output.txt"})
+        self.assertNotIn("Traceback (most recent call last)", out)
+        self.assertIn("could not write GITHUB_OUTPUT", out)
+        self.assertEqual(rc, 0)
 
     def test_unwritable_markdown_path_is_a_warning(self):
-        proc = run_cli(["run", "--dry-run", "--markdown", UNWRITABLE])
-        self.assert_no_crash(proc, "could not write markdown")
+        rc, out = self._run(
+            extra_args=("--markdown", "/proc/does-not-exist/report.md"))
+        self.assertNotIn("Traceback (most recent call last)", out)
+        self.assertIn("could not write markdown", out)
+        self.assertEqual(rc, 0)
 
     def test_unwritable_telemetry_path_is_a_warning(self):
-        proc = run_cli(["run", "--dry-run", "--telemetry-json", UNWRITABLE])
-        self.assert_no_crash(proc, "could not write telemetry")
+        rc, out = self._run(
+            extra_args=("--telemetry-json", "/proc/does-not-exist/tel.jsonl"))
+        self.assertNotIn("Traceback (most recent call last)", out)
+        self.assertIn("could not write telemetry", out)
+        self.assertEqual(rc, 0)
 
     def test_writable_github_output_still_receives_keys(self):
-        """The guard must not silently swallow the normal, working path."""
-        out = Path(tempfile.mkdtemp()) / "github_output"
-        out.write_text("", encoding="utf-8")
-        proc = run_cli(["run", "--dry-run"], {"GITHUB_OUTPUT": str(out)})
-        written = out.read_text(encoding="utf-8")
-        self.assertNotIn("could not write GITHUB_OUTPUT", proc.stdout + proc.stderr)
+        out_file = Path(tempfile.mkdtemp()) / "gh_out.txt"
+        rc, _ = self._run({"GITHUB_OUTPUT": str(out_file)})
+        self.assertEqual(rc, 0)
+        written = out_file.read_text(encoding="utf-8")
         for key in ("regressions=", "findings=", "cost_usd="):
-            self.assertIn(key, written, f"{key} missing from GITHUB_OUTPUT")
+            self.assertIn(key, written)
 
 
 if __name__ == "__main__":

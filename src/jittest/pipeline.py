@@ -119,6 +119,9 @@ class Report:
     errors: list[str] = field(default_factory=list)
     version: str = __version__
     telemetry: list[CandidateTelemetry] = field(default_factory=list)
+    # Number of model requests actually issued during this run. This is the
+    # only honest answer to "was anything measured?". Elapsed time is not.
+    model_requests: int = 0
 
     @property
     def has_regression(self) -> bool:
@@ -143,6 +146,7 @@ class Report:
             "discarded": self.discarded,
             "cost_usd": round(self.cost_usd, 4),
             "duration_s": round(self.duration_s, 2),
+            "model_requests": self.model_requests,
             "has_regression": self.has_regression,
             "errors": self.errors,
             "telemetry": [t.as_dict() for t in self.telemetry],
@@ -295,7 +299,11 @@ def run(
 
     diff_text = git_diff(repo, base, head)
     if not diff_text.strip():
-        report.errors.append("empty diff between base and head")
+        report.errors.append(
+            "empty diff between base and head: no changed Python symbols were "
+            "found, so no test could be generated. This is a property of the "
+            "revision pair, not a result about the code.")
+        report.model_requests = llm.usage.calls
         report.duration_s = time.time() - started
         return report
 
@@ -308,6 +316,7 @@ def run(
     emit(f"{len(all_targets)} changed symbol(s), {len(ranked)} above risk threshold")
 
     if not ranked:
+        report.model_requests = llm.usage.calls
         report.duration_s = time.time() - started
         return report
 
@@ -460,6 +469,7 @@ def run(
     finally:
         report.cost_usd = llm.usage.cost_usd
         report.priced = llm.usage.priced
+        report.model_requests = llm.usage.calls
         report.duration_s = time.time() - started
         if owns_ledger:
             ledger.close()

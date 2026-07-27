@@ -55,6 +55,7 @@ class BugResult:
     reported: int = 0
     cost_usd: float = 0.0
     priced: bool = True
+    model_requests: int = 0
     seconds: float = 0.0
     error: str = ""
     telemetry: list[dict] = field(default_factory=list)
@@ -113,9 +114,24 @@ def clone(spec: BugSpec, workdir: Path) -> Path | None:
         return None
     r = subprocess.run(
         ["git", "clone", "--quiet", spec.repo_url, str(dest)],
-        capture_output=True, text=True,
+        capture_output=True, text=True, errors="replace",
     )
     return dest if r.returncode == 0 else None
+
+
+def classify(model_requests: int, reported: int) -> str:
+    """Status for one bug.
+
+    Measurement is defined by whether the model was asked, never by elapsed
+    time. The previous version keyed "not_measured" on a wall-clock value
+    rounded to one decimal place, which meant the same unmeasured bug became
+    "missed" on a slower runner and was then averaged into catch_rate 0.0.
+    A tool that reports a catch rate for a run in which it never called a model
+    is making a false claim about itself.
+    """
+    if model_requests <= 0:
+        return "not_measured"
+    return "caught" if reported > 0 else "missed"
 
 
 def evaluate_one(spec: BugSpec, repo: Path, model: str, budget: float,
@@ -141,7 +157,6 @@ def evaluate_one(spec: BugSpec, repo: Path, model: str, budget: float,
         # Use load_config so JITTEST_MODEL and JITTEST_API_BASE from the
         # environment are respected. The previous code created Config
         # directly, which ignored env vars and hardcoded the model.
-        from jittest.config import load_config
         cfg = load_config(repo, overrides={
             "model": model,
             "budget_usd": budget,
@@ -174,17 +189,13 @@ def evaluate_one(spec: BugSpec, repo: Path, model: str, budget: float,
         res.reported = len([f for f in report.findings if f.assessment.should_report])
         res.cost_usd = report.cost_usd
         res.priced = report.priced
-        res.caught = res.reported > 0
-        # A bug with zero candidates AND zero elapsed model time was not measured,
-        # not missed. Reporting it as "missed" with catch_rate 0.0 is a false
-        # statement about the product.
-        elapsed = round(time.time() - t0, 1)
-        if res.candidates == 0 and elapsed == 0.0:
-            res.status = "not_measured"
-        else:
-            res.status = "caught" if res.reported > 0 else "missed"
+        res.model_requests = getattr(report, "model_requests", 0)
+        res.status = classify(res.model_requests, res.reported)
+        if res.status == "not_measured" and report.errors and not res.error:
+            res.error = report.errors[0]
         res.reasons = [f.assessment.summary for f in report.findings]
         res.telemetry = [t.as_dict() for t in report.telemetry]
+        res.seconds = round(time.time() - t0, 1)
     except Exception as exc:  # noqa: BLE001 - eval harness must not die on one bug
         res.status = "error"
         res.error = f"{type(exc).__name__}: {exc}"
@@ -241,6 +252,7 @@ def main() -> int:
         "bugs_not_measured": len([r for r in results if r.status == "not_measured"]),
         "bugs_skipped": len([r for r in results if r.status == "skipped"]),
         "bugs_errored": len([r for r in results if r.status == "error"]),
+        "model_requests_total": sum(r.model_requests for r in results),
         "catch_rate": round(len(caught) / max(measured_count, 1), 3) if measured_count > 0 else None,
         "mean_candidates": round(
             statistics.fmean([r.candidates for r in usable] or [0]), 1),
