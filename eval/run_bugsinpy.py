@@ -49,7 +49,7 @@ class BugSpec:
 class BugResult:
     project: str
     bug_id: str
-    status: str = "pending"  # pending, caught, missed, skipped, error
+    status: str = "pending"  # pending, caught, missed, not_measured, skipped, error
     candidates: int = 0
     catching_candidates: int = 0
     reported: int = 0
@@ -156,7 +156,13 @@ def evaluate_one(spec: BugSpec, repo: Path, model: str, budget: float,
         res.cost_usd = report.cost_usd
         res.priced = report.priced
         res.caught = res.reported > 0
-        res.status = "caught" if res.reported > 0 else "missed"
+        # A bug with zero candidates AND zero elapsed time was not measured,
+        # not missed. Reporting it as "missed" with catch_rate 0.0 is a false
+        # statement about the product.
+        if res.candidates == 0 and res.seconds == 0.0:
+            res.status = "not_measured"
+        else:
+            res.status = "caught" if res.reported > 0 else "missed"
         res.reasons = [f.assessment.summary for f in report.findings]
         res.telemetry = [t.as_dict() for t in report.telemetry]
     except Exception as exc:  # noqa: BLE001 - eval harness must not die on one bug
@@ -206,14 +212,16 @@ def main() -> int:
               f"cost={'unpriced' if not r.priced else f'${r.cost_usd:.3f}'} "
               f"{r.error}", file=sys.stderr)
 
-    usable = [r for r in results if r.status not in ("error", "skipped")]
+    usable = [r for r in results if r.status not in ("error", "skipped", "not_measured")]
     caught = [r for r in usable if r.status == "caught"]
+    measured_count = len(usable)
     summary = {
         "bugs_attempted": len(results),
-        "bugs_usable": len(usable),
+        "bugs_measured": measured_count,
+        "bugs_not_measured": len([r for r in results if r.status == "not_measured"]),
         "bugs_skipped": len([r for r in results if r.status == "skipped"]),
         "bugs_errored": len([r for r in results if r.status == "error"]),
-        "catch_rate": round(len(caught) / max(len(usable), 1), 3),
+        "catch_rate": round(len(caught) / max(measured_count, 1), 3) if measured_count > 0 else None,
         "mean_candidates": round(
             statistics.fmean([r.candidates for r in usable] or [0]), 1),
         "oracle_yield": round(
