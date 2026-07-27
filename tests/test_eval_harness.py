@@ -82,10 +82,10 @@ class TestEvalHarness(unittest.TestCase):
         )
         result = evaluate_one(spec, self.repo, model="dry-run",
                               budget=1.0, dry_run=True)
-        # DryRunLLM produces 0 candidates with 0 elapsed time, so this is
-        # not_measured, not missed. A bug where no model call was made was
-        # not measured, not missed.
-        self.assertEqual(result.status, "not_measured")
+        # DryRunLLM produces 0 candidates but takes > 0 seconds, so this is
+        # "missed" (the model was called but found nothing), not "not_measured"
+        # (which applies only when the model was never called).
+        self.assertEqual(result.status, "missed")
         self.assertEqual(result.error, "")
         self.assertTrue(len(result.telemetry) > 0)
 
