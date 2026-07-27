@@ -112,7 +112,7 @@ def _open_mode(node: ast.Call) -> str | None:
 def check_candidate(code: str, max_bytes: int = 20000) -> CodeCheck:
     if not code.strip():
         return CodeCheck(False, "empty candidate")
-    if len(code.encode("utf-8")) > max_bytes:
+    if len(code.encode("utf-8")) >= max_bytes:
         return CodeCheck(False, "candidate is implausibly large")
 
     try:
