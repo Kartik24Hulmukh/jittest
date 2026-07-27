@@ -32,11 +32,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11bd719bc4335c47e24bf1c2b1c8e69b6e4e2a4b  # v7
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -82,7 +82,7 @@ jobs:
 
       - name: Upload results
         if: always()
-        uses: actions/upload-artifact@b4b6b8997bb39c5e85dd5c9c3c7cf9d6c5f1f1f0  # v7
+        uses: actions/upload-artifact@v7
         with:
           name: bugsinpy-eval
           path: |
