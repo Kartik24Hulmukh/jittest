@@ -170,32 +170,30 @@ def check_candidate(code: str, max_bytes: int = 20000) -> CodeCheck:
 
         if isinstance(node, ast.Call):
             func = node.func
-            if isinstance(func, ast.Name):
-                if func.id in BANNED_CALLS:
-                    return CodeCheck(False, f"calls banned builtin `{func.id}`")
-                if func.id in ("getattr", "setattr", "delattr"):
-                    # A constant attribute name is ordinary test code. A computed
-                    # one is how you spell `os.system` without typing it.
-                    if len(node.args) < 2 or not _is_const_str(node.args[1]):
+            if isinstance(func, ast.Name) and func.id in BANNED_CALLS:
+                return CodeCheck(False, f"calls banned builtin `{func.id}`")
+            if (isinstance(func, ast.Name)
+                    and func.id in ("getattr", "setattr", "delattr")
+                    and (len(node.args) < 2 or not _is_const_str(node.args[1]))):
+                    return CodeCheck(
+                        False, f"computed attribute access via `{func.id}`")
+            if isinstance(func, ast.Name) and func.id == "open":
+                mode = _open_mode(node)
+                if mode and (set(mode) & _WRITE_MODES):
+                    # A hard-coded write target is the tamper vector: a
+                    # candidate that rewrites a source file in the worktree
+                    # can manufacture a base/head difference. A computed
+                    # path is how legitimate fixtures use scratch files
+                    # (temp dirs, paths derived from __file__), so that is
+                    # warned about rather than rejected.
+                    if node.args and _is_const_str(node.args[0]):
                         return CodeCheck(
-                            False, f"computed attribute access via `{func.id}`")
-                if func.id == "open":
-                    mode = _open_mode(node)
-                    if mode and (set(mode) & _WRITE_MODES):
-                        # A hard-coded write target is the tamper vector: a
-                        # candidate that rewrites a source file in the worktree
-                        # can manufacture a base/head difference. A computed
-                        # path is how legitimate fixtures use scratch files
-                        # (temp dirs, paths derived from __file__), so that is
-                        # warned about rather than rejected.
-                        if node.args and _is_const_str(node.args[0]):
-                            return CodeCheck(
-                                False,
-                                f"opens the hard-coded path "
-                                f"`{node.args[0].value}` with mode `{mode}`; a "  # type: ignore[union-attr]
-                                "candidate that writes into the worktree can "
-                                "corrupt the base/head comparison")
-                        warnings.append(f"opens a computed path with mode `{mode}`")
+                            False,
+                            f"opens the hard-coded path "
+                            f"`{node.args[0].value}` with mode `{mode}`; a "  # type: ignore[union-attr]
+                            "candidate that writes into the worktree can "
+                            "corrupt the base/head comparison")
+                    warnings.append(f"opens a computed path with mode `{mode}`")
             if isinstance(func, ast.Attribute):
                 if func.attr in BANNED_ATTRS:
                     return CodeCheck(False, f"calls `{func.attr}`")

@@ -4,10 +4,10 @@ Each test here corresponds to a construct that an adversarial sweep found was
 accepted, mis-typed or silently dropped before. They exist so the next person
 to simplify one of these checks has to argue with a failing test first.
 """
-import pathlib
 import json
 import math
 import os
+import pathlib
 import tempfile
 import unittest
 from pathlib import Path

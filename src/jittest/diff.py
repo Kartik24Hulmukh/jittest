@@ -61,9 +61,7 @@ def is_safe_repo_path(path: str) -> bool:
         return False
     if any(segment == ".." for segment in p.split("/")):
         return False
-    if any(ord(ch) < 32 for ch in p):
-        return False
-    return True
+    return not any(ord(ch) < 32 for ch in p)
 
 
 _HUNK = re.compile(r"^@@ -(?P<os>\d+)(?:,(?P<ol>\d+))? \+(?P<ns>\d+)(?:,(?P<nl>\d+))? @@")
