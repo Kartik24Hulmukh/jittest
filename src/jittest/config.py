@@ -4,16 +4,25 @@
     ->  JITTEST_* environment variables  ->  command line flags
 
 Read with stdlib `tomllib`. No PyYAML, no pydantic.
+
+Every value is type-checked and range-clamped before it reaches the rest of the
+program. This is not defensiveness for its own sake: a stress sweep found that
+`JITTEST_BUDGET_USD=nan` produced a config whose `as_dict()` could not be
+serialised as strict JSON, which silently corrupts the telemetry artifact the
+evaluation harness reads, and `risk_threshold=5.0` produced a run that analysed
+nothing while reporting success. Both are the kind of failure that looks like
+"the tool found nothing" rather than "the tool was misconfigured".
 """
 from __future__ import annotations
 
+import math
 import os
 import tomllib
-from dataclasses import asdict, dataclass, field
+from dataclasses import MISSING, asdict, dataclass, field, fields
 from fnmatch import fnmatch
 from pathlib import Path
 
-__all__ = ["Config", "load_config", "DEFAULT_IGNORES"]
+__all__ = ["Config", "load_config", "DEFAULT_IGNORES", "normalise_values"]
 
 # Generated, vendored or throwaway code. Testing it wastes money and reviewer
 # patience in equal measure.
@@ -34,6 +43,19 @@ _ENV = {
     "reruns": ("JITTEST_RERUNS", int),
     "min_confidence": ("JITTEST_MIN_CONFIDENCE", float),
     "ledger_path": ("JITTEST_LEDGER", str),
+}
+
+# field -> (kind, low, high). Bounds are inclusive.
+_LIMITS: dict[str, tuple[type, float, float]] = {
+    "budget_usd": (float, 0.0, 1000.0),
+    "max_targets": (int, 1, 200),
+    "candidates_per_target": (int, 1, 20),
+    "risk_threshold": (float, 0.0, 1.0),
+    "timeout_s": (int, 1, 3600),
+    "reruns": (int, 0, 10),
+    "temperature": (float, 0.0, 2.0),
+    "min_confidence": (float, 0.0, 1.0),
+    "repair_attempts": (int, 0, 5),
 }
 
 
@@ -65,6 +87,87 @@ class Config:
 
     def as_dict(self) -> dict:
         return asdict(self)
+
+
+def _defaults() -> dict:
+    out: dict = {}
+    for f in fields(Config):
+        if f.default_factory is not MISSING:      # type: ignore[misc]
+            out[f.name] = f.default_factory()    # type: ignore[misc]
+        else:
+            out[f.name] = f.default
+    return out
+
+
+def normalise_values(values: dict) -> tuple[dict, list[str]]:
+    """Drop unknown keys, coerce types, clamp ranges. Never raises.
+
+    Returns the cleaned mapping and a list of human-readable notes describing
+    every correction, so `doctor` can tell the user their config was wrong
+    instead of quietly doing something else.
+    """
+    defaults = _defaults()
+    clean: dict = {}
+    notes: list[str] = []
+
+    for key, raw in values.items():
+        if key not in defaults:
+            notes.append(f"ignored unknown option `{key}`")
+            continue
+        default = defaults[key]
+
+        if key == "ignore":
+            if isinstance(raw, str):
+                notes.append("`ignore` must be a list of patterns; ignored a bare string")
+                continue
+            if not isinstance(raw, (list, tuple)):
+                notes.append(f"`ignore` must be a list, got {type(raw).__name__}; ignored")
+                continue
+            clean[key] = [str(x) for x in raw]
+            continue
+
+        if isinstance(default, bool):
+            clean[key] = bool(raw)
+            continue
+
+        if key in _LIMITS:
+            kind, low, high = _LIMITS[key]
+            # bool is an int subclass, and `budget_usd = true` is never intended.
+            if isinstance(raw, bool):
+                notes.append(f"`{key}` was a boolean; using default {default}")
+                clean[key] = default
+                continue
+            try:
+                value = kind(raw)
+            except (TypeError, ValueError):
+                notes.append(f"`{key}` must be a number, got {raw!r}; using default {default}")
+                clean[key] = default
+                continue
+            if isinstance(value, float) and not math.isfinite(value):
+                notes.append(f"`{key}` was {raw!r} (not a finite number); using default {default}")
+                clean[key] = default
+                continue
+            if value < low:
+                notes.append(f"`{key}` {value} is below the minimum {low}; clamped")
+                value = kind(low)
+            elif value > high:
+                notes.append(f"`{key}` {value} is above the maximum {high}; clamped")
+                value = kind(high)
+            clean[key] = value
+            continue
+
+        if isinstance(default, str):
+            if not isinstance(raw, str):
+                notes.append(f"`{key}` must be a string, got {type(raw).__name__}; "
+                             f"using default {default!r}")
+                clean[key] = default
+                continue
+            clean[key] = raw
+            continue
+
+        clean[key] = raw
+
+    return clean, notes
 
 
 def _from_toml(repo: Path) -> dict:
@@ -108,9 +211,10 @@ def load_config(repo: Path | str = ".", overrides: dict | None = None) -> Config
         if value is not None:
             values[key] = value
 
-    valid = {f for f in Config.__dataclass_fields__}
+    values, notes = normalise_values(values)
+
     extra_ignores = values.pop("ignore", None)
-    cfg = Config(**{k: v for k, v in values.items() if k in valid})
+    cfg = Config(**values)
 
     if extra_ignores:
         cfg.ignore = list(DEFAULT_IGNORES) + list(extra_ignores)
@@ -124,4 +228,7 @@ def load_config(repo: Path | str = ".", overrides: dict | None = None) -> Config
         cfg.ignore += [ln.strip() for ln in lines
                        if ln.strip() and not ln.strip().startswith("#")]
 
+    # Not a dataclass field on purpose: `as_dict()` stays a clean, strictly
+    # JSON-serialisable snapshot of configuration only.
+    cfg.notes = tuple(notes)  # type: ignore[attr-defined]
     return cfg

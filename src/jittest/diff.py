@@ -20,10 +20,52 @@ from pathlib import Path
 
 __all__ = [
     "Hunk", "FileDiff", "ChangeTarget", "parse_unified_diff", "enclosing_symbols",
-    "extract_targets", "is_probably_test_file", "git_diff", "git_show", "TEST_DIRS",
+    "extract_targets", "is_probably_test_file", "is_safe_repo_path", "git_diff",
+    "git_show", "TEST_DIRS",
 ]
 
-_DIFF_GIT = re.compile(r"^diff --git a/(?P<a>.+?) b/(?P<b>.+)$")
+# Paths with spaces or non-ASCII bytes are emitted by git in quoted, escaped
+# form: `diff --git "a/my file.py" "b/my file.py"`. The original pattern only
+# matched the bare form, so any change to a file with a space in its name was
+# silently invisible to jittest.
+_DIFF_GIT = re.compile(
+    r'^diff --git (?P<a>"(?:[^"\\]|\\.)*"|\S+) (?P<b>"(?:[^"\\]|\\.)*"|\S+)$')
+_DRIVE = re.compile(r"^[A-Za-z]:[\\/]")
+_ESCAPES = (("\\\\", "\\"), ('\\"', '"'), ("\\t", "\t"), ("\\n", "\n"), ("\\r", "\r"))
+
+
+def _unquote(token: str, side: str) -> str:
+    """Strip git's quoting and the leading `a/` or `b/` prefix."""
+    if len(token) >= 2 and token.startswith('"') and token.endswith('"'):
+        token = token[1:-1]
+        for escaped, plain in _ESCAPES:
+            token = token.replace(escaped, plain)
+    prefix = side + "/"
+    if token.startswith(prefix):
+        token = token[len(prefix):]
+    return token
+
+
+def is_safe_repo_path(path: str) -> bool:
+    """True if `path` can only refer to something inside the repository.
+
+    A diff is attacker-authored input: the pull request author chooses every
+    byte of it. These paths are then handed to `git show <rev>:<path>` and used
+    to build import paths, so a path that escapes the repository root has no
+    legitimate meaning and is dropped rather than sanitised.
+    """
+    if not path or "\x00" in path:
+        return False
+    p = path.replace("\\", "/")
+    if p.startswith("/") or p.startswith("//") or _DRIVE.match(path):
+        return False
+    if any(segment == ".." for segment in p.split("/")):
+        return False
+    if any(ord(ch) < 32 for ch in p):
+        return False
+    return True
+
+
 _HUNK = re.compile(r"^@@ -(?P<os>\d+)(?:,(?P<ol>\d+))? \+(?P<ns>\d+)(?:,(?P<nl>\d+))? @@")
 TEST_DIRS = {"test", "tests", "testing", "__tests__"}
 
@@ -87,7 +129,8 @@ def parse_unified_diff(text: str) -> list[FileDiff]:
     for line in text.splitlines():
         m = _DIFF_GIT.match(line)
         if m:
-            current = FileDiff(path=m.group("b"), old_path=m.group("a"))
+            current = FileDiff(path=_unquote(m.group("b"), "b"),
+                               old_path=_unquote(m.group("a"), "a"))
             files.append(current)
             hunk = None
             continue
@@ -217,6 +260,8 @@ def extract_targets(
     targets: list[ChangeTarget] = []
     for fd in parse_unified_diff(diff_text):
         if fd.is_deleted or not fd.path.endswith(".py"):
+            continue
+        if not is_safe_repo_path(fd.path):
             continue
         if is_probably_test_file(fd.path):
             continue

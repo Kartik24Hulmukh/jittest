@@ -50,3 +50,24 @@ plainly rather than oversold.
 Open a GitHub security advisory, or email the maintainer address in the README.
 Response within 72 hours. Please do not open a public issue for anything
 exploitable.
+
+## What the candidate safety gate is, and what it is not
+
+jittest asks a model to write a test and then executes that test inside your CI
+runner. `src/jittest/safety.py` is a static AST gate that runs before execution.
+It rejects imports of dangerous modules, banned builtins (including aliases such
+as `f = eval`), reflection helpers (`getattr` with a computed name,
+`importlib.import_module`, `runpy`), interpreter gadgets (`__subclasses__`,
+`__globals__`, `__mro__`), writes to constant filesystem paths, and vacuous
+assertions.
+
+It is not a sandbox. It is a static check, and static checks on Python are
+defeatable in principle. Treat it as defence in depth, not as containment. If you
+run jittest on untrusted pull requests, run it in an ephemeral runner with no
+secrets beyond the model key, which is what the bundled workflow does.
+
+One bypass class deserves specific mention because it attacks the result rather
+than the host: a candidate test that writes to a source file in the worktree can
+manufacture a difference between the base and head runs, and therefore forge a
+catching test. The gate blocks the constant-path form of this. If you find a
+variant it does not block, please report it privately.

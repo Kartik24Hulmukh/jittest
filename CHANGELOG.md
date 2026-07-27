@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.2.2 - 2026-07-27
+
+### Security
+- **Safety gate bypasses closed (16 of 22 adversarial payloads were accepted before this change).** An adversarial sweep of `safety.check_candidate` found six independent classes of bypass: `from os import system` style imports (the module was allowed and the callee arrived as a bare `Name`), builtin aliasing (`f = eval` then `f(...)`), reflection (`getattr`, `importlib.import_module`, `builtins.eval`, `runpy.run_module`), interpreter gadgets (`''.__class__.__mro__[1].__subclasses__()`, `func.__globals__`), filesystem mutation, and vacuous asserts (`assert 1`). The filesystem class was the most serious: a candidate test that rewrites a worktree source file can manufacture a base/head difference and therefore forge an oracle catch, which would corrupt the one signal in this project that has been trustworthy. Added `BANNED_IMPORT_NAMES`, `BANNED_DUNDERS`, alias detection for banned builtins referenced without being called, constant-string-only `getattr`/`setattr`/`delattr`, and rejection of write-mode `open()` on a constant path. `__class__`, `str.replace`, `list.remove` and `file.write` remain allowed because they are ubiquitous in legitimate tests. Post-fix sweep: 0 dangerous payloads accepted, 0 legitimate payloads rejected, 4000-input fuzz with no crashes.
+- **Diff paths can no longer escape the repository.** The parser yielded `../../etc/passwd` and `/etc/shadow` as change targets, and those paths flow into `git show <rev>:<path>` and worktree writes. Added `diff.is_safe_repo_path` (rejects empty paths, null bytes, absolute paths, UNC paths, drive letters, any `..` segment, control characters) and enforced it in `extract_targets`.
+
+### Fixed
+- **Config validation.** `load_config` accepted wrong types and out-of-range values: `budget_usd = "lots"` stayed a string, `risk_threshold = 5.0` was accepted (producing a run that analyses nothing while reporting success), and `JITTEST_BUDGET_USD=nan|inf|1e400` produced a config whose `as_dict()` was not strict-JSON serialisable, silently corrupting the telemetry artifact the eval harness reads. Added `normalise_values()` with a per-field range table; unknown keys are dropped, bools are rejected where numbers are expected, non-finite values are rejected, and out-of-range values are clamped. Rejections and clamps are recorded on `cfg.notes`, a non-field attribute, so `as_dict()` stays strictly serialisable.
+- **Git-quoted diff paths were silently dropped.** Any change to a file whose name contains a space was invisible to jittest. The `diff --git` header matcher now handles quoted paths and unescapes them.
+- **Version drift.** `pyproject.toml` and `jittest.__version__` were maintained independently and had already diverged. Added a test that fails when they disagree.
+
+### Added
+- `tests/test_hardening.py` - 21 tests covering safety-gate bypasses (17 must-reject and 10 must-accept payloads plus a 500-input fuzz), config normalisation including a strict-JSON environment sweep, diff path safety including a 400-input mutation fuzz, and assessor confidence coercion.
+
+### Not fixed in this release
+- The assessor still labels every oracle-confirmed catch `intended_change` at high confidence, so nothing is ever reported to a pull request. This is the launch-blocking defect and it cannot be settled with self-mutation canaries; it needs real bugs.
+
 ## 0.2.1 — 2026-07-26
 
 ### Fixed
