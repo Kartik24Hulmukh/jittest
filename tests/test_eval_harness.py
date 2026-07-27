@@ -91,6 +91,31 @@ class TestEvalHarness(unittest.TestCase):
 
     def test_evaluate_one_skips_missing_commits(self):
         """Bugs with missing commit IDs are skipped, not errored."""
+
+    def test_fail_fast_guard_key_present_dry_run(self):
+        """If an API key is present but dry-run is selected, the harness must
+        exit with an error, not silently produce an unmeasured result."""
+        import os
+        spec = BugSpec(
+            project="test_project", bug_id="1",
+            repo_url="file://" + str(self.repo),
+            buggy_commit=self.buggy_sha,
+            fixed_commit=self.fixed_sha,
+        )
+        old_key = os.environ.get("JITTEST_API_KEY")
+        os.environ["JITTEST_API_KEY"] = "fake-key-for-test"
+        try:
+            result = evaluate_one(spec, self.repo, model="dry-run",
+                                  budget=1.0, dry_run=True)
+        finally:
+            if old_key is not None:
+                os.environ["JITTEST_API_KEY"] = old_key
+            else:
+                os.environ.pop("JITTEST_API_KEY", None)
+        self.assertEqual(result.status, "error")
+        self.assertIn("api key present but dry-run selected", result.error)
+
+    def test_evaluate_one_skips_missing_commits_actual(self):
         spec = BugSpec(
             project="test_project", bug_id="2",
             repo_url="", buggy_commit="", fixed_commit="",
