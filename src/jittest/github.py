@@ -87,7 +87,7 @@ def _gh_cli_fallback(body: str) -> bool:
         return False
     for extra in (["--edit-last"], []):
         res = subprocess.run(["gh", "pr", "comment", number, *extra, "--body", body],
-                            capture_output=True, text=True)
+                            capture_output=True, text=True, errors="replace")
         if res.returncode == 0:
             return True
     return False

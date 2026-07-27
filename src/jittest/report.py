@@ -14,8 +14,41 @@ MARKER = "<!-- jittest-report -->"
 __all__ = ["MARKER", "to_markdown", "to_terminal", "summary_line"]
 
 
+def _untrusted(text: str, limit: int = 2000) -> str:
+    """Neutralise model-authored or program-captured text before embedding it.
+
+    Defect 31. Everything rendered from an assessment summary, a reviewer
+    question, or captured pytest output is untrusted: the assessor is a language
+    model reading a diff and a PR body that anyone can write. If such text
+    contains the literal upsert marker, the posted comment ends up with several
+    markers, and `upsert_pr_comment` can no longer tell which comment is ours -
+    so a crafted PR body could make jittest edit the wrong comment, or orphan
+    its own. HTML comment delimiters are also broken up so injected text cannot
+    comment out the rest of the report.
+
+    The marker is kept human-readable rather than stripped, so a reviewer can
+    still see what the model tried to emit.
+    """
+    if not text:
+        return ""
+    clean = str(text)
+    clean = clean.replace(MARKER, "(jittest-report marker removed)")
+    clean = clean.replace("<!--", "&lt;!--").replace("-->", "--&gt;")
+    if len(clean) > limit:
+        clean = clean[:limit] + " ...(truncated)"
+    return clean
+
+
 def _fence(code: str, lang: str = "python") -> str:
-    return f"```{lang}\n{code.strip()}\n```"
+    """Fence a block, widening the fence so embedded backticks cannot escape it."""
+    body = str(code).strip()
+    longest = 0
+    run = 0
+    for ch in body:
+        run = run + 1 if ch == "`" else 0
+        longest = max(longest, run)
+    fence = "`" * max(3, longest + 1)
+    return f"{fence}{lang}\n{body}\n{fence}"
 
 
 def summary_line(report) -> str:
@@ -52,24 +85,28 @@ def to_markdown(report, include_empty: bool = False) -> str:
         out.append("")
         out.append(f"#### {i}. `{f.target.qualified}`")
         if f.assessment.summary:
-            out.append(f"**{f.assessment.summary}**")
+            out.append(f"**{_untrusted(f.assessment.summary, 600)}**")
         if f.assessment.reviewer_question:
-            out.append(f"> {f.assessment.reviewer_question}")
+            question = _untrusted(f.assessment.reviewer_question, 600)
+            # A multi-line question would break out of the block quote.
+            out.append("> " + question.replace("\n", " "))
+        reasons = ", ".join(_untrusted(r, 120) for r in f.risk_reasons)
         out.append(
-            f"<sub>assessor: {f.assessment.badge} "
+            f"<sub>assessor: {_untrusted(f.assessment.badge, 40)} "
             f"(confidence {f.assessment.confidence:.2f}, "
-            f"severity {f.assessment.severity}) - risk score "
-            f"{f.risk_score:.2f} [{', '.join(f.risk_reasons) or 'none'}]</sub>"
+            f"severity {_untrusted(f.assessment.severity, 40)}) - risk score "
+            f"{f.risk_score:.2f} [{reasons or 'none'}]</sub>"
         )
         out.append("")
         out.append(_fence(f.test_code))
         out.append("<details><summary>Failure output on head</summary>")
         out.append("")
-        out.append(_fence(f.failure_excerpt or "(no output captured)", "text"))
+        out.append(_fence(
+            _untrusted(f.failure_excerpt, 2000) or "(no output captured)", "text"))
         out.append("</details>")
         out.append("<details><summary>Reproduce locally</summary>")
         out.append("")
-        out.append(_fence(f.repro_command, "bash"))
+        out.append(_fence(_untrusted(f.repro_command, 600), "bash"))
         out.append("</details>")
 
     if low:
@@ -79,9 +116,9 @@ def to_markdown(report, include_empty: bool = False) -> str:
                    "confidently call a regression</summary>")
         out.append("")
         for f in low:
-            out.append(f"- `{f.target.qualified}` - {f.assessment.badge} "
+            out.append(f"- `{f.target.qualified}` - {_untrusted(f.assessment.badge, 40)} "
                        f"(confidence {f.assessment.confidence:.2f}). "
-                       f"{f.assessment.summary}")
+                       f"{_untrusted(f.assessment.summary, 400)}")
         out.append("</details>")
 
     if report.latent_findings:
@@ -103,8 +140,14 @@ def to_markdown(report, include_empty: bool = False) -> str:
         f"jittest v{report.version}, model `{report.model}`.</sub>"
     )
     if report.errors:
-        out.append(f"<sub>Non-fatal issues: {'; '.join(report.errors[:3])}</sub>")
-    return "\n".join(out)
+        issues = "; ".join(_untrusted(e, 300) for e in report.errors[:3])
+        out.append(f"<sub>Non-fatal issues: {issues}</sub>")
+
+    rendered = "\n".join(out)
+    # Structural invariant: exactly one marker, always the first thing in the
+    # comment. If this ever fails, upsert would target the wrong comment.
+    assert rendered.count(MARKER) == 1, "report must contain exactly one marker"
+    return rendered
 
 
 def to_terminal(report) -> str:

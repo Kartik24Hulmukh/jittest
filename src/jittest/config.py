@@ -222,7 +222,7 @@ def load_config(repo: Path | str = ".", overrides: dict | None = None) -> Config
     ignore_file = repo / ".jittestignore"
     if ignore_file.exists():
         try:
-            lines = ignore_file.read_text(encoding="utf-8").splitlines()
+            lines = ignore_file.read_text(encoding="utf-8", errors="replace").splitlines()
         except OSError:
             lines = []
         cfg.ignore += [ln.strip() for ln in lines

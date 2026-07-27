@@ -78,7 +78,7 @@ jobs:
           if [ -n "${{ inputs.projects }}" ]; then
             ARGS="$ARGS --project ${{ inputs.projects }}"
           fi
-          python eval/run_bugsinpy.py $ARGS || true
+          python eval/run_bugsinpy.py $ARGS
 
       - name: Upload results
         if: always()
@@ -88,3 +88,11 @@ jobs:
           path: |
             results.json
           retention-days: 30
+
+      # A benchmark that measured nothing must not be able to report success.
+      # Two earlier runs finished in 37 and 32 seconds, concluded "success",
+      # and contained no measurement whatsoever. This step exists so that
+      # cannot happen again silently. It runs after the upload so the artifact
+      # is always available for diagnosis.
+      - name: Assert something was actually measured
+        run: python eval/assert_measured.py results.json

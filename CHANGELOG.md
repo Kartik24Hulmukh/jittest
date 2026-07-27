@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.2.3 - 2026-07-27
+
+### Fixed
+- **`git_diff` returned nothing, successfully, whenever head was an ancestor of base.** The function tried the three-dot (merge-base) spec first and returned its output whenever git exited zero. When head is an ancestor of base — a revert, or the BugsInPy evaluation setup where `base` is the fixed commit and `head` is the buggy one — `merge-base(base, head)` *is* head, so the three-dot diff is legitimately empty and exits zero. The old loop accepted that empty result and never reached the two-dot fallback. Every BugsInPy evaluation run therefore saw zero changed files, generated zero candidates, called the model zero times, and reported success. Proven locally: the commits exist, `merge-base --is-ancestor` returns 0, the three-dot diff is empty, the two-dot diff shows the change, and `git_diff` returned 0 bytes. The fix falls through to the two-dot spec when the three-dot spec succeeds but produces no output, and returns `""` only when both produce nothing. Three-dot semantics are preserved for genuinely diverged branches, which is the normal pull-request case, and that is pinned by a test.
+- **The eval harness decided whether a bug had been measured from a stopwatch.** `not_measured` was assigned when candidates were zero *and* elapsed wall-clock time rounded to `0.0` at one decimal place. On a slower runner the identical unmeasured bug would have been labelled `"missed"` and averaged into `catch_rate 0.0` — the exact false claim the previous release added the status to prevent. Measurement is now defined by whether a model request was issued. `Report.model_requests` counts real requests, the harness reads it, and the decision lives in a pure `classify()` function that is unit-tested directly.
+- **`BugResult.seconds` was never assigned on the success path**, so every result in every published artifact reported `"seconds": 0.0`. This is also what made the stopwatch check appear to work.
+- **`res.caught` was assigned to a non-field attribute** of a dataclass, so `asdict()` silently dropped it. Dead code, removed.
+- **A duplicate local import** of `load_config` inside `evaluate_one` shadowed the function-level import. Removed.
+
+### Added
+- `Report.model_requests`, serialised in `Report.as_dict()`, plus `model_requests` on every eval result and `model_requests_total` in the eval summary. "Was this measured?" is now answerable from the artifact alone.
+- `eval/assert_measured.py` and a workflow step that runs it. **An evaluation run can no longer report success without measuring anything.** Two previous runs finished in 37 and 32 seconds, concluded `success`, contained no measurement, and were treated as progress for a day. The step runs after artifact upload so results are always available for diagnosis, and it prints the likely causes when it fails.
+- `|| true` removed from the eval invocation, so a harness crash now fails the job instead of being swallowed.
+- `tests/test_measurement.py` — 12 tests covering the inverted revision pair end to end, the pinned underlying git behaviour, target extraction from an inverted pair, preservation of three-dot semantics for diverged branches, identical revisions, the `model_requests` contract, and `classify()` in isolation.
+- An explicit, quotable reason on an empty diff: the report now says the revision pair produced no changed Python symbols and that this is a property of the pair, not a result about the code.
+
+### Verified in this release
+- End-to-end run on an inverted pair through the real pipeline: 1 target, 1 candidate, oracle verdict `catching: passes on base, fails on head`, assessor `real_regression` at 0.91, `should_report` true, 2 model requests recorded. This is the first time the BugsInPy revision shape has produced a finding.
+- Revision-pair stress sweep, 12 scenarios, 0 findings: forward pair, inverted pair, identical revisions, diverged branches, nonexistent revision, revision from an unrelated repository, orphan branch with no merge base, shallow clone, empty repository, merge commit as head, whitespace-only change, deleted file.
+- 107 offline tests, green, no network required.
+
+### Still not fixed
+- **The assessor specification fix from 0.2.2 has never been exercised on a real bug.** The one canary run after it produced four latent candidates and zero oracle catches, so the assessor was never reached. Whether the corrected wording changes behaviour is unknown.
+- No real-bug catch rate, no false-positive rate, and no measured cost per pull request exist. Nothing in this release changes that; it only makes the measurement possible and makes an unmeasured run impossible to mistake for a measured one.
+
 ## 0.2.2 - 2026-07-27
 
 ### Security
