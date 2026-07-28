@@ -19,6 +19,12 @@ One warning, learned the hard way (Defect 32). "PASSES on base" is half of the
 rule above, and an exit code cannot establish it. Both runners exit 0 when they
 skipped everything they collected, so success must be proved by positive
 evidence that a test really executed. See Outcome.NOTRUN.
+
+A second warning (Defects 33-35). The rule is also a claim about two specific
+commits. If a checkout is not on the revision it is supposed to be on, or still
+contains what the previous candidate left behind, then the verdict is a
+confident sentence about nothing identifiable. Both are now checked rather than
+assumed. See resolve_revision, verify_workdir and reset_workdir.
 """
 from __future__ import annotations
 
@@ -36,6 +42,8 @@ from pathlib import Path
 __all__ = [
     "Outcome", "RunResult", "Verdict", "Worktree", "run_test",
     "differential_check", "detect_runner", "CANDIDATE_PREFIX",
+    "resolve_revision", "worktree_revision", "verify_workdir",
+    "reset_workdir", "RevisionMismatch",
 ]
 
 CANDIDATE_PREFIX = "test_jittest_candidate_"
@@ -78,6 +86,11 @@ class Verdict:
     failure_excerpt: str = ""
     head_outcome: Outcome | None = None
     base_outcome: Outcome | None = None
+    # Defect 33. Provenance: the resolved commit that each side was actually
+    # executed against, read back from the checkout rather than assumed from
+    # the revision string the caller passed in.
+    head_sha: str = ""
+    base_sha: str = ""
 
 
 def detect_runner() -> list[str]:
@@ -92,12 +105,90 @@ def detect_runner() -> list[str]:
     return [sys.executable, "-m", "jittest._minirunner"]
 
 
+class RevisionMismatch(RuntimeError):
+    """A checkout does not contain the revision it is supposed to contain.
+
+    Defect 33/34. Every oracle result is a claim about two specific commits.
+    If a worktree silently holds a different commit - a stale reuse, a failed
+    checkout that still exited zero, a directory handed in by a caller - then
+    "passes on base, fails on head" is a statement about nothing identifiable.
+    Refusing to run is the only safe response.
+    """
+
+
+def resolve_revision(repo: Path | str, rev: str) -> str:
+    """Resolve a revision string to a full commit SHA, or "" if unresolvable."""
+    proc = subprocess.run(
+        ["git", "-C", str(repo), "rev-parse", "--verify", f"{rev}^{{commit}}"],
+        capture_output=True, text=True, errors="replace",
+    )
+    return proc.stdout.strip() if proc.returncode == 0 else ""
+
+
+def worktree_revision(workdir: Path | str) -> str:
+    """The commit a checkout is actually sitting on, or "" if unknown."""
+    return resolve_revision(workdir, "HEAD")
+
+
+def verify_workdir(workdir: Path | str, expected_sha: str, side: str) -> None:
+    """Raise unless the checkout is on exactly the expected commit.
+
+    An empty expectation is not an accusation: a revision that cannot be
+    resolved cannot be checked, and inventing a mismatch there would discard
+    valid work. The caller decides what an unresolvable revision means.
+    """
+    if not expected_sha:
+        return
+    actual = worktree_revision(workdir)
+    if actual != expected_sha:
+        raise RevisionMismatch(
+            f"{side} checkout at {workdir} is on "
+            f"{actual or 'an unreadable revision'}, not {expected_sha}")
+
+
+def reset_workdir(workdir: Path | str) -> None:
+    """Remove anything a previous candidate left behind.
+
+    Defect 35. The base and head checkouts are created once and reused for every
+    candidate, which is what makes three executions per candidate affordable.
+    Reuse without cleaning means candidate N can be influenced by candidate
+    N-1: a stray module, a written fixture file, stale bytecode shadowing the
+    source under test. Tracked files are restored and jittest's own leftovers
+    are deleted once per candidate per side, so each candidate starts from the
+    revision and nothing else. Deliberately not once per execution: the rerun
+    loop in differential_check needs cross-execution state to remain visible or
+    a flaky candidate stops looking flaky.
+    """
+    workdir = Path(workdir)
+    subprocess.run(
+        ["git", "-C", str(workdir), "checkout", "--", "."],
+        capture_output=True, text=True, errors="replace",
+    )
+    # Never -x: ignored build artefacts and virtualenvs are part of a usable
+    # checkout, and removing them would break the runner rather than isolate it.
+    subprocess.run(
+        ["git", "-C", str(workdir), "clean", "-qfd",
+         "-e", ".jittest*", "-e", "*.egg-info"],
+        capture_output=True, text=True, errors="replace",
+    )
+    for leftover in workdir.glob(f"{CANDIDATE_PREFIX}*.py"):
+        leftover.unlink(missing_ok=True)
+    for leftover in workdir.glob(".jittest-junit-*.xml"):
+        leftover.unlink(missing_ok=True)
+    for cache in workdir.rglob("__pycache__"):
+        shutil.rmtree(cache, ignore_errors=True)
+
+
 class Worktree:
     """A detached checkout of one revision, created once and reused.
 
     Creating a worktree per candidate test was the single biggest cost in the
     first version. Creating two per pull request instead makes three executions
     per candidate affordable, which is what buys the flakiness rerun.
+
+    On entry the checkout is verified against the resolved commit. A checkout
+    that exited zero without landing on the requested revision is a silent lie
+    the oracle would otherwise repeat.
     """
 
     def __init__(self, repo: Path | str, rev: str) -> None:
@@ -105,6 +196,7 @@ class Worktree:
         self.rev = rev
         self.path = Path(tempfile.mkdtemp(prefix="jittest-wt-"))
         self._added = False
+        self.expected_sha = ""
 
     def __enter__(self) -> Path:
         added = subprocess.run(
@@ -112,8 +204,10 @@ class Worktree:
              "--force", str(self.path), self.rev],
             capture_output=True, text=True, errors="replace",
         )
+        self.expected_sha = resolve_revision(self.repo, self.rev)
         if added.returncode == 0:
             self._added = True
+            verify_workdir(self.path, self.expected_sha, self.rev)
             return self.path
 
         # Worktrees can be refused (already checked out, older git, odd CI
@@ -130,6 +224,7 @@ class Worktree:
             ["git", "-C", str(self.path), "checkout", "--quiet", "--detach", self.rev],
             capture_output=True, text=True, errors="replace", check=True,
         )
+        verify_workdir(self.path, self.expected_sha, self.rev)
         return self.path
 
     def __exit__(self, *exc: object) -> None:
@@ -246,25 +341,53 @@ def differential_check(
     head_ctx = Worktree(repo, head) if owns_head else None
     base_ctx = Worktree(repo, base) if owns_base else None
 
+    # Defect 33/34. Every verdict below is a claim about two specific commits,
+    # so both are resolved once here and every checkout is checked against them
+    # before a candidate is executed in it. A caller-supplied directory is not
+    # trusted to contain what its name suggests.
+    head_sha = resolve_revision(repo, head)
+    base_sha = resolve_revision(repo, base)
+
+    def provenance_failure(exc: RevisionMismatch) -> Verdict:
+        return Verdict(
+            False,
+            f"discarded: revision provenance could not be established ({exc})",
+            failure_excerpt=str(exc),
+            head_sha=head_sha, base_sha=base_sha,
+        )
+
     try:
         head_dir = head_ctx.__enter__() if head_ctx else Path(head_workdir)  # type: ignore[arg-type]
+        try:
+            verify_workdir(head_dir, head_sha, "head")
+        except RevisionMismatch as exc:
+            return provenance_failure(exc)
 
+        # Defect 35. Clean once per candidate, before its first execution on
+        # this side. Deliberately NOT before every execution: the reruns below
+        # exist to detect non-determinism, and a candidate that is flaky because
+        # it accumulates state must stay flaky here or it will be believed.
+        reset_workdir(head_dir)
         first = run_test(head_dir, test_code, timeout_s)
         if first.outcome is Outcome.ERROR:
             return Verdict(False, "discarded: test could not be collected on head",
-                           failure_excerpt=first.tail, head_outcome=first.outcome)
+                           failure_excerpt=first.tail, head_outcome=first.outcome,
+                           head_sha=head_sha, base_sha=base_sha)
         if first.outcome is Outcome.TIMEOUT:
             return Verdict(False, "discarded: timed out on head",
-                           failure_excerpt=first.tail, head_outcome=first.outcome)
+                           failure_excerpt=first.tail, head_outcome=first.outcome,
+                           head_sha=head_sha, base_sha=base_sha)
         if first.outcome is Outcome.NOTRUN:
             return Verdict(False, "discarded: no test actually executed on head "
                                   "(every collected test was skipped, or none "
                                   "was collected)",
-                           failure_excerpt=first.tail, head_outcome=first.outcome)
+                           failure_excerpt=first.tail, head_outcome=first.outcome,
+                           head_sha=head_sha, base_sha=base_sha)
         if first.outcome is Outcome.PASS:
             return Verdict(False, "discarded: passes on head, so it is a hardening "
                                   "test rather than a catching test",
-                           head_outcome=first.outcome)
+                           head_outcome=first.outcome,
+                           head_sha=head_sha, base_sha=base_sha)
 
         # It failed on head. Prove the failure is not luck before we spend a
         # base checkout on it, and long before we spend a reviewer's attention.
@@ -273,20 +396,30 @@ def differential_check(
             if again.outcome is not Outcome.FAIL:
                 return Verdict(False, "discarded: non-deterministic across reruns "
                                       "on head (flaky)",
-                               failure_excerpt=first.tail, head_outcome=first.outcome)
+                               failure_excerpt=first.tail,
+                               head_outcome=first.outcome,
+                               head_sha=head_sha, base_sha=base_sha)
 
         base_dir = base_ctx.__enter__() if base_ctx else Path(base_workdir)  # type: ignore[arg-type]
+        try:
+            verify_workdir(base_dir, base_sha, "base")
+        except RevisionMismatch as exc:
+            return provenance_failure(exc)
+        # Anything the head executions wrote must not be visible on base.
+        reset_workdir(base_dir)
         on_base = run_test(base_dir, test_code, timeout_s)
 
         if on_base.outcome is Outcome.PASS:
             return Verdict(True, "catching: passes on base, fails on head",
                            failure_excerpt=first.tail,
-                           head_outcome=first.outcome, base_outcome=on_base.outcome)
+                           head_outcome=first.outcome, base_outcome=on_base.outcome,
+                           head_sha=head_sha, base_sha=base_sha)
         if on_base.outcome is Outcome.FAIL:
             return Verdict(False, "discarded: fails on base too, so the fault is "
                                   "pre-existing rather than caused by this change",
                            latent=True, failure_excerpt=first.tail,
-                           head_outcome=first.outcome, base_outcome=on_base.outcome)
+                           head_outcome=first.outcome, base_outcome=on_base.outcome,
+                           head_sha=head_sha, base_sha=base_sha)
         if on_base.outcome is Outcome.NOTRUN:
             # The dangerous one. Previously this returned exit code 0, was read
             # as PASS, and produced "catching: passes on base, fails on head"
@@ -295,11 +428,13 @@ def differential_check(
             return Verdict(False, "discarded: no test executed on base, so "
                                   "'passes on base' cannot be established",
                            failure_excerpt=on_base.tail,
-                           head_outcome=first.outcome, base_outcome=on_base.outcome)
+                           head_outcome=first.outcome, base_outcome=on_base.outcome,
+                           head_sha=head_sha, base_sha=base_sha)
         return Verdict(False, "discarded: could not be collected on base, so no "
                               "comparison is possible",
                        failure_excerpt=on_base.tail,
-                       head_outcome=first.outcome, base_outcome=on_base.outcome)
+                       head_outcome=first.outcome, base_outcome=on_base.outcome,
+                       head_sha=head_sha, base_sha=base_sha)
     finally:
         if base_ctx:
             base_ctx.__exit__(None, None, None)
