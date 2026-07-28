@@ -27,7 +27,7 @@ from . import prompts as P
 from .assess import Assessment, parse_assessment
 from .config import Config
 from .diff import ChangeTarget, extract_targets, git_diff
-from .execute import Worktree, differential_check
+from .execute import Disposition, Worktree, differential_check
 from .ledger import Candidate, Ledger
 from .llm import BaseLLM, BudgetExceeded, LLMError, strip_code_fence
 from .risk import RiskScore, rank
@@ -37,16 +37,18 @@ __all__ = ["Finding", "Report", "CandidateTelemetry", "run",
            "import_path_for", "existing_tests_for"]
 
 # Disposition values for per-candidate telemetry.
-DISPOSITIONS = (
+#
+# The oracle owns every value it can produce (execute.Disposition). The three
+# below describe endings reached before the oracle ever ran, so they live here.
+# Defect 38: this tuple is the whole vocabulary, and none of it is recovered by
+# searching English prose any more.
+_PRE_ORACLE_DISPOSITIONS = (
     "model_declined",          # model returned NO_CANDIDATE or empty
     "parse_failed",            # response could not be parsed as code
     "safety_rejected",         # static safety gate rejected the candidate
-    "head_uncollectable",      # test could not be collected/imported on head
-    "head_passed",             # test passes on head (hardening, not catching)
-    "head_failed_base_failed_latent",  # fails on both head and base
-    "head_flaky",              # non-deterministic across reruns on head
-    "catching",                # passes on base, fails on head
 )
+
+DISPOSITIONS = _PRE_ORACLE_DISPOSITIONS + tuple(d.value for d in Disposition)
 
 
 @dataclass
@@ -173,7 +175,7 @@ class Report:
 def import_path_for(file_path: str) -> str:
     """Best-effort module path. A wrong guess shows up as a collection error,
     which the oracle discards, which is the correct failure mode."""
-    p = file_path.replace("\\", "/")
+    p = file_path.replace("\\\\", "/")
     if p.endswith(".py"):
         p = p[:-3]
     parts = [seg for seg in p.split("/") if seg not in ("", ".")]
@@ -220,21 +222,19 @@ def _bump(counter: dict[str, int], key: str) -> None:
 
 
 def _disposition_from_verdict(verdict) -> str:
-    """Map a Verdict's reason string to a canonical disposition."""
-    reason = verdict.reason.lower()
-    if "could not be collected" in reason and "head" in reason:
-        return "head_uncollectable"
-    if "timed out" in reason and "head" in reason:
-        return "head_uncollectable"
-    if "passes on head" in reason:
-        return "head_passed"
-    if "non-deterministic" in reason or "flaky" in reason:
-        return "head_flaky"
-    if "fails on base too" in reason or "pre-existing" in reason:
-        return "head_failed_base_failed_latent"
-    if "could not be collected" in reason and "base" in reason:
-        return "head_failed_base_failed_latent"
-    return "head_failed_base_failed_latent"
+    """Read the disposition the oracle stated. Defect 38.
+
+    This used to search verdict.reason for substrings such as "could not be
+    collected", which made a human-readable sentence into a machine interface.
+    Rewording the sentence silently relabelled telemetry, and every ending that
+    no substring distinguished - no test executed on base, a provenance
+    mismatch, a timeout - fell through to "fails on base too", which is a
+    different and far less alarming claim than what actually happened.
+    """
+    disposition = getattr(verdict, "disposition", None)
+    if disposition is None:
+        raise ValueError("verdict carries no disposition")
+    return str(disposition)
 
 
 def _telemetry(report, target, rs, attempt, disposition,
@@ -248,8 +248,9 @@ def _telemetry(report, target, rs, attempt, disposition,
     if verdict is not None:
         head_out = verdict.head_outcome.value if verdict.head_outcome else ""
         base_out = verdict.base_outcome.value if verdict.base_outcome else ""
-        # Rerun agreement is False when the verdict mentions flaky/non-deterministic
-        rerun_agree = "non-deterministic" not in verdict.reason.lower()
+        # Defect 39. Derived from the recorded per-execution outcomes rather
+        # than from whether the reason string happens to contain a word.
+        rerun_agree = verdict.rerun_agreement
         excerpt = "\n".join(verdict.failure_excerpt.splitlines()[:5])
 
     assess_v = ""

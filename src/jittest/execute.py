@@ -25,6 +25,10 @@ commits. If a checkout is not on the revision it is supposed to be on, or still
 contains what the previous candidate left behind, then the verdict is a
 confident sentence about nothing identifiable. Both are now checked rather than
 assumed. See resolve_revision, verify_workdir and reset_workdir.
+
+A third warning (Defects 36-40). What happened to a candidate is stated, not
+described. The reason string is for humans; Disposition, FailureKind and the
+recorded per-execution outcomes are what other code is allowed to read.
 """
 from __future__ import annotations
 
@@ -43,7 +47,7 @@ __all__ = [
     "Outcome", "RunResult", "Verdict", "Worktree", "run_test",
     "differential_check", "detect_runner", "CANDIDATE_PREFIX",
     "resolve_revision", "worktree_revision", "verify_workdir",
-    "reset_workdir", "RevisionMismatch",
+    "reset_workdir", "RevisionMismatch", "Disposition", "FailureKind",
 ]
 
 CANDIDATE_PREFIX = "test_jittest_candidate_"
@@ -52,6 +56,42 @@ TAIL_LIMIT = 2500
 
 # A <testcase> carrying any of these did not execute and pass.
 _NONPASSING_TAGS = frozenset({"skipped", "failure", "error"})
+
+
+class Disposition(StrEnum):
+    """Why a candidate ended where it did. Defect 38.
+
+    The pipeline used to recover this by searching the verdict's English reason
+    string for substrings like "could not be collected". That made prose a
+    machine interface: rewording a sentence silently relabelled telemetry, and
+    several genuinely different endings collapsed onto the same label because no
+    substring distinguished them. The oracle now states the disposition
+    directly, and the reason string goes back to being for humans only.
+    """
+    HEAD_UNCOLLECTABLE = "head_uncollectable"
+    HEAD_TIMEOUT = "head_timeout"
+    HEAD_NOTRUN = "head_notrun"
+    HEAD_PASSED = "head_passed"
+    HEAD_FLAKY = "head_flaky"
+    HEAD_FAILED_BASE_FAILED_LATENT = "head_failed_base_failed_latent"
+    BASE_NOTRUN = "base_notrun"
+    BASE_UNCOLLECTABLE = "base_uncollectable"
+    PROVENANCE_FAILED = "provenance_failed"
+    CATCHING = "catching"
+
+
+class FailureKind(StrEnum):
+    """What kind of failure was observed. Defect 37.
+
+    An assertion that fired is evidence about the code under test. An import
+    error, a crash, or a runner problem is evidence about the candidate or the
+    environment, and treating the two as one "fail" hid infrastructure breakage
+    inside apparently meaningful results.
+    """
+    NONE = ""
+    ASSERTION = "assertion"
+    ERROR = "error"
+    UNKNOWN = "unknown"
 
 
 class Outcome(StrEnum):
@@ -68,6 +108,7 @@ class RunResult:
     returncode: int = 0
     stdout: str = ""
     stderr: str = ""
+    failure_kind: FailureKind = FailureKind.NONE
 
     @property
     def tail(self) -> str:
@@ -91,6 +132,30 @@ class Verdict:
     # the revision string the caller passed in.
     head_sha: str = ""
     base_sha: str = ""
+    # Defect 36/38/39. The disposition is stated, not parsed back out of prose,
+    # and every execution that contributed to it is listed in order so a
+    # reviewer can see how many runs were needed and what each one did.
+    disposition: Disposition = Disposition.HEAD_FAILED_BASE_FAILED_LATENT
+    head_runs: tuple[Outcome, ...] = ()
+    base_runs: tuple[Outcome, ...] = ()
+    failure_kind: FailureKind = FailureKind.NONE
+
+    @property
+    def head_run_count(self) -> int:
+        return len(self.head_runs)
+
+    @property
+    def base_run_count(self) -> int:
+        return len(self.base_runs)
+
+    @property
+    def rerun_agreement(self) -> bool:
+        """True when every head execution reached the same outcome.
+
+        Derived from recorded outcomes rather than from the wording of the
+        reason string, which is what the pipeline used to do.
+        """
+        return len(set(self.head_runs)) <= 1
 
 
 def detect_runner() -> list[str]:
@@ -274,6 +339,36 @@ def _passed_from_junit(report: Path) -> int | None:
     return passed
 
 
+def _failure_kind_from_junit(report: Path) -> FailureKind:
+    """Distinguish an assertion that fired from a crash or a runner problem.
+
+    pytest records assertions under <failure> and everything else - import
+    errors, collection problems, unexpected exceptions - under <error>. When
+    the report is missing or unreadable, say UNKNOWN rather than guessing.
+    """
+    try:
+        root = ET.fromstring(report.read_text(encoding="utf-8", errors="replace"))
+    except (OSError, ET.ParseError):
+        return FailureKind.UNKNOWN
+    saw_failure = False
+    for case in root.iter("testcase"):
+        for child in case:
+            if child.tag == "error":
+                return FailureKind.ERROR
+            if child.tag == "failure":
+                saw_failure = True
+    return FailureKind.ASSERTION if saw_failure else FailureKind.UNKNOWN
+
+
+def _failure_kind_from_output(text: str) -> FailureKind:
+    """Fallback for the mini-runner, which writes no junit report."""
+    if "AssertionError" in text or " assert " in text:
+        return FailureKind.ASSERTION
+    if text.strip():
+        return FailureKind.ERROR
+    return FailureKind.UNKNOWN
+
+
 def run_test(workdir: Path, test_code: str, timeout_s: int = 120) -> RunResult:
     """Write the candidate into the checkout, run it, then remove it."""
     workdir = Path(workdir)
@@ -293,11 +388,13 @@ def run_test(workdir: Path, test_code: str, timeout_s: int = 120) -> RunResult:
             capture_output=True, text=True, errors="replace", timeout=timeout_s,
         )
     except subprocess.TimeoutExpired:
-        return RunResult(Outcome.TIMEOUT, -1, "", f"timed out after {timeout_s}s")
+        return RunResult(Outcome.TIMEOUT, -1, "", f"timed out after {timeout_s}s",
+                         failure_kind=FailureKind.UNKNOWN)
     finally:
         candidate.unlink(missing_ok=True)
 
     code = proc.returncode
+    kind = FailureKind.NONE
     try:
         if code == 0:
             # Defect 32. Exit 0 does NOT mean a test passed. pytest exits 0 when
@@ -312,6 +409,10 @@ def run_test(workdir: Path, test_code: str, timeout_s: int = 120) -> RunResult:
                     outcome = Outcome.NOTRUN
         elif code == 1:
             outcome = Outcome.FAIL
+            # Defect 37. "It failed" is not enough: an assertion firing is
+            # evidence about the code, a crash is evidence about the candidate.
+            kind = (_failure_kind_from_junit(report) if uses_pytest
+                    else _failure_kind_from_output(proc.stdout + proc.stderr))
         elif code == 5:
             # Both runners use 5 for "no tests collected", and the mini-runner
             # now also uses it for "collected, but every one was skipped".
@@ -319,9 +420,10 @@ def run_test(workdir: Path, test_code: str, timeout_s: int = 120) -> RunResult:
         else:
             # pytest: 2 usage/collection, 3 internal, 4 usage.
             outcome = Outcome.ERROR
+            kind = FailureKind.ERROR
     finally:
         report.unlink(missing_ok=True)
-    return RunResult(outcome, code, proc.stdout, proc.stderr)
+    return RunResult(outcome, code, proc.stdout, proc.stderr, failure_kind=kind)
 
 
 def differential_check(
@@ -348,12 +450,20 @@ def differential_check(
     head_sha = resolve_revision(repo, head)
     base_sha = resolve_revision(repo, base)
 
+    # Defect 36. Every execution is recorded in order, so the verdict can say
+    # how many runs it took and what each one did instead of leaving a reader to
+    # infer it from a sentence.
+    head_runs: list[Outcome] = []
+    base_runs: list[Outcome] = []
+
     def provenance_failure(exc: RevisionMismatch) -> Verdict:
         return Verdict(
             False,
             f"discarded: revision provenance could not be established ({exc})",
             failure_excerpt=str(exc),
             head_sha=head_sha, base_sha=base_sha,
+            disposition=Disposition.PROVENANCE_FAILED,
+            head_runs=tuple(head_runs), base_runs=tuple(base_runs),
         )
 
     try:
@@ -369,36 +479,51 @@ def differential_check(
         # it accumulates state must stay flaky here or it will be believed.
         reset_workdir(head_dir)
         first = run_test(head_dir, test_code, timeout_s)
+        head_runs.append(first.outcome)
         if first.outcome is Outcome.ERROR:
             return Verdict(False, "discarded: test could not be collected on head",
                            failure_excerpt=first.tail, head_outcome=first.outcome,
-                           head_sha=head_sha, base_sha=base_sha)
+                           head_sha=head_sha, base_sha=base_sha,
+                           disposition=Disposition.HEAD_UNCOLLECTABLE,
+                           head_runs=tuple(head_runs),
+                           failure_kind=first.failure_kind)
         if first.outcome is Outcome.TIMEOUT:
             return Verdict(False, "discarded: timed out on head",
                            failure_excerpt=first.tail, head_outcome=first.outcome,
-                           head_sha=head_sha, base_sha=base_sha)
+                           head_sha=head_sha, base_sha=base_sha,
+                           disposition=Disposition.HEAD_TIMEOUT,
+                           head_runs=tuple(head_runs),
+                           failure_kind=first.failure_kind)
         if first.outcome is Outcome.NOTRUN:
             return Verdict(False, "discarded: no test actually executed on head "
                                   "(every collected test was skipped, or none "
                                   "was collected)",
                            failure_excerpt=first.tail, head_outcome=first.outcome,
-                           head_sha=head_sha, base_sha=base_sha)
+                           head_sha=head_sha, base_sha=base_sha,
+                           disposition=Disposition.HEAD_NOTRUN,
+                           head_runs=tuple(head_runs))
         if first.outcome is Outcome.PASS:
             return Verdict(False, "discarded: passes on head, so it is a hardening "
                                   "test rather than a catching test",
                            head_outcome=first.outcome,
-                           head_sha=head_sha, base_sha=base_sha)
+                           head_sha=head_sha, base_sha=base_sha,
+                           disposition=Disposition.HEAD_PASSED,
+                           head_runs=tuple(head_runs))
 
         # It failed on head. Prove the failure is not luck before we spend a
         # base checkout on it, and long before we spend a reviewer's attention.
         for _ in range(max(0, reruns - 1)):
             again = run_test(head_dir, test_code, timeout_s)
+            head_runs.append(again.outcome)
             if again.outcome is not Outcome.FAIL:
                 return Verdict(False, "discarded: non-deterministic across reruns "
                                       "on head (flaky)",
                                failure_excerpt=first.tail,
                                head_outcome=first.outcome,
-                               head_sha=head_sha, base_sha=base_sha)
+                               head_sha=head_sha, base_sha=base_sha,
+                               disposition=Disposition.HEAD_FLAKY,
+                               head_runs=tuple(head_runs),
+                               failure_kind=first.failure_kind)
 
         base_dir = base_ctx.__enter__() if base_ctx else Path(base_workdir)  # type: ignore[arg-type]
         try:
@@ -408,18 +533,25 @@ def differential_check(
         # Anything the head executions wrote must not be visible on base.
         reset_workdir(base_dir)
         on_base = run_test(base_dir, test_code, timeout_s)
+        base_runs.append(on_base.outcome)
 
         if on_base.outcome is Outcome.PASS:
             return Verdict(True, "catching: passes on base, fails on head",
                            failure_excerpt=first.tail,
                            head_outcome=first.outcome, base_outcome=on_base.outcome,
-                           head_sha=head_sha, base_sha=base_sha)
+                           head_sha=head_sha, base_sha=base_sha,
+                           disposition=Disposition.CATCHING,
+                           head_runs=tuple(head_runs), base_runs=tuple(base_runs),
+                           failure_kind=first.failure_kind)
         if on_base.outcome is Outcome.FAIL:
             return Verdict(False, "discarded: fails on base too, so the fault is "
                                   "pre-existing rather than caused by this change",
                            latent=True, failure_excerpt=first.tail,
                            head_outcome=first.outcome, base_outcome=on_base.outcome,
-                           head_sha=head_sha, base_sha=base_sha)
+                           head_sha=head_sha, base_sha=base_sha,
+                           disposition=Disposition.HEAD_FAILED_BASE_FAILED_LATENT,
+                           head_runs=tuple(head_runs), base_runs=tuple(base_runs),
+                           failure_kind=first.failure_kind)
         if on_base.outcome is Outcome.NOTRUN:
             # The dangerous one. Previously this returned exit code 0, was read
             # as PASS, and produced "catching: passes on base, fails on head"
@@ -429,12 +561,18 @@ def differential_check(
                                   "'passes on base' cannot be established",
                            failure_excerpt=on_base.tail,
                            head_outcome=first.outcome, base_outcome=on_base.outcome,
-                           head_sha=head_sha, base_sha=base_sha)
+                           head_sha=head_sha, base_sha=base_sha,
+                           disposition=Disposition.BASE_NOTRUN,
+                           head_runs=tuple(head_runs), base_runs=tuple(base_runs),
+                           failure_kind=first.failure_kind)
         return Verdict(False, "discarded: could not be collected on base, so no "
                               "comparison is possible",
                        failure_excerpt=on_base.tail,
                        head_outcome=first.outcome, base_outcome=on_base.outcome,
-                       head_sha=head_sha, base_sha=base_sha)
+                       head_sha=head_sha, base_sha=base_sha,
+                       disposition=Disposition.BASE_UNCOLLECTABLE,
+                       head_runs=tuple(head_runs), base_runs=tuple(base_runs),
+                       failure_kind=first.failure_kind)
     finally:
         if base_ctx:
             base_ctx.__exit__(None, None, None)
