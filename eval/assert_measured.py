@@ -11,6 +11,11 @@ as a measured run. A gate that can crash, or that can be satisfied by
 impossible numbers, is not a gate. Every value is now range-checked, and any
 unreadable structure fails closed.
 
+Defects 52-53: the gate also trusted the summary's own arithmetic. A summary is
+written by the harness under test, so aggregate counts are now cross-checked
+against the immutable per-result rows, and a missing or malformed `results`
+array is a failure rather than an empty list.
+
 Exit codes:
   0  at least one model request was issued and results are present
   1  the results file is missing, malformed, or describes a run that measured
@@ -24,6 +29,8 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
+
+MIN_COMPLETION_RATE = 0.80
 
 
 def _count(summary: dict, key: str, problems: list[str]) -> int:
@@ -78,7 +85,9 @@ def main(argv: list[str]) -> int:
 
     results = payload.get("results")
     if not isinstance(results, list):
-        results = []
+        print("FAIL: results is not an array; per-bug evidence is unavailable.",
+              file=sys.stderr)
+        return 1
 
     print(json.dumps(summary, indent=2, default=str))
 
@@ -96,9 +105,34 @@ def main(argv: list[str]) -> int:
             "the job environment, or every target filtered below the risk threshold")
     if measured == 0:
         problems.append("bugs_measured is 0: there is no catch rate to report")
+    if attempted > 0 and measured / attempted < MIN_COMPLETION_RATE:
+        problems.append(
+            f"completion rate {measured}/{attempted} is below the "
+            f"{int(MIN_COMPLETION_RATE * 100)}% evidence floor")
     if measured > attempted > 0:
         problems.append(
             f"bugs_measured ({measured}) exceeds bugs_attempted ({attempted})")
+
+    # Defect 52: the summary is written by the system under test, so its
+    # aggregates are checked against the per-result rows rather than believed.
+    result_measured = sum(
+        isinstance(r, dict) and r.get("status") in ("caught", "missed")
+        for r in results
+    )
+    if result_measured != measured:
+        problems.append(
+            f"summary bugs_measured={measured} disagrees with "
+            f"{result_measured} measured result rows")
+    result_requests = sum(
+        int(r.get("model_requests", 0)) for r in results
+        if isinstance(r, dict) and isinstance(r.get("model_requests", 0), int)
+        and not isinstance(r.get("model_requests", 0), bool)
+        and r.get("model_requests", 0) >= 0
+    )
+    if result_requests != requests:
+        problems.append(
+            f"summary model_requests_total={requests} disagrees with "
+            f"{result_requests} across result rows")
 
     catch_rate = summary.get("catch_rate")
     if isinstance(catch_rate, (int, float)) and not isinstance(catch_rate, bool):

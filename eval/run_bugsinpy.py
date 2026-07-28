@@ -9,8 +9,10 @@ The inversion trick:
     head = buggy commit    (the synthetic "regression PR")
 
 A perfect jittest run produces a test that PASSES on base and FAILS on head.
-Because BugsInPy ships the ground-truth triggering test, catch rate is
-measurable exactly rather than estimated.
+BugsInPy supplies known buggy/fixed revision pairs. The harness measures whether
+jittest mechanically produces a pass-on-fixed/fail-on-buggy catching test. The
+benchmark trigger metadata is retained for provenance; it is not used as a
+self-grading oracle, so results must not be described as exact semantic matches.
 
 Usage:
     git clone https://github.com/soarsmu/BugsInPy /tmp/BugsInPy
@@ -119,7 +121,7 @@ def clone(spec: BugSpec, workdir: Path) -> Path | None:
     return dest if r.returncode == 0 else None
 
 
-def classify(model_requests: int, reported: int) -> str:
+def classify(model_requests: int, catching_candidates: int) -> str:
     """Status for one bug.
 
     Measurement is defined by whether the model was asked, never by elapsed
@@ -128,10 +130,70 @@ def classify(model_requests: int, reported: int) -> str:
     "missed" on a slower runner and was then averaged into catch_rate 0.0.
     A tool that reports a catch rate for a run in which it never called a model
     is making a false claim about itself.
+
+    "caught" is a mechanical statement: the differential oracle produced at
+    least one test that passes on the fixed revision and fails on the buggy one.
+    It deliberately does not consult the assessor, and it does not assert that
+    the test is semantically equivalent to the benchmark's own trigger test.
     """
     if model_requests <= 0:
         return "not_measured"
-    return "caught" if reported > 0 else "missed"
+    return "caught" if catching_candidates > 0 else "missed"
+
+
+def summarize(results: list[BugResult]) -> dict:
+    """Build a failure-inclusive summary.
+
+    The headline denominator is every attempted bug. A conditional rate over
+    completed bugs is retained only as a diagnostic, never as the headline.
+    This prevents one success beside many setup failures from becoming 100%.
+    """
+    attempted = len(results)
+    measured = [r for r in results if r.status in ("caught", "missed")]
+    caught = [r for r in measured if r.status == "caught"]
+    reported = [r for r in results if r.reported > 0]
+    candidates = sum(r.candidates for r in measured)
+    priced_rows = [r for r in measured if r.priced]
+    return {
+        "bugs_attempted": attempted,
+        "bugs_measured": len(measured),
+        "bugs_not_measured": sum(r.status == "not_measured" for r in results),
+        "bugs_skipped": sum(r.status == "skipped" for r in results),
+        "bugs_errored": sum(r.status == "error" for r in results),
+        "model_requests_total": sum(r.model_requests for r in results),
+        "completion_rate": round(len(measured) / attempted, 3) if attempted else None,
+        "catch_rate": round(len(caught) / attempted, 3) if attempted else None,
+        "conditional_catch_rate": (
+            round(len(caught) / len(measured), 3) if measured else None
+        ),
+        "reported_rate": round(len(reported) / attempted, 3) if attempted else None,
+        "mean_candidates": (
+            round(statistics.fmean([r.candidates for r in measured]), 1)
+            if measured else None
+        ),
+        "oracle_yield": (
+            round(sum(r.catching_candidates for r in measured) / candidates, 3)
+            if candidates else None
+        ),
+        "mean_cost_usd": (
+            round(statistics.fmean([r.cost_usd for r in priced_rows]), 3)
+            if priced_rows else None
+        ),
+        "priced": bool(measured) and len(priced_rows) == len(measured),
+        "mean_seconds": (
+            round(statistics.fmean([r.seconds for r in measured]), 1)
+            if measured else None
+        ),
+        "rate_definition": (
+            "catch_rate = bugs with >=1 mechanical pass-on-fixed/fail-on-buggy "
+            "test / all attempted bugs"
+        ),
+        "NOTE": (
+            "catch_rate includes setup, execution, and measurement failures in its denominator. "
+            "conditional_catch_rate is diagnostic only. Pair with independently adjudicated "
+            "precision evidence before publication."
+        ),
+    }
 
 
 def evaluate_one(spec: BugSpec, repo: Path, model: str, budget: float,
@@ -157,13 +219,15 @@ def evaluate_one(spec: BugSpec, repo: Path, model: str, budget: float,
         # Use load_config so JITTEST_MODEL and JITTEST_API_BASE from the
         # environment are respected. The previous code created Config
         # directly, which ignored env vars and hardcoded the model.
-        cfg = load_config(repo, overrides={
-            "model": model,
+        overrides = {
             "budget_usd": budget,
             "max_targets": 5,
             "candidates_per_target": 4,
             "risk_threshold": 0.35,
-        })
+        }
+        if model is not None:
+            overrides["model"] = model
+        cfg = load_config(repo, overrides=overrides)
 
         # Fail-fast guard: if an API key is present but dry-run was selected,
         # refuse to report an unmeasured result.
@@ -171,7 +235,10 @@ def evaluate_one(spec: BugSpec, repo: Path, model: str, budget: float,
         has_key = bool(_os.getenv("JITTEST_API_KEY"))
         if has_key and dry_run:
             res.status = "error"
-            res.error = "api key present but dry-run selected: refusing to report an unmeasured result"
+            res.error = (
+                "api key present but dry-run selected: refusing to report an "
+                "unmeasured result"
+            )
             res.seconds = round(time.time() - t0, 1)
             return res
 
@@ -190,7 +257,7 @@ def evaluate_one(spec: BugSpec, repo: Path, model: str, budget: float,
         res.cost_usd = report.cost_usd
         res.priced = report.priced
         res.model_requests = getattr(report, "model_requests", 0)
-        res.status = classify(res.model_requests, res.reported)
+        res.status = classify(res.model_requests, res.catching_candidates)
         if res.status == "not_measured" and report.errors and not res.error:
             res.error = report.errors[0]
         res.reasons = [f.assessment.summary for f in report.findings]
@@ -243,33 +310,7 @@ def main() -> int:
               f"cost={'unpriced' if not r.priced else f'${r.cost_usd:.3f}'} "
               f"{r.error}", file=sys.stderr)
 
-    usable = [r for r in results if r.status not in ("error", "skipped", "not_measured")]
-    caught = [r for r in usable if r.status == "caught"]
-    measured_count = len(usable)
-    summary = {
-        "bugs_attempted": len(results),
-        "bugs_measured": measured_count,
-        "bugs_not_measured": len([r for r in results if r.status == "not_measured"]),
-        "bugs_skipped": len([r for r in results if r.status == "skipped"]),
-        "bugs_errored": len([r for r in results if r.status == "error"]),
-        "model_requests_total": sum(r.model_requests for r in results),
-        "catch_rate": round(len(caught) / max(measured_count, 1), 3) if measured_count > 0 else None,
-        "mean_candidates": round(
-            statistics.fmean([r.candidates for r in usable] or [0]), 1),
-        "oracle_yield": round(
-            sum(r.catching_candidates for r in usable)
-            / max(sum(r.candidates for r in usable), 1), 3),
-        "mean_cost_usd": round(
-            statistics.fmean([r.cost_usd for r in usable] or [0]), 3),
-        "priced": all(r.priced for r in usable) if usable else True,
-        "mean_seconds": round(
-            statistics.fmean([r.seconds for r in usable] or [0]), 1),
-        "NOTE": (
-            "catch_rate here is recall on seeded real bugs. It is NOT the "
-            "headline number on its own. Pair it with the false-positive rate "
-            "from eval/false_positives.py before publishing anything."
-        ),
-    }
+    summary = summarize(results)
     args.out.write_text(json.dumps(
         {"summary": summary, "results": [asdict(r) for r in results]}, indent=2
     ))
