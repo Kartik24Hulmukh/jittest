@@ -44,6 +44,8 @@ from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
+from .redact import redact
+
 __all__ = [
     "Outcome", "RunResult", "Verdict", "Worktree", "run_test",
     "differential_check", "detect_runner", "CANDIDATE_PREFIX",
@@ -137,7 +139,11 @@ class RunResult:
         # unreachable: a property is called with no arguments, so the parameter
         # could never be supplied by any caller.
         combined = (self.stdout + "\n" + self.stderr).strip()
-        return combined[-TAIL_LIMIT:]
+        # Defect 65. Redact here, at the single point where captured output
+        # becomes a quotable excerpt, rather than at each of the nine call
+        # sites that build a Verdict - one of which would eventually be added
+        # without it. Truncate first so the mask cannot be cut in half.
+        return redact(combined[-TAIL_LIMIT:])
 
 
 @dataclass
