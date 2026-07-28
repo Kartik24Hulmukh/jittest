@@ -51,7 +51,8 @@ class BugSpec:
 class BugResult:
     project: str
     bug_id: str
-    status: str = "pending"  # pending, caught, missed, not_measured, skipped, error
+    status: str = "pending"  # pending, caught, missed, not_measured,
+                             # git_failed, skipped, error
     candidates: int = 0
     catching_candidates: int = 0
     reported: int = 0
@@ -121,21 +122,32 @@ def clone(spec: BugSpec, workdir: Path) -> Path | None:
     return dest if r.returncode == 0 else None
 
 
-def classify(model_requests: int, catching_candidates: int) -> str:
+def classify(model_requests: int, catching_candidates: int,
+             diff_status: str = "ok") -> str:
     """Status for one bug.
 
-    Measurement is defined by whether the model was asked, never by elapsed
-    time. The previous version keyed "not_measured" on a wall-clock value
-    rounded to one decimal place, which meant the same unmeasured bug became
-    "missed" on a slower runner and was then averaged into catch_rate 0.0.
-    A tool that reports a catch rate for a run in which it never called a model
-    is making a false claim about itself.
+    A git failure is checked FIRST and is its own status. When git cannot
+    compare the revisions, the bug was never presented to the tool: that is a
+    failure to measure, not a miss. It is also not the same thing as an empty
+    diff (a property of the revision pair, which stays "not_measured" and in
+    the headline denominator). Lumping the two together is how a broken
+    checkout once read as evidence about the model.
+
+    Measurement is otherwise defined by whether the model was asked, never by
+    elapsed time. The previous version keyed "not_measured" on a wall-clock
+    value rounded to one decimal place, which meant the same unmeasured bug
+    became "missed" on a slower runner and was then averaged into
+    catch_rate 0.0. A tool that reports a catch rate for a run in which it
+    never called a model is making a false claim about itself.
 
     "caught" is a mechanical statement: the differential oracle produced at
-    least one test that passes on the fixed revision and fails on the buggy one.
-    It deliberately does not consult the assessor, and it does not assert that
-    the test is semantically equivalent to the benchmark's own trigger test.
+    least one test that passes on the fixed revision and fails on the buggy
+    one. It deliberately does not consult the assessor, and it does not
+    assert that the test is semantically equivalent to the benchmark's own
+    trigger test.
     """
+    if diff_status == "git_failed":
+        return "git_failed"
     if model_requests <= 0:
         return "not_measured"
     return "caught" if catching_candidates > 0 else "missed"
@@ -144,11 +156,19 @@ def classify(model_requests: int, catching_candidates: int) -> str:
 def summarize(results: list[BugResult]) -> dict:
     """Build a failure-inclusive summary.
 
-    The headline denominator is every attempted bug. A conditional rate over
-    completed bugs is retained only as a diagnostic, never as the headline.
-    This prevents one success beside many setup failures from becoming 100%.
+    The headline denominator is every ELIGIBLE bug: attempted minus
+    git-failed. A git failure means the bug was never presented to the tool,
+    so counting it as an attempt would be as false as counting it as a miss.
+    Git failures are never silent: they are counted under their own name, and
+    the conservative all-attempted rate is published beside the headline so
+    the harsher number is always reconstructable. One success beside many
+    broken checkouts still cannot become 100%: assert_measured.py fails any
+    run whose completion rate falls below the evidence floor, which is where
+    systemic collection failure is caught.
     """
     attempted = len(results)
+    git_failed = [r for r in results if r.status == "git_failed"]
+    eligible = attempted - len(git_failed)
     measured = [r for r in results if r.status in ("caught", "missed")]
     caught = [r for r in measured if r.status == "caught"]
     reported = [r for r in results if r.reported > 0]
@@ -156,13 +176,18 @@ def summarize(results: list[BugResult]) -> dict:
     priced_rows = [r for r in measured if r.priced]
     return {
         "bugs_attempted": attempted,
+        "bugs_eligible": eligible,
         "bugs_measured": len(measured),
         "bugs_not_measured": sum(r.status == "not_measured" for r in results),
+        "bugs_git_failed": len(git_failed),
         "bugs_skipped": sum(r.status == "skipped" for r in results),
         "bugs_errored": sum(r.status == "error" for r in results),
         "model_requests_total": sum(r.model_requests for r in results),
         "completion_rate": round(len(measured) / attempted, 3) if attempted else None,
-        "catch_rate": round(len(caught) / attempted, 3) if attempted else None,
+        "catch_rate": round(len(caught) / eligible, 3) if eligible else None,
+        "catch_rate_all_attempted": (
+            round(len(caught) / attempted, 3) if attempted else None
+        ),
         "conditional_catch_rate": (
             round(len(caught) / len(measured), 3) if measured else None
         ),
@@ -186,12 +211,16 @@ def summarize(results: list[BugResult]) -> dict:
         ),
         "rate_definition": (
             "catch_rate = bugs with >=1 mechanical pass-on-fixed/fail-on-buggy "
-            "test / all attempted bugs"
+            "test / eligible bugs (attempted minus git-failed, which were "
+            "never presented to the tool)"
         ),
         "NOTE": (
-            "catch_rate includes setup, execution, and measurement failures in its denominator. "
-            "conditional_catch_rate is diagnostic only. Pair with independently adjudicated "
-            "precision evidence before publication."
+            "catch_rate excludes git-failed runs from its denominator; "
+            "catch_rate_all_attempted keeps them and is the conservative floor. "
+            "Git failures are counted by name above and bounded by the "
+            "completion gate, so they cannot silently raise the rate. "
+            "conditional_catch_rate is diagnostic only. Pair with independently "
+            "adjudicated precision evidence before publication."
         ),
     }
 
@@ -257,8 +286,13 @@ def evaluate_one(spec: BugSpec, repo: Path, model: str, budget: float,
         res.cost_usd = report.cost_usd
         res.priced = report.priced
         res.model_requests = getattr(report, "model_requests", 0)
-        res.status = classify(res.model_requests, res.catching_candidates)
-        if res.status == "not_measured" and report.errors and not res.error:
+        # Loop 7 added Report.diff_status; without reading it, a git failure
+        # collapses into "not_measured" and sits in the catch-rate denominator
+        # as if the tool had been given its chance and failed.
+        res.status = classify(res.model_requests, res.catching_candidates,
+                              getattr(report, "diff_status", "ok"))
+        if res.status in ("not_measured", "git_failed") and report.errors \
+                and not res.error:
             res.error = report.errors[0]
         res.reasons = [f.assessment.summary for f in report.findings]
         res.telemetry = [t.as_dict() for t in report.telemetry]

@@ -1,5 +1,30 @@
 # Changelog
 
+## Unreleased
+
+### Security
+- **Generated tests no longer inherit the runner's environment.** Candidate subprocesses previously ran with the full parent environment, so a generated test could read the CI job's credentials and exfiltrate them through test output. The child environment is now built from an explicit allowlist, runner credentials are withheld, and an exfiltrator fixture that prints the canary proves the canary does not survive. (#45)
+- **Reported failure excerpts are redacted.** The excerpt that ends up in a published report is exactly where a leaked secret would do its damage: `RunResult.tail` now passes through `jittest.redact.redact()`, which masks vendor tokens, PEM blocks, bearer headers, URL credentials, and credential-shaped assignments while keeping the name so the reviewer can see what was withheld. Redaction happens after truncation, so a token cut in half by the limit cannot leave a readable fragment. All credential fixtures in the test suite are assembled at import time rather than written as literals - a test suite about secret hygiene should not contain secrets, a rule GitHub Push Protection and GitGuardian now enforce on every push. (#48)
+
+### Fixed
+- **A git failure and an empty diff were the same outcome.** `git_diff` returned `""` both when git could not compare the revisions and when the comparison legitimately produced nothing, so a failure to measure was indistinguishable from "no changed symbols". `git_diff` now raises `GitError` when every revision spec fails, and the pipeline reports `diff_status: "git_failed"` with the reason, versus `diff_status: "empty"` for a true empty diff. (#46)
+- **The eval harness could not hear `diff_status`.** A git-failed run collapsed into `not_measured` and sat in the catch-rate denominator as if the tool had been presented the bug and failed. `classify()` now takes `diff_status` and returns a distinct `git_failed` status; the summary counts `bugs_git_failed` by name, computes the headline `catch_rate` over *eligible* bugs (attempted minus git-failed), and prints `catch_rate_all_attempted` beside it so the conservative number is always reconstructable. `assert_measured.py` recomputes both new counts from the per-result rows, fails closed on a missing or inconsistent `bugs_eligible`, and prints git-failure reasons. Systemic collection failure cannot hide either: git failures count against the 80% completion floor.
+
+### Added
+- `src/jittest/redact.py` and `tests/test_redaction.py` (18 tests, including a self-guard that fails the build if a credential fixture ever appears verbatim in the test source).
+- `tests/test_git_failures.py` (14 tests): failure-versus-emptiness, pipeline reporting, practical reachability. (#46)
+- `tests/test_eval_git_denominator.py` (14 tests): classification, denominator arithmetic, gate cross-checks, and an end-to-end bogus-revision run through the real pipeline.
+- Candidate environment isolation with exfiltrator tests (`tests/test_isolation.py`). (#45)
+- Typed candidate dispositions and per-run provenance and completeness records. (#40, #41, #42)
+
+### Verified in this release
+- 269 offline tests, green, no network required.
+- PRs #46 and #48 each landed at 18/18 checks including GitGuardian, after three scanning iterations that removed every credential-shaped literal from the test suite.
+
+### Still not fixed
+- **Candidates still share the filesystem, network, and user account with the runner.** The environment allowlist withholds credentials; it is not a sandbox. Container/VM isolation remains the production-readiness blocker.
+- No measured catch rate, false-positive rate, or priced cost per pull request exists yet. The measurement is now possible and honest; it has not been run.
+
 ## 0.2.3 - 2026-07-27
 
 ### Fixed
