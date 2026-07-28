@@ -58,8 +58,8 @@ class TestWorktreeProvenance(unittest.TestCase):
 
     def test_wrong_revision_is_refused_not_reported(self):
         with FixtureRepo() as repo, Worktree(repo.path, repo.head) as work:
-            with self.assertRaises(RevisionMismatch):
-                verify_workdir(work, repo.base, "base")
+            self.assertRaises(RevisionMismatch,
+                              verify_workdir, work, repo.base, "base")
 
     def test_unknown_expected_sha_does_not_block(self):
         # An unresolvable expectation cannot be checked; it must not become a
