@@ -33,6 +33,7 @@ recorded per-execution outcomes are what other code is allowed to read.
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -56,6 +57,26 @@ TAIL_LIMIT = 2500
 
 # A <testcase> carrying any of these did not execute and pass.
 _NONPASSING_TAGS = frozenset({"skipped", "failure", "error"})
+
+# Variables a candidate legitimately needs in order to run at all. Everything
+# else is withheld - see _env_for. This cannot simply be PATH: Windows needs
+# SYSTEMROOT, COMSPEC and PATHEXT before subprocess or sockets work, and a
+# candidate that cannot start is a false NOTRUN, not a security win.
+_ENV_ALLOWLIST = frozenset({
+    "PATH", "HOME", "USER", "LOGNAME", "SHELL", "LANG", "LC_ALL", "LC_CTYPE",
+    "TZ", "TMPDIR", "TMP", "TEMP", "PWD", "PYTHONUTF8", "PYTHONIOENCODING",
+    "VIRTUAL_ENV", "CONDA_PREFIX", "SYSTEMROOT", "SYSTEMDRIVE", "WINDIR",
+    "COMSPEC", "PATHEXT", "NUMBER_OF_PROCESSORS", "PROCESSOR_ARCHITECTURE",
+    "USERPROFILE", "APPDATA", "LOCALAPPDATA",
+    "JITTEST_FORCE_MINIRUNNER",
+})
+
+# Second layer. If someone widens the allowlist later and the new name looks
+# like a credential, it is still withheld: a leak should require deliberately
+# defeating two mechanisms, not just editing one set.
+_SECRETISH = re.compile(
+    r"KEY|TOKEN|SECRET|PASSWD|PASSWORD|CREDENTIAL|PRIVATE|SESSION|COOKIE"
+    r"|NVAPI|AUTH", re.I)
 
 
 class Disposition(StrEnum):
@@ -303,16 +324,32 @@ class Worktree:
 
 
 def _env_for(workdir: Path) -> dict:
-    env = dict(os.environ)
-    parts = [str(workdir), str(workdir / "src"), _PACKAGE_ROOT]
-    existing = env.get("PYTHONPATH")
-    if existing:
-        parts.append(existing)
-    env["PYTHONPATH"] = os.pathsep.join(parts)
+    """Build the environment a candidate executes in, by allowlist. Defect 62.
+
+    This used to be ``dict(os.environ)``, which handed model-written code every
+    variable the runner held - including the LLM API key that generated the
+    candidate and, under CI, a write-capable GITHUB_TOKEN. A generated test is
+    untrusted input: reading os.environ and putting the value in an assertion
+    message is enough to exfiltrate it into a PR comment. Copying by allowlist
+    means a credential added to the runner tomorrow is absent by default rather
+    than leaked by default.
+
+    This is environment isolation, not a sandbox. The candidate still shares
+    the filesystem, network and user account of the runner, so untrusted
+    public-repo execution stays gated until it runs in a container or VM.
+    """
+    env: dict[str, str] = {}
+    for name in _ENV_ALLOWLIST:
+        value = os.environ.get(name)
+        if value is not None and not _SECRETISH.search(name):
+            env[name] = value
+    # Set, never inherited: the host's PYTHONPATH is deliberately dropped so
+    # host packages cannot shadow the repo under test and change a verdict.
+    env["PYTHONPATH"] = os.pathsep.join(
+        [str(workdir), str(workdir / "src"), _PACKAGE_ROOT])
     env["PYTHONDONTWRITEBYTECODE"] = "1"
     env["PYTHONHASHSEED"] = "0"          # kill one source of ordering flakiness
     env["JITTEST_CHILD"] = "1"
-    env.pop("PYTEST_ADDOPTS", None)
     return env
 
 
