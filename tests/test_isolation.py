@@ -30,18 +30,27 @@ from jittest.execute import (
 
 from .helpers import FixtureRepo
 
-# Realistic names, including the three jittest's own CLI reads.
-SECRETS = {
-    "JITTEST_API_KEY": "sk-jittest-must-not-leak",
-    "OPENAI_API_KEY": "sk-openai-must-not-leak",
-    "ANTHROPIC_API_KEY": "sk-anthropic-must-not-leak",
-    "GITHUB_TOKEN": "ghp-write-capable-must-not-leak",
-    "GH_TOKEN": "ghp-also-must-not-leak",
-    "AWS_SECRET_ACCESS_KEY": "aws-must-not-leak",
-    "NVAPI_KEY": "nvapi-must-not-leak",
-    "MY_DB_PASSWORD": "hunter2-must-not-leak",
-    "SESSION_COOKIE": "sid-must-not-leak",
-}
+# Realistic names, including the three jittest's own CLI reads. The values are
+# derived at import time rather than written as literals: a hardcoded
+# name-plus-value pair is exactly what secret scanners are built to flag, and a
+# test suite should not train reviewers to wave through a red secret scan. The
+# property under test needs only that each value is unique and traceable to its
+# variable, which this gives us without a single credential-shaped literal.
+_SENTINEL = "jittest-isolation-canary"
+
+SECRET_NAMES = (
+    "JITTEST_API_KEY",
+    "OPENAI_API_KEY",
+    "ANTHROPIC_API_KEY",
+    "GITHUB_TOKEN",
+    "GH_TOKEN",
+    "AWS_SECRET_ACCESS_KEY",
+    "NVAPI_KEY",
+    "MY_DB_PASSWORD",
+    "SESSION_COOKIE",
+)
+
+SECRETS = {name: f"{_SENTINEL}-{name.lower()}" for name in SECRET_NAMES}
 
 SUSPECT = ("API_KEY", "TOKEN", "SECRET", "PASSWORD", "NVAPI", "COOKIE",
            "CREDENTIAL")
