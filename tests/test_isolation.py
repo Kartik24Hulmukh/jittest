@@ -1,0 +1,144 @@
+"""Defect 62: model-written code must not inherit the runner's credentials.
+
+``_env_for`` used to be ``dict(os.environ)``. That meant every generated test
+executed with all of the runner's variables: the LLM API key that produced the
+candidate, and under CI a write-capable GITHUB_TOKEN. Stealing them requires
+nothing exotic - a candidate reads os.environ and puts the value in an
+assertion message, and jittest then quotes that message into a PR comment as
+the failure excerpt. The oracle would have exfiltrated the key on jittest's
+behalf.
+
+These tests pin the allowlist, prove an adversarial candidate sees nothing
+credential-shaped, prove a secret cannot reach captured output, and check that
+isolation did not break a candidate's ability to run at all.
+"""
+from __future__ import annotations
+
+import os
+import tempfile
+import unittest
+from pathlib import Path
+from unittest import mock
+
+from jittest.execute import (
+    _ENV_ALLOWLIST,
+    Outcome,
+    Worktree,
+    _env_for,
+    run_test,
+)
+
+from .helpers import FixtureRepo
+
+# Realistic names, including the three jittest's own CLI reads.
+SECRETS = {
+    "JITTEST_API_KEY": "sk-jittest-must-not-leak",
+    "OPENAI_API_KEY": "sk-openai-must-not-leak",
+    "ANTHROPIC_API_KEY": "sk-anthropic-must-not-leak",
+    "GITHUB_TOKEN": "ghp-write-capable-must-not-leak",
+    "GH_TOKEN": "ghp-also-must-not-leak",
+    "AWS_SECRET_ACCESS_KEY": "aws-must-not-leak",
+    "NVAPI_KEY": "nvapi-must-not-leak",
+    "MY_DB_PASSWORD": "hunter2-must-not-leak",
+    "SESSION_COOKIE": "sid-must-not-leak",
+}
+
+SUSPECT = ("API_KEY", "TOKEN", "SECRET", "PASSWORD", "NVAPI", "COOKIE",
+           "CREDENTIAL")
+
+# An adversarial candidate - precisely what a prompt-injected or simply careless
+# model can emit. It fails loudly if it can see anything credential-shaped.
+EXFILTRATOR = '''
+import os
+
+SUSPECT = ("API_KEY", "TOKEN", "SECRET", "PASSWORD", "NVAPI", "COOKIE",
+           "CREDENTIAL")
+
+
+def test_candidate_cannot_read_credentials():
+    visible = sorted(n for n in os.environ
+                     if any(s in n.upper() for s in SUSPECT))
+    assert not visible, "candidate can read: %s" % visible
+'''
+
+# Dumps the whole environment into a failure message. If any secret is
+# reachable, its value lands in the excerpt jittest reports publicly.
+DUMPER = '''
+import os
+
+
+def test_dump_the_environment():
+    raise AssertionError("env=%s" % sorted(os.environ.items()))
+'''
+
+
+class TestEnvironmentAllowlist(unittest.TestCase):
+    def test_secret_shaped_variables_are_withheld(self):
+        with mock.patch.dict(os.environ, SECRETS), \
+                tempfile.TemporaryDirectory() as td:
+            env = _env_for(Path(td))
+        for name in SECRETS:
+            self.assertNotIn(name, env, f"{name} was handed to the candidate")
+
+    def test_the_allowlist_itself_names_nothing_credential_shaped(self):
+        for name in _ENV_ALLOWLIST:
+            for token in SUSPECT:
+                self.assertNotIn(token, name.upper())
+
+    def test_an_unlisted_variable_is_absent_even_when_harmless(self):
+        # Default-deny is the actual property under test. A variable that is
+        # not a secret at all must still be absent, because tomorrow's new
+        # credential will not be added to the allowlist either.
+        with mock.patch.dict(os.environ, {"SOME_INTERNAL_ENDPOINT": "x"}), \
+                tempfile.TemporaryDirectory() as td:
+            env = _env_for(Path(td))
+        self.assertNotIn("SOME_INTERNAL_ENDPOINT", env)
+
+    def test_host_pythonpath_is_not_inherited(self):
+        # Inheriting it let host packages shadow the repo under test, which can
+        # change a verdict about code that never imported them.
+        with mock.patch.dict(os.environ, {"PYTHONPATH": "/host/site-packages"}), \
+                tempfile.TemporaryDirectory() as td:
+            env = _env_for(Path(td))
+        self.assertNotIn("/host/site-packages", env["PYTHONPATH"])
+
+    def test_candidate_still_has_what_it_needs_to_run(self):
+        # Isolation that stops candidates from starting would turn real
+        # verdicts into false NOTRUNs, which is a different kind of lie.
+        with tempfile.TemporaryDirectory() as td:
+            env = _env_for(Path(td))
+            self.assertIn(td, env["PYTHONPATH"])
+        self.assertEqual(env["JITTEST_CHILD"], "1")
+        self.assertEqual(env["PYTHONHASHSEED"], "0")
+        self.assertEqual(env["PYTHONDONTWRITEBYTECODE"], "1")
+        if "PATH" in os.environ:
+            self.assertIn("PATH", env)
+
+    def test_runner_override_flag_is_still_forwarded(self):
+        with mock.patch.dict(os.environ, {"JITTEST_FORCE_MINIRUNNER": "1"}), \
+                tempfile.TemporaryDirectory() as td:
+            env = _env_for(Path(td))
+        self.assertEqual(env["JITTEST_FORCE_MINIRUNNER"], "1")
+
+
+class TestAdversarialCandidate(unittest.TestCase):
+    def test_an_exfiltrating_candidate_finds_nothing(self):
+        with mock.patch.dict(os.environ, SECRETS), FixtureRepo() as repo, \
+                Worktree(repo.path, repo.head) as work:
+            result = run_test(work, EXFILTRATOR, timeout_s=60)
+        self.assertIs(result.outcome, Outcome.PASS, result.tail)
+
+    def test_a_secret_value_cannot_reach_reported_output(self):
+        # The failure excerpt is published into PR comments, so this is the
+        # step that would have done the exfiltrating.
+        with mock.patch.dict(os.environ, SECRETS), FixtureRepo() as repo, \
+                Worktree(repo.path, repo.head) as work:
+            result = run_test(work, DUMPER, timeout_s=60)
+        self.assertIn(result.outcome, (Outcome.FAIL, Outcome.ERROR))
+        for name, value in SECRETS.items():
+            self.assertNotIn(value, result.tail,
+                             f"{name}'s value reached reported output")
+
+
+if __name__ == "__main__":
+    unittest.main()
