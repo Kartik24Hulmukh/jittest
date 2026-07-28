@@ -22,6 +22,7 @@ from unittest import mock
 
 from jittest.execute import (
     _ENV_ALLOWLIST,
+    _SECRETISH,
     Outcome,
     Worktree,
     _env_for,
@@ -52,22 +53,19 @@ SECRET_NAMES = (
 
 SECRETS = {name: f"{_SENTINEL}-{name.lower()}" for name in SECRET_NAMES}
 
-SUSPECT = ("API_KEY", "TOKEN", "SECRET", "PASSWORD", "NVAPI", "COOKIE",
-           "CREDENTIAL")
-
 # An adversarial candidate - precisely what a prompt-injected or simply careless
-# model can emit. It fails loudly if it can see anything credential-shaped.
-EXFILTRATOR = '''
+# model can emit. It hunts for the canary VALUE rather than for guessed variable
+# names: every secret above carries the canary, so a leak is caught under any
+# name at all, including one this test never thought to list.
+EXFILTRATOR = f'''
 import os
 
-SUSPECT = ("API_KEY", "TOKEN", "SECRET", "PASSWORD", "NVAPI", "COOKIE",
-           "CREDENTIAL")
+CANARY = "{_SENTINEL}"
 
 
 def test_candidate_cannot_read_credentials():
-    visible = sorted(n for n in os.environ
-                     if any(s in n.upper() for s in SUSPECT))
-    assert not visible, "candidate can read: %s" % visible
+    leaked = sorted(n for n, v in os.environ.items() if CANARY in v)
+    assert not leaked, "candidate can read: %s" % leaked
 '''
 
 # Dumps the whole environment into a failure message. If any secret is
@@ -90,9 +88,11 @@ class TestEnvironmentAllowlist(unittest.TestCase):
             self.assertNotIn(name, env, f"{name} was handed to the candidate")
 
     def test_the_allowlist_itself_names_nothing_credential_shaped(self):
+        # Reuses the production predicate instead of keeping a parallel list of
+        # credential words, so this test cannot drift from what _env_for
+        # actually enforces - and there is one definition to audit, not two.
         for name in _ENV_ALLOWLIST:
-            for token in SUSPECT:
-                self.assertNotIn(token, name.upper())
+            self.assertIsNone(_SECRETISH.search(name), name)
 
     def test_an_unlisted_variable_is_absent_even_when_harmless(self):
         # Default-deny is the actual property under test. A variable that is
