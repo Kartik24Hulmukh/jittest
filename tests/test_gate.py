@@ -50,6 +50,8 @@ GOOD = {
     "summary": {
         "bugs_attempted": 5,
         "bugs_measured": 4,
+        "bugs_git_failed": 0,
+        "bugs_eligible": 5,
         "model_requests_total": 31,
         "catch_rate": 0.2,
     },

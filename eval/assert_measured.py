@@ -95,6 +95,7 @@ def main(argv: list[str]) -> int:
     requests = _count(summary, "model_requests_total", problems)
     measured = _count(summary, "bugs_measured", problems)
     attempted = _count(summary, "bugs_attempted", problems)
+    git_failed = _count(summary, "bugs_git_failed", problems)
 
     if attempted == 0:
         problems.append("no bugs were attempted: check the BugsInPy clone and --limit")
@@ -112,6 +113,21 @@ def main(argv: list[str]) -> int:
     if measured > attempted > 0:
         problems.append(
             f"bugs_measured ({measured}) exceeds bugs_attempted ({attempted})")
+    if git_failed > attempted > 0:
+        problems.append(
+            f"bugs_git_failed ({git_failed}) exceeds bugs_attempted ({attempted})")
+
+    # The headline denominator is eligible bugs: attempted minus git-failed.
+    # A summary whose arithmetic does not reflect that is corrupt.
+    eligible = summary.get("bugs_eligible")
+    if isinstance(eligible, bool) or not isinstance(eligible, int):
+        problems.append(
+            "summary.bugs_eligible is missing or not an integer; the harness "
+            "did not disclose its denominator")
+    elif eligible != attempted - git_failed:
+        problems.append(
+            f"summary bugs_eligible={eligible} disagrees with attempted "
+            f"({attempted}) minus git_failed ({git_failed})")
 
     # Defect 52: the summary is written by the system under test, so its
     # aggregates are checked against the per-result rows rather than believed.
@@ -123,6 +139,14 @@ def main(argv: list[str]) -> int:
         problems.append(
             f"summary bugs_measured={measured} disagrees with "
             f"{result_measured} measured result rows")
+    result_git_failed = sum(
+        isinstance(r, dict) and r.get("status") == "git_failed"
+        for r in results
+    )
+    if result_git_failed != git_failed:
+        problems.append(
+            f"summary bugs_git_failed={git_failed} disagrees with "
+            f"{result_git_failed} git-failed result rows")
     result_requests = sum(
         int(r.get("model_requests", 0)) for r in results
         if isinstance(r, dict) and isinstance(r.get("model_requests", 0), int)
@@ -148,6 +172,13 @@ def main(argv: list[str]) -> int:
     }
     for reason in sorted(empty_reasons):
         print(f"  not_measured reason: {reason}", file=sys.stderr)
+
+    git_reasons = {
+        r.get("error", "") for r in results
+        if isinstance(r, dict) and r.get("status") == "git_failed" and r.get("error")
+    }
+    for reason in sorted(git_reasons):
+        print(f"  git_failed reason: {reason}", file=sys.stderr)
 
     if problems:
         print("", file=sys.stderr)
