@@ -26,7 +26,7 @@ from . import __version__
 from . import prompts as P
 from .assess import Assessment, parse_assessment
 from .config import Config
-from .diff import ChangeTarget, extract_targets, git_diff
+from .diff import ChangeTarget, GitError, extract_targets, git_diff
 from .execute import Disposition, Worktree, differential_check
 from .ledger import Candidate, Ledger
 from .llm import BaseLLM, BudgetExceeded, LLMError, strip_code_fence
@@ -124,6 +124,11 @@ class Report:
     # Number of model requests actually issued during this run. This is the
     # only honest answer to "was anything measured?". Elapsed time is not.
     model_requests: int = 0
+    # How the diff step ended. "ok" means git ran and produced changed code.
+    # "empty" is a fact about the revision pair. "git_failed" is the absence of
+    # a fact: nothing was examined. A consumer that averages "empty" and
+    # "git_failed" together as "no findings" is computing a false catch rate.
+    diff_status: str = "ok"
 
     @property
     def has_regression(self) -> bool:
@@ -149,6 +154,7 @@ class Report:
             "cost_usd": round(self.cost_usd, 4),
             "duration_s": round(self.duration_s, 2),
             "model_requests": self.model_requests,
+            "diff_status": self.diff_status,
             "has_regression": self.has_regression,
             "errors": self.errors,
             "telemetry": [t.as_dict() for t in self.telemetry],
@@ -298,8 +304,17 @@ def run(
         if on_event:
             on_event(message)
 
-    diff_text = git_diff(repo, base, head)
+    try:
+        diff_text = git_diff(repo, base, head)
+    except GitError as exc:
+        report.diff_status = "git_failed"
+        report.errors.append(str(exc))
+        report.model_requests = llm.usage.calls
+        report.duration_s = time.time() - started
+        return report
+
     if not diff_text.strip():
+        report.diff_status = "empty"
         report.errors.append(
             "empty diff between base and head: no changed Python symbols were "
             "found, so no test could be generated. This is a property of the "

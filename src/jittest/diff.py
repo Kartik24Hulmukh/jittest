@@ -21,8 +21,24 @@ from pathlib import Path
 __all__ = [
     "Hunk", "FileDiff", "ChangeTarget", "parse_unified_diff", "enclosing_symbols",
     "extract_targets", "is_probably_test_file", "is_safe_repo_path", "git_diff",
-    "git_show", "TEST_DIRS",
+    "git_show", "TEST_DIRS", "GitError",
 ]
+
+
+class GitError(RuntimeError):
+    """git itself failed, so nothing is known about the comparison.
+
+    Deliberately distinct from an empty diff. An empty diff is a fact about the
+    revision pair: these two revisions contain the same code. A git failure is
+    the *absence* of a fact: we do not know whether the code changed.
+
+    Both used to return "". A mistyped revision, a shallow clone that does not
+    contain the base commit, a corrupt object store, or git missing from PATH
+    all produced the same cheerful "no changed Python symbols were found" and
+    an exit code of zero - jittest claiming it had looked when it had not.
+    That is the same class of lie as reporting a catch rate for a run that
+    never called the model, and it is worth its own exception type.
+    """
 
 # Paths with spaces or non-ASCII bytes are emitted by git in quoted, escaped
 # form: `diff --git "a/my file.py" "b/my file.py"`. The original pattern only
@@ -233,15 +249,35 @@ def git_diff(repo: Path | str, base: str, head: str) -> str:
     empty result made jittest report "no changes" for every such comparison,
     silently and successfully, which is the worst possible way to be wrong.
 
-    Returns "" only when both specs produce nothing.
+    Returns "" only when git SUCCEEDED and both specs produced nothing. If
+    every spec fails, raises GitError rather than returning "": a failure to
+    look is not the same as having looked and found nothing.
     """
-    for spec in (f"{base}...{head}", f"{base}..{head}"):
-        res = subprocess.run(
-            ["git", "-C", str(repo), "diff", "--unified=3", "--no-color", spec],
-            capture_output=True, text=True, errors="replace",
-        )
-        if res.returncode == 0 and res.stdout.strip():
+    specs = (f"{base}...{head}", f"{base}..{head}")
+    failures: list[str] = []
+    for spec in specs:
+        try:
+            res = subprocess.run(
+                ["git", "-C", str(repo), "diff", "--unified=3", "--no-color", spec],
+                capture_output=True, text=True, errors="replace",
+            )
+        except OSError as exc:
+            # git absent from PATH, or repo path unusable. Previously this
+            # propagated as a bare OSError from deep inside the pipeline.
+            raise GitError(
+                f"could not execute git while comparing {base}..{head}: {exc}"
+            ) from exc
+        if res.returncode != 0:
+            detail = (res.stderr or "").strip().replace("\n", " ")[:300]
+            failures.append(f"`git diff {spec}` exited {res.returncode}: {detail}")
+            continue
+        if res.stdout.strip():
             return res.stdout
+    if len(failures) == len(specs):
+        raise GitError(
+            "git could not compare these revisions, so jittest does not know "
+            "whether the code changed. This is a failure to measure, not an "
+            "empty diff. " + " | ".join(failures))
     return ""
 
 
