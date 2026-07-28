@@ -134,6 +134,36 @@ class TestExecutionRecord(unittest.TestCase):
         # leaving a reader to assume a comparison happened.
         self.assertEqual(v.base_run_count, 0)
 
+    def test_every_ending_records_the_run_that_produced_it(self):
+        """A verdict that executed something must say so.
+
+        Found by running the oracle against a real repository rather than
+        against fixtures. The head_notrun and head_passed endings return before
+        the rerun loop, and nothing asserted their run record - so if either
+        stopped recording, the two most common outcomes in practice would both
+        report zero executions while CI stayed green.
+        """
+        with FixtureRepo() as repo:
+            passed = differential_check(repo.path, repo.base, repo.head,
+                                        HARDENING_TEST, timeout_s=60, reruns=2)
+        self.assertEqual(passed.head_run_count, 1)
+        self.assertEqual(list(passed.head_runs), [Outcome.PASS])
+
+        with FixtureRepo() as repo:
+            broken = differential_check(repo.path, repo.base, repo.head,
+                                        BROKEN_TEST, timeout_s=60, reruns=2)
+        self.assertEqual(broken.head_run_count, 1)
+
+    def test_no_verdict_claims_zero_runs_after_executing(self):
+        with FixtureRepo() as repo:
+            for code in (CATCHING_TEST, HARDENING_TEST, BROKEN_TEST):
+                v = differential_check(repo.path, repo.base, repo.head, code,
+                                       timeout_s=60, reruns=2)
+                with self.subTest(disposition=str(v.disposition)):
+                    self.assertGreater(
+                        v.head_run_count, 0,
+                        f"{v.disposition} reported no head execution")
+
     def test_hardening_verdict_never_touched_base(self):
         with FixtureRepo() as repo:
             v = differential_check(repo.path, repo.base, repo.head,
