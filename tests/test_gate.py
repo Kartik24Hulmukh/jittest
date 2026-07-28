@@ -14,6 +14,10 @@ was built to catch:
     are impossible, and `int(x or 0)` happily accepted them as evidence that
     work had been done.
 
+Premortem 3 added the remaining hole: the gate believed the summary's own
+arithmetic. Aggregates are now cross-checked against the per-result rows, so the
+good fixture below must carry rows that agree with its summary.
+
 A gate that can crash, or that can be satisfied by impossible numbers, is not a
 gate. These tests assert it fails closed on every malformed shape and passes on
 exactly one thing: a run that actually issued model requests.
@@ -47,9 +51,15 @@ GOOD = {
         "bugs_attempted": 5,
         "bugs_measured": 4,
         "model_requests_total": 31,
-        "catch_rate": 0.25,
+        "catch_rate": 0.2,
     },
-    "results": [],
+    "results": [
+        {"status": "caught", "model_requests": 8},
+        {"status": "missed", "model_requests": 8},
+        {"status": "missed", "model_requests": 8},
+        {"status": "missed", "model_requests": 7},
+        {"status": "error", "model_requests": 0},
+    ],
 }
 
 
@@ -80,6 +90,35 @@ class TestGateFailsClosed(unittest.TestCase):
 
     def test_missing_counts(self):
         self.assert_rejected("missing keys", {"summary": {}})
+
+    def test_missing_results_array(self):
+        self.assert_rejected("no results key", {"summary": {
+            "bugs_attempted": 5, "bugs_measured": 4,
+            "model_requests_total": 31}})
+
+    def test_results_not_an_array(self):
+        self.assert_rejected("results is a string", {
+            "summary": {"bugs_attempted": 5, "bugs_measured": 4,
+                        "model_requests_total": 31},
+            "results": "nope"})
+
+    def test_summary_disagrees_with_result_rows(self):
+        self.assert_rejected("aggregate mismatch", {
+            "summary": {"bugs_attempted": 5, "bugs_measured": 4,
+                        "model_requests_total": 31},
+            "results": [{"status": "error", "model_requests": 0}]})
+
+    def test_completion_below_floor(self):
+        self.assert_rejected("completion 1/5", {
+            "summary": {"bugs_attempted": 5, "bugs_measured": 1,
+                        "model_requests_total": 4},
+            "results": [
+                {"status": "caught", "model_requests": 4},
+                {"status": "error", "model_requests": 0},
+                {"status": "error", "model_requests": 0},
+                {"status": "error", "model_requests": 0},
+                {"status": "error", "model_requests": 0},
+            ]})
 
     def test_zero_model_requests(self):
         self.assert_rejected("zero requests", {"summary": {
