@@ -71,10 +71,6 @@ def importorskip(module_name: str, reason: str | None = None) -> Any:
         raise Skipped(reason or f"could not import {module_name}") from None
 
 
-# ---------------------------------------------------------------------------
-# fixture marking
-# ---------------------------------------------------------------------------
-
 class FixtureDef:
     """The record _minirunner reads to resolve one fixture."""
 
@@ -91,11 +87,8 @@ class FixtureDef:
 
 def fixture(arg=None, *, scope: str = "function", params=None,
             autouse: bool = False, name: str | None = None, ids=None):
-    """Usable as @fixture and @fixture(...).
-
-    Marks the function with our own attribute AND the attribute real pytest
-    uses, so _minirunner recognises fixtures declared with either library.
-    """
+    """Usable as @fixture and @fixture(...). Marks the function with our own
+    attribute AND the attribute real pytest uses."""
     def wrap(fn):
         fdef = FixtureDef(fn, scope=scope, params=params, autouse=autouse,
                           name=name, ids=ids)
@@ -113,10 +106,6 @@ class param(NamedTuple):
     values: Any
     id: str | None = None
 
-
-# ---------------------------------------------------------------------------
-# marks
-# ---------------------------------------------------------------------------
 
 class _Mark:
     def __init__(self, name: str, args: tuple, kwargs: dict):
@@ -183,10 +172,6 @@ class _MarkNamespace:
 
 mark = _MarkNamespace()
 
-
-# ---------------------------------------------------------------------------
-# raises / approx
-# ---------------------------------------------------------------------------
 
 class RaisesContext:
     def __init__(self, expected, match: str | None = None):
