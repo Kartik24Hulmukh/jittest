@@ -23,16 +23,19 @@ def _auto_id(value, index: int) -> str:
     return str(index)
 
 
-def _param_values_id(entry, index: int):
+def _param_values_id(entry, single: bool):
     """(value, id) from a shim param, a real pytest ParameterSet, or a raw
-    value - duck-typed so either library's parametrize works here."""
+    value - duck-typed so either library's parametrize works here. A real
+    ParameterSet always wraps the value in a tuple, so for a single argument
+    name we unwrap the one-element tuple."""
     if isinstance(entry, shim.param):
         return entry.values, entry.id
     if hasattr(entry, "values") and hasattr(entry, "id"):
-        try:
-            return entry.values, entry.id
-        except Exception:
-            pass
+        values = entry.values
+        pid = getattr(entry, "id", None)
+        if single and isinstance(values, tuple) and len(values) == 1:
+            values = values[0]
+        return values, pid
     return entry, None
 
 
@@ -59,11 +62,12 @@ def _parametrize_cases(fn) -> list[tuple[dict, list[str]]]:
             names = [n.strip() for n in names.split(",")]
         else:
             names = list(names)
+        single = len(names) == 1
         id_list = list(ids) if ids is not None else None
         expanded: list[tuple[dict, list[str]]] = []
         for i, entry in enumerate(values):
-            raw, pid = _param_values_id(entry, i)
-            values_tuple = (raw,) if len(names) == 1 else tuple(raw)
+            raw, pid = _param_values_id(entry, single)
+            values_tuple = (raw,) if single else tuple(raw)
             if id_list is not None and i < len(id_list) and id_list[i] is not None:
                 pid = str(id_list[i])
             if pid is None:
@@ -108,7 +112,7 @@ def _fixture_param_cases(closure: list[str], registry: dict[str, _Fixture],
             continue
         entries = []
         for i, entry in enumerate(fixture.params):
-            value, pid = _param_values_id(entry, i)
+            value, pid = _param_values_id(entry, True)
             if pid is None and fixture.ids is not None \
                     and i < len(fixture.ids) and fixture.ids[i] is not None:
                 pid = str(fixture.ids[i])
