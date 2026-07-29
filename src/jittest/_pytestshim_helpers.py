@@ -71,7 +71,9 @@ class Approx:
             if not isinstance(actual, (list, tuple)) \
                     or len(actual) != len(self.expected):
                 return False
-            return all(self._close(a, e) for a, e in zip(actual, self.expected))
+            # Lengths are equal by the check above, so strict is free here.
+            return all(self._close(a, e)
+                       for a, e in zip(actual, self.expected, strict=True))
         return self._close(actual, self.expected)
 
     def __ne__(self, actual):

@@ -54,21 +54,18 @@ class ShimPrimitives(unittest.TestCase):
             raise ValueError("boom")
 
     def test_raises_fails_when_nothing_is_raised(self) -> None:
-        with self.assertRaises(shim.Failed):
-            with shim.raises(ValueError):
-                pass
+        with self.assertRaises(shim.Failed), shim.raises(ValueError):
+            pass
 
     def test_raises_with_match(self) -> None:
         with shim.raises(ValueError, match="boom"):
             raise ValueError("boom goes the dynamite")
-        with self.assertRaises(shim.Failed):
-            with shim.raises(ValueError, match="quiet"):
-                raise ValueError("boom")
+        with self.assertRaises(shim.Failed), shim.raises(ValueError, match="quiet"):
+            raise ValueError("boom")
 
     def test_raises_passes_on_the_wrong_exception(self) -> None:
-        with self.assertRaises(TypeError):
-            with shim.raises(ValueError):
-                raise TypeError("wrong kind")
+        with self.assertRaises(TypeError), shim.raises(ValueError):
+            raise TypeError("wrong kind")
 
     def test_approx_scalar_list_and_dict(self) -> None:
         self.assertTrue(0.1 + 0.2 == shim.approx(0.3))

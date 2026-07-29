@@ -12,6 +12,7 @@ import unittest
 
 from . import _pytestshim as shim
 from ._fixtureengine import _Fixture, _call, _params_of
+from ._pytestshim_core import PARAMETRIZE_ATTR
 
 
 def _auto_id(value, index: int) -> str:
@@ -42,7 +43,7 @@ def _param_values_id(entry, single: bool):
 def _parametrize_layers(fn) -> list:
     """Parametrize layers from the shim's attribute and, when the candidate
     imported a real pytest, from real MarkDecorator objects in pytestmark."""
-    layers = list(getattr(fn, "__jittest_parametrize__", []))
+    layers = list(getattr(fn, PARAMETRIZE_ATTR, []))
     found = getattr(fn, shim.MARKS_ATTR, [])
     marks = found if isinstance(found, list) else [found]
     for m in marks:
@@ -74,7 +75,10 @@ def _parametrize_cases(fn) -> list[tuple[dict, list[str]]]:
                 pid = _auto_id(raw, i)
             for argdict, id_parts in cases:
                 merged = dict(argdict)
-                for name, value in zip(names, values_tuple):
+                # strict=False on purpose: a candidate whose parametrize row
+                # does not match its argnames is the candidate's bug, and it
+                # must surface as a test failure, not as a runner crash.
+                for name, value in zip(names, values_tuple, strict=False):
                     merged[name] = value
                 expanded.append((merged, [*id_parts, pid]))
         cases = expanded
@@ -123,7 +127,9 @@ def _fixture_param_cases(closure: list[str], registry: dict[str, _Fixture],
     cases: list[tuple[dict, list[str]]] = []
     names = [name for name, _ in choices]
     for combo in itertools.product(*[entries for _, entries in choices]):
-        overrides = {name: (i, value) for name, (i, value, _id) in zip(names, combo)}
+        # product() yields one entry per choice, so the lengths always match.
+        overrides = {name: (i, value)
+                     for name, (i, value, _id) in zip(names, combo, strict=True)}
         ids = [_id for _i, _v, _id in combo]
         cases.append((overrides, ids))
     return cases

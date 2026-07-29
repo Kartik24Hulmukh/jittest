@@ -115,7 +115,7 @@ class JunitReader(unittest.TestCase):
                 '<testsuites><testsuite tests="2">'
                 '<testcase name="t1"><skipped message="m"/></testcase>'
                 '<testcase name="t2"><skipped message="m"/></testcase>'
-                "</testsuites></testsuites>"
+                "</testsuite></testsuites>"
             ),
             0,
         )
@@ -136,7 +136,7 @@ class JunitReader(unittest.TestCase):
                 '<testsuites><testsuite tests="2">'
                 '<testcase name="t1"><failure message="m"/></testcase>'
                 '<testcase name="t2"><error message="m"/></testcase>'
-                "</testsuites></testsuites>"
+                "</testsuite></testsuites>"
             ),
             0,
         )

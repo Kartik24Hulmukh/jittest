@@ -183,7 +183,7 @@ class _FixtureState:
         if fixture is None:
             raise _FixtureLookupError(
                 f"fixture '{name}' not found (checked conftest.py, the test "
-                f"module, and built-ins tmp_path/monkeypatch/capsys)")
+                "module, and built-ins tmp_path/monkeypatch/capsys)")
         deps: dict = {}
         for dep in _params_of(fixture.fn):
             if dep == "request":
@@ -200,7 +200,7 @@ class _FixtureState:
                 fixture.fn):
             raise _FixtureLookupError(
                 f"async fixture '{name}' is not supported by the mini-runner; "
-                f"install pytest")
+                "install pytest")
         if inspect.isgeneratorfunction(fixture.fn):
             gen = fixture.fn(**deps)
             value = next(gen)

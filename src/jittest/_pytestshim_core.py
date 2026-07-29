@@ -13,6 +13,7 @@ from typing import Any, NamedTuple
 
 FIXTURE_MARKER = "__jittest_fixture__"
 MARKS_ATTR = "pytestmark"
+PARAMETRIZE_ATTR = "__jittest_parametrize__"
 
 
 class Skipped(unittest.SkipTest):
@@ -69,7 +70,7 @@ def fixture(arg=None, *, scope: str = "function", params=None,
         fdef = FixtureDef(fn, scope=scope, params=params, autouse=autouse,
                           name=name, ids=ids)
         setattr(fn, FIXTURE_MARKER, fdef)
-        setattr(fn, "_pytestfixturefunction", fdef)
+        fn._pytestfixturefunction = fdef
         return fn
 
     if callable(arg):
@@ -141,9 +142,9 @@ class _MarkNamespace:
         id_list = list(ids) if ids is not None else None
 
         def deco(fn):
-            existing = list(getattr(fn, "__jittest_parametrize__", []))
+            existing = list(getattr(fn, PARAMETRIZE_ATTR, []))
             existing.append((names, list(argvalues), id_list))
-            setattr(fn, "__jittest_parametrize__", existing)
+            setattr(fn, PARAMETRIZE_ATTR, existing)
             return fn
         return deco
 
