@@ -23,20 +23,49 @@ def _auto_id(value, index: int) -> str:
     return str(index)
 
 
+def _param_values_id(entry, index: int):
+    """(value, id) from a shim param, a real pytest ParameterSet, or a raw
+    value - duck-typed so either library's parametrize works here."""
+    if isinstance(entry, shim.param):
+        return entry.values, entry.id
+    if hasattr(entry, "values") and hasattr(entry, "id"):
+        try:
+            return entry.values, entry.id
+        except Exception:
+            pass
+    return entry, None
+
+
+def _parametrize_layers(fn) -> list:
+    """Parametrize layers from the shim's attribute and, when the candidate
+    imported a real pytest, from real MarkDecorator objects in pytestmark."""
+    layers = list(getattr(fn, "__jittest_parametrize__", []))
+    found = getattr(fn, shim.MARKS_ATTR, [])
+    marks = found if isinstance(found, list) else [found]
+    for m in marks:
+        if getattr(m, "name", None) == "parametrize":
+            args = getattr(m, "args", ())
+            if len(args) >= 2:
+                layers.append((args[0], list(args[1]),
+                               getattr(m, "kwargs", {}).get("ids")))
+    return layers
+
+
 def _parametrize_cases(fn) -> list[tuple[dict, list[str]]]:
     """Expand stacked @pytest.mark.parametrize layers into argument dicts."""
-    layers = getattr(fn, "__jittest_parametrize__", [])
     cases: list[tuple[dict, list[str]]] = [({}, [])]
-    for names, values, ids in layers:
+    for names, values, ids in _parametrize_layers(fn):
+        if isinstance(names, str):
+            names = [n.strip() for n in names.split(",")]
+        else:
+            names = list(names)
+        id_list = list(ids) if ids is not None else None
         expanded: list[tuple[dict, list[str]]] = []
         for i, entry in enumerate(values):
-            if isinstance(entry, shim.param):
-                raw, pid = entry.values, entry.id
-            else:
-                raw, pid = entry, None
+            raw, pid = _param_values_id(entry, i)
             values_tuple = (raw,) if len(names) == 1 else tuple(raw)
-            if ids is not None and i < len(ids) and ids[i] is not None:
-                pid = str(ids[i])
+            if id_list is not None and i < len(id_list) and id_list[i] is not None:
+                pid = str(id_list[i])
             if pid is None:
                 pid = _auto_id(raw, i)
             for argdict, id_parts in cases:
@@ -79,10 +108,7 @@ def _fixture_param_cases(closure: list[str], registry: dict[str, _Fixture],
             continue
         entries = []
         for i, entry in enumerate(fixture.params):
-            if isinstance(entry, shim.param):
-                value, pid = entry.values, entry.id
-            else:
-                value, pid = entry, None
+            value, pid = _param_values_id(entry, i)
             if pid is None and fixture.ids is not None \
                     and i < len(fixture.ids) and fixture.ids[i] is not None:
                 pid = str(fixture.ids[i])
