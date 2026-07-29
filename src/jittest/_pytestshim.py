@@ -9,9 +9,9 @@ silently catches nothing and cannot say why (roadmap P3-2).
 
 This facade re-exports the shim surface from _pytestshim_core (fixture/mark
 machinery) and _pytestshim_helpers (raises/approx/MonkeyPatch/capture). The
-mini-runner installs it as sys.modules["pytest"] ONLY when no real pytest can
-be imported - installing over a real pytest would break the real pytest and
-its plugins, and the mini-runner handles real pytest decorators directly.
+mini-runner installs it as sys.modules["pytest"] for the duration of a run and
+restores any pre-existing pytest afterwards, so the candidate always gets this
+shim's deterministic surface without polluting a real pytest installation.
 It is NOT a pytest replacement: anything unsupported fails loudly.
 """
 from __future__ import annotations
@@ -68,13 +68,13 @@ def is_real_pytest_available() -> bool:
 
 
 def install() -> bool:
-    """Install this module as sys.modules["pytest"] when no real pytest is
-    importable. Returns True if installed, False when a real pytest is present
-    (installing over it would break the real pytest and its plugins; the
-    mini-runner then handles the real decorators instead).
+    """Install this module as sys.modules["pytest"], always.
+
+    The mini-runner saves and restores any pre-existing pytest around the run,
+    so installing here never pollutes a real pytest installation; within the
+    run the candidate gets this shim's deterministic surface regardless of
+    whether a real pytest is installed. Returns True (the shim is installed).
     """
-    if is_real_pytest_available():
-        return False
     module = sys.modules.get(__name__)
     if module is None:
         # Loaders that never registered us, or tests that scrub jittest* from
