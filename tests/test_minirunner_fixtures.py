@@ -17,13 +17,7 @@ import unittest
 from pathlib import Path
 
 from jittest import _pytestshim as shim
-from jittest._minirunner import (
-    EXIT_COLLECTION_ERROR,
-    EXIT_FAILED,
-    EXIT_NO_TESTS,
-    EXIT_OK,
-    run_file,
-)
+from jittest._minirunner import EXIT_FAILED, EXIT_OK, run_file
 
 
 def _write(body: str, stem: str, conftest: str | None = None) -> tuple[Path, Path]:
