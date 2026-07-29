@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import asyncio
 import inspect
-import sys
 import tempfile
 import traceback
 from pathlib import Path
@@ -62,18 +61,48 @@ class _Fixture:
                    ids=getattr(marker, "ids", None))
 
 
+def _unwrap_fixture(obj):
+    """Real pytest's @pytest.fixture returns a FixtureFunctionDefinition that
+    is not callable; recover the underlying function from it."""
+    if callable(obj):
+        return obj
+    for attr in ("func", "_fixture_function", "__wrapped__"):
+        target = getattr(obj, attr, None)
+        if callable(target):
+            return target
+    getter = getattr(obj, "_get_wrapped_function", None)
+    if callable(getter):
+        try:
+            target = getter()
+        except Exception:
+            return None
+        if callable(target):
+            return target
+    return None
+
+
+def _fixture_marker_of(obj):
+    """The fixture marker from either the shim or a real pytest decorator."""
+    marker = getattr(obj, shim.FIXTURE_MARKER, None)
+    if marker is None:
+        marker = getattr(obj, "_pytestfixturefunction", None)
+    if marker is None:
+        marker = getattr(obj, "_fixture_function_marker", None)
+    return marker
+
+
 def _fixtures_from(module) -> dict[str, _Fixture]:
     """Fixture definitions in one module, keyed by fixture name."""
     registry: dict[str, _Fixture] = {}
     for attr_name, obj in vars(module).items():
-        if not callable(obj):
-            continue
-        marker = getattr(obj, shim.FIXTURE_MARKER, None)
+        marker = _fixture_marker_of(obj)
         if marker is None:
-            marker = getattr(obj, "_pytestfixturefunction", None)
-        if marker is not None:
-            fixture = _Fixture.from_marker(attr_name, obj, marker)
-            registry[fixture.name] = fixture
+            continue
+        target = _unwrap_fixture(obj)
+        if target is None:
+            continue
+        fixture = _Fixture.from_marker(attr_name, target, marker)
+        registry[fixture.name] = fixture
     return registry
 
 
