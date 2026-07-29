@@ -59,10 +59,11 @@ def _parametrize_cases(fn) -> list[tuple[dict, list[str]]]:
     """Expand stacked @pytest.mark.parametrize layers into argument dicts."""
     cases: list[tuple[dict, list[str]]] = [({}, [])]
     for names, values, ids in _parametrize_layers(fn):
-        if isinstance(names, str):
-            names = [n.strip() for n in names.split(",")]
-        else:
-            names = list(names)
+        # A ternary rather than an if/else assigning to the same name twice:
+        # ruff SIM108, and it matches the shape already used in
+        # _pytestshim_core.mark.parametrize.
+        names = ([n.strip() for n in names.split(",")]
+                 if isinstance(names, str) else list(names))
         single = len(names) == 1
         id_list = list(ids) if ids is not None else None
         expanded: list[tuple[dict, list[str]]] = []
