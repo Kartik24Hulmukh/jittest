@@ -58,9 +58,6 @@ target-version = "py311"
 select = ["E", "F", "I"]
 ignore = ["E501"]
 
-[tool.ruff.lint.per-file-ignores]
-"src/jittest/_minirunner.py" = ["I"]
-
 [tool.mypy]
 python_version = "3.11"
 ignore_missing_imports = true
