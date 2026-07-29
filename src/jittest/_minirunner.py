@@ -21,13 +21,13 @@ Fixtures (roadmap P3-2). A candidate test in a pytest-native repository almost
 always does ``import pytest`` and uses fixtures from the repo's conftest.py.
 Before this support existed, such candidates either died at collection
 (import error) or were silently skipped, and jittest caught nothing while
-saying nothing. The mini-runner now installs jittest._pytestshim as ``pytest``
-whenever it is the runner, loads conftest.py (nearest definitions win, then
-the test module), and resolves fixtures recursively - cycle detection,
-function/module scopes, yield teardown, autouse, parametrized fixtures,
-request.param, mark.parametrize, skip/skipif/xfail, and the built-ins
-tmp_path, tmp_path_factory, monkeypatch, capsys. Resolution lives in
-_fixtureengine; collection and expansion in _minirunner_cases.
+saying nothing. The mini-runner installs jittest._pytestshim as ``pytest`` for
+the duration of the run (restoring any real pytest afterwards), loads
+conftest.py (nearest definitions win, then the test module), and resolves
+fixtures recursively - cycle detection, function/module scopes, yield
+teardown, autouse, parametrized fixtures, request.param, mark.parametrize,
+skip/skipif/xfail, and the built-ins tmp_path, tmp_path_factory, monkeypatch,
+capsys. Resolution lives in _fixtureengine; collection in _minirunner_cases.
 
 Deliberately unsupported (fail loudly, never silently pass): async fixtures,
 doctest, capfd, pytest.ini options, plugin hooks, and unittest addCleanup.
@@ -70,7 +70,26 @@ def _load(path: Path, module_name: str | None = None):
 
 
 def run_file(path: Path) -> int:
+    """Run one test file under the shim, restoring any real pytest after.
+
+    The shim is installed for the duration of the run so the candidate gets
+    its deterministic surface; a real pytest that was already installed is put
+    back afterwards, so calling run_file from inside a pytest session does not
+    pollute the surrounding installation.
+    """
+    sentinel = object()
+    previous = sys.modules.get("pytest", sentinel)
     shim.install()
+    try:
+        return _run_file(path)
+    finally:
+        if previous is sentinel:
+            sys.modules.pop("pytest", None)
+        else:
+            sys.modules["pytest"] = previous
+
+
+def _run_file(path: Path) -> int:
     try:
         module = _load(path)
     except BaseException:
