@@ -22,7 +22,7 @@ always does ``import pytest`` and uses fixtures from the repo's conftest.py.
 Before this support existed, such candidates either died at collection
 (import error) or were silently skipped, and jittest caught nothing while
 saying nothing. The mini-runner now installs jittest._pytestshim as ``pytest``
-when no real pytest imports, loads conftest.py (nearest definitions win, then
+whenever it is the runner, loads conftest.py (nearest definitions win, then
 the test module), and resolves fixtures recursively - cycle detection,
 function/module scopes, yield teardown, autouse, parametrized fixtures,
 request.param, mark.parametrize, skip/skipif/xfail, and the built-ins
@@ -42,10 +42,10 @@ from pathlib import Path
 
 from . import _pytestshim as shim
 from ._fixtureengine import (
-    _builtin_fixtures,
-    _conftest_paths,
     _FixtureLookupError,
     _FixtureState,
+    _builtin_fixtures,
+    _conftest_paths,
     _fixtures_from,
 )
 from ._minirunner_cases import _build_cases, _skip_reason, _xfail_mark
