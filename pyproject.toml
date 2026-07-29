@@ -65,6 +65,7 @@ ignore = ["E501"]
 "src/jittest/_pytestshim.py" = ["E", "F", "I", "UP", "B", "SIM"]
 "src/jittest/_pytestshim_core.py" = ["E", "F", "I", "UP", "B", "SIM"]
 "src/jittest/_pytestshim_helpers.py" = ["E", "F", "I", "UP", "B", "SIM"]
+"src/jittest/_fixtureengine.py" = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.mypy]
 python_version = "3.11"
