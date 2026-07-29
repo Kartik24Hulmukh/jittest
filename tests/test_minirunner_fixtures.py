@@ -68,10 +68,14 @@ class ShimPrimitives(unittest.TestCase):
             raise TypeError("wrong kind")
 
     def test_approx_scalar_list_and_dict(self) -> None:
-        self.assertTrue(0.1 + 0.2 == shim.approx(0.3))
-        self.assertTrue([1.0, 2.0000001] == shim.approx([1.0, 2.0]))
-        self.assertTrue({"a": 1.0} == shim.approx({"a": 1.0000001}))
-        self.assertFalse(0.5 == shim.approx(0.3))
+        # approx goes on the LEFT of every comparison here. Two reasons: the
+        # expected value reads first, and a literal on the left of == is a yoda
+        # condition (ruff SIM300). assertNotEqual also covers Approx.__ne__,
+        # which nothing else exercised.
+        self.assertEqual(shim.approx(0.3), 0.1 + 0.2)
+        self.assertEqual(shim.approx([1.0, 2.0]), [1.0, 2.0000001])
+        self.assertEqual(shim.approx({"a": 1.0000001}), {"a": 1.0})
+        self.assertNotEqual(shim.approx(0.3), 0.5)
 
     def test_monkeypatch_setattr_and_undo(self) -> None:
         class Target:
