@@ -58,6 +58,11 @@ target-version = "py311"
 select = ["E", "F", "I", "UP", "B", "SIM"]
 ignore = ["E501"]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/test_minirunner_fixtures.py" = ["E", "F", "I", "UP", "B", "SIM"]
+"tests/test_minirunner_fixtures_e2e.py" = ["E", "F", "I", "UP", "B", "SIM"]
+"tests/test_notrun_oracle.py" = ["E", "F", "I", "UP", "B", "SIM"]
+
 [tool.mypy]
 python_version = "3.11"
 ignore_missing_imports = true
