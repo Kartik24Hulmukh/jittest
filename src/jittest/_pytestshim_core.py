@@ -7,6 +7,7 @@ them and installs itself as ``pytest`` when no real pytest is importable.
 """
 from __future__ import annotations
 
+import contextlib
 import importlib
 import unittest
 from typing import Any, NamedTuple
@@ -109,10 +110,11 @@ class _Mark:
 def _add_mark(obj, mark: _Mark):
     marks = list(getattr(obj, MARKS_ATTR, []))
     marks.append(mark)
-    try:
+    # Builtins and slotted classes refuse attribute assignment. A mark we
+    # cannot record is simply not applied - marks never change whether a test
+    # is allowed to run, only how its result is interpreted.
+    with contextlib.suppress(AttributeError, TypeError):
         setattr(obj, MARKS_ATTR, marks)
-    except (AttributeError, TypeError):
-        pass
     return obj
 
 
