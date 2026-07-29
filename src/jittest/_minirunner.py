@@ -42,11 +42,11 @@ from pathlib import Path
 
 from . import _pytestshim as shim
 from ._fixtureengine import (
-    _FixtureLookupError,
-    _FixtureState,
     _builtin_fixtures,
     _conftest_paths,
+    _FixtureLookupError,
     _fixtures_from,
+    _FixtureState,
 )
 from ._minirunner_cases import _build_cases, _skip_reason, _xfail_mark
 
