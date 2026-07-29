@@ -11,7 +11,7 @@ import itertools
 import unittest
 
 from . import _pytestshim as shim
-from ._fixtureengine import _Fixture, _call, _params_of
+from ._fixtureengine import _call, _Fixture, _params_of
 from ._pytestshim_core import PARAMETRIZE_ATTR
 
 
