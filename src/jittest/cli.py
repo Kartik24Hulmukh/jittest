@@ -242,14 +242,17 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
           f"{'found' if has_key else 'NOT found - only --dry-run will work'}")
 
     # Check whether the configured model has known pricing.
-    from .llm import PRICES
+    from .llm import price_for
     model_name = cfg.model.split("/")[-1] if "/" in cfg.model else cfg.model
-    is_priced = any(key in model_name for key in PRICES)
-    if is_priced:
-        print(f"  [ok  ] model '{cfg.model}' is priced — dollar cap active")
+    price = price_for(model_name) or price_for(cfg.model)
+    if price:
+        print(f"  [ok  ] model '{cfg.model}' is priced at "
+              f"${price[0]:.2f}/${price[1]:.2f} per Mtok — dollar cap active")
     else:
         print(f"  [warn] model '{cfg.model}' is unpriced — "
               f"request-count ceiling will be enforced instead of a dollar cap")
+        print("         set JITTEST_MODEL_PRICE='<in>,<out>' (USD per "
+              "million tokens) to restore the dollar cap")
 
     print(f"  [ok  ] model {cfg.model}, budget ${cfg.budget_usd:.2f}, "
           f"max targets {cfg.max_targets}")
