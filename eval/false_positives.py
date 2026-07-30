@@ -146,6 +146,7 @@ def main() -> int:
                 dry_run=args.dry_run,
                 budget_usd=cfg.budget_usd,
                 temperature=cfg.temperature,
+                request_ceiling=cfg.max_targets * cfg.candidates_per_target + 5,
             )
             report = run_pipeline(
                 repo=args.repo, base=base, head=head, cfg=cfg, llm=llm
