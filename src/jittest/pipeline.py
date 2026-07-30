@@ -1,297 +1,30 @@
-"""Orchestration: diff in, proven catching tests out.
-
-    git diff
-      -> change targets (functions, not files)
-      -> risk ranking (the cost gate)
-      -> N candidate tests per target (the only step a model decides)
-      -> static safety gate
-      -> DIFFERENTIAL ORACLE   <- load-bearing, no model involved
-      -> assessor (regression, or intended change?)
-      -> ledger + report
-
-The base and head worktrees are created once per run and reused for every
-candidate. That single decision is what makes three executions per candidate
-affordable, and three executions per candidate is what buys the flakiness
-rerun that keeps the report trustworthy.
+"""Orchestration: diff in, proven catching tests out. Worktrees are created
+once per run and reused, which is what three executions per candidate affords.
 """
 from __future__ import annotations
 
-import json
 import time
 from contextlib import ExitStack
-from dataclasses import dataclass, field
 from pathlib import Path
 
-from . import __version__
 from . import prompts as P
+from ._pipeline_helpers import (_added_excerpt, _bump, _disposition_from_verdict,
+                                _repro, _telemetry, existing_tests_for,
+                                import_path_for)
 from .assess import Assessment, parse_assessment
 from .config import Config
-from .diff import ChangeTarget, GitError, extract_targets, git_diff
-from .execute import Disposition, Worktree, differential_check
+from .diff import GitError, extract_targets, git_diff
+from .execute import Worktree, differential_check
 from .ledger import Candidate, Ledger
 from .llm import BaseLLM, BudgetExceeded, LLMError, strip_code_fence
+from .results import DISPOSITIONS, CandidateTelemetry, Finding, Report
 from .risk import RiskScore, rank
 from .safety import check_candidate
 from .sandbox import SandboxUnavailable
 from .sandbox import plan as sandbox_plan
 
-__all__ = ["Finding", "Report", "CandidateTelemetry", "run",
+__all__ = ["Finding", "Report", "CandidateTelemetry", "run", "DISPOSITIONS",
            "import_path_for", "existing_tests_for"]
-
-# Disposition values for per-candidate telemetry.
-#
-# The oracle owns every value it can produce (execute.Disposition). The three
-# below describe endings reached before the oracle ever ran, so they live here.
-# Defect 38: this tuple is the whole vocabulary, and none of it is recovered by
-# searching English prose any more.
-_PRE_ORACLE_DISPOSITIONS = (
-    "model_declined",          # model returned NO_CANDIDATE or empty
-    "parse_failed",            # response could not be parsed as code
-    "safety_rejected",         # static safety gate rejected the candidate
-)
-
-DISPOSITIONS = _PRE_ORACLE_DISPOSITIONS + tuple(d.value for d in Disposition)
-
-
-@dataclass
-class CandidateTelemetry:
-    """Structured per-candidate telemetry line.
-
-    Never contains candidate source code or API keys.
-    """
-    target_symbol: str = ""
-    target_file: str = ""
-    risk_score: float = 0.0
-    candidate_index: int = 0
-    disposition: str = ""
-    head_outcome: str = ""
-    base_outcome: str = ""
-    rerun_agreement: bool = True
-    assessor_verdict: str = ""
-    assessor_confidence: float = 0.0
-    failure_excerpt: str = ""
-
-    def as_dict(self) -> dict:
-        return {
-            "target_symbol": self.target_symbol,
-            "target_file": self.target_file,
-            "risk_score": self.risk_score,
-            "candidate_index": self.candidate_index,
-            "disposition": self.disposition,
-            "head_outcome": self.head_outcome,
-            "base_outcome": self.base_outcome,
-            "rerun_agreement": self.rerun_agreement,
-            "assessor_verdict": self.assessor_verdict,
-            "assessor_confidence": self.assessor_confidence,
-            "failure_excerpt": self.failure_excerpt,
-        }
-
-    def as_jsonl(self) -> str:
-        return json.dumps(self.as_dict())
-
-
-@dataclass
-class Finding:
-    target: ChangeTarget
-    test_code: str
-    oracle_reason: str
-    failure_excerpt: str
-    assessment: Assessment
-    risk_score: float
-    risk_reasons: list[str]
-    repro_command: str
-    ledger_id: int | None = None
-    latent: bool = False
-
-
-@dataclass
-class Report:
-    repo: str
-    base: str
-    head: str
-    model: str
-    findings: list[Finding] = field(default_factory=list)
-    latent_findings: list[Finding] = field(default_factory=list)
-    targets_considered: int = 0
-    targets_skipped: int = 0
-    candidates_generated: int = 0
-    discarded: dict[str, int] = field(default_factory=dict)
-    cost_usd: float = 0.0
-    priced: bool = True
-    duration_s: float = 0.0
-    reruns: int = 2
-    errors: list[str] = field(default_factory=list)
-    version: str = __version__
-    telemetry: list[CandidateTelemetry] = field(default_factory=list)
-    # Number of model requests actually issued during this run. This is the
-    # only honest answer to "was anything measured?". Elapsed time is not.
-    model_requests: int = 0
-    # How the diff step ended. "ok" means git ran and produced changed code.
-    # "empty" is a fact about the revision pair. "git_failed" is the absence of
-    # a fact: nothing was examined. A consumer that averages "empty" and
-    # "git_failed" together as "no findings" is computing a false catch rate.
-    diff_status: str = "ok"
-    # How candidates were confined. Recorded rather than assumed, because a
-    # user who believes model-written code ran in a container when it ran on
-    # the bare runner has been misled about the only thing that makes it safe
-    # to point this tool at a stranger's pull request.
-    sandbox: dict = field(default_factory=lambda: {
-        "backend": "none", "image": None, "isolated": False,
-        "network_denied": False, "notes": [],
-    })
-
-    @property
-    def has_regression(self) -> bool:
-        return any(f.assessment.should_report for f in self.findings)
-
-    @property
-    def cost_line(self) -> str:
-        if not self.priced:
-            return "unpriced"
-        return f"${self.cost_usd:.3f}"
-
-    def as_dict(self) -> dict:
-        return {
-            "version": self.version,
-            "repo": self.repo,
-            "base": self.base,
-            "head": self.head,
-            "model": self.model,
-            "targets_considered": self.targets_considered,
-            "targets_skipped": self.targets_skipped,
-            "candidates_generated": self.candidates_generated,
-            "discarded": self.discarded,
-            "cost_usd": round(self.cost_usd, 4),
-            "duration_s": round(self.duration_s, 2),
-            "model_requests": self.model_requests,
-            "diff_status": self.diff_status,
-            "sandbox": self.sandbox,
-            "has_regression": self.has_regression,
-            "errors": self.errors,
-            "telemetry": [t.as_dict() for t in self.telemetry],
-            "findings": [
-                {
-                    "file": f.target.file_path,
-                    "symbol": f.target.symbol,
-                    "risk_score": f.risk_score,
-                    "risk_reasons": f.risk_reasons,
-                    "oracle_reason": f.oracle_reason,
-                    "assessment": f.assessment.as_dict(),
-                    "test_code": f.test_code,
-                    "repro_command": f.repro_command,
-                }
-                for f in self.findings
-            ],
-            "latent": [
-                {"file": f.target.file_path, "symbol": f.target.symbol}
-                for f in self.latent_findings
-            ],
-        }
-
-
-def import_path_for(file_path: str) -> str:
-    """Best-effort module path. A wrong guess shows up as a collection error,
-    which the oracle discards, which is the correct failure mode."""
-    p = file_path.replace("\\\\", "/")
-    if p.endswith(".py"):
-        p = p[:-3]
-    parts = [seg for seg in p.split("/") if seg not in ("", ".")]
-    if parts and parts[0] in ("src", "lib", "python"):
-        parts = parts[1:]
-    if parts and parts[-1] == "__init__":
-        parts = parts[:-1]
-    return ".".join(parts)
-
-
-def existing_tests_for(repo: Path, symbol: str, limit: int = 8) -> list[str]:
-    """Test files that already mention this symbol, so we do not duplicate them."""
-    leaf = symbol.split(".")[-1]
-    if not leaf or leaf == "<module>":
-        return []
-    hits: list[str] = []
-    for path in list(Path(repo).rglob("test_*.py"))[:800]:
-        try:
-            if leaf in path.read_text(encoding="utf-8", errors="ignore"):
-                hits.append(str(path.relative_to(repo)))
-        except (OSError, ValueError):
-            continue
-        if len(hits) >= limit:
-            break
-    return hits
-
-
-def _added_excerpt(t: ChangeTarget, limit: int = 40) -> str:
-    lines = t.source_after.splitlines()
-    offset = t.start_line
-    picked = [f"{n}: {lines[n - offset]}"
-              for n in t.added_lines[:limit]
-              if 0 <= n - offset < len(lines)]
-    return "\n".join(picked) or "(no line-level detail available)"
-
-
-def _repro(base: str, head: str, file_hint: str) -> str:
-    return (f"git checkout {head[:12]} && pytest {file_hint} -q   # expect FAIL\n"
-            f"git checkout {base[:12]} && pytest {file_hint} -q   # expect PASS")
-
-
-def _bump(counter: dict[str, int], key: str) -> None:
-    counter[key] = counter.get(key, 0) + 1
-
-
-def _disposition_from_verdict(verdict) -> str:
-    """Read the disposition the oracle stated. Defect 38.
-
-    This used to search verdict.reason for substrings such as "could not be
-    collected", which made a human-readable sentence into a machine interface.
-    Rewording the sentence silently relabelled telemetry, and every ending that
-    no substring distinguished - no test executed on base, a provenance
-    mismatch, a timeout - fell through to "fails on base too", which is a
-    different and far less alarming claim than what actually happened.
-    """
-    disposition = getattr(verdict, "disposition", None)
-    if disposition is None:
-        raise ValueError("verdict carries no disposition")
-    return str(disposition)
-
-
-def _telemetry(report, target, rs, attempt, disposition,
-               verdict=None, assessment=None) -> None:
-    """Emit one structured telemetry line and append to report.telemetry."""
-    head_out = ""
-    base_out = ""
-    rerun_agree = True
-    excerpt = ""
-
-    if verdict is not None:
-        head_out = verdict.head_outcome.value if verdict.head_outcome else ""
-        base_out = verdict.base_outcome.value if verdict.base_outcome else ""
-        # Defect 39. Derived from the recorded per-execution outcomes rather
-        # than from whether the reason string happens to contain a word.
-        rerun_agree = verdict.rerun_agreement
-        excerpt = "\n".join(verdict.failure_excerpt.splitlines()[:5])
-
-    assess_v = ""
-    assess_c = 0.0
-    if assessment is not None:
-        assess_v = assessment.verdict
-        assess_c = assessment.confidence
-
-    tel = CandidateTelemetry(
-        target_symbol=target.symbol,
-        target_file=target.file_path,
-        risk_score=rs.score,
-        candidate_index=attempt,
-        disposition=disposition,
-        head_outcome=head_out,
-        base_outcome=base_out,
-        rerun_agreement=rerun_agree,
-        assessor_verdict=assess_v,
-        assessor_confidence=assess_c,
-        failure_excerpt=excerpt,
-    )
-    report.telemetry.append(tel)
-    # Emit structured line to stderr (visible in workflow logs)
-    print(f"  telemetry: {tel.as_jsonl()}", flush=True)
 
 
 def run(
@@ -343,14 +76,7 @@ def run(
     emit(f"{len(all_targets)} changed symbol(s), {len(ranked)} above risk threshold")
 
     if not ranked:
-        # A non-empty diff that yields nothing to analyse is a different event
-        # from a clean pull request, and until now the two produced byte-for-byte
-        # identical reports: no findings, no errors, exit 0. Both causes are
-        # configuration, not code quality, and both are silent by construction -
-        # the ignore list is usually inherited from the defaults and the risk
-        # threshold is a number nobody revisits. Naming the cause here is the
-        # same rule that diff_status applies one step earlier: an absence of a
-        # result must never be reported in the words used for a result.
+        # "Analysed nothing" must never wear the words of "found nothing".
         if all_targets and not kept:
             report.diff_status = "all_targets_ignored"
             report.errors.append(
@@ -367,11 +93,7 @@ def run(
         report.duration_s = time.time() - started
         return report
 
-    # Decided once, before any candidate exists, so that a broken or absent
-    # sandbox is a configuration error rather than a run of unexplained
-    # failures. In "required" mode this raises, which is the intended behaviour:
-    # refusing to execute untrusted code unconfined is not a degraded run, it
-    # is the correct one.
+    # Decided once up front: "required" raises rather than running unconfined.
     try:
         sbx = sandbox_plan(cfg.sandbox_mode, cfg.sandbox_backend, cfg.sandbox_image)
     except SandboxUnavailable as exc:
@@ -437,7 +159,6 @@ def run(
                         _telemetry(report, t, rs, attempt, "model_declined")
                         continue
 
-                    # Check if the response is parseable as Python code
                     import ast as _ast
                     try:
                         _ast.parse(code)
@@ -536,6 +257,9 @@ def run(
     finally:
         report.cost_usd = llm.usage.cost_usd
         report.priced = llm.usage.priced
+        report.tokens_estimated = llm.usage.tokens_estimated
+        report.input_tokens = llm.usage.input_tokens
+        report.output_tokens = llm.usage.output_tokens
         report.model_requests = llm.usage.calls
         report.duration_s = time.time() - started
         if owns_ledger:
