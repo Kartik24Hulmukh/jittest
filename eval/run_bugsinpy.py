@@ -271,8 +271,13 @@ def evaluate_one(spec: BugSpec, repo: Path, model: str, budget: float,
             res.seconds = round(time.time() - t0, 1)
             return res
 
-        llm = build_llm(cfg.model, dry_run=dry_run, budget_usd=cfg.budget_usd,
-                        temperature=cfg.temperature)
+        llm = build_llm(
+            cfg.model,
+            dry_run=dry_run,
+            budget_usd=cfg.budget_usd,
+            temperature=cfg.temperature,
+            request_ceiling=cfg.max_targets * cfg.candidates_per_target + 5,
+        )
         report = run_pipeline(
             repo=repo,
             base=spec.fixed_commit,
