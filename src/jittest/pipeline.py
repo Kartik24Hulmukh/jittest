@@ -8,9 +8,8 @@ from contextlib import ExitStack
 from pathlib import Path
 
 from . import prompts as P
-from ._pipeline_helpers import (_added_excerpt, _bump, _disposition_from_verdict,
-                                _repro, _telemetry, existing_tests_for,
-                                import_path_for)
+from ._pipeline_helpers import (_added_excerpt, _bump, _disposition_from_verdict, _repro,
+                                _telemetry, existing_tests_for, import_path_for)
 from .assess import Assessment, parse_assessment
 from .config import Config
 from .diff import GitError, extract_targets, git_diff
