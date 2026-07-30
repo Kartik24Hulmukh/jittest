@@ -13,6 +13,7 @@ about.
 from __future__ import annotations
 
 import ast
+import os
 import re
 import subprocess
 from dataclasses import dataclass, field
@@ -21,7 +22,7 @@ from pathlib import Path
 __all__ = [
     "Hunk", "FileDiff", "ChangeTarget", "parse_unified_diff", "enclosing_symbols",
     "extract_targets", "is_probably_test_file", "is_safe_repo_path", "git_diff",
-    "git_show", "TEST_DIRS", "GitError",
+    "git_show", "git_env", "TEST_DIRS", "GitError",
 ]
 
 
@@ -235,6 +236,50 @@ def _slice(source: str, start: int, end: int) -> str:
     return "\n".join(lines[start - 1:end])
 
 
+# git reads these from the environment and they take precedence over the working
+# directory. `git -C <repo>` does NOT override them: -C changes where git starts
+# looking, while GIT_DIR names the object store outright. Inheriting them means a
+# CI job, a git hook, a `rebase --exec`, or an exported shell variable silently
+# redirects every git subprocess at a DIFFERENT repository than the one the user
+# named - and jittest then either reports a confident result about code nobody
+# asked about, or fails to read the diff and calls it "git_failed", which reads
+# to a user like "nothing to do". Premortem P3 scenario 9; same family as
+# Defect 22.
+#
+# jittest is always explicit about which repository it means - every invocation
+# passes -C or an absolute path - so there is no case in which inheriting these
+# helps, and one obvious case in which it lies.
+_REPO_POINTING_GIT_VARS = (
+    "GIT_DIR",
+    "GIT_WORK_TREE",
+    "GIT_INDEX_FILE",
+    "GIT_OBJECT_DIRECTORY",
+    "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+    "GIT_COMMON_DIR",
+    "GIT_NAMESPACE",
+    "GIT_CEILING_DIRECTORIES",
+    "GIT_DISCOVERY_ACROSS_FILESYSTEM",
+)
+
+
+def git_env(base: dict[str, str] | None = None) -> dict[str, str]:
+    """A copy of the environment with the repo-pointing git variables removed.
+
+    Deliberately a denylist, which is the opposite of the choice made for
+    candidate tests in ``execute._env_for``. The asymmetry is intentional: a
+    candidate is untrusted model output, so it gets an allowlist and receives
+    nothing by default. git is a trusted program that legitimately needs PATH,
+    HOME, SSH_AUTH_SOCK, proxy settings and the user's own git configuration to
+    function at all inside real CI, so an allowlist there would break more runs
+    than it protected. The danger being addressed is narrow and named - being
+    pointed at the wrong repository - so the removal is narrow and named too.
+    """
+    env = dict(os.environ if base is None else base)
+    for name in _REPO_POINTING_GIT_VARS:
+        env.pop(name, None)
+    return env
+
+
 def git_diff(repo: Path | str, base: str, head: str) -> str:
     """Diff between two revisions, as unified text.
 
@@ -259,7 +304,7 @@ def git_diff(repo: Path | str, base: str, head: str) -> str:
         try:
             res = subprocess.run(
                 ["git", "-C", str(repo), "diff", "--unified=3", "--no-color", spec],
-                capture_output=True, text=True, errors="replace",
+                capture_output=True, text=True, errors="replace", env=git_env(),
             )
         except OSError as exc:
             # git absent from PATH, or repo path unusable. Previously this
@@ -284,7 +329,7 @@ def git_diff(repo: Path | str, base: str, head: str) -> str:
 def git_show(repo: Path | str, rev: str, path: str) -> str:
     res = subprocess.run(
         ["git", "-C", str(repo), "show", f"{rev}:{path}"],
-        capture_output=True, text=True, errors="replace",
+        capture_output=True, text=True, errors="replace", env=git_env(),
     )
     return res.stdout if res.returncode == 0 else ""
 

@@ -143,7 +143,17 @@ def _cmd_run(args: argparse.Namespace) -> int:
                   f"{args.telemetry_json}: {exc}", file=sys.stderr)
 
     if args.comment:
-        print(f"  github: {upsert_pr_comment(markdown)}", file=sys.stderr)
+        # Posting is the LAST step and the least important one: the analysis is
+        # finished and has already been printed to stdout. A GitHub outage, a
+        # revoked token, an absent `gh` binary, or a malformed API response must
+        # never convert a completed run into a non-zero exit - that is exactly
+        # how a real, proven regression gets thrown away as "CI is broken".
+        # Same family as Defect 29 (unguarded GITHUB_OUTPUT). Premortem P3-13.
+        try:
+            comment_status = upsert_pr_comment(markdown)
+        except Exception as exc:
+            comment_status = f"failed to comment: {exc!r}"
+        print(f"  github: {comment_status}", file=sys.stderr)
 
     if os.getenv("GITHUB_OUTPUT"):
         # A CI runner with an unwritable or stale GITHUB_OUTPUT path must not
