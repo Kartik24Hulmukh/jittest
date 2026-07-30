@@ -36,12 +36,21 @@ so without scrubbing them a hostile or merely untidy environment points these
 operations at a different repository than the one under test - and because an
 unresolvable revision deliberately skips the provenance check rather than
 failing it, the result is a confident verdict about nothing identifiable.
+
+A fifth warning (Defect 42, and the isolation work in jittest.sandbox). A
+candidate is executed, so the two facts that decide whether that is safe are
+what it can reach and what survives it. _env_for answers the first by
+allowlist. _run_process answers the second: a timeout that kills only the
+direct child leaves grandchildren holding the shared worktree open, which is
+Defect 35 arriving through a door the reset does not cover.
 """
 from __future__ import annotations
 
+import contextlib
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -53,6 +62,8 @@ from pathlib import Path
 
 from .diff import git_env
 from .redact import redact
+from .sandbox import SandboxPlan
+from .sandbox import wrap as sandbox_wrap
 
 __all__ = [
     "Outcome", "RunResult", "Verdict", "Worktree", "run_test",
@@ -348,9 +359,11 @@ def _env_for(workdir: Path) -> dict:
     means a credential added to the runner tomorrow is absent by default rather
     than leaked by default.
 
-    This is environment isolation, not a sandbox. The candidate still shares
-    the filesystem, network and user account of the runner, so untrusted
-    public-repo execution stays gated until it runs in a container or VM.
+    This is environment isolation. It is one of two layers and it is the weaker
+    one: it decides what a candidate may read, not where a candidate may reach.
+    The boundary lives in ``jittest.sandbox``; this function keeps working when
+    no backend is available, which is exactly why that fallback is recorded in
+    the report rather than passed over in silence.
     """
     env: dict[str, str] = {}
     for name in _ENV_ALLOWLIST:
@@ -420,8 +433,63 @@ def _failure_kind_from_output(text: str) -> FailureKind:
     return FailureKind.UNKNOWN
 
 
-def run_test(workdir: Path, test_code: str, timeout_s: int = 120) -> RunResult:
-    """Write the candidate into the checkout, run it, then remove it."""
+def _run_process(command: list[str], cwd: str, env: dict, timeout_s: int):
+    """Run a candidate and, on timeout, kill the whole process tree.
+
+    Defect 42. ``subprocess.run(timeout=...)`` kills the direct child only.
+    A candidate that spawned anything leaves grandchildren running against a
+    shared worktree: they hold file handles that break ``git worktree remove``
+    and they write files that the next candidate then reads, which is the
+    Defect 35 contamination route re-entering through a door the reset does not
+    cover. The process is started in its own session so the entire group can be
+    signalled at once.
+    """
+    popen_kwargs: dict = {}
+    if hasattr(os, "setsid"):
+        popen_kwargs["start_new_session"] = True
+    elif os.name == "nt":
+        popen_kwargs["creationflags"] = getattr(
+            subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+
+    proc = subprocess.Popen(
+        command, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        text=True, errors="replace", **popen_kwargs,
+    )
+    try:
+        out, err = proc.communicate(timeout=timeout_s)
+    except subprocess.TimeoutExpired:
+        _kill_tree(proc)
+        # Reap what we just signalled. If it will not die even now, say so by
+        # timing out again rather than blocking the run forever.
+        with contextlib.suppress(subprocess.TimeoutExpired):
+            proc.communicate(timeout=10)
+        raise
+    return proc.returncode, out or "", err or ""
+
+
+def _kill_tree(proc: subprocess.Popen) -> None:
+    """Best effort: signal the group, then the process. Never raise."""
+    try:
+        if hasattr(os, "killpg") and hasattr(os, "getpgid"):
+            os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+            return
+    except OSError:
+        # Covers ProcessLookupError: the group is already gone, which is the
+        # outcome we wanted anyway.
+        pass
+    with contextlib.suppress(OSError):
+        proc.kill()
+
+
+def run_test(workdir: Path, test_code: str, timeout_s: int = 120,
+             sbx: SandboxPlan | None = None) -> RunResult:
+    """Write the candidate into the checkout, run it, then remove it.
+
+    ``sbx`` selects the isolation backend. ``None`` means unconfined, which is
+    the historical behaviour and remains the default so that every existing
+    caller - including the whole test suite - keeps its meaning. The pipeline
+    always passes a plan; see ``jittest.sandbox``.
+    """
     workdir = Path(workdir)
     token = uuid.uuid4().hex[:8]
     candidate = workdir / f"{CANDIDATE_PREFIX}{token}.py"
@@ -432,12 +500,18 @@ def run_test(workdir: Path, test_code: str, timeout_s: int = 120) -> RunResult:
     command = [*runner, str(candidate)]
     if uses_pytest:
         command.append(f"--junitxml={report}")
+    env = _env_for(workdir)
+    if sbx is not None and sbx.isolated:
+        command, extra = sandbox_wrap(command, workdir, env, sbx)
+        env = extra or env
     try:
-        proc = subprocess.run(
-            command,
-            cwd=str(workdir), env=_env_for(workdir),
-            capture_output=True, text=True, errors="replace", timeout=timeout_s,
-        )
+        code_, out_, err_ = _run_process(command, str(workdir), env, timeout_s)
+
+        class _P:                     # minimal stand-in for CompletedProcess
+            returncode = code_
+            stdout = out_
+            stderr = err_
+        proc = _P()
     except subprocess.TimeoutExpired:
         return RunResult(Outcome.TIMEOUT, -1, "", f"timed out after {timeout_s}s",
                          failure_kind=FailureKind.UNKNOWN)
@@ -486,8 +560,16 @@ def differential_check(
     reruns: int = 2,
     head_workdir: Path | None = None,
     base_workdir: Path | None = None,
+    sbx: SandboxPlan | None = None,
 ) -> Verdict:
-    """Run the candidate on head, then base, and decide. No model involved."""
+    """Run the candidate on head, then base, and decide. No model involved.
+
+    ``sbx`` is applied identically to both sides. That symmetry is not an
+    implementation detail: a candidate executed under different confinement on
+    head and on base would produce a difference caused by jittest rather than
+    by the diff, which is precisely the class of fabricated catch that Defects
+    33 to 35 exist to prevent.
+    """
     repo = Path(repo).resolve()
     owns_head = head_workdir is None
     owns_base = base_workdir is None
@@ -529,7 +611,7 @@ def differential_check(
         # exist to detect non-determinism, and a candidate that is flaky because
         # it accumulates state must stay flaky here or it will be believed.
         reset_workdir(head_dir)
-        first = run_test(head_dir, test_code, timeout_s)
+        first = run_test(head_dir, test_code, timeout_s, sbx=sbx)
         head_runs.append(first.outcome)
         if first.outcome is Outcome.ERROR:
             return Verdict(False, "discarded: test could not be collected on head",
@@ -564,7 +646,7 @@ def differential_check(
         # It failed on head. Prove the failure is not luck before we spend a
         # base checkout on it, and long before we spend a reviewer's attention.
         for _ in range(max(0, reruns - 1)):
-            again = run_test(head_dir, test_code, timeout_s)
+            again = run_test(head_dir, test_code, timeout_s, sbx=sbx)
             head_runs.append(again.outcome)
             if again.outcome is not Outcome.FAIL:
                 return Verdict(False, "discarded: non-deterministic across reruns "
@@ -583,7 +665,7 @@ def differential_check(
             return provenance_failure(exc)
         # Anything the head executions wrote must not be visible on base.
         reset_workdir(base_dir)
-        on_base = run_test(base_dir, test_code, timeout_s)
+        on_base = run_test(base_dir, test_code, timeout_s, sbx=sbx)
         base_runs.append(on_base.outcome)
 
         if on_base.outcome is Outcome.PASS:

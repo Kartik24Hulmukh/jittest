@@ -32,6 +32,8 @@ from .ledger import Candidate, Ledger
 from .llm import BaseLLM, BudgetExceeded, LLMError, strip_code_fence
 from .risk import RiskScore, rank
 from .safety import check_candidate
+from .sandbox import SandboxUnavailable
+from .sandbox import plan as sandbox_plan
 
 __all__ = ["Finding", "Report", "CandidateTelemetry", "run",
            "import_path_for", "existing_tests_for"]
@@ -129,6 +131,14 @@ class Report:
     # a fact: nothing was examined. A consumer that averages "empty" and
     # "git_failed" together as "no findings" is computing a false catch rate.
     diff_status: str = "ok"
+    # How candidates were confined. Recorded rather than assumed, because a
+    # user who believes model-written code ran in a container when it ran on
+    # the bare runner has been misled about the only thing that makes it safe
+    # to point this tool at a stranger's pull request.
+    sandbox: dict = field(default_factory=lambda: {
+        "backend": "none", "image": None, "isolated": False,
+        "network_denied": False, "notes": [],
+    })
 
     @property
     def has_regression(self) -> bool:
@@ -155,6 +165,7 @@ class Report:
             "duration_s": round(self.duration_s, 2),
             "model_requests": self.model_requests,
             "diff_status": self.diff_status,
+            "sandbox": self.sandbox,
             "has_regression": self.has_regression,
             "errors": self.errors,
             "telemetry": [t.as_dict() for t in self.telemetry],
@@ -332,9 +343,48 @@ def run(
     emit(f"{len(all_targets)} changed symbol(s), {len(ranked)} above risk threshold")
 
     if not ranked:
+        # A non-empty diff that yields nothing to analyse is a different event
+        # from a clean pull request, and until now the two produced byte-for-byte
+        # identical reports: no findings, no errors, exit 0. Both causes are
+        # configuration, not code quality, and both are silent by construction -
+        # the ignore list is usually inherited from the defaults and the risk
+        # threshold is a number nobody revisits. Naming the cause here is the
+        # same rule that diff_status applies one step earlier: an absence of a
+        # result must never be reported in the words used for a result.
+        if all_targets and not kept:
+            report.diff_status = "all_targets_ignored"
+            report.errors.append(
+                f"all {len(all_targets)} changed symbol(s) matched an ignore "
+                f"pattern, so nothing was analysed. This is a fact about the "
+                f"`ignore` configuration, not about the code.")
+        elif kept:
+            report.diff_status = "below_risk_threshold"
+            report.errors.append(
+                f"{len(kept)} changed symbol(s) were all scored below the risk "
+                f"threshold of {cfg.risk_threshold}, so nothing was analysed. "
+                f"Lower `risk_threshold` to widen the net.")
         report.model_requests = llm.usage.calls
         report.duration_s = time.time() - started
         return report
+
+    # Decided once, before any candidate exists, so that a broken or absent
+    # sandbox is a configuration error rather than a run of unexplained
+    # failures. In "required" mode this raises, which is the intended behaviour:
+    # refusing to execute untrusted code unconfined is not a degraded run, it
+    # is the correct one.
+    try:
+        sbx = sandbox_plan(cfg.sandbox_mode, cfg.sandbox_backend, cfg.sandbox_image)
+    except SandboxUnavailable as exc:
+        report.diff_status = "sandbox_unavailable"
+        report.errors.append(str(exc))
+        report.model_requests = llm.usage.calls
+        report.duration_s = time.time() - started
+        return report
+    report.sandbox = sbx.as_dict()
+    for note in sbx.notes:
+        emit(note)
+        if not sbx.isolated:
+            report.errors.append(note)
 
     owns_ledger = ledger is None
     ledger = ledger or Ledger(repo / cfg.ledger_path)
@@ -407,6 +457,7 @@ def run(
                         repo, base, head, code,
                         timeout_s=cfg.timeout_s, reruns=cfg.reruns,
                         head_workdir=head_dir, base_workdir=base_dir,
+                        sbx=sbx,
                     )
 
                     cand = Candidate(
