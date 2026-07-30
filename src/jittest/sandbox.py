@@ -50,6 +50,10 @@ refusing to launch the interpreter, then every sandbox misconfiguration would
 read as a caught regression, and the product would be lying in the one direction
 that matters. ``probe_backend`` exists to make that distinguishable before any
 candidate runs.
+
+Defects 72 and 73 below were both found by this repository's own CI, on the
+only runners in the matrix that have a container engine installed. Seven jobs
+were green because they never took the container path at all.
 """
 from __future__ import annotations
 
@@ -76,6 +80,14 @@ DEFAULT_IMAGE = "python:3.13-slim"
 # test; a candidate that tries to exceed it is trying to hurt the runner.
 _MEMORY = "2g"
 _PIDS = "256"
+
+# Where jittest itself lives on the host. A candidate is executed by
+# jittest._minirunner (or by the vendored pytest shim), so this directory is on
+# the candidate's PYTHONPATH. Inside a container it is not, unless it is mounted
+# - which is Defect 72, found by this project's own CI on the only runner in the
+# matrix that has a container engine installed.
+_PACKAGE_ROOT = Path(__file__).resolve().parent.parent
+_PACKAGE_MOUNT = "/opt/jittest"
 
 
 class SandboxUnavailable(RuntimeError):
@@ -159,6 +171,11 @@ def detect_backend(preferred: str = "") -> str:
     return "none"
 
 
+def _image_present(backend: str, image: str) -> bool:
+    """Is the image already in the local store? Never pulls."""
+    return _usable(backend, ["image", "inspect", image])
+
+
 def probe_backend(backend: str, image: str = DEFAULT_IMAGE) -> tuple[bool, str]:
     """Run a trivial command through the backend and confirm it succeeds.
 
@@ -237,6 +254,26 @@ def plan(mode: str, preferred: str = "", image: str = DEFAULT_IMAGE,
             "still withheld by the environment allowlist, but network egress "
             "and filesystem writes outside the checkout were not blocked."])
 
+    if backend in ("docker", "podman") and not _image_present(backend, image):
+        # Defect 73. `docker run` pulls a missing image. In auto mode that turns
+        # "isolate if you can" into an unannounced multi-hundred-megabyte
+        # download in the middle of somebody's pull request, on a runner that
+        # may have no registry access at all - and the failure would arrive
+        # disguised as candidates that could not start. Auto isolates with what
+        # is already here; `required` is where the user has asked for the image
+        # and a pull is the expected cost of that request.
+        if mode == "auto":
+            fallback = detect_backend("bubblewrap")
+            if fallback == "bubblewrap":
+                backend = "bubblewrap"
+            else:
+                return SandboxPlan(backend="none", image=image, notes=[
+                    f"{backend} is available but the image {image!r} is not "
+                    f"present locally; candidates ran unconfined rather than "
+                    f"triggering an unannounced image pull mid-run. Run "
+                    f"'{backend} pull {image}' once, or set sandbox mode to "
+                    f"'required' to accept the pull."])
+
     if probe:
         ok, detail = probe_backend(backend, image)
         if not ok:
@@ -302,6 +339,29 @@ def _container_paths(argv: list[str], workdir: Path) -> list[str]:
     return out
 
 
+def _container_pythonpath(value: str, workdir: Path) -> list[str]:
+    """Translate a host PYTHONPATH into its in-container equivalent.
+
+    Three cases, and the third is the one that matters. Paths under the
+    checkout become paths under ``/workspace``. The jittest package root becomes
+    the read-only mount. Anything else is a host path that simply does not exist
+    in the image, and keeping it would leave a dead entry that silently changes
+    what the candidate can import - so it is dropped rather than carried.
+    """
+    out: list[str] = []
+    root = str(_PACKAGE_ROOT)
+    for part in value.split(os.pathsep):
+        if not part:
+            continue
+        if part.startswith(str(workdir)):
+            tail = part[len(str(workdir)):].replace(os.sep, "/").lstrip("/")
+            out.append("/workspace/" + tail if tail else "/workspace")
+        elif part == root or part.startswith(root + os.sep):
+            tail = part[len(root):].replace(os.sep, "/").lstrip("/")
+            out.append(_PACKAGE_MOUNT + "/" + tail if tail else _PACKAGE_MOUNT)
+    return out
+
+
 def _wrap_container(argv: list[str], workdir: Path, env: dict[str, str],
                     sbx: SandboxPlan) -> list[str]:
     cmd = [
@@ -314,6 +374,9 @@ def _wrap_container(argv: list[str], workdir: Path, env: dict[str, str],
         "--memory", _MEMORY,
         "--tmpfs", "/tmp:rw,exec,nosuid,size=512m",
         "-v", f"{workdir}:/workspace:rw",
+        # Read-only: the candidate must be able to import the runner, and must
+        # not be able to edit the thing that is judging it.
+        "-v", f"{_PACKAGE_ROOT}:{_PACKAGE_MOUNT}:ro",
         "-w", "/workspace",
     ]
     # Run as the invoking user so files the candidate writes into the bound
@@ -326,10 +389,7 @@ def _wrap_container(argv: list[str], workdir: Path, env: dict[str, str],
         if name == "PATH":
             continue                     # the image's PATH, not the host's
         if name == "PYTHONPATH":
-            value = ":".join(
-                "/workspace" + p[len(str(workdir)):].replace(os.sep, "/")
-                if p.startswith(str(workdir)) else p
-                for p in value.split(os.pathsep))
+            value = ":".join(_container_pythonpath(value, workdir))
         cmd += ["-e", f"{name}={value}"]
 
     inner = _container_paths(argv, workdir)

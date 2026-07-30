@@ -166,6 +166,12 @@ class BrokenBackend(unittest.TestCase):
 
     def test_failed_probe_is_not_an_isolated_plan(self):
         original_detect, original_probe = S.detect_backend, S.probe_backend
+        original_present = S._image_present
+        # Defect 73 put an image-presence check in front of the probe, so a
+        # test about probe failure must state that the image is there. Without
+        # this the run falls back before it ever probes, and the test would
+        # pass for the wrong reason on a machine with no container engine.
+        S._image_present = lambda backend, image: True
         S.detect_backend = lambda preferred="": "docker"
         S.probe_backend = lambda backend, image: (False, "daemon not reachable")
         try:
@@ -178,9 +184,16 @@ class BrokenBackend(unittest.TestCase):
             self.assertTrue(any("daemon not reachable" in n for n in p.notes))
         finally:
             S.detect_backend, S.probe_backend = original_detect, original_probe
+            S._image_present = original_present
 
     def test_failed_probe_under_required_raises(self):
         original_detect, original_probe = S.detect_backend, S.probe_backend
+        original_present = S._image_present
+        # Defect 73 put an image-presence check in front of the probe, so a
+        # test about probe failure must state that the image is there. Without
+        # this the run falls back before it ever probes, and the test would
+        # pass for the wrong reason on a machine with no container engine.
+        S._image_present = lambda backend, image: True
         S.detect_backend = lambda preferred="": "docker"
         S.probe_backend = lambda backend, image: (False, "image pull failed")
         try:
@@ -188,6 +201,7 @@ class BrokenBackend(unittest.TestCase):
                 S.plan("required", probe=True)
         finally:
             S.detect_backend, S.probe_backend = original_detect, original_probe
+            S._image_present = original_present
 
 
 if __name__ == "__main__":
