@@ -96,6 +96,7 @@ def main(argv: list[str]) -> int:
     measured = _count(summary, "bugs_measured", problems)
     attempted = _count(summary, "bugs_attempted", problems)
     git_failed = _count(summary, "bugs_git_failed", problems)
+    filtered = _count(summary, "bugs_filtered", problems)
 
     if attempted == 0:
         problems.append("no bugs were attempted: check the BugsInPy clone and --limit")
@@ -147,6 +148,14 @@ def main(argv: list[str]) -> int:
         problems.append(
             f"summary bugs_git_failed={git_failed} disagrees with "
             f"{result_git_failed} git-failed result rows")
+    result_filtered = sum(
+        isinstance(r, dict) and r.get("status") == "filtered"
+        for r in results
+    )
+    if result_filtered != filtered:
+        problems.append(
+            f"summary bugs_filtered={filtered} disagrees with "
+            f"{result_filtered} filtered result rows")
     result_requests = sum(
         int(r.get("model_requests", 0)) for r in results
         if isinstance(r, dict) and isinstance(r.get("model_requests", 0), int)
@@ -179,6 +188,13 @@ def main(argv: list[str]) -> int:
     }
     for reason in sorted(git_reasons):
         print(f"  git_failed reason: {reason}", file=sys.stderr)
+
+    filtered_reasons = {
+        r.get("error", "") for r in results
+        if isinstance(r, dict) and r.get("status") == "filtered" and r.get("error")
+    }
+    for reason in sorted(filtered_reasons):
+        print(f"  filtered reason: {reason}", file=sys.stderr)
 
     if problems:
         print("", file=sys.stderr)
