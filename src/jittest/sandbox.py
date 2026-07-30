@@ -254,25 +254,26 @@ def plan(mode: str, preferred: str = "", image: str = DEFAULT_IMAGE,
             "still withheld by the environment allowlist, but network egress "
             "and filesystem writes outside the checkout were not blocked."])
 
-    if backend in ("docker", "podman") and not _image_present(backend, image):
-        # Defect 73. `docker run` pulls a missing image. In auto mode that turns
-        # "isolate if you can" into an unannounced multi-hundred-megabyte
-        # download in the middle of somebody's pull request, on a runner that
-        # may have no registry access at all - and the failure would arrive
-        # disguised as candidates that could not start. Auto isolates with what
-        # is already here; `required` is where the user has asked for the image
-        # and a pull is the expected cost of that request.
-        if mode == "auto":
-            fallback = detect_backend("bubblewrap")
-            if fallback == "bubblewrap":
-                backend = "bubblewrap"
-            else:
-                return SandboxPlan(backend="none", image=image, notes=[
-                    f"{backend} is available but the image {image!r} is not "
-                    f"present locally; candidates ran unconfined rather than "
-                    f"triggering an unannounced image pull mid-run. Run "
-                    f"'{backend} pull {image}' once, or set sandbox mode to "
-                    f"'required' to accept the pull."])
+    # Defect 73. `docker run` pulls a missing image. In auto mode that turns
+    # "isolate if you can" into an unannounced multi-hundred-megabyte download
+    # in the middle of somebody's pull request, on a runner that may have no
+    # registry access at all - and the failure would arrive disguised as
+    # candidates that could not start. Auto isolates with what is already here;
+    # `required` is where the user has asked for the image and a pull is the
+    # expected cost of that request.
+    if (mode == "auto" and backend in ("docker", "podman")
+            and not _image_present(backend, image)):
+        if detect_backend("bubblewrap") == "bubblewrap":
+            # A namespace sandbox needs no image at all, so an absent image is
+            # no reason to run unconfined when bwrap is right there.
+            backend = "bubblewrap"
+        else:
+            return SandboxPlan(backend="none", image=image, notes=[
+                f"{backend} is available but the image {image!r} is not "
+                f"present locally; candidates ran unconfined rather than "
+                f"triggering an unannounced image pull mid-run. Run "
+                f"'{backend} pull {image}' once, or set sandbox mode to "
+                f"'required' to accept the pull."])
 
     if probe:
         ok, detail = probe_backend(backend, image)
