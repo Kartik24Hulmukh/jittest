@@ -244,12 +244,16 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
     # Check whether the configured model has known pricing.
     from .llm import PRICES
     model_name = cfg.model.split("/")[-1] if "/" in cfg.model else cfg.model
-    is_priced = any(key in model_name for key in PRICES)
+    user_priced = bool(os.getenv("JITTEST_PRICE_INPUT_PER_MTOK")
+                       and os.getenv("JITTEST_PRICE_OUTPUT_PER_MTOK"))
+    is_priced = any(key in model_name for key in PRICES) or user_priced
     if is_priced:
         print(f"  [ok  ] model '{cfg.model}' is priced — dollar cap active")
     else:
         print(f"  [warn] model '{cfg.model}' is unpriced — "
               f"request-count ceiling will be enforced instead of a dollar cap")
+        print("         set JITTEST_PRICE_INPUT_PER_MTOK and "
+              "JITTEST_PRICE_OUTPUT_PER_MTOK to make cost measurable")
 
     print(f"  [ok  ] model {cfg.model}, budget ${cfg.budget_usd:.2f}, "
           f"max targets {cfg.max_targets}")
