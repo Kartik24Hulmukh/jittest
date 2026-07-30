@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+Nothing yet.
+
+## 0.2.4 - 2026-07-29
+
 ### Security
 - **Generated tests no longer inherit the runner's environment.** Candidate subprocesses previously ran with the full parent environment, so a generated test could read the CI job's credentials and exfiltrate them through test output. The child environment is now built from an explicit allowlist, runner credentials are withheld, and an exfiltrator fixture that prints the canary proves the canary does not survive. (#45)
 - **Reported failure excerpts are redacted.** The excerpt that ends up in a published report is exactly where a leaked secret would do its damage: `RunResult.tail` now passes through `jittest.redact.redact()`, which masks vendor tokens, PEM blocks, bearer headers, URL credentials, and credential-shaped assignments while keeping the name so the reviewer can see what was withheld. Redaction happens after truncation, so a token cut in half by the limit cannot leave a readable fragment. All credential fixtures in the test suite are assembled at import time rather than written as literals - a test suite about secret hygiene should not contain secrets, a rule GitHub Push Protection and GitGuardian now enforce on every push. (#48)
@@ -9,8 +13,13 @@
 ### Fixed
 - **A git failure and an empty diff were the same outcome.** `git_diff` returned `""` both when git could not compare the revisions and when the comparison legitimately produced nothing, so a failure to measure was indistinguishable from "no changed symbols". `git_diff` now raises `GitError` when every revision spec fails, and the pipeline reports `diff_status: "git_failed"` with the reason, versus `diff_status: "empty"` for a true empty diff. (#46)
 - **The eval harness could not hear `diff_status`.** A git-failed run collapsed into `not_measured` and sat in the catch-rate denominator as if the tool had been presented the bug and failed. `classify()` now takes `diff_status` and returns a distinct `git_failed` status; the summary counts `bugs_git_failed` by name, computes the headline `catch_rate` over *eligible* bugs (attempted minus git-failed), and prints `catch_rate_all_attempted` beside it so the conservative number is always reconstructable. `assert_measured.py` recomputes both new counts from the per-result rows, fails closed on a missing or inconsistent `bugs_eligible`, and prints git-failure reasons. Systemic collection failure cannot hide either: git failures count against the 80% completion floor.
+- **A pytest-style candidate silently became "no tests" on a repository without pytest.** The mini-runner could only collect `unittest.TestCase` subclasses, so a candidate written against pytest APIs - a bare `def test_x(tmp_path)` with fixtures, which is what the generator naturally produces - collected nothing and exited `EXIT_NO_TESTS`. A not-run is not a non-catch, but the differential oracle could read it as one, so the tool under-reported precisely on the hardened and air-gapped runners the mini-runner exists to serve. A fixture error is now `EXIT_FAILED` and never `EXIT_NO_TESTS`, so a broken fixture is loud rather than invisible. (#50)
+- **`/proc/does-not-exist` is writable on Windows.** The unwritable-path helper assumed a POSIX filesystem, so a first-run survival test asserted something untrue on Windows runners. `_unwritable_path()` now selects a platform-appropriate path.
 
 ### Added
+- **A vendored pytest shim, so jittest can run pytest-style tests on repositories that do not have pytest installed.** `_pytestshim`, `_pytestshim_core` and `_pytestshim_helpers` provide `fixture`, `mark` (`skip`, `skipif`, `xfail`, `parametrize`), `param`, `approx`, `raises`, `MonkeyPatch` and `importorskip`; `_fixtureengine` and `_minirunner_cases` implement fixture resolution with function and module scope, parametrisation across stacked layers, `conftest.py` discovery with nearest-wins precedence, and the builtins `tmp_path`, `tmp_path_factory`, `monkeypatch` and `capsys`. `run_file` installs the shim under the name `pytest` and restores any real pytest in a `finally` block, so it cannot leak into the host interpreter or shadow a genuine installation. Unsupported surfaces fail loudly rather than passing vacuously: async fixtures, doctest, `capfd`, `pytest.ini` options, plugin hooks and `unittest` `addCleanup`. Strict XPASS is a failure; an xfailed failure counts as neither executed nor failed, so an all-xfail file is correctly `EXIT_NO_TESTS`. (#50)
+- `tests/test_minirunner_fixtures.py` and `tests/test_minirunner_fixtures_e2e.py`, the second of which drives fixtures, parametrisation and marks end to end through the differential oracle itself rather than against the runner in isolation. (#50)
+- `.github/PULL_REQUEST_TEMPLATE.md`, which asks a contributor for the output of an execution rather than an assurance, and states that weakening lint configuration, adding `noqa`, or editing a test's expected value are not acceptable routes to a green check. (#51)
 - `src/jittest/redact.py` and `tests/test_redaction.py` (18 tests, including a self-guard that fails the build if a credential fixture ever appears verbatim in the test source).
 - `tests/test_git_failures.py` (14 tests): failure-versus-emptiness, pipeline reporting, practical reachability. (#46)
 - `tests/test_eval_git_denominator.py` (14 tests): classification, denominator arithmetic, gate cross-checks, and an end-to-end bogus-revision run through the real pipeline.
@@ -18,12 +27,15 @@
 - Typed candidate dispositions and per-run provenance and completeness records. (#40, #41, #42)
 
 ### Verified in this release
-- 269 offline tests, green, no network required.
+- 269 offline tests green before this release's additions, no network required; the mini-runner work adds two further suites.
+- PR #50 landed at 18 of 18 checks, including nine test jobs spanning Linux, macOS and Windows on Python 3.11, 3.12 and 3.13, plus the dogfood job, the install smoke matrix and GitGuardian.
 - PRs #46 and #48 each landed at 18/18 checks including GitGuardian, after three scanning iterations that removed every credential-shaped literal from the test suite.
+- **Four ruff violations on the mini-runner branch were located by bisecting CI itself**, because the Actions log endpoint returned 504 for the entire session and not one error message was ever readable: SIM105, four SIM300 yoda conditions, I001 import ordering in two modules, and SIM108. Reading the diff by eye failed six times; the pass/fail bit was the only trustworthy instrument. Every one was fixed in the source. No rule was disabled, no `noqa` was added, and no `per-file-ignores` entry survives on a merged branch - the two throwaway probe branches that did narrow the configuration were never merged and their pull requests are closed.
 
 ### Still not fixed
 - **Candidates still share the filesystem, network, and user account with the runner.** The environment allowlist withholds credentials; it is not a sandbox. Container/VM isolation remains the production-readiness blocker.
 - No measured catch rate, false-positive rate, or priced cost per pull request exists yet. The measurement is now possible and honest; it has not been run.
+- **The assessor's corrected specification has still never fired on a real bug.** The 0.2.2 fix replaced wording that labelled every oracle-confirmed catch an `intended_change` at high confidence. Whether the replacement behaves differently is unknown, because no run since has reached the assessor with a genuine regression in hand. Until that happens, the central claim of this project is unverified.
 
 ## 0.2.3 - 2026-07-27
 
