@@ -86,8 +86,17 @@ def _gh_cli_fallback(body: str) -> bool:
     if not number:
         return False
     for extra in (["--edit-last"], []):
-        res = subprocess.run(["gh", "pr", "comment", number, *extra, "--body", body],
-                            capture_output=True, text=True, errors="replace")
+        # The `gh` binary may be absent entirely (FileNotFoundError), not
+        # executable (PermissionError), or hang against a wedged API. None of
+        # those may escape: this function is a FALLBACK, and a fallback that
+        # raises is worse than no fallback at all.
+        try:
+            res = subprocess.run(
+                ["gh", "pr", "comment", number, *extra, "--body", body],
+                capture_output=True, text=True, errors="replace", timeout=60,
+            )
+        except (OSError, subprocess.SubprocessError):
+            return False
         if res.returncode == 0:
             return True
     return False
@@ -123,7 +132,8 @@ def upsert_pr_comment(body: str, repo: str | None = None,
             return f"updated comment {existing}"
         _request("POST", f"/repos/{repo}/issues/{pr_number}/comments", {"body": body})
         return "posted new comment"
-    except (urllib.error.HTTPError, urllib.error.URLError, RuntimeError) as exc:
+    except (urllib.error.HTTPError, urllib.error.URLError, RuntimeError,
+            OSError, KeyError, TypeError, ValueError) as exc:
         if _gh_cli_fallback(body):
             return "posted via gh CLI after API error"
         return f"failed to comment: {exc}"
