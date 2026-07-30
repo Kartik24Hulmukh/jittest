@@ -82,7 +82,7 @@ class _Accountant:
     """The accounting half of HTTPLLM, without the network half."""
 
     def __init__(self, model):
-        from jittest.llm import BaseLLM, HTTPLLM
+        from jittest.llm import HTTPLLM, BaseLLM
         self.model = model
         self.model_name = model.split("/")[-1]
         self.usage = Usage()
