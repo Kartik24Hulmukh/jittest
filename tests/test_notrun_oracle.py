@@ -61,9 +61,13 @@ class MiniRunnerExitCodes(unittest.TestCase):
         self.assertEqual(run_file(path), EXIT_NO_TESTS)
 
     def test_every_test_skipped_for_fixtures_is_not_success(self) -> None:
-        # The mini-runner cannot supply fixtures, so it skips these. Skipping
-        # every test it collected is not a pass.
-        path = _write("def test_a(tmp_path):\n    assert True\n", "mr_fixture")
+        # Fixtures now resolve (tmp_path is a built-in), so this test skips
+        # explicitly instead. Skipping every test collected is not a pass.
+        path = _write(
+            "import unittest\n\n\ndef test_a(tmp_path):\n"
+            "    raise unittest.SkipTest('not applicable here')\n",
+            "mr_fixture",
+        )
         self.assertEqual(run_file(path), EXIT_NO_TESTS)
 
     def test_skiptest_is_a_skip_and_not_a_pass_or_a_failure(self) -> None:
@@ -172,7 +176,12 @@ class RunTestOutcomeMapping(_ForceMiniRunner):
         self.workdir = Path(tempfile.mkdtemp(prefix="jittest-workdir-"))
 
     def test_skipping_everything_is_notrun_not_pass(self) -> None:
-        result = run_test(self.workdir, "def test_a(tmp_path):\n    assert True\n")
+        # tmp_path now resolves; the skip must be explicit to mean "not run".
+        result = run_test(
+            self.workdir,
+            "import unittest\n\ndef test_a(tmp_path):\n"
+            "    raise unittest.SkipTest('not applicable here')\n",
+        )
         self.assertIs(result.outcome, Outcome.NOTRUN)
 
     def test_a_genuine_pass_is_still_pass(self) -> None:
@@ -224,18 +233,31 @@ def _repo(base_source: str, head_source: str) -> tuple[Path, str, str]:
 
 # A candidate of the shape a model actually produces for newly added code: the
 # import is guarded so the module still imports on the revision that predates
-# the symbol, and an unrelated fixture-using test sits alongside it.
+# the symbol, and an unrelated fixture-using test sits alongside it. Both tests
+# skip when calc is absent: the mini-runner resolves tmp_path now, so an
+# unguarded fixture test would execute and pass on base even though nothing
+# about calc was verified there.
 GUARDED_CANDIDATE = """
+import unittest
+
 try:
     from mod import calc
-
-    def test_calc_doubles():
-        assert calc(2) == 4
 except ImportError:
-    pass
+    calc = None
+
+
+def _needs_calc():
+    if calc is None:
+        raise unittest.SkipTest("calc does not exist on this revision")
+
+
+def test_calc_doubles():
+    _needs_calc()
+    assert calc(2) == 4
 
 
 def test_environment_is_sane(tmp_path):
+    _needs_calc()
     assert tmp_path is not None
 """
 
