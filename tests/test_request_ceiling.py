@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 import unittest
 
+from jittest.llm import BudgetExceeded, HTTPLLM
+
 
 class TestResolvedRequestCeiling(unittest.TestCase):
     def setUp(self):
@@ -16,8 +18,6 @@ class TestResolvedRequestCeiling(unittest.TestCase):
         os.environ.update(self._old_env)
 
     def test_explicit_request_ceiling_beats_raw_env(self):
-        from jittest.llm import BudgetExceeded, HTTPLLM
-
         llm = HTTPLLM("z-ai/glm-5.2", api_key="test-key", request_ceiling=2)
         llm.usage.calls = 2
 
