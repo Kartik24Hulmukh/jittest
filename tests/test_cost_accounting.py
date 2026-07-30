@@ -1,10 +1,10 @@
-"""Lint probe: price resolution and token estimation only."""
+"""Lint probe: response accounting only."""
 from __future__ import annotations
 
 import os
 import unittest
 
-from jittest.llm import PRICES, estimate_tokens, price_for
+from jittest.llm import Usage
 
 
 class _EnvGuard(unittest.TestCase):
@@ -18,40 +18,50 @@ class _EnvGuard(unittest.TestCase):
             os.environ["JITTEST_MODEL_PRICE"] = self._old
 
 
-class PriceResolution(_EnvGuard):
-    def test_known_models_keep_their_price(self):
-        self.assertEqual(price_for("claude-sonnet-4-5"), PRICES["claude-sonnet-4-5"])
-
-    def test_unknown_models_are_not_guessed(self):
-        self.assertIsNone(price_for("glm-5.2"))
-        self.assertIsNone(price_for("z-ai/glm-5.2"))
-
-    def test_an_operator_may_state_a_price(self):
-        os.environ["JITTEST_MODEL_PRICE"] = "0.60,2.20"
-        self.assertEqual(price_for("z-ai/glm-5.2"), (0.60, 2.20))
-
-    def test_a_stated_price_beats_the_builtin_table(self):
-        os.environ["JITTEST_MODEL_PRICE"] = "1,2"
-        self.assertEqual(price_for("claude-sonnet-4-5"), (1.0, 2.0))
-
-    def test_a_malformed_price_is_ignored_rather_than_crashing_the_run(self):
-        for bad in ("cheap", "1", "1,2,3", "", "   ", "-1,2"):
-            os.environ["JITTEST_MODEL_PRICE"] = bad
-            self.assertIsNone(price_for("z-ai/glm-5.2"), bad)
-
-    def test_a_slash_separator_is_accepted_because_people_will_type_it(self):
-        os.environ["JITTEST_MODEL_PRICE"] = "0.5/1.5"
-        self.assertEqual(price_for("anything"), (0.5, 1.5))
+class _Accountant:
+    def __init__(self, model):
+        from jittest.llm import BaseLLM, HTTPLLM
+        self.model = model
+        self.model_name = model.split("/")[-1]
+        self.usage = Usage()
+        self._price = HTTPLLM._price.__get__(self)
+        self._account = HTTPLLM._account.__get__(self)
+        self._account_response = HTTPLLM._account_response.__get__(self)
+        assert issubclass(HTTPLLM, BaseLLM)
 
 
-class TokenEstimation(unittest.TestCase):
-    def test_the_estimate_is_never_zero_for_real_text(self):
-        self.assertGreaterEqual(estimate_tokens("hello"), 1)
+class Accounting(_EnvGuard):
+    def test_reported_tokens_are_used_verbatim(self):
+        a = _Accountant("claude-sonnet-4-5")
+        a._account_response(1000, 2000, "prompt", "response")
+        self.assertEqual(a.usage.input_tokens, 1000)
+        self.assertEqual(a.usage.output_tokens, 2000)
+        self.assertFalse(a.usage.tokens_estimated)
+        self.assertAlmostEqual(a.usage.cost_usd, 0.003 + 0.030, places=6)
 
-    def test_empty_input_still_costs_something_rather_than_nothing(self):
-        self.assertEqual(estimate_tokens(""), 1)
+    def test_a_missing_usage_block_is_estimated_not_treated_as_zero(self):
+        a = _Accountant("claude-sonnet-4-5")
+        a._account_response(None, None, "p" * 4000, "r" * 400)
+        self.assertTrue(a.usage.tokens_estimated)
+        self.assertGreater(a.usage.input_tokens, 900)
+        self.assertGreater(a.usage.cost_usd, 0.0)
 
-    def test_the_estimate_scales_with_length(self):
-        short = estimate_tokens("x" * 100)
-        long = estimate_tokens("x" * 10000)
-        self.assertGreater(long, short * 50)
+    def test_garbage_in_the_usage_block_does_not_crash_the_run(self):
+        a = _Accountant("claude-sonnet-4-5")
+        a._account_response("lots", {"nested": 1}, "p" * 40, "r" * 40)
+        self.assertTrue(a.usage.tokens_estimated)
+        self.assertEqual(a.usage.calls, 1)
+
+    def test_an_unpriced_model_still_counts_tokens(self):
+        a = _Accountant("z-ai/glm-5.2")
+        a._account_response(1500, 500, "p", "r")
+        self.assertFalse(a.usage.priced)
+        self.assertEqual(a.usage.cost_usd, 0.0)
+        self.assertEqual(a.usage.input_tokens + a.usage.output_tokens, 2000)
+
+    def test_stating_a_price_restores_the_dollar_cap_for_that_model(self):
+        os.environ["JITTEST_MODEL_PRICE"] = "1.00,3.00"
+        a = _Accountant("z-ai/glm-5.2")
+        a._account_response(1_000_000, 1_000_000, "p", "r")
+        self.assertTrue(a.usage.priced)
+        self.assertAlmostEqual(a.usage.cost_usd, 4.00, places=6)
