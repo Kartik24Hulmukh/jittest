@@ -116,9 +116,17 @@ class SandboxIsRecorded(unittest.TestCase):
 
     def test_required_mode_refuses_the_run_rather_than_running_bare(self):
         """Fail closed, and say so in the report instead of raising into CI."""
-        from jittest import sandbox as S
+        import sys
+
+        from jittest import pipeline as P
 
         from .helpers import CATCHING_TEST
+
+        # Not `from jittest import sandbox`. If anything earlier in the suite
+        # has reloaded the package, that import hands back a different module
+        # object than the one `pipeline` closed over, and the stub below would
+        # quietly apply to nobody.
+        S = sys.modules[P.sandbox_plan.__module__]
         original = S.detect_backend
         S.detect_backend = lambda preferred="": "none"
         try:

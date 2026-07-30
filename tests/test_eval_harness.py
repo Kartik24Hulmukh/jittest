@@ -165,16 +165,32 @@ class TestEvalHarness(unittest.TestCase):
         """Importing the harness module must not require network or jittest imports."""
         import importlib
         import sys
-        # Remove jittest from sys.modules to prove no side effects
-        mods_to_remove = [k for k in sys.modules if k.startswith("jittest")]
-        for k in mods_to_remove:
-            del sys.modules[k]
-        # Re-import the eval module
-        if "eval.run_bugsinpy" in sys.modules:
-            del sys.modules["eval.run_bugsinpy"]
+
+        # Defect 74. Purging these and walking away is not free. Modules
+        # imported earlier hold references to the module OBJECTS, not to the
+        # names, so after this test every later `from jittest import sandbox`
+        # yields a second, freshly imported copy. Anything that then stubs that
+        # copy is stubbing a module nobody is calling, and the stub silently
+        # does nothing. That cost a red CI job that looked like a product bug.
+        saved = {k: v for k, v in sys.modules.items()
+                 if k.startswith("jittest") or k == "eval.run_bugsinpy"}
+
+        def restore():
+            for key in [k for k in sys.modules
+                        if k.startswith("jittest") or k == "eval.run_bugsinpy"]:
+                del sys.modules[key]
+            sys.modules.update(saved)
+
+        self.addCleanup(restore)
+
+        for key in list(saved):
+            del sys.modules[key]
         importlib.import_module("eval.run_bugsinpy")
-        # If we got here without error, the test passes
-        self.assertTrue(True)
+        # Importing the harness must not drag jittest in with it: the eval
+        # entry point has to be usable before the package under measurement
+        # has been imported at all.
+        self.assertFalse([k for k in sys.modules if k.startswith("jittest")],
+                         "eval.run_bugsinpy imported jittest at module level")
 
 
 if __name__ == "__main__":
