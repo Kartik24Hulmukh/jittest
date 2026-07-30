@@ -46,9 +46,11 @@ Defect 35 arriving through a door the reset does not cover.
 """
 from __future__ import annotations
 
+import contextlib
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -457,10 +459,10 @@ def _run_process(command: list[str], cwd: str, env: dict, timeout_s: int):
         out, err = proc.communicate(timeout=timeout_s)
     except subprocess.TimeoutExpired:
         _kill_tree(proc)
-        try:
+        # Reap what we just signalled. If it will not die even now, say so by
+        # timing out again rather than blocking the run forever.
+        with contextlib.suppress(subprocess.TimeoutExpired):
             proc.communicate(timeout=10)
-        except subprocess.TimeoutExpired:
-            pass
         raise
     return proc.returncode, out or "", err or ""
 
@@ -469,19 +471,18 @@ def _kill_tree(proc: subprocess.Popen) -> None:
     """Best effort: signal the group, then the process. Never raise."""
     try:
         if hasattr(os, "killpg") and hasattr(os, "getpgid"):
-            import signal
             os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
             return
-    except (OSError, ProcessLookupError):
-        pass
-    try:
-        proc.kill()
     except OSError:
+        # Covers ProcessLookupError: the group is already gone, which is the
+        # outcome we wanted anyway.
         pass
+    with contextlib.suppress(OSError):
+        proc.kill()
 
 
 def run_test(workdir: Path, test_code: str, timeout_s: int = 120,
-             sbx: "SandboxPlan | None" = None) -> RunResult:
+             sbx: SandboxPlan | None = None) -> RunResult:
     """Write the candidate into the checkout, run it, then remove it.
 
     ``sbx`` selects the isolation backend. ``None`` means unconfined, which is
@@ -559,7 +560,7 @@ def differential_check(
     reruns: int = 2,
     head_workdir: Path | None = None,
     base_workdir: Path | None = None,
-    sbx: "SandboxPlan | None" = None,
+    sbx: SandboxPlan | None = None,
 ) -> Verdict:
     """Run the candidate on head, then base, and decide. No model involved.
 
