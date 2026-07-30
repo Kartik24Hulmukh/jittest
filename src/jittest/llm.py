@@ -1,55 +1,32 @@
-"""Model access over urllib. Anthropic Messages and any OpenAI-compatible API.
+"""Model access over urllib: Anthropic Messages and any OpenAI-compatible API.
 
-litellm is excellent and supports thousands of models; it is also a large
-dependency tree to inject into somebody else's CI for what amounts to two POST
-requests. So it is optional: set JITTEST_USE_LITELLM=1 and it is used instead.
-
-Three things here earn their keep:
-  - a hard budget cap that raises before the request is sent, not after
-  - an on-disk response cache, so re-running a PR costs nothing
-  - DryRunLLM, which lets the entire pipeline (and its test suite) run with no
-    network and no key at all
+litellm supports thousands of models and is a large dependency for two POSTs,
+so it stays optional (JITTEST_USE_LITELLM=1). What earns its keep here: a hard
+budget cap raised before the request is sent, an on-disk response cache, and
+DryRunLLM, which runs the whole pipeline with no network and no key.
 """
 from __future__ import annotations
 
 import hashlib
 import json
 import os
-import sqlite3
 import time
 import urllib.error
 import urllib.request
-from dataclasses import dataclass
 from pathlib import Path
+
+from ._llmbase import BaseLLM, BudgetExceeded, LLMError, Usage
+from ._llmcache import _Cache
+from ._litellm import LiteLLMBackend
+from ._llmjson import extract_json, strip_code_fence
+from ._pricing import PRICES, estimate_tokens, price_for
 
 __all__ = [
     "LLMError", "BudgetExceeded", "Usage", "BaseLLM", "HTTPLLM", "LiteLLMBackend",
     "DryRunLLM", "build_llm", "extract_json", "strip_code_fence", "PRICES",
+    "price_for", "estimate_tokens",
 ]
 
-
-class LLMError(RuntimeError):
-    pass
-
-
-class BudgetExceeded(LLMError):
-    pass
-
-
-# USD per million tokens (input, output). Unknown models are not guessed: we
-# say so in the report instead of printing a confident wrong number.
-PRICES: dict[str, tuple[float, float]] = {
-    "claude-sonnet-4-5": (3.00, 15.00),
-    "claude-haiku-4-5": (1.00, 5.00),
-    "claude-opus-4-1": (15.00, 75.00),
-    "gpt-4.1": (2.00, 8.00),
-    "gpt-4.1-mini": (0.40, 1.60),
-    "gpt-5": (1.25, 10.00),
-    "gpt-5-mini": (0.25, 2.00),
-    "o4-mini": (1.10, 4.40),
-    "deepseek-chat": (0.27, 1.10),
-    "qwen-2.5-coder-32b": (0.09, 0.09),
-}
 
 _BASES = {
     "openai": "https://api.openai.com/v1",
@@ -62,138 +39,12 @@ _BASES = {
 _RETRYABLE = {408, 409, 429, 500, 502, 503, 529}
 
 
-@dataclass
-class Usage:
-    input_tokens: int = 0
-    output_tokens: int = 0
-    calls: int = 0
-    cost_usd: float = 0.0
-    priced: bool = True
-
-
-def strip_code_fence(text: str) -> str:
-    body = (text or "").strip()
-    if not body.startswith("```"):
-        return body
-    lines = body.splitlines()
-    lines = lines[1:]
-    if lines and lines[-1].strip().startswith("```"):
-        lines = lines[:-1]
-    return "\n".join(lines).strip()
-
-
-def extract_json(text: str) -> dict | None:
-    """Find the first balanced JSON object, ignoring prose and code fences.
-
-    Models add pleasantries. `json.loads` on the whole response is a bug.
-    """
-    if not text:
-        return None
-    body = strip_code_fence(text)
-    try:
-        parsed = json.loads(body)
-        return parsed if isinstance(parsed, dict) else None
-    except ValueError:
-        pass
-
-    depth = 0
-    start = -1
-    in_string = False
-    escaped = False
-    for i, ch in enumerate(body):
-        if in_string:
-            if escaped:
-                escaped = False
-            elif ch == "\\":
-                escaped = True
-            elif ch == '"':
-                in_string = False
-            continue
-        if ch == '"':
-            in_string = True
-        elif ch == "{":
-            if depth == 0:
-                start = i
-            depth += 1
-        elif ch == "}":
-            depth -= 1
-            if depth == 0 and start >= 0:
-                try:
-                    parsed = json.loads(body[start:i + 1])
-                    if isinstance(parsed, dict):
-                        return parsed
-                except ValueError:
-                    start = -1
-    return None
-
-
-class _Cache:
-    def __init__(self, path: Path | str | None) -> None:
-        self.conn = None
-        if not path:
-            return
-        p = Path(path)
-        p.parent.mkdir(parents=True, exist_ok=True)
-        self.conn = sqlite3.connect(str(p))
-        self.conn.execute(
-            "CREATE TABLE IF NOT EXISTS cache (k TEXT PRIMARY KEY, v TEXT, at REAL)")
-        self.conn.commit()
-
-    def get(self, key: str) -> str | None:
-        if not self.conn:
-            return None
-        row = self.conn.execute("SELECT v FROM cache WHERE k=?", (key,)).fetchone()
-        return row[0] if row else None
-
-    def put(self, key: str, value: str) -> None:
-        if not self.conn:
-            return
-        self.conn.execute("INSERT OR REPLACE INTO cache VALUES (?,?,?)",
-                          (key, value, time.time()))
-        self.conn.commit()
-
-
-class BaseLLM:
-    def __init__(self, model: str, budget_usd: float = 1.0, temperature: float = 0.8):
-        self.model = model
-        self.budget_usd = budget_usd
-        self.temperature = temperature
-        self.usage = Usage()
-
-    def complete(self, system: str, user: str, n: int = 1,
-                 temperature: float | None = None) -> list[str]:
-        raise NotImplementedError
-
-    def complete_json(self, system: str, user: str,
-                      temperature: float | None = None) -> dict | None:
-        return extract_json(self.complete(system, user, n=1,
-                                          temperature=temperature)[0])
-
-    def _guard_budget(self) -> None:
-        if self.usage.cost_usd >= self.budget_usd:
-            raise BudgetExceeded(
-                f"budget of ${self.budget_usd:.2f} exhausted after "
-                f"{self.usage.calls} call(s)")
-
-    def _guard_request_ceiling(self, max_calls: int) -> None:
-        """For unpriced models, enforce a request-count ceiling instead of a
-        dollar cap, so the pipeline cannot silently run forever."""
-        if self.usage.calls >= max_calls:
-            raise BudgetExceeded(
-                f"request ceiling of {max_calls} call(s) reached for "
-                f"unpriced model '{self.model}'")
-
-
 class DryRunLLM(BaseLLM):
-    """A model-shaped object that costs nothing and needs no network.
-
-    This is not a toy. It is how the pipeline is tested end to end, and how a
-    new user can watch jittest work on their own repository before deciding
-    whether to hand it an API key.
-    """
+    """A model-shaped object that costs nothing and needs no network. Not a
+    toy: it is how the pipeline is tested end to end before any key exists."""
 
     DEFAULT = (
-        "# NO_CANDIDATE  (dry run: no model was called)\n"
+        "# NO_CANDIDATE  (dry run: no model was called)" + chr(10)
     )
 
     def __init__(self, scripted: list[str] | None = None, model: str = "dry-run"):
@@ -224,18 +75,12 @@ class HTTPLLM(BaseLLM):
             provider, name = ("anthropic" if "claude" in model else "openai"), model
         self.provider = provider
         self.model_name = name
-        # When an explicit API base is supplied (e.g. NVIDIA NIM), the full
-        # model identifier including the namespace prefix must be sent in the
-        # request payload.  Known providers (openai, anthropic, etc.) use the
-        # bare name, so we only preserve the full identifier when the base URL
-        # comes from JITTEST_API_BASE rather than the built-in provider table.
+        # With an explicit API base (e.g. NVIDIA NIM) the full namespaced model
+        # id must reach the provider; built-in providers keep the bare name.
         self.api_key = api_key or self._find_key(provider)
         explicit_base = os.getenv("JITTEST_API_BASE")
         self.base_url = explicit_base or _BASES.get(
             provider, "https://api.anthropic.com/v1")
-        # For explicit/custom API bases, send the full model string so that
-        # namespaced identifiers like "z-ai/glm-5.2" reach the provider intact.
-        # For built-in providers, keep the bare name for backward compatibility.
         self.api_model = model if explicit_base else self.model_name
         self.cache = _Cache(cache_path)
         self._unpriced = self._price() is None
@@ -257,20 +102,36 @@ class HTTPLLM(BaseLLM):
         return None
 
     def _price(self) -> tuple[float, float] | None:
-        for key, price in PRICES.items():
-            if key in self.model_name:
-                return price
-        return None
+        return price_for(self.model_name) or price_for(self.model)
 
-    def _account(self, input_tokens: int, output_tokens: int) -> None:
+    def _account(self, input_tokens: int, output_tokens: int,
+                 estimated: bool = False) -> None:
         self.usage.input_tokens += input_tokens
         self.usage.output_tokens += output_tokens
         self.usage.calls += 1
+        if estimated:
+            self.usage.tokens_estimated = True
         price = self._price()
         if price is None:
             self.usage.priced = False
             return
         self.usage.cost_usd += (input_tokens * price[0] + output_tokens * price[1]) / 1e6
+
+    def _account_response(self, reported_in, reported_out,
+                          prompt: str, text: str) -> None:
+        """Account one response, estimating tokens only when none were given.
+        Gateways that omit `usage` would otherwise report a false $0.000 run
+        and leave the budget guard with nothing to guard."""
+        try:
+            in_tokens = int(reported_in or 0)
+            out_tokens = int(reported_out or 0)
+        except (TypeError, ValueError):
+            in_tokens = out_tokens = 0
+        if in_tokens or out_tokens:
+            self._account(in_tokens, out_tokens)
+            return
+        self._account(estimate_tokens(prompt), estimate_tokens(text),
+                      estimated=True)
 
     def _post(self, url: str, payload: dict, headers: dict) -> dict:
         data = json.dumps(payload).encode("utf-8")
@@ -294,8 +155,8 @@ class HTTPLLM(BaseLLM):
                  temperature: float | None = None) -> list[str]:
         if self._unpriced:
             # max_targets * candidates_per_target + assessor calls (worst case)
-            ceiling = int(os.getenv("JITTEST_MAX_TARGETS", "5")) * \
-                      int(os.getenv("JITTEST_CANDIDATES", "4")) + 5
+            ceiling = (int(os.getenv("JITTEST_MAX_TARGETS", "5")) *
+                       int(os.getenv("JITTEST_CANDIDATES", "4")) + 5)
             self._guard_request_ceiling(ceiling)
         else:
             self._guard_budget()
@@ -323,7 +184,9 @@ class HTTPLLM(BaseLLM):
                     b.get("text", "") for b in body.get("content", [])
                     if b.get("type") == "text")
                 usage = body.get("usage", {})
-                self._account(usage.get("input_tokens", 0), usage.get("output_tokens", 0))
+                self._account_response(usage.get("input_tokens"),
+                                       usage.get("output_tokens"),
+                                       system + user, text)
             else:
                 body = self._post(
                     f"{self.base_url}/chat/completions",
@@ -337,41 +200,13 @@ class HTTPLLM(BaseLLM):
                 choices = body.get("choices", [])
                 text = choices[0]["message"]["content"] if choices else ""
                 usage = body.get("usage", {})
-                self._account(usage.get("prompt_tokens", 0),
-                              usage.get("completion_tokens", 0))
+                self._account_response(usage.get("prompt_tokens"),
+                                       usage.get("completion_tokens"),
+                                       system + user, text)
             outputs.append(text or "")
 
         self.cache.put(key, json.dumps(outputs))
         return outputs
-
-
-class LiteLLMBackend(BaseLLM):
-    """Optional: `pip install jittest[litellm]` for 2900+ providers."""
-
-    def __init__(self, model: str, budget_usd: float = 1.0, temperature: float = 0.8):
-        super().__init__(model, budget_usd, temperature)
-        try:
-            import litellm  # noqa: F401
-        except ImportError as exc:  # pragma: no cover - optional path
-            raise LLMError("litellm requested but not installed") from exc
-
-    def complete(self, system: str, user: str, n: int = 1,
-                 temperature: float | None = None) -> list[str]:  # pragma: no cover
-        import litellm
-        self._guard_budget()
-        resp = litellm.completion(
-            model=self.model,
-            temperature=self.temperature if temperature is None else temperature,
-            messages=[{"role": "system", "content": system},
-                      {"role": "user", "content": user}],
-            n=n,
-        )
-        try:
-            self.usage.cost_usd += float(litellm.completion_cost(resp) or 0.0)
-        except Exception:
-            self.usage.priced = False
-        self.usage.calls += 1
-        return [c["message"]["content"] or "" for c in resp["choices"]]
 
 
 def build_llm(model: str, dry_run: bool = False, budget_usd: float = 1.0,
