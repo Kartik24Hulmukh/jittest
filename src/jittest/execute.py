@@ -29,6 +29,13 @@ assumed. See resolve_revision, verify_workdir and reset_workdir.
 A third warning (Defects 36-40). What happened to a candidate is stated, not
 described. The reason string is for humans; Disposition, FailureKind and the
 recorded per-execution outcomes are what other code is allowed to read.
+
+A fourth warning (premortem P3-9). Every git call below passes env=git_env().
+git reads GIT_DIR and GIT_WORK_TREE from the environment and they outrank -C,
+so without scrubbing them a hostile or merely untidy environment points these
+operations at a different repository than the one under test - and because an
+unresolvable revision deliberately skips the provenance check rather than
+failing it, the result is a confident verdict about nothing identifiable.
 """
 from __future__ import annotations
 
@@ -44,6 +51,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
+from .diff import git_env
 from .redact import redact
 
 __all__ = [
@@ -212,7 +220,7 @@ def resolve_revision(repo: Path | str, rev: str) -> str:
     """Resolve a revision string to a full commit SHA, or "" if unresolvable."""
     proc = subprocess.run(
         ["git", "-C", str(repo), "rev-parse", "--verify", f"{rev}^{{commit}}"],
-        capture_output=True, text=True, errors="replace",
+        capture_output=True, text=True, errors="replace", env=git_env(),
     )
     return proc.stdout.strip() if proc.returncode == 0 else ""
 
@@ -254,14 +262,14 @@ def reset_workdir(workdir: Path | str) -> None:
     workdir = Path(workdir)
     subprocess.run(
         ["git", "-C", str(workdir), "checkout", "--", "."],
-        capture_output=True, text=True, errors="replace",
+        capture_output=True, text=True, errors="replace", env=git_env(),
     )
     # Never -x: ignored build artefacts and virtualenvs are part of a usable
     # checkout, and removing them would break the runner rather than isolate it.
     subprocess.run(
         ["git", "-C", str(workdir), "clean", "-qfd",
          "-e", ".jittest*", "-e", "*.egg-info"],
-        capture_output=True, text=True, errors="replace",
+        capture_output=True, text=True, errors="replace", env=git_env(),
     )
     for leftover in workdir.glob(f"{CANDIDATE_PREFIX}*.py"):
         leftover.unlink(missing_ok=True)
@@ -294,7 +302,7 @@ class Worktree:
         added = subprocess.run(
             ["git", "-C", str(self.repo), "worktree", "add", "--detach",
              "--force", str(self.path), self.rev],
-            capture_output=True, text=True, errors="replace",
+            capture_output=True, text=True, errors="replace", env=git_env(),
         )
         self.expected_sha = resolve_revision(self.repo, self.rev)
         if added.returncode == 0:
@@ -308,13 +316,13 @@ class Worktree:
         cloned = subprocess.run(
             ["git", "clone", "--quiet", "--shared", "--no-checkout",
              str(self.repo), str(self.path)],
-            capture_output=True, text=True, errors="replace",
+            capture_output=True, text=True, errors="replace", env=git_env(),
         )
         if cloned.returncode != 0:
             raise RuntimeError(f"cannot materialise {self.rev}: {cloned.stderr.strip()}")
         subprocess.run(
             ["git", "-C", str(self.path), "checkout", "--quiet", "--detach", self.rev],
-            capture_output=True, text=True, errors="replace", check=True,
+            capture_output=True, text=True, errors="replace", check=True, env=git_env(),
         )
         verify_workdir(self.path, self.expected_sha, self.rev)
         return self.path
@@ -324,7 +332,7 @@ class Worktree:
             subprocess.run(
                 ["git", "-C", str(self.repo), "worktree", "remove", "--force",
                  str(self.path)],
-                capture_output=True, text=True, errors="replace",
+                capture_output=True, text=True, errors="replace", env=git_env(),
             )
         shutil.rmtree(self.path, ignore_errors=True)
 
