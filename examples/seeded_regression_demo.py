@@ -54,8 +54,11 @@ def build_repo(root: Path) -> Path:
 
 
 def run_jittest(repo: Path) -> int:
+    # --risk-threshold 0.0 widens the net so the single changed symbol is
+    # always analysed; the demo is about the pipeline's mechanics, not the
+    # risk gate's calibration.
     args = ["run", "--repo", str(repo), "--base", "HEAD~1",
-            "--head", "HEAD", "--dry-run"]
+            "--head", "HEAD", "--dry-run", "--risk-threshold", "0.0"]
     if shutil.which("jittest"):
         cmd = ["jittest", *args]
     elif importlib.util.find_spec("jittest") is not None:
