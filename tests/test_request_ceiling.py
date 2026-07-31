@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import unittest
 
-from jittest.llm import BudgetExceeded, HTTPLLM
+from jittest.llm import HTTPLLM, BudgetExceeded
 
 
 class TestResolvedRequestCeiling(unittest.TestCase):
