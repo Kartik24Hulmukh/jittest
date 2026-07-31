@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 import unittest
 
+from jittest.llm import BudgetExceeded, HTTPLLM
+
 
 class TestResolvedRequestCeiling(unittest.TestCase):
     def setUp(self):
@@ -17,6 +19,8 @@ class TestResolvedRequestCeiling(unittest.TestCase):
 
     def test_placeholder(self):
         self.assertEqual(os.environ["JITTEST_API_KEY"], "test-key")
+        self.assertTrue(issubclass(HTTPLLM, object))
+        self.assertTrue(issubclass(BudgetExceeded, Exception))
 
 
 if __name__ == "__main__":
