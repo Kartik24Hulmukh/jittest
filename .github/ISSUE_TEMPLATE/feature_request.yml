@@ -1,0 +1,24 @@
+name: Feature request
+description: Propose a change or an addition.
+title: "feat: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Who hits this problem, and how often?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What should jittest do instead?
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence plan
+      description: For changes to generation, risk scoring or assessment, the contributing guide requires before/after eval numbers on the same bug subset and model. What measurement would prove this works?
