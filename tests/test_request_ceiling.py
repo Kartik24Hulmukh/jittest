@@ -19,8 +19,9 @@ class TestResolvedRequestCeiling(unittest.TestCase):
 
     def test_placeholder(self):
         self.assertEqual(os.environ["JITTEST_API_KEY"], "test-key")
-        self.assertTrue(issubclass(HTTPLLM, object))
-        self.assertTrue(issubclass(BudgetExceeded, Exception))
+        exc = BudgetExceeded("boom")
+        self.assertIsInstance(exc, BudgetExceeded)
+        self.assertEqual(HTTPLLM.__name__, "HTTPLLM")
 
 
 if __name__ == "__main__":
