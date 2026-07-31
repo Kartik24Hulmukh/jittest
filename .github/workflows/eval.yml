@@ -1,5 +1,8 @@
 name: eval
 
+# Dispatch-only and costs real money per run, so every failure mode that would
+# waste a funded run is checked before the first model request is made.
+
 on:
   workflow_dispatch:
     inputs:
@@ -7,14 +10,14 @@ on:
         description: "Maximum number of bugs to evaluate"
         required: false
         default: "10"
+      budget:
+        description: "USD ceiling for the whole sweep. Raise in step with limit (~$0.50/bug) or the sweep truncates."
+        required: false
+        default: "1.0"
       projects:
         description: "Comma-separated project filter (optional)"
         required: false
         default: ""
-      report_suppressed:
-        description: "Include assessor-rejected catches in report"
-        required: false
-        default: "true"
       model:
         description: "Model identifier"
         required: false
@@ -23,14 +26,32 @@ on:
         description: "API base URL"
         required: false
         default: ""
+      run_false_positives:
+        description: "Also measure the false-positive rate on clean diffs"
+        required: false
+        default: "true"
+      fp_repo:
+        description: "https://github.com/... repository to sample clean, unseeded diffs from"
+        required: false
+        default: "https://github.com/Kartik24Hulmukh/AccessDoc"
+      fp_count:
+        description: "Number of clean diffs to sample"
+        required: false
+        default: "40"
 
 permissions:
   contents: read
 
+concurrency:
+  group: eval-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   bugsinpy-eval:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # 30 minutes cannot finish a 40-bug sweep. A cancelled job leaves a partial
+    # results.json, which is indistinguishable from a poor catch rate.
+    timeout-minutes: 240
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
         with:
@@ -39,6 +60,29 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
         with:
           python-version: "3.12"
+
+      - name: Preflight - credentials, budget, and limit are coherent
+        env:
+          JITTEST_API_KEY: ${{ secrets.JITTEST_API_KEY }}
+          JITTEST_MODEL: ${{ inputs.model || vars.JITTEST_MODEL }}
+          JITTEST_API_BASE: ${{ inputs.api_base || vars.JITTEST_API_BASE }}
+          LIMIT: ${{ inputs.limit }}
+          BUDGET: ${{ inputs.budget }}
+        run: |
+          set -euo pipefail
+          MISSING=""
+          [ -n "${JITTEST_API_KEY:-}" ] || MISSING="$MISSING secrets.JITTEST_API_KEY"
+          [ -n "${JITTEST_MODEL:-}" ] || MISSING="$MISSING vars.JITTEST_MODEL"
+          [ -n "${JITTEST_API_BASE:-}" ] || MISSING="$MISSING vars.JITTEST_API_BASE"
+          if [ -n "$MISSING" ]; then
+            echo "ERROR: this run is not configured to measure anything. Missing:$MISSING"
+            exit 1
+          fi
+          echo "Credentials present. limit=$LIMIT budget=$BUDGET USD"
+          NEED=$(awk -v l="$LIMIT" 'BEGIN{printf "%.2f", l*0.50}')
+          if awk -v b="$BUDGET" -v n="$NEED" 'BEGIN{exit !(b+0 < n+0)}'; then
+            echo "::warning::budget $BUDGET USD is below the ~$NEED USD that $LIMIT bugs are expected to cost at ~0.50 USD/bug. The sweep will stop early and the catch rate will be computed over fewer bugs than requested."
+          fi
 
       - name: Install jittest
         run: pip install .
@@ -68,17 +112,27 @@ jobs:
             exit 1
           fi
 
+      # Inputs reach the shell through env, never interpolated into a run: body,
+      # so a dispatch input cannot inject shell.
       - name: Run BugsInPy evaluation
         env:
           JITTEST_API_KEY: ${{ secrets.JITTEST_API_KEY }}
           JITTEST_MODEL: ${{ inputs.model || vars.JITTEST_MODEL }}
           JITTEST_API_BASE: ${{ inputs.api_base || vars.JITTEST_API_BASE }}
+          LIMIT: ${{ inputs.limit }}
+          BUDGET: ${{ inputs.budget }}
+          PROJECTS: ${{ inputs.projects }}
         run: |
-          ARGS="--bugsinpy /tmp/BugsInPy --limit ${{ inputs.limit }} --out results.json"
-          if [ -n "${{ inputs.projects }}" ]; then
-            ARGS="$ARGS --project ${{ inputs.projects }}"
+          set -euo pipefail
+          ARGS=(--bugsinpy /tmp/BugsInPy --limit "$LIMIT" --budget "$BUDGET" --out results.json)
+          if [ -n "${PROJECTS:-}" ]; then
+            IFS=',' read -ra NAMES <<< "$PROJECTS"
+            for n in "${NAMES[@]}"; do
+              [ -n "$n" ] && ARGS+=(--project "$n")
+            done
           fi
-          python eval/run_bugsinpy.py $ARGS
+          echo "python eval/run_bugsinpy.py ${ARGS[*]}"
+          python eval/run_bugsinpy.py "${ARGS[@]}" 2>&1 | tee bugsinpy-run.log
 
       - name: Upload results
         if: always()
@@ -87,12 +141,78 @@ jobs:
           name: bugsinpy-eval
           path: |
             results.json
+            bugsinpy-run.log
+          if-no-files-found: warn
           retention-days: 30
 
       # A benchmark that measured nothing must not be able to report success.
-      # Two earlier runs finished in 37 and 32 seconds, concluded "success",
-      # and contained no measurement whatsoever. This step exists so that
-      # cannot happen again silently. It runs after the upload so the artifact
-      # is always available for diagnosis.
       - name: Assert something was actually measured
         run: python eval/assert_measured.py results.json
+
+  # The catch rate is a recall number. eval/README.md states that publishing it
+  # without the false-positive rate is marketing.
+  false-positives:
+    if: ${{ inputs.run_false_positives == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+        with:
+          python-version: "3.12"
+
+      - name: Preflight - credentials are present
+        env:
+          JITTEST_API_KEY: ${{ secrets.JITTEST_API_KEY }}
+          JITTEST_MODEL: ${{ inputs.model || vars.JITTEST_MODEL }}
+          JITTEST_API_BASE: ${{ inputs.api_base || vars.JITTEST_API_BASE }}
+        run: |
+          set -euo pipefail
+          MISSING=""
+          [ -n "${JITTEST_API_KEY:-}" ] || MISSING="$MISSING secrets.JITTEST_API_KEY"
+          [ -n "${JITTEST_MODEL:-}" ] || MISSING="$MISSING vars.JITTEST_MODEL"
+          [ -n "${JITTEST_API_BASE:-}" ] || MISSING="$MISSING vars.JITTEST_API_BASE"
+          if [ -n "$MISSING" ]; then
+            echo "ERROR: this run is not configured to measure anything. Missing:$MISSING"
+            exit 1
+          fi
+
+      - name: Install jittest
+        run: pip install .
+
+      - name: Clone the clean-diff source repository
+        env:
+          FP_REPO: ${{ inputs.fp_repo }}
+        run: |
+          set -euo pipefail
+          case "$FP_REPO" in
+            https://github.com/*) ;;
+            *) echo "ERROR: fp_repo must be an https://github.com/ URL, got: $FP_REPO"; exit 1 ;;
+          esac
+          git clone "$FP_REPO" /tmp/fp-target
+          git -C /tmp/fp-target rev-parse HEAD
+
+      - name: Measure the false-positive rate on clean diffs
+        env:
+          JITTEST_API_KEY: ${{ secrets.JITTEST_API_KEY }}
+          JITTEST_MODEL: ${{ inputs.model || vars.JITTEST_MODEL }}
+          JITTEST_API_BASE: ${{ inputs.api_base || vars.JITTEST_API_BASE }}
+          FP_COUNT: ${{ inputs.fp_count }}
+          BUDGET: ${{ inputs.budget }}
+        run: |
+          set -euo pipefail
+          python eval/false_positives.py --repo /tmp/fp-target --count "$FP_COUNT" --budget "$BUDGET" 2>&1 | tee false-positives.log
+
+      - name: Upload false-positive results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+        with:
+          name: false-positive-eval
+          path: |
+            false-positives.log
+            false-positives.json
+          if-no-files-found: warn
+          retention-days: 30
