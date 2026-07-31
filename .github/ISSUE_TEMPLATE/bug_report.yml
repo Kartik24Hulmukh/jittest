@@ -1,0 +1,34 @@
+name: Bug report
+description: Something jittest did that it should not have, or failed to do.
+title: "bug: "
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: The behaviour you saw, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How do we reproduce it?
+      description: The exact command, flags and config. A --dry-run reproduction is ideal because it needs no key and no cost.
+      placeholder: jittest run --base main --head HEAD --dry-run
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: jittest version
+      description: Run `jittest version`.
+      placeholder: 0.2.4
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Output
+      description: Terminal output or the JSON report. Redact anything private before posting.
+      render: text
