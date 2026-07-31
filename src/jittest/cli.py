@@ -105,8 +105,14 @@ def _cmd_run(args: argparse.Namespace) -> int:
     pr_title, pr_body = pr_context()
 
     try:
-        llm = build_llm(cfg.model, dry_run=args.dry_run, budget_usd=cfg.budget_usd,
-                        temperature=cfg.temperature, cache_path=repo / cfg.cache_path)
+        llm = build_llm(
+            cfg.model,
+            dry_run=args.dry_run,
+            budget_usd=cfg.budget_usd,
+            temperature=cfg.temperature,
+            cache_path=repo / cfg.cache_path,
+            request_ceiling=cfg.max_targets * cfg.candidates_per_target + 5,
+        )
     except LLMError as exc:
         print(f"jittest: {exc}", file=sys.stderr)
         return 2

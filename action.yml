@@ -43,6 +43,14 @@ inputs:
     description: "Run the full pipeline with a stub model. No key, no cost."
     required: false
     default: "false"
+  sandbox:
+    description: "Candidate isolation for generated tests: auto, required, or off."
+    required: false
+    default: "auto"
+  model-price:
+    description: "USD per million tokens as '<in>,<out>' for models outside the built-in table."
+    required: false
+    default: ""
   api-key:
     description: "API key for the model provider. Pass via secrets."
     required: false
@@ -86,6 +94,8 @@ runs:
         JITTEST_CANDIDATES: ${{ inputs.candidates }}
         JITTEST_API_KEY: ${{ inputs.api-key }}
         JITTEST_API_BASE: ${{ inputs.api-base }}
+        JITTEST_SANDBOX: ${{ inputs.sandbox }}
+        JITTEST_MODEL_PRICE: ${{ inputs.model-price }}
       run: |
         BASE="${{ inputs.base }}"
         HEAD="${{ inputs.head }}"

@@ -44,6 +44,8 @@ spent money on, and why. If it is targeting the wrong things, tune
 
 ```bash
 export JITTEST_API_KEY=sk-...
+export JITTEST_API_BASE=https://integrate.api.nvidia.com/v1   # NVIDIA-compatible endpoint, optional
+# export JITTEST_MODEL_PRICE=0.60,2.20                       # only if your model is not in the built-in price table
 jittest run --base main --head HEAD --budget 0.50
 ```
 
@@ -59,6 +61,10 @@ jittest v0.2.1  0f9e8d7c...a1b2c3d4
 
 A run that finds nothing is the common case and is not a failure. Most diffs do
 not contain a regression.
+
+For untrusted pull requests, prefer `JITTEST_SANDBOX=required` (or the action
+input `sandbox: "required"`) so model-written tests never fall back to the
+bare runner without saying so.
 
 ## 5. Add it to CI
 
@@ -80,6 +86,8 @@ jobs:
           head: ${{ github.event.pull_request.head.sha }}
           budget: "1.00"
           comment: "true"
+          sandbox: "required"
+          # model-price: "0.60,2.20"   # only for models outside the built-in table
         env:
           JITTEST_API_KEY: ${{ secrets.JITTEST_API_KEY }}
 ```
