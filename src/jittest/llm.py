@@ -68,7 +68,8 @@ class DryRunLLM(BaseLLM):
 class HTTPLLM(BaseLLM):
     def __init__(self, model: str, api_key: str | None = None,
                  budget_usd: float = 1.0, temperature: float = 0.8,
-                 cache_path: Path | str | None = None):
+                 cache_path: Path | str | None = None,
+                 request_ceiling: int | None = None):
         super().__init__(model, budget_usd, temperature)
         provider, _, name = model.partition("/")
         if not name:
@@ -83,6 +84,7 @@ class HTTPLLM(BaseLLM):
             provider, "https://api.anthropic.com/v1")
         self.api_model = model if explicit_base else self.model_name
         self.cache = _Cache(cache_path)
+        self.request_ceiling = request_ceiling
         self._unpriced = self._price() is None
         if self._unpriced:
             import sys
@@ -155,8 +157,10 @@ class HTTPLLM(BaseLLM):
                  temperature: float | None = None) -> list[str]:
         if self._unpriced:
             # max_targets * candidates_per_target + assessor calls (worst case)
-            ceiling = (int(os.getenv("JITTEST_MAX_TARGETS", "5")) *
-                       int(os.getenv("JITTEST_CANDIDATES", "4")) + 5)
+            ceiling = self.request_ceiling
+            if ceiling is None:
+                ceiling = (int(os.getenv("JITTEST_MAX_TARGETS", "5")) *
+                           int(os.getenv("JITTEST_CANDIDATES", "4")) + 5)
             self._guard_request_ceiling(ceiling)
         else:
             self._guard_budget()
@@ -211,10 +215,12 @@ class HTTPLLM(BaseLLM):
 
 def build_llm(model: str, dry_run: bool = False, budget_usd: float = 1.0,
               temperature: float = 0.8, cache_path: Path | str | None = None,
-              api_key: str | None = None) -> BaseLLM:
+              api_key: str | None = None,
+              request_ceiling: int | None = None) -> BaseLLM:
     if dry_run:
         return DryRunLLM(model=f"{model} (dry run)")
     if os.getenv("JITTEST_USE_LITELLM") == "1":
         return LiteLLMBackend(model, budget_usd, temperature)
     return HTTPLLM(model, api_key=api_key, budget_usd=budget_usd,
-                   temperature=temperature, cache_path=cache_path)
+                   temperature=temperature, cache_path=cache_path,
+                   request_ceiling=request_ceiling)
