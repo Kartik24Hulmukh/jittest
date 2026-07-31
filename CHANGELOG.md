@@ -2,156 +2,111 @@
 
 ## Unreleased
 
-Nothing yet.
+### Security
+- **Model-written candidate code now executes inside a real confinement boundary.** `src/jittest/sandbox.py` plans isolation per run: podman, then docker, then bubblewrap, with `--network none`, a read-only root filesystem, capabilities dropped, `no-new-privileges`, and pid and memory ceilings; the package root is mounted read-only at `/opt/jittest`. Three modes: `auto`, `required`, `off`; the chosen plan is recorded in the report's `sandbox` block. (#56)
+- **`auto` never pulls an image mid-run**, falling back to bubblewrap when the image is absent locally; `required` still accepts the pull. (Defect 73, #56)
+
+### Fixed
+- **Isolation failures no longer manufacture verdicts** - `diff_status: "sandbox_unavailable"` with zero findings and zero model requests instead of raising or spending money. (#56)
+- **Runs that analysed nothing are named** - `diff_status: "all_targets_ignored"` / `"below_risk_threshold"` replace a report byte-identical to a clean pull request. (#56)
+- **The container could not import jittest** - the package root is mounted read-only and container `PYTHONPATH` points there. (Defect 72, #56)
+- **A test that purged `sys.modules` without restoring it poisoned later isolation stubs.** (Defect 74, #56)
+- **Unpriced models reported a false $0.000 cost.** Every response is now accounted, with `priced: false` and labelled estimates in JSON instead of a bare zero; `JITTEST_MODEL_PRICE='<in>,<out>'` restores the dollar cap. (P-4, #57)
+- **The unpriced fallback ceiling now follows resolved config rather than raw environment guesses.** `build_llm()` takes an explicit request ceiling passed by the CLI and both eval harnesses. Covered by `tests/test_request_ceiling.py`. (#62)
+
+### Added
+- Action inputs `sandbox` and `model-price`; `.env.example` and `docs/QUICKSTART.md` document sandbox modes, the NVIDIA-compatible endpoint and explicit model pricing. (#62)
+- `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), `.github/ISSUE_TEMPLATE/` bug and feature forms, and `examples/seeded_regression_demo.py` - a one-command end-to-end demo that builds a seeded regression in a throwaway git repository and runs the full pipeline against it with `--dry-run`; its README states plainly that a stub model yields no candidates, so the oracle does not execute without a key. (#65)
+- `tests/test_sandbox.py`, `tests/test_sandbox_image_policy.py`, `tests/test_nothing_analysed.py` (#56), `tests/test_cost_accounting.py` (#57), `tests/test_request_ceiling.py` (#62).
+- `JITTEST_SANDBOX` (`auto`/`required`/`off`), `JITTEST_SANDBOX_BACKEND`, `JITTEST_SANDBOX_IMAGE` configuration. (#56)
+
+### Changed (internal, no API change)
+- `llm.py` decomposed into `_pricing.py`, `_llmjson.py`, `_llmbase.py`, `_llmcache.py`, `_litellm.py`; `pipeline.py` decomposed into `results.py` and `_pipeline_helpers.py`. Public names re-exported from their original modules. (#57)
+
+### Verified in this release
+- 385 offline tests green on two host shapes (with and without a container engine).
+- PRs #56, #57, #62 and #65 each landed 18/18 checks. PR #62's lint failure was diagnosed by bisecting CI itself with two throwaway probe pull requests - the violation was I001 (ruff isort order-by-type) on the new regression test's import - and fixed in the source. No rule disabled, no `noqa`, no probe merged.
+
+### Still not fixed
+- **No measured catch rate, false-positive rate, or priced cost per pull request exists yet** - the eval workflow is `workflow_dispatch`-only and requires one human click plus a funded key.
+- **The false-positive screening harness exists but is not wired into CI** - the prepared `eval.yml` changes cannot be pushed by this automation identity (the platform returns 403 for `.github/workflows/`). Needs one human commit or a permission grant.
+- **Container isolation has never run against a real Docker daemon in CI.**
+- **The assessor's corrected specification has still never fired on a real bug.**
 
 ## 0.2.4 - 2026-07-29
 
 ### Security
-- **Generated tests no longer inherit the runner's environment.** Candidate subprocesses previously ran with the full parent environment, so a generated test could read the CI job's credentials and exfiltrate them through test output. The child environment is now built from an explicit allowlist, runner credentials are withheld, and an exfiltrator fixture that prints the canary proves the canary does not survive. (#45)
-- **Reported failure excerpts are redacted.** The excerpt that ends up in a published report is exactly where a leaked secret would do its damage: `RunResult.tail` now passes through `jittest.redact.redact()`, which masks vendor tokens, PEM blocks, bearer headers, URL credentials, and credential-shaped assignments while keeping the name so the reviewer can see what was withheld. Redaction happens after truncation, so a token cut in half by the limit cannot leave a readable fragment. All credential fixtures in the test suite are assembled at import time rather than written as literals - a test suite about secret hygiene should not contain secrets, a rule GitHub Push Protection and GitGuardian now enforce on every push. (#48)
+- **Generated tests no longer inherit the runner's environment.** The child environment is now built from an explicit allowlist, runner credentials are withheld, and an exfiltrator fixture proves the canary does not survive. (#45)
+- **Reported failure excerpts are redacted** through `jittest.redact.redact()` after truncation. (#48)
 
 ### Fixed
-- **A git failure and an empty diff were the same outcome.** `git_diff` returned `""` both when git could not compare the revisions and when the comparison legitimately produced nothing, so a failure to measure was indistinguishable from "no changed symbols". `git_diff` now raises `GitError` when every revision spec fails, and the pipeline reports `diff_status: "git_failed"` with the reason, versus `diff_status: "empty"` for a true empty diff. (#46)
-- **The eval harness could not hear `diff_status`.** A git-failed run collapsed into `not_measured` and sat in the catch-rate denominator as if the tool had been presented the bug and failed. `classify()` now takes `diff_status` and returns a distinct `git_failed` status; the summary counts `bugs_git_failed` by name, computes the headline `catch_rate` over *eligible* bugs (attempted minus git-failed), and prints `catch_rate_all_attempted` beside it so the conservative number is always reconstructable. `assert_measured.py` recomputes both new counts from the per-result rows, fails closed on a missing or inconsistent `bugs_eligible`, and prints git-failure reasons. Systemic collection failure cannot hide either: git failures count against the 80% completion floor.
-- **A pytest-style candidate silently became "no tests" on a repository without pytest.** The mini-runner could only collect `unittest.TestCase` subclasses, so a candidate written against pytest APIs - a bare `def test_x(tmp_path)` with fixtures, which is what the generator naturally produces - collected nothing and exited `EXIT_NO_TESTS`. A not-run is not a non-catch, but the differential oracle could read it as one, so the tool under-reported precisely on the hardened and air-gapped runners the mini-runner exists to serve. A fixture error is now `EXIT_FAILED` and never `EXIT_NO_TESTS`, so a broken fixture is loud rather than invisible. (#50)
-- **`/proc/does-not-exist` is writable on Windows.** The unwritable-path helper assumed a POSIX filesystem, so a first-run survival test asserted something untrue on Windows runners. `_unwritable_path()` now selects a platform-appropriate path.
+- **A git failure and an empty diff were the same outcome.** `git_diff` now raises `GitError` when every revision spec fails, versus `diff_status: "empty"` for a true empty diff. (#46)
+- **The eval harness could not hear `diff_status`.** `classify()` returns a distinct `git_failed` status; the headline `catch_rate` is computed over *eligible* bugs with `catch_rate_all_attempted` beside it.
+- **A pytest-style candidate silently became "no tests" on a repository without pytest** - a fixture error is now `EXIT_FAILED`. (#50)
+- **`/proc/does-not-exist` is writable on Windows** - `_unwritable_path()` now selects a platform-appropriate path.
 
 ### Added
-- **A vendored pytest shim, so jittest can run pytest-style tests on repositories that do not have pytest installed.** `_pytestshim`, `_pytestshim_core` and `_pytestshim_helpers` provide `fixture`, `mark` (`skip`, `skipif`, `xfail`, `parametrize`), `param`, `approx`, `raises`, `MonkeyPatch` and `importorskip`; `_fixtureengine` and `_minirunner_cases` implement fixture resolution with function and module scope, parametrisation across stacked layers, `conftest.py` discovery with nearest-wins precedence, and the builtins `tmp_path`, `tmp_path_factory`, `monkeypatch` and `capsys`. `run_file` installs the shim under the name `pytest` and restores any real pytest in a `finally` block, so it cannot leak into the host interpreter or shadow a genuine installation. Unsupported surfaces fail loudly rather than passing vacuously: async fixtures, doctest, `capfd`, `pytest.ini` options, plugin hooks and `unittest` `addCleanup`. Strict XPASS is a failure; an xfailed failure counts as neither executed nor failed, so an all-xfail file is correctly `EXIT_NO_TESTS`. (#50)
-- `tests/test_minirunner_fixtures.py` and `tests/test_minirunner_fixtures_e2e.py`, the second of which drives fixtures, parametrisation and marks end to end through the differential oracle itself rather than against the runner in isolation. (#50)
-- `.github/PULL_REQUEST_TEMPLATE.md`, which asks a contributor for the output of an execution rather than an assurance, and states that weakening lint configuration, adding `noqa`, or editing a test's expected value are not acceptable routes to a green check. (#51)
-- `src/jittest/redact.py` and `tests/test_redaction.py` (18 tests, including a self-guard that fails the build if a credential fixture ever appears verbatim in the test source).
-- `tests/test_git_failures.py` (14 tests): failure-versus-emptiness, pipeline reporting, practical reachability. (#46)
-- `tests/test_eval_git_denominator.py` (14 tests): classification, denominator arithmetic, gate cross-checks, and an end-to-end bogus-revision run through the real pipeline.
+- **A vendored pytest shim** so jittest can run pytest-style tests on repositories without pytest: `fixture`, `mark`, `param`, `approx`, `raises`, `MonkeyPatch`, `importorskip`, function and module scope fixtures, parametrisation, `conftest.py` discovery, and the builtins `tmp_path`, `tmp_path_factory`, `monkeypatch`, `capsys`. (#50)
+- `tests/test_minirunner_fixtures.py` and `tests/test_minirunner_fixtures_e2e.py`. (#50)
+- `.github/PULL_REQUEST_TEMPLATE.md`. (#51)
+- `src/jittest/redact.py` and `tests/test_redaction.py` (18 tests).
+- `tests/test_git_failures.py` (14 tests, #46) and `tests/test_eval_git_denominator.py` (14 tests).
 - Candidate environment isolation with exfiltrator tests (`tests/test_isolation.py`). (#45)
 - Typed candidate dispositions and per-run provenance and completeness records. (#40, #41, #42)
 
 ### Verified in this release
-- 269 offline tests green before this release's additions, no network required; the mini-runner work adds two further suites.
-- PR #50 landed at 18 of 18 checks, including nine test jobs spanning Linux, macOS and Windows on Python 3.11, 3.12 and 3.13, plus the dogfood job, the install smoke matrix and GitGuardian.
-- PRs #46 and #48 each landed at 18/18 checks including GitGuardian, after three scanning iterations that removed every credential-shaped literal from the test suite.
-- **Four ruff violations on the mini-runner branch were located by bisecting CI itself**, because the Actions log endpoint returned 504 for the entire session and not one error message was ever readable: SIM105, four SIM300 yoda conditions, I001 import ordering in two modules, and SIM108. Reading the diff by eye failed six times; the pass/fail bit was the only trustworthy instrument. Every one was fixed in the source. No rule was disabled, no `noqa` was added, and no `per-file-ignores` entry survives on a merged branch - the two throwaway probe branches that did narrow the configuration were never merged and their pull requests are closed.
+- 269 offline tests green before this release's additions, no network required.
+- PR #50 landed at 18 of 18 checks; PRs #46 and #48 each landed 18/18 including GitGuardian.
+- Four ruff violations on the mini-runner branch were located by bisecting CI itself; every one fixed in the source, no rule disabled, no `noqa`, no probe merged.
 
 ### Still not fixed
-- **Candidates still share the filesystem, network, and user account with the runner.** The environment allowlist withholds credentials; it is not a sandbox. Container/VM isolation remains the production-readiness blocker.
-- No measured catch rate, false-positive rate, or priced cost per pull request exists yet. The measurement is now possible and honest; it has not been run.
-- **The assessor's corrected specification has still never fired on a real bug.** The 0.2.2 fix replaced wording that labelled every oracle-confirmed catch an `intended_change` at high confidence. Whether the replacement behaves differently is unknown, because no run since has reached the assessor with a genuine regression in hand. Until that happens, the central claim of this project is unverified.
+- **Candidates still share the filesystem, network, and user account with the runner** - the environment allowlist is not a sandbox. (Resolved in Unreleased via #56.)
+- No measured catch rate, false-positive rate, or priced cost per pull request exists yet.
+- **The assessor's corrected specification has still never fired on a real bug.**
 
 ## 0.2.3 - 2026-07-27
 
 ### Fixed
-- **`git_diff` returned nothing, successfully, whenever head was an ancestor of base.** The function tried the three-dot (merge-base) spec first and returned its output whenever git exited zero. When head is an ancestor of base — a revert, or the BugsInPy evaluation setup where `base` is the fixed commit and `head` is the buggy one — `merge-base(base, head)` *is* head, so the three-dot diff is legitimately empty and exits zero. The old loop accepted that empty result and never reached the two-dot fallback. Every BugsInPy evaluation run therefore saw zero changed files, generated zero candidates, called the model zero times, and reported success. Proven locally: the commits exist, `merge-base --is-ancestor` returns 0, the three-dot diff is empty, the two-dot diff shows the change, and `git_diff` returned 0 bytes. The fix falls through to the two-dot spec when the three-dot spec succeeds but produces no output, and returns `""` only when both produce nothing. Three-dot semantics are preserved for genuinely diverged branches, which is the normal pull-request case, and that is pinned by a test.
-- **The eval harness decided whether a bug had been measured from a stopwatch.** `not_measured` was assigned when candidates were zero *and* elapsed wall-clock time rounded to `0.0` at one decimal place. On a slower runner the identical unmeasured bug would have been labelled `"missed"` and averaged into `catch_rate 0.0` — the exact false claim the previous release added the status to prevent. Measurement is now defined by whether a model request was issued. `Report.model_requests` counts real requests, the harness reads it, and the decision lives in a pure `classify()` function that is unit-tested directly.
-- **`BugResult.seconds` was never assigned on the success path**, so every result in every published artifact reported `"seconds": 0.0`. This is also what made the stopwatch check appear to work.
-- **`res.caught` was assigned to a non-field attribute** of a dataclass, so `asdict()` silently dropped it. Dead code, removed.
-- **A duplicate local import** of `load_config` inside `evaluate_one` shadowed the function-level import. Removed.
+- **`git_diff` returned nothing, successfully, whenever head was an ancestor of base** - the three-dot diff is legitimately empty there; the fix falls through to the two-dot spec. This had made every BugsInPy evaluation run see zero changed files while reporting success.
+- **The eval harness decided whether a bug had been measured from a stopwatch** - measurement is now defined by whether a model request was issued.
+- **`BugResult.seconds` was never assigned on the success path**; `res.caught` was assigned to a non-field attribute; a duplicate local import of `load_config` shadowed the outer one.
 
 ### Added
-- `Report.model_requests`, serialised in `Report.as_dict()`, plus `model_requests` on every eval result and `model_requests_total` in the eval summary. "Was this measured?" is now answerable from the artifact alone.
-- `eval/assert_measured.py` and a workflow step that runs it. **An evaluation run can no longer report success without measuring anything.** Two previous runs finished in 37 and 32 seconds, concluded `success`, contained no measurement, and were treated as progress for a day. The step runs after artifact upload so results are always available for diagnosis, and it prints the likely causes when it fails.
-- `|| true` removed from the eval invocation, so a harness crash now fails the job instead of being swallowed.
-- `tests/test_measurement.py` — 12 tests covering the inverted revision pair end to end, the pinned underlying git behaviour, target extraction from an inverted pair, preservation of three-dot semantics for diverged branches, identical revisions, the `model_requests` contract, and `classify()` in isolation.
-- An explicit, quotable reason on an empty diff: the report now says the revision pair produced no changed Python symbols and that this is a property of the pair, not a result about the code.
-
-### Verified in this release
-- End-to-end run on an inverted pair through the real pipeline: 1 target, 1 candidate, oracle verdict `catching: passes on base, fails on head`, assessor `real_regression` at 0.91, `should_report` true, 2 model requests recorded. This is the first time the BugsInPy revision shape has produced a finding.
-- Revision-pair stress sweep, 12 scenarios, 0 findings: forward pair, inverted pair, identical revisions, diverged branches, nonexistent revision, revision from an unrelated repository, orphan branch with no merge base, shallow clone, empty repository, merge commit as head, whitespace-only change, deleted file.
-- 107 offline tests, green, no network required.
-
-### Still not fixed
-- **The assessor specification fix from 0.2.2 has never been exercised on a real bug.** The one canary run after it produced four latent candidates and zero oracle catches, so the assessor was never reached. Whether the corrected wording changes behaviour is unknown.
-- No real-bug catch rate, no false-positive rate, and no measured cost per pull request exist. Nothing in this release changes that; it only makes the measurement possible and makes an unmeasured run impossible to mistake for a measured one.
+- `Report.model_requests` serialised in `Report.as_dict()`, plus `model_requests` per eval result and `model_requests_total` in the summary.
+- `eval/assert_measured.py` and a workflow step that runs it - an evaluation run can no longer report success without measuring anything.
+- `tests/test_measurement.py` (12 tests).
 
 ## 0.2.2 - 2026-07-27
 
 ### Security
-- **Safety gate bypasses closed (16 of 22 adversarial payloads were accepted before this change).** An adversarial sweep of `safety.check_candidate` found six independent classes of bypass: `from os import system` style imports (the module was allowed and the callee arrived as a bare `Name`), builtin aliasing (`f = eval` then `f(...)`), reflection (`getattr`, `importlib.import_module`, `builtins.eval`, `runpy.run_module`), interpreter gadgets (`''.__class__.__mro__[1].__subclasses__()`, `func.__globals__`), filesystem mutation, and vacuous asserts (`assert 1`). The filesystem class was the most serious: a candidate test that rewrites a worktree source file can manufacture a base/head difference and therefore forge an oracle catch, which would corrupt the one signal in this project that has been trustworthy. Added `BANNED_IMPORT_NAMES`, `BANNED_DUNDERS`, alias detection for banned builtins referenced without being called, constant-string-only `getattr`/`setattr`/`delattr`, and rejection of write-mode `open()` on a constant path. `__class__`, `str.replace`, `list.remove` and `file.write` remain allowed because they are ubiquitous in legitimate tests. Post-fix sweep: 0 dangerous payloads accepted, 0 legitimate payloads rejected, 4000-input fuzz with no crashes.
-- **Diff paths can no longer escape the repository.** The parser yielded `../../etc/passwd` and `/etc/shadow` as change targets, and those paths flow into `git show <rev>:<path>` and worktree writes. Added `diff.is_safe_repo_path` (rejects empty paths, null bytes, absolute paths, UNC paths, drive letters, any `..` segment, control characters) and enforced it in `extract_targets`.
+- **Safety gate bypasses closed (16 of 22 adversarial payloads accepted before this change).** Added `BANNED_IMPORT_NAMES`, `BANNED_DUNDERS`, builtin-alias detection, constant-string-only `getattr`/`setattr`/`delattr`, and rejection of write-mode `open()` on a constant path.
+- **Diff paths can no longer escape the repository** via `diff.is_safe_repo_path`.
 
 ### Fixed
-- **Config validation.** `load_config` accepted wrong types and out-of-range values: `budget_usd = "lots"` stayed a string, `risk_threshold = 5.0` was accepted (producing a run that analyses nothing while reporting success), and `JITTEST_BUDGET_USD=nan|inf|1e400` produced a config whose `as_dict()` was not strict-JSON serialisable, silently corrupting the telemetry artifact the eval harness reads. Added `normalise_values()` with a per-field range table; unknown keys are dropped, bools are rejected where numbers are expected, non-finite values are rejected, and out-of-range values are clamped. Rejections and clamps are recorded on `cfg.notes`, a non-field attribute, so `as_dict()` stays strictly serialisable.
-- **Git-quoted diff paths were silently dropped.** Any change to a file whose name contains a space was invisible to jittest. The `diff --git` header matcher now handles quoted paths and unescapes them.
-- **Version drift.** `pyproject.toml` and `jittest.__version__` were maintained independently and had already diverged. Added a test that fails when they disagree.
-
-### Added
-- `tests/test_hardening.py` - 21 tests covering safety-gate bypasses (17 must-reject and 10 must-accept payloads plus a 500-input fuzz), config normalisation including a strict-JSON environment sweep, diff path safety including a 400-input mutation fuzz, and assessor confidence coercion.
-
-### Not fixed in this release
-- The assessor still labels every oracle-confirmed catch `intended_change` at high confidence, so nothing is ever reported to a pull request. This is the launch-blocking defect and it cannot be settled with self-mutation canaries; it needs real bugs.
+- **Config validation** with a per-field range table; rejections and clamps recorded on `cfg.notes`.
+- **Git-quoted diff paths** (filenames with spaces) are now unescaped instead of dropped.
+- **Version drift** between `pyproject.toml` and `jittest.__version__` pinned by a test.
 
 ## 0.2.1 — 2026-07-26
 
 ### Fixed
-- **pytest parity**: Added `pythonpath = ["src"]` to `[tool.pytest.ini_options]` so `python -m pytest` can import jittest from src-layout without `PYTHONPATH`. The unittest runner worked because CI set `PYTHONPATH=src` explicitly; pytest had no such configuration.
-- **Outcome enum restored to StrEnum**: Ruff rule UP042 was applied as `Outcome(str, Enum)` → `Outcome(Enum)`, which removed string behaviour the codebase relies on (`Outcome.PASS == "pass"`, JSON serialisation). Corrected to `Outcome(StrEnum)`. Added 4 regression tests that fail on plain Enum and pass on StrEnum.
-- **Canonical Apache-2.0 licence**: Replaced placeholder LICENSE with verbatim text from apache.org. GitHub now detects `spdx_id: Apache-2.0` instead of `NOASSERTION`.
-- **Ruff compliance**: Fixed all 7 ruff errors (UP042, UP037 ×2, F401, UP012, SIM102, SIM117). No per-file-ignores, no noqa comments, no config relaxation.
-
-### Changed
-- **ARCHITECTURE.md and STACK.md rewritten**: Both documents described a v0.1 design that depended on unidiff, litellm, pydantic, typer, rich, PyYAML and coverage. The shipped v0.2 code depends on nothing. Documents now describe what each module in `src/jittest/` actually does, module by module.
-- **install-smoke workflow**: Added `.github/workflows/install-smoke.yml` that verifies `pip install .` produces a working `jittest` command on Python 3.11, 3.12 and 3.13. All three pass.
-- **CI umbrella job**: Added a `ci` job to `.github/workflows/ci.yml` that aggregates lint, test and build results into a single check name matching the branch protection required context.
-- **Actions version bumps**: actions/checkout v4→v7, actions/setup-python v5→v7, actions/upload-artifact v4→v7, softprops/action-gh-release v2→v3.
-
-All notable changes to this project are documented here.
-Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
+- pytest parity via `pythonpath = ["src"]` in `[tool.pytest.ini_options]`.
+- `Outcome` restored to `StrEnum` with 4 regression tests.
+- Canonical Apache-2.0 licence; GitHub now detects `spdx_id: Apache-2.0`.
+- Ruff compliance: 7 errors fixed, no per-file-ignores, no noqa.
 
 ## [0.2.0] - 2026-07-25
 
 ### Changed - the zero-dependency rewrite
-
-- **`dependencies = []`.** jittest now installs with no third-party packages at
-  all. `unidiff`, `litellm`, `pydantic`, `typer`, `rich` and `PyYAML` are gone.
-  A tool that runs inside other people's CI should not bring a dependency tree
-  into their locked project, and every package we drop is one fewer resolver
-  conflict, one fewer supply-chain surface and one fewer reason to say no.
-  - unified diff parsing: own parser in `diff.py`
-  - model access: `urllib` in `llm.py` (Anthropic Messages + OpenAI-compatible)
-  - config: stdlib `tomllib`
-  - CLI: `argparse`
-  - litellm is still supported, opt-in, via `pip install jittest[litellm]` and
-    `JITTEST_USE_LITELLM=1`
+- **`dependencies = []`.** Own diff parser, `urllib` model access, stdlib `tomllib` config, `argparse` CLI. litellm stays opt-in via `jittest[litellm]`.
 
 ### Added
-
-- **`_minirunner`**: a stdlib test runner used when pytest is not importable,
-  with pytest-compatible exit codes (0 pass / 1 fail / 2 collection error /
-  5 no tests). jittest can now answer "does this test pass here?" in hardened
-  or air-gapped runners.
-- **Worktree reuse.** Base and head are checked out once per run instead of once
-  per candidate. This is what makes three executions per candidate affordable,
-  and three executions is what buys the flakiness rerun.
-- **Flakiness reruns** (`--reruns`, default 2). A failure on head must reproduce
-  before we spend a base checkout, let alone a reviewer's attention.
-- **`jittest doctor`**: reports python version, git, runner, key presence and
-  effective config, so a failed install is diagnosable in one command.
-- **Human outcome labels** in the ledger (`fixed_code`, `kept_test`, `intended`,
-  `false_positive`, `ignored`) plus `jittest outcome` and anonymised
-  `jittest export`. This is the corpus, and it is the only asset here that
-  cannot be reimplemented in a fortnight.
-- **Static safety gate** (`safety.py`) applied to every candidate before it is
-  executed: no sockets, no subprocesses, no `eval`, no `assert True`, no sleeps.
-- **Response cache** keyed on model, prompts and temperature, so re-running a PR
-  costs nothing.
-- **Budget cap** enforced before a request is sent rather than after.
-- **`--dry-run`** runs the entire pipeline with a stub model: no API key, no
-  network, no cost. It is how the test suite runs, and how a new user can watch
-  jittest work on their own repo before handing over a key.
-- 36 offline tests covering the diff parser, risk ranking, config precedence,
-  the safety gate, assessment parsing, the ledger, the oracle against a real
-  seeded regression in a real git repo, and the pipeline end to end.
-
-### Fixed
-
-- Candidate test files are always deleted from the checkout, including after a
-  timeout.
-- `PYTHONHASHSEED=0` and `PYTHONDONTWRITEBYTECODE=1` in the child environment,
-  removing one avoidable source of non-determinism.
-- Assessor replies with a confidence of `85` are read as `0.85`; unparseable
-  replies degrade to `unclear`, which is not reported. The layer fails closed.
+- `_minirunner` stdlib test runner; worktree reuse; flakiness reruns; `jittest doctor`; human outcome labels plus `jittest outcome` and anonymised `jittest export`; static safety gate; response cache; budget cap before a request is sent; `--dry-run`.
 
 ## [0.1.0] - 2026-07-25
 
-- First scaffold: diff parsing, risk targeting, generator prompts, differential
-  oracle, assessor, SQLite ledger, GitHub Action, docs and evaluation harness.
+- First scaffold: diff parsing, risk targeting, generator prompts, differential oracle, assessor, SQLite ledger, GitHub Action, docs and evaluation harness.
+
+All notable changes to this project are documented here.
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
