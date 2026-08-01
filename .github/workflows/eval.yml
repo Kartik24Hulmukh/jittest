@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     # 30 minutes cannot finish a 40-bug sweep. A cancelled job leaves a partial
     # results.json, which is indistinguishable from a poor catch rate.
-    timeout-minutes: 240
+    timeout-minutes: 360
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
         with:
