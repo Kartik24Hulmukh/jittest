@@ -252,12 +252,12 @@ def _cmd_oracles(args: argparse.Namespace) -> int:
     # A gate must never fire on an absence of evidence. `strong_rate` is None
     # when no test function was scanned at all, and "nothing was measured" is
     # not the same claim as "everything measured was weak".
-    if args.fail_under is not None and report.strong_rate is not None:
-        if report.strong_rate < args.fail_under:
-            print(f"jittest: strong-oracle rate {report.strong_rate:.2f} is below "
-                  f"the required {args.fail_under:.2f}", file=sys.stderr)
-            return 1
-    return 0
+if (args.fail_under is not None and report.strong_rate is not None
+        and report.strong_rate < args.fail_under):
+    print(f"jittest: strong-oracle rate {report.strong_rate:.2f} is below "
+          f"the required {args.fail_under:.2f}", file=sys.stderr)
+    return 1
+return 0
 
 
 def _cmd_stats(args: argparse.Namespace) -> int:
