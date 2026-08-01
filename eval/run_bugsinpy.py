@@ -31,11 +31,24 @@ pytest importable and installs the dependencies of the project under test. A
 run in which those steps failed is reported as such per bug, because the
 alternative - a clean-looking catch_rate of 0.0 - is a false statement about
 the tool.
+
+REVISION RULE (defect 70): a bug whose revisions are not in the local object
+store was never presented to the tool either. clone() used to return any
+pre-existing directory without checking, and never fetched. A default
+`git clone` fetches branch heads only, and BugsInPy revisions are frequently
+not reachable from them; a workdir reused across runs then accumulates
+repositories missing exactly the objects the next bug needs. git_show()
+returned "", extract_targets() dropped every target, no model call was made,
+and the bug was filed as not_measured with diff_status below_risk_threshold -
+a confident cause for a condition never measured. Revision availability is now
+verified and repaired before measuring, and an unrepairable bug gets its own
+status instead of sitting in the catch-rate denominator.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import statistics
 import subprocess
 import sys
@@ -44,6 +57,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 PIP_TIMEOUT_SECONDS = 900
+GIT_TIMEOUT_SECONDS = 900
 
 
 @dataclass
@@ -61,7 +75,7 @@ class BugResult:
     project: str
     bug_id: str
     status: str = "pending"  # pending, caught, missed, not_measured,
-                             # git_failed, skipped, error
+                             # git_failed, commits_missing, skipped, error
     candidates: int = 0
     catching_candidates: int = 0
     reported: int = 0
@@ -164,17 +178,118 @@ def discover(bugsinpy: Path, limit: int | None,
     return specs
 
 
-def clone(spec: BugSpec, workdir: Path) -> Path | None:
-    dest = workdir / f"{spec.project}"
-    if dest.exists():
-        return dest
-    if not spec.repo_url:
-        return None
-    r = subprocess.run(
-        ["git", "clone", "--quiet", spec.repo_url, str(dest)],
-        capture_output=True, text=True, errors="replace",
+def _tail(text: str, lines: int = 1) -> str:
+    parts = (text or "").strip().splitlines()
+    return " ".join(parts[-lines:])[:300] if parts else ""
+
+
+def _git(repo: Path, *args: str,
+         timeout: int = GIT_TIMEOUT_SECONDS) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        ["git", "-C", str(repo), *args],
+        capture_output=True, text=True, errors="replace", timeout=timeout,
     )
-    return dest if r.returncode == 0 else None
+
+
+def has_commit(repo: Path, sha: str) -> bool:
+    """True if `sha` names a commit object present in this repository.
+
+    `git cat-file -e <sha>^{commit}` is the cheapest exact answer: it resolves
+    the object and asserts its type without materialising anything. Checking
+    with `rev-parse` instead would succeed on an abbreviated ref that happens
+    to be ambiguous, and checking with `git log` would succeed on a tag.
+    """
+    if not sha:
+        return False
+    try:
+        return _git(repo, "cat-file", "-e", f"{sha}^{{commit}}",
+                    timeout=60).returncode == 0
+    except (subprocess.TimeoutExpired, OSError):
+        return False
+
+
+def fetch_commit(repo: Path, sha: str) -> bool:
+    """Make `sha` available locally, escalating only as far as necessary.
+
+    Three strategies, cheapest first. A targeted fetch of a single object is
+    usually enough and costs almost nothing; --unshallow only matters for a
+    depth-limited clone; the full refspec fetch is the last resort because it
+    can pull every remote branch on a large project. Each is bounded, and a
+    failure at one level simply falls through to the next rather than raising:
+    the only question this function answers is whether the object is there
+    afterwards, which is re-checked against git rather than inferred from an
+    exit code.
+    """
+    if has_commit(repo, sha):
+        return True
+    strategies = (
+        ["fetch", "--quiet", "origin", sha],
+        ["fetch", "--quiet", "--unshallow", "origin"],
+        ["fetch", "--quiet", "origin", "+refs/heads/*:refs/remotes/origin/*"],
+    )
+    for args in strategies:
+        try:
+            _git(repo, *args)
+        except (subprocess.TimeoutExpired, OSError):
+            return False
+        if has_commit(repo, sha):
+            return True
+    return False
+
+
+def ensure_repo(spec: BugSpec, workdir: Path,
+                fresh: bool = False) -> tuple[Path | None, str]:
+    """Return a repository that actually contains both revisions. Defect 70.
+
+    Returns (repo, reason). `repo is None` means the clone itself is unusable
+    and the bug is skipped. A non-empty reason beginning with
+    ``commits-missing:`` means the clone exists but the revisions could not be
+    obtained, which is a failure to measure and gets its own status.
+
+    The previous implementation was three lines and its bug was the second
+    line: `if dest.exists(): return dest`. Any directory left behind by an
+    earlier run - including a clone that was interrupted, or one made for a
+    different bug of the same project and missing this bug's objects - was
+    accepted forever, with no fetch and no verification.
+    """
+    dest = workdir / spec.project
+    if fresh and dest.exists():
+        shutil.rmtree(dest, ignore_errors=True)
+
+    if dest.exists() and not (dest / ".git").is_dir():
+        # A partial or non-git directory must not be cached as a valid clone.
+        shutil.rmtree(dest, ignore_errors=True)
+
+    if not dest.exists():
+        if not spec.repo_url:
+            return None, "no github_url in project.info"
+        try:
+            r = subprocess.run(
+                ["git", "clone", "--quiet", spec.repo_url, str(dest)],
+                capture_output=True, text=True, errors="replace",
+                timeout=GIT_TIMEOUT_SECONDS,
+            )
+        except subprocess.TimeoutExpired:
+            shutil.rmtree(dest, ignore_errors=True)
+            return None, f"git clone exceeded {GIT_TIMEOUT_SECONDS}s"
+        except OSError as exc:
+            shutil.rmtree(dest, ignore_errors=True)
+            return None, f"could not execute git clone: {exc}"
+        if r.returncode != 0:
+            shutil.rmtree(dest, ignore_errors=True)
+            return None, _tail(r.stderr) or "git clone failed"
+
+    missing = [sha for sha in (spec.fixed_commit, spec.buggy_commit)
+               if not fetch_commit(dest, sha)]
+    if missing:
+        return dest, "commits-missing:" + ",".join(s[:12] for s in missing)
+    return dest, ""
+
+
+def clone(spec: BugSpec, workdir: Path) -> Path | None:
+    """Backwards-compatible shim. Prefer ensure_repo, which verifies revisions."""
+    repo, reason = ensure_repo(spec, workdir)
+    return None if reason.startswith("commits-missing") else repo
 
 
 def requirements_for(spec: BugSpec, bugsinpy: Path, repo: Path) -> Path | None:
@@ -289,6 +404,21 @@ def environment_warnings(results: list[BugResult]) -> list[str]:
             + ". Candidates importing them cannot be collected, and the "
             "resulting misses are environment artefacts."
         )
+    # Defect 70. Revision availability is an environment property, not a
+    # property of the tool, and it is the one that silently emptied the
+    # denominator in earlier runs.
+    unavailable = [r for r in results if r.status == "commits_missing"]
+    if unavailable:
+        projects = sorted({r.project for r in unavailable})
+        warnings.append(
+            f"{len(unavailable)} bug(s) were excluded because their revisions "
+            "could not be obtained from origin after a targeted fetch, an "
+            "--unshallow and a full refspec fetch: "
+            + ", ".join(projects)
+            + ". These bugs were never presented to the tool. If this count "
+            "changes between runs over the same bug list, the workdir is "
+            "carrying state - re-run with --fresh-clone before comparing."
+        )
     uncollectable = sum(
         1
         for r in results
@@ -308,19 +438,24 @@ def environment_warnings(results: list[BugResult]) -> list[str]:
 def summarize(results: list[BugResult]) -> dict:
     """Build a failure-inclusive summary.
 
-    The headline denominator is every ELIGIBLE bug: attempted minus
-    git-failed. A git failure means the bug was never presented to the tool,
-    so counting it as an attempt would be as false as counting it as a miss.
-    Git failures are never silent: they are counted under their own name, and
-    the conservative all-attempted rate is published beside the headline so
-    the harsher number is always reconstructable. One success beside many
-    broken checkouts still cannot become 100%: assert_measured.py fails any
-    run whose completion rate falls below the evidence floor, which is where
-    systemic collection failure is caught.
+    The headline denominator is every ELIGIBLE bug: attempted minus the bugs
+    that were never presented to the tool at all. Two things qualify. A git
+    failure means git could not compare the revisions. A commits_missing
+    result (defect 70) means the revisions were not obtainable in the first
+    place, so there was nothing to compare. Counting either as a miss would be
+    as false as counting it as a catch.
+
+    Both are counted under their own names, and the conservative
+    all-attempted rate is published beside the headline so the harsher number
+    is always reconstructable. One success beside many broken checkouts still
+    cannot become 100%: assert_measured.py fails any run whose completion rate
+    falls below the evidence floor, which is where systemic collection failure
+    is caught.
     """
     attempted = len(results)
     git_failed = [r for r in results if r.status == "git_failed"]
-    eligible = attempted - len(git_failed)
+    unavailable = [r for r in results if r.status == "commits_missing"]
+    eligible = attempted - len(git_failed) - len(unavailable)
     measured = [r for r in results if r.status in ("caught", "missed")]
     caught = [r for r in measured if r.status == "caught"]
     reported = [r for r in results if r.reported > 0]
@@ -337,6 +472,7 @@ def summarize(results: list[BugResult]) -> dict:
         "bugs_measured": len(measured),
         "bugs_not_measured": sum(r.status == "not_measured" for r in results),
         "bugs_git_failed": len(git_failed),
+        "bugs_commits_missing": len(unavailable),
         "bugs_skipped": sum(r.status == "skipped" for r in results),
         "bugs_errored": sum(r.status == "error" for r in results),
         "model_requests_total": sum(r.model_requests for r in results),
@@ -372,15 +508,16 @@ def summarize(results: list[BugResult]) -> dict:
         "environment_warnings": environment_warnings(results),
         "rate_definition": (
             "catch_rate = bugs with >=1 mechanical pass-on-fixed/fail-on-buggy "
-            "test / eligible bugs (attempted minus git-failed, which were "
-            "never presented to the tool)"
+            "test / eligible bugs (attempted minus git-failed and minus bugs "
+            "whose revisions could not be obtained, neither of which were ever "
+            "presented to the tool)"
         ),
         "NOTE": (
-            "catch_rate excludes git-failed runs from its denominator; "
-            "catch_rate_all_attempted keeps them and is the conservative floor. "
-            "Git failures are counted by name above and bounded by the "
-            "completion gate, so they cannot silently raise the rate. "
-            "conditional_catch_rate is diagnostic only. Read "
+            "catch_rate excludes git-failed and commits-missing runs from its "
+            "denominator; catch_rate_all_attempted keeps them and is the "
+            "conservative floor. Both exclusions are counted by name above and "
+            "bounded by the completion gate, so they cannot silently raise the "
+            "rate. conditional_catch_rate is diagnostic only. Read "
             "candidate_dispositions and environment_warnings before reading "
             "any rate: a candidate that could not be collected was never given "
             "the chance to catch anything, and a low rate driven by "
@@ -491,6 +628,12 @@ def main() -> int:
                     help="Run with a stub model: no network, no key, no cost")
     ap.add_argument("--project", action="append", default=None,
                     help="Filter to specific projects (repeatable)")
+    ap.add_argument("--fresh-clone", action="store_true",
+                    help="Delete and re-clone each project before measuring. "
+                         "Use when comparing two runs over the same bug list: "
+                         "a reused workdir carries revision state and is the "
+                         "documented cause of completion rates that differ "
+                         "between runs (defect 70).")
     ap.add_argument("--skip-env-setup", action="store_true",
                     help="Do not install pytest or project requirements. "
                          "Reproduces the pre-defect-69 environment; any "
@@ -520,15 +663,33 @@ def main() -> int:
 
     results: list[BugResult] = []
     for i, spec in enumerate(specs, 1):
-        repo = clone(spec, args.workdir)
+        repo, reason = ensure_repo(spec, args.workdir, fresh=args.fresh_clone)
         if repo is None:
             r = BugResult(spec.project, spec.bug_id,
-                          status="skipped", error="clone failed")
+                          status="skipped", error=reason or "clone failed")
             r.runner = runner
             r.deps_status = "not-attempted"
             results.append(r)
             print(f"[{i}/{len(specs)}] {spec.project}-{spec.bug_id} "
-                  f"SKIPPED: clone failed", file=sys.stderr)
+                  f"SKIPPED: {r.error}", file=sys.stderr)
+            continue
+
+        # Defect 70. Without both revisions there is nothing to diff, so the
+        # tool is never asked anything. Recording that as not_measured put it
+        # in the catch-rate denominator and made the run look like a failure
+        # of the model rather than of the checkout.
+        if reason.startswith("commits-missing"):
+            absent = reason.split(":", 1)[1]
+            r = BugResult(
+                spec.project, spec.bug_id, status="commits_missing",
+                error=(f"revisions not obtainable from origin after fetch, "
+                       f"--unshallow and full refspec fetch: {absent}"),
+            )
+            r.runner = runner
+            r.deps_status = "not-attempted"
+            results.append(r)
+            print(f"[{i}/{len(specs)}] {spec.project}-{spec.bug_id} "
+                  f"COMMITS_MISSING: {absent}", file=sys.stderr)
             continue
 
         if setup_env:
