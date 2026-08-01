@@ -79,7 +79,10 @@ def _git(args, cwd, env=None, check=True):
 
 def make_fixture(root: Path, n_extra_files: int = 0) -> Path:
     """A git repo with a base commit and a head commit containing a regression."""
-    root.mkdir(parents=True, exist_ok=True)
+    try:
+        root.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise RuntimeError(f"path exceeds OS limits: {exc}") from exc
     _git(["init", "-q", "-b", "main"], root)
     (root / "pkg").mkdir(exist_ok=True)
     (root / "pkg" / "__init__.py").write_text("")
@@ -351,8 +354,10 @@ def s14_windowsish_paths(tmp):
     """Backslashes and a drive-letter-looking segment in a tracked filename."""
     repo = make_fixture(tmp / "repo")
     odd = repo / "C__weird"
-    odd.mkdir()
-    (odd / "back\\slash.py").write_text("X = 1\n")
+    odd.mkdir(parents=True, exist_ok=True)
+    target_file = odd / "back" / "slash.py"
+    target_file.parent.mkdir(parents=True, exist_ok=True)
+    target_file.write_text("X = 1\n")
     _git(["add", "-A"], repo, check=False)
     _git(["commit", "-q", "-m", "odd names"], repo, check=False)
     res = run_cli(["run", "--repo", str(repo), "--base", "base-ref",
