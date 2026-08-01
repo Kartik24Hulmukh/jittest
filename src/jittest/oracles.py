@@ -408,17 +408,18 @@ def _scan_function(name: str, fn: ast.AST) -> TestOracle:
                       signals=signals, assertions=assertions)
 
 
+_FUNCTION_NODES = (ast.FunctionDef, ast.AsyncFunctionDef)
+
+
 def _test_functions(tree: ast.Module) -> list[tuple[str, ast.AST]]:
     out: list[tuple[str, ast.AST]] = []
     for node in tree.body:
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            if node.name.startswith("test"):
-                out.append((node.name, node))
+        if isinstance(node, _FUNCTION_NODES) and node.name.startswith("test"):
+            out.append((node.name, node))
         elif isinstance(node, ast.ClassDef):
             for sub in node.body:
-                if isinstance(sub, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                    if sub.name.startswith("test"):
-                        out.append((f"{node.name}.{sub.name}", sub))
+                if isinstance(sub, _FUNCTION_NODES) and sub.name.startswith("test"):
+                    out.append((f"{node.name}.{sub.name}", sub))
     return out
 
 
