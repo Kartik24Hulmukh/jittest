@@ -10,9 +10,12 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import random
 import time
 import urllib.error
 import urllib.request
+from datetime import UTC, datetime
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 
 from ._litellm import LiteLLMBackend
@@ -37,6 +40,70 @@ _BASES = {
     "ollama": "http://localhost:11434/v1",
 }
 _RETRYABLE = {408, 409, 429, 500, 502, 503, 529}
+_RATE_LIMITED = {429, 503}
+
+# Free-tier endpoints rate limit on a rolling window that is usually a minute
+# wide. The previous policy was five attempts backing off 1+2+4+8+16 seconds,
+# which exhausts itself in about half that window and then reports failure. A
+# run that dies there records `not_measured` with no cause, which is
+# indistinguishable from the tool having had nothing to say. Waiting is free;
+# an unmeasured run is not.
+_DEFAULT_MAX_ATTEMPTS = 8
+_DEFAULT_MAX_SLEEP = 90.0
+_RATE_LIMIT_FLOOR = 5.0
+
+
+def _env_float(name: str, default: float) -> float:
+    raw = os.getenv(name)
+    if not raw:
+        return default
+    try:
+        value = float(raw)
+    except ValueError:
+        return default
+    return value if value >= 0 else default
+
+
+def _env_int(name: str, default: int) -> int:
+    raw = os.getenv(name)
+    if not raw:
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        return default
+    return value if value > 0 else default
+
+
+def retry_after_seconds(exc: urllib.error.HTTPError) -> float | None:
+    """Seconds the server asked us to wait, or None if it did not say.
+
+    RFC 9110 permits either a delay in seconds or an HTTP-date. Reading this is
+    the difference between backing off for the window the provider actually
+    enforces and guessing at a power of two. Malformed values return None
+    rather than raising: a broken header is a reason to fall back, not to lose
+    the run.
+    """
+    headers = getattr(exc, "headers", None)
+    if headers is None:
+        return None
+    raw = headers.get("Retry-After") or headers.get("retry-after")
+    if not raw:
+        return None
+    raw = str(raw).strip()
+    try:
+        return max(0.0, float(raw))
+    except ValueError:
+        pass
+    try:
+        when = parsedate_to_datetime(raw)
+    except (TypeError, ValueError, TypeError):
+        return None
+    if when is None:
+        return None
+    if when.tzinfo is None:
+        when = when.replace(tzinfo=UTC)
+    return max(0.0, (when - datetime.now(UTC)).total_seconds())
 
 
 class DryRunLLM(BaseLLM):
@@ -69,7 +136,8 @@ class HTTPLLM(BaseLLM):
     def __init__(self, model: str, api_key: str | None = None,
                  budget_usd: float = 1.0, temperature: float = 0.8,
                  cache_path: Path | str | None = None,
-                 request_ceiling: int | None = None):
+                 request_ceiling: int | None = None,
+                 min_request_interval: float | None = None):
         super().__init__(model, budget_usd, temperature)
         provider, _, name = model.partition("/")
         if not name:
@@ -85,6 +153,14 @@ class HTTPLLM(BaseLLM):
         self.api_model = model if explicit_base else self.model_name
         self.cache = _Cache(cache_path)
         self.request_ceiling = request_ceiling
+        self.max_attempts = _env_int("JITTEST_MAX_RETRIES", _DEFAULT_MAX_ATTEMPTS)
+        self.max_sleep = _env_float("JITTEST_RETRY_MAX_SLEEP", _DEFAULT_MAX_SLEEP)
+        if min_request_interval is None:
+            min_request_interval = _env_float("JITTEST_MIN_REQUEST_INTERVAL", 0.0)
+        self.min_request_interval = min_request_interval
+        self._last_request_at: float | None = None
+        self.rate_limit_waits = 0
+        self.rate_limit_seconds = 0.0
         self._unpriced = self._price() is None
         if self._unpriced:
             import sys
@@ -135,22 +211,70 @@ class HTTPLLM(BaseLLM):
         self._account(estimate_tokens(prompt), estimate_tokens(text),
                       estimated=True)
 
+    def _sleep(self, seconds: float) -> None:
+        """Indirection so tests can assert on waiting without doing any."""
+        if seconds > 0:
+            time.sleep(seconds)
+
+    def _pace(self) -> None:
+        """Hold a minimum gap between requests.
+
+        Retrying after a 429 is recovery. Not provoking one is prevention, and
+        on a requests-per-minute quota prevention is the cheaper of the two.
+        """
+        if self.min_request_interval <= 0 or self._last_request_at is None:
+            return
+        gap = self.min_request_interval - (time.monotonic() - self._last_request_at)
+        if gap > 0:
+            self._sleep(gap)
+
+    def _backoff(self, attempt: int, requested: float | None,
+                 rate_limited: bool) -> float:
+        if requested is not None:
+            return min(requested, self.max_sleep)
+        base = 2.0 ** attempt
+        if rate_limited:
+            base = max(base, _RATE_LIMIT_FLOOR)
+        # Full jitter. Identical clients retrying on identical boundaries is
+        # how one 429 becomes a stampede of them.
+        return random.uniform(0.0, min(base, self.max_sleep))
+
     def _post(self, url: str, payload: dict, headers: dict) -> dict:
         data = json.dumps(payload).encode("utf-8")
         last: Exception | None = None
-        for attempt in range(5):
+        last_code: int | None = None
+        for attempt in range(self.max_attempts):
+            requested: float | None = None
+            self._pace()
             req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+            self._last_request_at = time.monotonic()
             try:
                 with urllib.request.urlopen(req, timeout=180) as resp:
                     return json.loads(resp.read().decode("utf-8"))
             except urllib.error.HTTPError as exc:
-                last = exc
+                last, last_code = exc, exc.code
                 if exc.code not in _RETRYABLE:
                     detail = exc.read().decode("utf-8", "ignore")[:400]
                     raise LLMError(f"HTTP {exc.code} from {self.provider}: {detail}") from exc
+                if exc.code in _RATE_LIMITED:
+                    requested = retry_after_seconds(exc)
             except urllib.error.URLError as exc:
-                last = exc
-            time.sleep(min(30.0, 2.0 ** attempt))
+                last, last_code = exc, None
+            if attempt == self.max_attempts - 1:
+                break
+            rate_limited = last_code in _RATE_LIMITED
+            delay = self._backoff(attempt, requested, rate_limited)
+            if rate_limited:
+                self.rate_limit_waits += 1
+                self.rate_limit_seconds += delay
+            self._sleep(delay)
+        if last_code in _RATE_LIMITED:
+            raise LLMError(
+                f"rate limited by {self.provider} after {self.max_attempts} attempts "
+                f"({self.rate_limit_waits} waits, "
+                f"{self.rate_limit_seconds:.1f}s slept). Pace requests with "
+                f"JITTEST_MIN_REQUEST_INTERVAL, or wait longer with "
+                f"JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.")
         raise LLMError(f"model request failed after retries: {last}")
 
     def complete(self, system: str, user: str, n: int = 1,
@@ -216,11 +340,13 @@ class HTTPLLM(BaseLLM):
 def build_llm(model: str, dry_run: bool = False, budget_usd: float = 1.0,
               temperature: float = 0.8, cache_path: Path | str | None = None,
               api_key: str | None = None,
-              request_ceiling: int | None = None) -> BaseLLM:
+              request_ceiling: int | None = None,
+              min_request_interval: float | None = None) -> BaseLLM:
     if dry_run:
         return DryRunLLM(model=f"{model} (dry run)")
     if os.getenv("JITTEST_USE_LITELLM") == "1":
         return LiteLLMBackend(model, budget_usd, temperature)
     return HTTPLLM(model, api_key=api_key, budget_usd=budget_usd,
                    temperature=temperature, cache_path=cache_path,
-                   request_ceiling=request_ceiling)
+                   request_ceiling=request_ceiling,
+                   min_request_interval=min_request_interval)
