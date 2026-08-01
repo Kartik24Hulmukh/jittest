@@ -204,7 +204,7 @@ def _signal_for_call(call: ast.Call) -> str | None:
 def _signal_for_compare(node: ast.Compare) -> str:
     if _mentions_snapshot(node):
         return "W5"
-    for op, comparator in zip(node.ops, node.comparators):
+    for op, comparator in zip(node.ops, node.comparators, strict=False):
         constant = comparator if isinstance(comparator, ast.Constant) else None
         if isinstance(op, (ast.Is, ast.IsNot)):
             if constant is not None and isinstance(constant.value, bool):
@@ -531,6 +531,7 @@ def to_terminal(report: OracleReport) -> str:
         lines.append("  no test files were scanned.")
         if report.mode == "changed":
             lines.append("  this diff did not add or modify a test file.")
+        lines.append(f"  {_rate_text(report)}")
         return "\n".join(lines)
 
     for f in report.files:
@@ -562,6 +563,8 @@ def to_markdown(report: OracleReport) -> str:
     head = ["### jittest oracle scan", ""]
     if not report.files:
         head.append("No test files were added or modified in this change.")
+        head.append("")
+        head.append(_rate_text(report) + ".")
         return "\n".join(head)
 
     head.append(_rate_text(report) + ".")
