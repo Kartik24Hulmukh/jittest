@@ -26,6 +26,13 @@ wrong on roughly one PR in eleven. Every rate emitted by this module therefore
 carries an upper bound, and the two must be quoted together. Publishing the
 point estimate alone is the precision-side equivalent of writing RESULTS.md
 before a sweep exists.
+
+On collapse: withholding a rate is necessary and not sufficient. A run that
+measures 3 of 32 PRs has told you nothing unless it also tells you what
+happened to the other 29. The same instrument scored 32/40 on youtube-dl and
+3/32 on requests; one of those is a fact about jittest and the other is a fact
+about a repository, and an artifact that cannot separate them is a dead end.
+Every non-result now names its dominant cause.
 """
 from __future__ import annotations
 
@@ -34,6 +41,7 @@ import json
 import math
 import re
 import subprocess
+from collections import Counter
 from pathlib import Path
 
 MIN_COMPLETION_RATE = 0.80
@@ -41,6 +49,11 @@ SUSPECT = re.compile(r"\b(revert|hotfix|regression|rollback)\b", re.I)
 
 # Two-sided 95% normal quantile, used for the Wilson interval.
 Z_95 = 1.959964
+
+# A row that raised nothing but also called nothing. Distinct from an
+# exception: the pipeline decided there was no work, which is a different
+# diagnosis from the pipeline breaking.
+NO_REQUESTS = "no_model_requests"
 
 
 def upper_bound_95(observed: int, sample: int) -> float | None:
@@ -68,40 +81,21 @@ def upper_bound_95(observed: int, sample: int) -> float | None:
     return round(min(1.0, (centre + margin) / denominator), 3)
 
 
-def git(repo: Path, *args: str) -> str:
-    return subprocess.run(
-        ["git", "-C", str(repo), *args],
-        capture_output=True,
-        text=True,
-        errors="replace",
-    ).stdout
+def failure_reasons(rows: list[dict]) -> dict[str, int]:
+    """Bucket every unmeasured row by cause, highest count first.
 
-
-def clean_merges(repo: Path, count: int) -> list[tuple[str, str]]:
-    """Return (base_sha, head_sha) pairs for apparently uneventful merges."""
-    log = git(
-        repo,
-        "log",
-        "--merges",
-        "--since=2.years",
-        "--until=90.days",
-        "--pretty=%H%x00%P%x00%s",
-    ).strip().splitlines()
-    pairs: list[tuple[str, str]] = []
-    for line in log:
-        parts = line.split("\x00")
-        if len(parts) != 3:
-            continue
-        _sha, parents, subject = parts
-        if SUSPECT.search(subject):
-            continue
-        parent_shas = parents.split()
-        if len(parent_shas) != 2:
-            continue
-        pairs.append((parent_shas[0], parent_shas[1]))
-        if len(pairs) >= count:
-            break
-    return pairs
+    Exceptions are keyed by their type name only. The message usually carries
+    a path, a SHA or a URL, so keying on the full string would produce one
+    bucket per row and defeat the purpose.
+    """
+    counter: Counter[str] = Counter()
+    for row in rows:
+        error = row.get("error")
+        if error:
+            counter[str(error).split(":", 1)[0].strip() or "Exception"] += 1
+        elif row.get("model_requests", 0) <= 0:
+            counter[NO_REQUESTS] += 1
+    return dict(counter.most_common())
 
 
 def summarize_rows(rows: list[dict], attempted: int) -> dict:
@@ -115,6 +109,11 @@ def summarize_rows(rows: list[dict], attempted: int) -> dict:
     work, no findings, and a printed ``0.000``. Zero findings is not a zero
     rate. Every rate is now accompanied by ``*_upper_bound_95`` and the two
     must be quoted together.
+
+    A third version survived both: a run that withholds the rate, exits 1, and
+    never says why coverage failed. That is a broken instrument reporting
+    correctly rather than a diagnosis, so ``failure_reasons`` and
+    ``dominant_failure`` are now part of every summary.
     """
     usable = [
         row for row in rows
@@ -125,6 +124,8 @@ def summarize_rows(rows: list[dict], attempted: int) -> dict:
     gate_ready = attempted > 0 and completion >= MIN_COMPLETION_RATE
     publishable = bool(gate_ready and usable)
     bound = upper_bound_95(len(noisy), len(usable)) if publishable else None
+    reasons = failure_reasons(rows)
+    dominant = next(iter(reasons), None)
     return {
         "prs_attempted": attempted,
         "prs_analysed": len(usable),
@@ -145,6 +146,8 @@ def summarize_rows(rows: list[dict], attempted: int) -> dict:
             round(100 * bound, 1) if bound is not None else None
         ),
         "gate_ready": gate_ready,
+        "failure_reasons": reasons,
+        "dominant_failure": dominant,
         "NOTE": (
             "Rate is withheld unless at least 80% of selected PRs produced "
             "measured results. Every surfaced claim still requires blind human "
@@ -155,6 +158,12 @@ def summarize_rows(rows: list[dict], attempted: int) -> dict:
             "findings over n PRs is not a 0% false-positive rate; it is an "
             "unknown rate bounded above by roughly 3/n. Reporting the point "
             "estimate alone overstates what the sample can support."
+        ),
+        "CAUSE_NOTE": (
+            "A withheld rate is not a finding. Compare dominant_failure across "
+            "repositories before concluding anything about jittest: a harness "
+            "that scores 32/40 on one codebase and 3/32 on another is "
+            "reporting a property of the codebases until proven otherwise."
         ),
     }
 
@@ -167,12 +176,21 @@ def describe(summary: dict) -> str:
     thing are the same thing.
     """
     if not summary.get("gate_ready"):
-        return (
+        sentence = (
             "No false-positive rate: coverage below the "
             f"{int(MIN_COMPLETION_RATE * 100)}% completion floor "
             f"({summary.get('prs_analysed')}/{summary.get('prs_attempted')} "
             "PRs measured)."
         )
+        dominant = summary.get("dominant_failure")
+        if dominant:
+            count = summary.get("failure_reasons", {}).get(dominant, 0)
+            sentence += (
+                f" Dominant cause: {dominant} "
+                f"({count} of {summary.get('prs_errored_or_unmeasured')} "
+                "unmeasured)."
+            )
+        return sentence
     analysed = summary["prs_analysed"]
     noisy = summary["prs_with_a_report"]
     bound = summary["false_positive_rate_upper_bound_95"]
@@ -247,6 +265,7 @@ def main() -> int:
                 "cost_usd": report.cost_usd,
                 "priced": report.priced,
                 "model_requests": getattr(report, "model_requests", 0),
+                "diff_status": getattr(report, "diff_status", None),
                 "model": cfg.model,
                 "claims": [
                     finding.assessment.summary for finding in reported
@@ -276,6 +295,42 @@ def main() -> int:
         )
         return 1
     return 0
+
+
+def git(repo: Path, *args: str) -> str:
+    return subprocess.run(
+        ["git", "-C", str(repo), *args],
+        capture_output=True,
+        text=True,
+        errors="replace",
+    ).stdout
+
+
+def clean_merges(repo: Path, count: int) -> list[tuple[str, str]]:
+    """Return (base_sha, head_sha) pairs for apparently uneventful merges."""
+    log = git(
+        repo,
+        "log",
+        "--merges",
+        "--since=2.years",
+        "--until=90.days",
+        "--pretty=%H%x00%P%x00%s",
+    ).strip().splitlines()
+    pairs: list[tuple[str, str]] = []
+    for line in log:
+        parts = line.split("\x00")
+        if len(parts) != 3:
+            continue
+        _sha, parents, subject = parts
+        if SUSPECT.search(subject):
+            continue
+        parent_shas = parents.split()
+        if len(parent_shas) != 2:
+            continue
+        pairs.append((parent_shas[0], parent_shas[1]))
+        if len(pairs) >= count:
+            break
+    return pairs
 
 
 if __name__ == "__main__":
