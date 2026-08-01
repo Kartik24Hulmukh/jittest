@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 
 from .diff import ChangeTarget
@@ -196,5 +197,8 @@ def _telemetry(report, target, rs, attempt, disposition,
         failure_excerpt=excerpt,
     )
     report.telemetry.append(tel)
-    # Emit structured line to stderr (visible in workflow logs)
-    print(f"  telemetry: {tel.as_jsonl()}", flush=True)
+    # Emit structured line to stderr (visible in workflow logs). This MUST NOT
+    # go to stdout: `jittest run --json` promises a single parsable JSON object
+    # on stdout, and interleaving telemetry there breaks every caller that
+    # pipes the report into a parser. Premortem 3, scenario S18.
+    print(f"  telemetry: {tel.as_jsonl()}", file=sys.stderr, flush=True)
