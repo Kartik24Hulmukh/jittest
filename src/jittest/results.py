@@ -49,6 +49,16 @@ class CandidateTelemetry:
     assessor_verdict: str = ""
     assessor_confidence: float = 0.0
     failure_excerpt: str = ""
+    # Why the static safety gate rejected this candidate. Populated only for
+    # disposition == "safety_rejected". This string is written by
+    # safety.check_candidate, which is our code describing a rule that fired;
+    # it is not model output, so it is recorded verbatim.
+    check_reason: str = ""
+    # Structural digest of a response that would not parse. Populated only for
+    # disposition == "parse_failed". NOT the raw text: see
+    # _pipeline_helpers.parse_failure_digest for why, and for exactly which
+    # fields are and are not included.
+    parse_error: str = ""
 
     def as_dict(self) -> dict:
         return {
@@ -63,6 +73,8 @@ class CandidateTelemetry:
             "assessor_verdict": self.assessor_verdict,
             "assessor_confidence": self.assessor_confidence,
             "failure_excerpt": self.failure_excerpt,
+            "check_reason": self.check_reason,
+            "parse_error": self.parse_error,
         }
 
     def as_jsonl(self) -> str:

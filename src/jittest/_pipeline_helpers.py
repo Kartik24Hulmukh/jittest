@@ -1,6 +1,7 @@
 """Small pure helpers for the pipeline: paths, excerpts, telemetry emission."""
 from __future__ import annotations
 
+import hashlib
 import re
 import sys
 from pathlib import Path
@@ -10,7 +11,7 @@ from .results import CandidateTelemetry
 
 __all__ = ["import_path_for", "existing_tests_for", "_added_excerpt", "_repro",
            "_bump", "_disposition_from_verdict", "_excerpt",
-           "_strip_source_echo", "_telemetry"]
+           "_strip_source_echo", "_telemetry", "parse_failure_digest"]
 
 
 def import_path_for(file_path: str) -> str:
@@ -159,8 +160,45 @@ def _excerpt(text: str, head: int = 3, tail: int = 8) -> str:
     return chr(10).join(lines[:head] + [marker] + lines[-tail:])
 
 
+_FENCE_RE = re.compile(r"^\s*```", re.MULTILINE)
+
+
+def parse_failure_digest(text: str, exc: SyntaxError) -> str:
+    """Describe an unparsable model response WITHOUT quoting it. Track C3.
+
+    The only completed eval run produced three parse_failed candidates and
+    recorded nothing but the label, so all three are permanently
+    undiagnosable. The obvious repair - store the raw response - is the wrong
+    one: an unparsable response is still model-authored code about the user's
+    private source, telemetry is attached to public workflow runs, and
+    CandidateTelemetry states that it never contains candidate source code.
+
+    What an operator actually needs to know is the SHAPE of the failure:
+
+      is the model returning prose instead of code   -> len, fenced, msg
+      is the response being truncated mid-function   -> msg + line near the end
+      is it always the same failure                  -> sha256 prefix repeats
+      is our fence stripping eating real code        -> fenced=yes but msg at 1:1
+
+    None of those questions need a single line of the candidate to answer.
+
+    Deliberately NOT included: SyntaxError.text, which holds the offending
+    source line verbatim. exc.msg is a CPython diagnostic ("invalid syntax",
+    "unexpected EOF while parsing", "unmatched ')'") and is capped anyway.
+    """
+    msg = str(getattr(exc, "msg", "") or "syntax error")[:200]
+    line = getattr(exc, "lineno", None)
+    col = getattr(exc, "offset", None)
+    digest = hashlib.sha256(text.encode("utf-8", "replace")).hexdigest()[:12]
+    fenced = "yes" if _FENCE_RE.search(text) else "no"
+    return (f"{msg} at line {line}, col {col}; "
+            f"len={len(text)} lines={len(text.splitlines())} "
+            f"fenced={fenced} sha256={digest}")
+
+
 def _telemetry(report, target, rs, attempt, disposition,
-               verdict=None, assessment=None) -> None:
+               verdict=None, assessment=None,
+               check_reason="", parse_error="") -> None:
     """Emit one structured telemetry line and append to report.telemetry."""
     head_out = ""
     base_out = ""
@@ -195,6 +233,8 @@ def _telemetry(report, target, rs, attempt, disposition,
         assessor_verdict=assess_v,
         assessor_confidence=assess_c,
         failure_excerpt=excerpt,
+        check_reason=str(check_reason or "")[:300],
+        parse_error=str(parse_error or "")[:300],
     )
     report.telemetry.append(tel)
     # Emit structured line to stderr (visible in workflow logs). This MUST NOT
