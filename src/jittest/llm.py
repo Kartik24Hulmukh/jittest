@@ -52,6 +52,13 @@ _DEFAULT_MAX_ATTEMPTS = 8
 _DEFAULT_MAX_SLEEP = 90.0
 _RATE_LIMIT_FLOOR = 5.0
 
+# Reasoning models bill and spend time on a trace before the first content
+# token appears. 180s was chosen when every supported model answered directly;
+# on a large diff a model that always reasons can exceed it, and a read timeout
+# used to end the request outright. Waiting longer is cheaper than an
+# unmeasured bug.
+_DEFAULT_HTTP_TIMEOUT = 300.0
+
 
 def _env_float(name: str, default: float) -> float:
     raw = os.getenv(name)
@@ -137,7 +144,8 @@ class HTTPLLM(BaseLLM):
                  budget_usd: float = 1.0, temperature: float = 0.8,
                  cache_path: Path | str | None = None,
                  request_ceiling: int | None = None,
-                 min_request_interval: float | None = None):
+                 min_request_interval: float | None = None,
+                 http_timeout: float | None = None):
         super().__init__(model, budget_usd, temperature)
         provider, _, name = model.partition("/")
         if not name:
@@ -158,9 +166,13 @@ class HTTPLLM(BaseLLM):
         if min_request_interval is None:
             min_request_interval = _env_float("JITTEST_MIN_REQUEST_INTERVAL", 0.0)
         self.min_request_interval = min_request_interval
+        if http_timeout is None:
+            http_timeout = _env_float("JITTEST_HTTP_TIMEOUT", _DEFAULT_HTTP_TIMEOUT)
+        self.http_timeout = http_timeout or _DEFAULT_HTTP_TIMEOUT
         self._last_request_at: float | None = None
         self.rate_limit_waits = 0
         self.rate_limit_seconds = 0.0
+        self.timeout_retries = 0
         self._unpriced = self._price() is None
         if self._unpriced:
             import sys
@@ -249,7 +261,7 @@ class HTTPLLM(BaseLLM):
             req = urllib.request.Request(url, data=data, headers=headers, method="POST")
             self._last_request_at = time.monotonic()
             try:
-                with urllib.request.urlopen(req, timeout=180) as resp:
+                with urllib.request.urlopen(req, timeout=self.http_timeout) as resp:
                     return json.loads(resp.read().decode("utf-8"))
             except urllib.error.HTTPError as exc:
                 last, last_code = exc, exc.code
@@ -258,6 +270,12 @@ class HTTPLLM(BaseLLM):
                     raise LLMError(f"HTTP {exc.code} from {self.provider}: {detail}") from exc
                 if exc.code in _RATE_LIMITED:
                     requested = retry_after_seconds(exc)
+            except TimeoutError as exc:
+                # urlopen raises this bare for a read timeout. It is a sibling
+                # of URLError, not a subclass, so it used to escape the loop
+                # entirely and end the run on the first slow response.
+                last, last_code = exc, None
+                self.timeout_retries += 1
             except urllib.error.URLError as exc:
                 last, last_code = exc, None
             if attempt == self.max_attempts - 1:
@@ -275,6 +293,12 @@ class HTTPLLM(BaseLLM):
                 f"{self.rate_limit_seconds:.1f}s slept). Pace requests with "
                 f"JITTEST_MIN_REQUEST_INTERVAL, or wait longer with "
                 f"JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.")
+        if isinstance(last, TimeoutError):
+            raise LLMError(
+                f"{self.provider} did not answer within {self.http_timeout:.0f}s on "
+                f"any of {self.max_attempts} attempts ({self.timeout_retries} read "
+                f"timeouts). Models that always emit a reasoning trace are slow on "
+                f"large diffs; raise JITTEST_HTTP_TIMEOUT.")
         raise LLMError(f"model request failed after retries: {last}")
 
     def complete(self, system: str, user: str, n: int = 1,
@@ -341,7 +365,8 @@ def build_llm(model: str, dry_run: bool = False, budget_usd: float = 1.0,
               temperature: float = 0.8, cache_path: Path | str | None = None,
               api_key: str | None = None,
               request_ceiling: int | None = None,
-              min_request_interval: float | None = None) -> BaseLLM:
+              min_request_interval: float | None = None,
+              http_timeout: float | None = None) -> BaseLLM:
     if dry_run:
         return DryRunLLM(model=f"{model} (dry run)")
     if os.getenv("JITTEST_USE_LITELLM") == "1":
@@ -349,4 +374,5 @@ def build_llm(model: str, dry_run: bool = False, budget_usd: float = 1.0,
     return HTTPLLM(model, api_key=api_key, budget_usd=budget_usd,
                    temperature=temperature, cache_path=cache_path,
                    request_ceiling=request_ceiling,
-                   min_request_interval=min_request_interval)
+                   min_request_interval=min_request_interval,
+                   http_timeout=http_timeout)
