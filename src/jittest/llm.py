@@ -97,7 +97,7 @@ def retry_after_seconds(exc: urllib.error.HTTPError) -> float | None:
         pass
     try:
         when = parsedate_to_datetime(raw)
-    except (TypeError, ValueError, TypeError):
+    except (TypeError, ValueError):
         return None
     if when is None:
         return None

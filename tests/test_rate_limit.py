@@ -54,7 +54,7 @@ class _Response:
 def _client(**kwargs) -> HTTPLLM:
     with mock.patch.dict(os.environ, {"JITTEST_API_KEY": "test-key"}, clear=False):
         client = HTTPLLM("z-ai/glm-5.2", budget_usd=1.0, **kwargs)
-    client.slept: list[float] = []
+    client.slept = []
     client._sleep = client.slept.append
     return client
 
@@ -153,9 +153,11 @@ class RetryBehaviour(unittest.TestCase):
         def always_limited(req, timeout=None):
             raise _http_error(429, "1")
 
-        with mock.patch("jittest.llm.urllib.request.urlopen", always_limited):
-            with self.assertRaises(LLMError) as ctx:
-                client._post("https://example.invalid", {}, {})
+        with (
+            mock.patch("jittest.llm.urllib.request.urlopen", always_limited),
+            self.assertRaises(LLMError) as ctx,
+        ):
+            client._post("https://example.invalid", {}, {})
         message = str(ctx.exception)
         self.assertIn("rate limited", message)
         self.assertIn("JITTEST_MIN_REQUEST_INTERVAL", message)
@@ -170,9 +172,11 @@ class RetryBehaviour(unittest.TestCase):
             calls.append(1)
             raise _http_error(429, "1")
 
-        with mock.patch("jittest.llm.urllib.request.urlopen", always_limited):
-            with self.assertRaises(LLMError):
-                client._post("https://example.invalid", {}, {})
+        with (
+            mock.patch("jittest.llm.urllib.request.urlopen", always_limited),
+            self.assertRaises(LLMError),
+        ):
+            client._post("https://example.invalid", {}, {})
         self.assertEqual(len(calls), 3)
         self.assertEqual(len(client.slept), 2)
 
@@ -184,9 +188,11 @@ class RetryBehaviour(unittest.TestCase):
             calls.append(1)
             raise _http_error(400)
 
-        with mock.patch("jittest.llm.urllib.request.urlopen", bad_request):
-            with self.assertRaises(LLMError) as ctx:
-                client._post("https://example.invalid", {}, {})
+        with (
+            mock.patch("jittest.llm.urllib.request.urlopen", bad_request),
+            self.assertRaises(LLMError) as ctx,
+        ):
+            client._post("https://example.invalid", {}, {})
         self.assertIn("HTTP 400", str(ctx.exception))
         self.assertEqual(len(calls), 1)
         self.assertEqual(client.slept, [])
@@ -198,9 +204,11 @@ class RetryBehaviour(unittest.TestCase):
         def server_error(req, timeout=None):
             raise _http_error(500)
 
-        with mock.patch("jittest.llm.urllib.request.urlopen", server_error):
-            with self.assertRaises(LLMError) as ctx:
-                client._post("https://example.invalid", {}, {})
+        with (
+            mock.patch("jittest.llm.urllib.request.urlopen", server_error),
+            self.assertRaises(LLMError) as ctx,
+        ):
+            client._post("https://example.invalid", {}, {})
         self.assertNotIn("rate limited", str(ctx.exception))
         self.assertEqual(client.rate_limit_waits, 0)
 
