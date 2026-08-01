@@ -16,6 +16,7 @@ from ._pipeline_helpers import (
     _telemetry,
     existing_tests_for,
     import_path_for,
+    parse_failure_digest,
 )
 from .assess import Assessment, parse_assessment
 from .config import Config
@@ -168,16 +169,28 @@ def run(
                     import ast as _ast
                     try:
                         _ast.parse(code)
-                    except SyntaxError:
+                    except SyntaxError as exc:
+                        # Track C3. Record the SHAPE of the failure, never the
+                        # text: an unparsable response is still model-authored
+                        # code about the user's source, and telemetry is
+                        # attached to public workflow runs.
+                        digest = parse_failure_digest(code, exc)
                         _bump(report.discarded, "parse_failed")
-                        _telemetry(report, t, rs, attempt, "parse_failed")
+                        _telemetry(report, t, rs, attempt, "parse_failed",
+                                   parse_error=digest)
                         continue
 
                     report.candidates_generated += 1
                     check = check_candidate(code)
                     if not check.ok:
+                        # Track C3. check.reason was already in the discarded
+                        # histogram key; it was missing from the telemetry the
+                        # eval harness actually parses, which is why seven
+                        # rejections from the only completed run cannot be
+                        # explained after the fact.
                         _bump(report.discarded, f"unsafe_or_invalid: {check.reason}")
-                        _telemetry(report, t, rs, attempt, "safety_rejected")
+                        _telemetry(report, t, rs, attempt, "safety_rejected",
+                                   check_reason=check.reason)
                         continue
 
                     verdict = differential_check(
