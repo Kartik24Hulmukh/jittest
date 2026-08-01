@@ -7,7 +7,7 @@ from .diff import ChangeTarget
 from .results import CandidateTelemetry
 
 __all__ = ["import_path_for", "existing_tests_for", "_added_excerpt", "_repro",
-           "_bump", "_disposition_from_verdict", "_telemetry"]
+           "_bump", "_disposition_from_verdict", "_excerpt", "_telemetry"]
 
 
 def import_path_for(file_path: str) -> str:
@@ -75,6 +75,33 @@ def _disposition_from_verdict(verdict) -> str:
     return str(disposition)
 
 
+def _excerpt(text: str, head: int = 3, tail: int = 8) -> str:
+    """Keep the beginning AND the end of a failure excerpt. Defect 68.
+
+    This used to keep only the first five lines. A Python traceback states
+    its call site first and its exception type and message LAST, so a
+    five-line head captured "Traceback (most recent call last):", one frame,
+    and the caret line - and discarded the single line that says what went
+    wrong.
+
+    Run 30655481944 recorded twenty head_uncollectable candidates whose
+    excerpts were byte-identical and stopped at "module = _load(path)". The
+    cause of an entire funded evaluation was unrecoverable, not because the
+    runner failed to print it, but because this function threw it away. A
+    diagnostic field that cannot diagnose is worse than an absent one: it
+    looks like evidence.
+
+    The head is kept because the first line names the failing file. The tail
+    is kept because that is where Python puts the answer.
+    """
+    lines = text.splitlines()
+    if len(lines) <= head + tail:
+        return chr(10).join(lines)
+    omitted = len(lines) - head - tail
+    marker = f"... ({omitted} lines omitted) ..."
+    return chr(10).join(lines[:head] + [marker] + lines[-tail:])
+
+
 def _telemetry(report, target, rs, attempt, disposition,
                verdict=None, assessment=None) -> None:
     """Emit one structured telemetry line and append to report.telemetry."""
@@ -89,7 +116,8 @@ def _telemetry(report, target, rs, attempt, disposition,
         # Defect 39. Derived from the recorded per-execution outcomes rather
         # than from whether the reason string happens to contain a word.
         rerun_agree = verdict.rerun_agreement
-        excerpt = chr(10).join(verdict.failure_excerpt.splitlines()[:5])
+        # Defect 68. Head and tail, so the exception line survives.
+        excerpt = _excerpt(verdict.failure_excerpt)
 
     assess_v = ""
     assess_c = 0.0

@@ -24,6 +24,13 @@ Usage:
 HONESTY RULE: never publish catch rate without false-positive rate and cost.
 Also report GitBug-Java or another recent-bug set alongside, because BugsInPy
 is in public training corpora and memorisation inflates results.
+
+ENVIRONMENT RULE (defect 69): a candidate that cannot be imported was never
+given the chance to catch anything. Before measuring, this harness makes real
+pytest importable and installs the dependencies of the project under test. A
+run in which those steps failed is reported as such per bug, because the
+alternative - a clean-looking catch_rate of 0.0 - is a false statement about
+the tool.
 """
 from __future__ import annotations
 
@@ -35,6 +42,8 @@ import sys
 import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
+
+PIP_TIMEOUT_SECONDS = 900
 
 
 @dataclass
@@ -61,8 +70,54 @@ class BugResult:
     model_requests: int = 0
     seconds: float = 0.0
     error: str = ""
+    # Defect 69. Whether the runner could actually import pytest and the
+    # dependencies of the project under test. Without this, a run in which
+    # nothing could be collected is indistinguishable from a run in which the
+    # model simply failed.
+    runner: str = "unknown"
+    deps_status: str = "unknown"
+    deps_error: str = ""
     telemetry: list[dict] = field(default_factory=list)
     reasons: list[str] = field(default_factory=list)
+
+
+_pytest_state: dict[str, str] = {}
+_deps_cache: dict[str, tuple[str, str]] = {}
+
+
+def ensure_pytest() -> str:
+    """Make real pytest importable, once per process. Defect 69.
+
+    jittest declares no runtime dependencies on purpose, and the eval workflow
+    installs jittest alone. detect_runner() therefore probed `import pytest`,
+    failed, and fell back to the vendored minirunner shim for every candidate
+    in run 30655481944. The shim exists so that jittest works in a repository
+    that does not have pytest; it is not the environment a benchmark should
+    measure the tool in, because a shim-surface gap is then indistinguishable
+    from a generation failure.
+
+    Returns one of: already-present, installed, install-failed.
+    """
+    if "result" in _pytest_state:
+        return _pytest_state["result"]
+    probe = subprocess.run(
+        [sys.executable, "-c", "import pytest"],
+        capture_output=True, text=True, errors="replace",
+    )
+    if probe.returncode == 0:
+        _pytest_state["result"] = "already-present"
+        return _pytest_state["result"]
+    try:
+        r = subprocess.run(
+            [sys.executable, "-m", "pip", "install", "--quiet", "pytest"],
+            capture_output=True, text=True, errors="replace",
+            timeout=PIP_TIMEOUT_SECONDS,
+        )
+        ok = r.returncode == 0
+    except subprocess.TimeoutExpired:
+        ok = False
+    _pytest_state["result"] = "installed" if ok else "install-failed"
+    return _pytest_state["result"]
 
 
 def discover(bugsinpy: Path, limit: int | None,
@@ -122,6 +177,66 @@ def clone(spec: BugSpec, workdir: Path) -> Path | None:
     return dest if r.returncode == 0 else None
 
 
+def requirements_for(spec: BugSpec, bugsinpy: Path, repo: Path) -> Path | None:
+    """Locate a requirements file for this bug, most specific first.
+
+    BugsInPy ships per-bug requirements under projects/<name>/bugs/<id>/.
+    Fall back to the project level, then to the cloned repository itself.
+    """
+    candidates = [
+        bugsinpy / "projects" / spec.project / "bugs" / spec.bug_id / "requirements.txt",
+        bugsinpy / "projects" / spec.project / "requirements.txt",
+        repo / "requirements.txt",
+    ]
+    for path in candidates:
+        try:
+            if path.is_file() and path.read_text(errors="replace").strip():
+                return path
+        except OSError:
+            continue
+    return None
+
+
+def install_project_deps(spec: BugSpec, bugsinpy: Path,
+                         repo: Path) -> tuple[str, str]:
+    """Install the dependencies of the project under test. Defect 69.
+
+    clone() used to clone and stop. execute._env_for() puts the worktree on
+    PYTHONPATH, so the project's own modules import fine - but nothing its
+    tests import does. In run 30655481944 that produced 20 head_uncollectable
+    candidates out of 30 and zero base/head execution pairs.
+
+    Cached per project. Returns (status, detail) where status is one of:
+    installed, no-requirements, install-failed, skipped-dry-run.
+    """
+    if spec.project in _deps_cache:
+        return _deps_cache[spec.project]
+
+    req = requirements_for(spec, bugsinpy, repo)
+    if req is None:
+        result = ("no-requirements", "")
+        _deps_cache[spec.project] = result
+        return result
+
+    try:
+        r = subprocess.run(
+            [sys.executable, "-m", "pip", "install", "--quiet", "-r", str(req)],
+            capture_output=True, text=True, errors="replace",
+            timeout=PIP_TIMEOUT_SECONDS,
+        )
+        if r.returncode == 0:
+            result = ("installed", str(req))
+        else:
+            tail = (r.stderr or r.stdout or "").strip().splitlines()
+            result = ("install-failed", chr(10).join(tail[-6:]))
+    except subprocess.TimeoutExpired:
+        result = ("install-failed",
+                  f"pip exceeded {PIP_TIMEOUT_SECONDS}s on {req}")
+
+    _deps_cache[spec.project] = result
+    return result
+
+
 def classify(model_requests: int, catching_candidates: int,
              diff_status: str = "ok") -> str:
     """Status for one bug.
@@ -153,6 +268,43 @@ def classify(model_requests: int, catching_candidates: int,
     return "caught" if catching_candidates > 0 else "missed"
 
 
+def environment_warnings(results: list[BugResult]) -> list[str]:
+    """Name environment failures that would otherwise read as model failures.
+
+    Defect 69. A reader seeing catch_rate 0.0 must be told, in the same
+    document, whether the candidates could be imported at all.
+    """
+    warnings: list[str] = []
+    if any(r.runner == "minirunner-shim" for r in results):
+        warnings.append(
+            "pytest was not importable: candidates ran under the vendored "
+            "minirunner shim, whose surface is narrower than pytest. A shim "
+            "gap is not a generation failure."
+        )
+    failed = sorted({r.project for r in results if r.deps_status == "install-failed"})
+    if failed:
+        warnings.append(
+            "dependencies of the project under test failed to install for: "
+            + ", ".join(failed)
+            + ". Candidates importing them cannot be collected, and the "
+            "resulting misses are environment artefacts."
+        )
+    uncollectable = sum(
+        1
+        for r in results
+        for t in r.telemetry
+        if t.get("disposition") == "head_uncollectable"
+    )
+    total = sum(len(r.telemetry) for r in results)
+    if total and uncollectable / total > 0.25:
+        warnings.append(
+            f"{uncollectable}/{total} candidates were head_uncollectable "
+            "(over 25%). The differential oracle was rarely exercised, so "
+            "this run measures the environment more than the tool."
+        )
+    return warnings
+
+
 def summarize(results: list[BugResult]) -> dict:
     """Build a failure-inclusive summary.
 
@@ -174,6 +326,11 @@ def summarize(results: list[BugResult]) -> dict:
     reported = [r for r in results if r.reported > 0]
     candidates = sum(r.candidates for r in measured)
     priced_rows = [r for r in measured if r.priced]
+    dispositions: dict[str, int] = {}
+    for r in results:
+        for t in r.telemetry:
+            key = str(t.get("disposition", "unknown"))
+            dispositions[key] = dispositions.get(key, 0) + 1
     return {
         "bugs_attempted": attempted,
         "bugs_eligible": eligible,
@@ -209,6 +366,10 @@ def summarize(results: list[BugResult]) -> dict:
             round(statistics.fmean([r.seconds for r in measured]), 1)
             if measured else None
         ),
+        # Defect 69. Published beside the rate, never below it.
+        "candidate_dispositions": dispositions,
+        "runner": sorted({r.runner for r in results}),
+        "environment_warnings": environment_warnings(results),
         "rate_definition": (
             "catch_rate = bugs with >=1 mechanical pass-on-fixed/fail-on-buggy "
             "test / eligible bugs (attempted minus git-failed, which were "
@@ -219,8 +380,13 @@ def summarize(results: list[BugResult]) -> dict:
             "catch_rate_all_attempted keeps them and is the conservative floor. "
             "Git failures are counted by name above and bounded by the "
             "completion gate, so they cannot silently raise the rate. "
-            "conditional_catch_rate is diagnostic only. Pair with independently "
-            "adjudicated precision evidence before publication."
+            "conditional_catch_rate is diagnostic only. Read "
+            "candidate_dispositions and environment_warnings before reading "
+            "any rate: a candidate that could not be collected was never given "
+            "the chance to catch anything, and a low rate driven by "
+            "head_uncollectable is a statement about the runner, not the tool. "
+            "Pair with independently adjudicated precision evidence before "
+            "publication."
         ),
     }
 
@@ -325,7 +491,28 @@ def main() -> int:
                     help="Run with a stub model: no network, no key, no cost")
     ap.add_argument("--project", action="append", default=None,
                     help="Filter to specific projects (repeatable)")
+    ap.add_argument("--skip-env-setup", action="store_true",
+                    help="Do not install pytest or project requirements. "
+                         "Reproduces the pre-defect-69 environment; any "
+                         "resulting catch rate measures the runner.")
     args = ap.parse_args()
+
+    setup_env = not (args.dry_run or args.skip_env_setup)
+
+    # Defect 69. Establish the execution environment BEFORE measuring, and
+    # print what it is, so the log answers "could these candidates even run?"
+    if setup_env:
+        pytest_status = ensure_pytest()
+    else:
+        pytest_status = "skipped"
+    runner = "pytest" if pytest_status in ("already-present", "installed") \
+        else "minirunner-shim"
+    print(f"environment: pytest={pytest_status} runner={runner}", file=sys.stderr)
+    if runner == "minirunner-shim":
+        print("warning: pytest is not importable. Candidates will run under "
+              "the vendored minirunner shim, whose surface is narrower than "
+              "pytest. Collection failures in this configuration are not "
+              "evidence about the model.", file=sys.stderr)
 
     args.workdir.mkdir(parents=True, exist_ok=True)
     specs = discover(args.bugsinpy, args.limit, args.project)
@@ -337,15 +524,31 @@ def main() -> int:
         if repo is None:
             r = BugResult(spec.project, spec.bug_id,
                           status="skipped", error="clone failed")
+            r.runner = runner
+            r.deps_status = "not-attempted"
             results.append(r)
             print(f"[{i}/{len(specs)}] {spec.project}-{spec.bug_id} "
                   f"SKIPPED: clone failed", file=sys.stderr)
             continue
+
+        if setup_env:
+            deps_status, deps_detail = install_project_deps(
+                spec, args.bugsinpy, repo)
+        else:
+            deps_status, deps_detail = "skipped-env-setup", ""
+        if deps_status == "install-failed":
+            print(f"  warning: dependency install failed for {spec.project}: "
+                  f"{deps_detail}", file=sys.stderr)
+
         r = evaluate_one(spec, repo, args.model, args.budget, args.dry_run)
+        r.runner = runner
+        r.deps_status = deps_status
+        r.deps_error = deps_detail if deps_status == "install-failed" else ""
         results.append(r)
         print(f"[{i}/{len(specs)}] {spec.project}-{spec.bug_id} "
               f"status={r.status} candidates={r.candidates} "
               f"catching={r.catching_candidates} reported={r.reported} "
+              f"deps={r.deps_status} "
               f"cost={'unpriced' if not r.priced else f'${r.cost_usd:.3f}'} "
               f"{r.error}", file=sys.stderr)
 
@@ -354,6 +557,8 @@ def main() -> int:
         {"summary": summary, "results": [asdict(r) for r in results]}, indent=2
     ))
     print(json.dumps(summary, indent=2))
+    for warning in summary.get("environment_warnings", []):
+        print(f"::warning::{warning}", file=sys.stderr)
     return 0
 
 
