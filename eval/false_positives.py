@@ -18,17 +18,54 @@ Usage:
 Selection heuristic: merge commits older than 90 days whose own merge subject
 does not contain revert, hotfix, regression, or rollback. This does not prove
 cleanliness and must not be described as doing so.
+
+On zero findings: a run that surfaces no claims does not have a 0% false
+positive rate. It has an *unknown* rate whose 95% upper bound is 3/n (the rule
+of three). At n=32 that bound is 9.4%, which is consistent with a tool that is
+wrong on roughly one PR in eleven. Every rate emitted by this module therefore
+carries an upper bound, and the two must be quoted together. Publishing the
+point estimate alone is the precision-side equivalent of writing RESULTS.md
+before a sweep exists.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 import subprocess
 from pathlib import Path
 
 MIN_COMPLETION_RATE = 0.80
 SUSPECT = re.compile(r"\b(revert|hotfix|regression|rollback)\b", re.I)
+
+# Two-sided 95% normal quantile, used for the Wilson interval.
+Z_95 = 1.959964
+
+
+def upper_bound_95(observed: int, sample: int) -> float | None:
+    """Return the 95% upper confidence bound on a proportion.
+
+    For ``observed == 0`` this is the rule of three, ``3 / n``, which is the
+    standard approximation to the exact binomial bound and is the number that
+    matters here: it is what stops a run of zero findings being reported as a
+    zero rate.
+
+    For a non-zero count it is the upper end of the Wilson score interval,
+    which stays inside [0, 1] at small samples where the normal approximation
+    does not.
+    """
+    if sample <= 0:
+        return None
+    if observed <= 0:
+        return round(min(1.0, 3.0 / sample), 3)
+    p = observed / sample
+    denominator = 1.0 + (Z_95 ** 2) / sample
+    centre = p + (Z_95 ** 2) / (2 * sample)
+    margin = Z_95 * math.sqrt(
+        p * (1.0 - p) / sample + (Z_95 ** 2) / (4 * sample * sample)
+    )
+    return round(min(1.0, (centre + margin) / denominator), 3)
 
 
 def git(repo: Path, *args: str) -> str:
@@ -73,6 +110,11 @@ def summarize_rows(rows: list[dict], attempted: int) -> dict:
     An earlier version divided by ``max(len(usable), 1)``. Zero work therefore
     printed 0.0% false positives and exited successfully. This function makes
     insufficient evidence an explicit terminal state instead.
+
+    A second, quieter version of the same mistake survived that fix: enough
+    work, no findings, and a printed ``0.000``. Zero findings is not a zero
+    rate. Every rate is now accompanied by ``*_upper_bound_95`` and the two
+    must be quoted together.
     """
     usable = [
         row for row in rows
@@ -81,6 +123,8 @@ def summarize_rows(rows: list[dict], attempted: int) -> dict:
     noisy = [row for row in usable if row.get("reported", 0) > 0]
     completion = len(usable) / attempted if attempted else 0.0
     gate_ready = attempted > 0 and completion >= MIN_COMPLETION_RATE
+    publishable = bool(gate_ready and usable)
+    bound = upper_bound_95(len(noisy), len(usable)) if publishable else None
     return {
         "prs_attempted": attempted,
         "prs_analysed": len(usable),
@@ -91,12 +135,14 @@ def summarize_rows(rows: list[dict], attempted: int) -> dict:
         "completion_rate": round(completion, 3) if attempted else None,
         "prs_with_a_report": len(noisy),
         "false_positive_rate": (
-            round(len(noisy) / len(usable), 3)
-            if gate_ready and usable else None
+            round(len(noisy) / len(usable), 3) if publishable else None
         ),
+        "false_positive_rate_upper_bound_95": bound,
         "comments_per_100_prs": (
-            round(100 * len(noisy) / len(usable), 1)
-            if gate_ready and usable else None
+            round(100 * len(noisy) / len(usable), 1) if publishable else None
+        ),
+        "comments_per_100_prs_upper_bound_95": (
+            round(100 * bound, 1) if bound is not None else None
         ),
         "gate_ready": gate_ready,
         "NOTE": (
@@ -104,7 +150,46 @@ def summarize_rows(rows: list[dict], attempted: int) -> dict:
             "measured results. Every surfaced claim still requires blind human "
             "adjudication; an uneventful merge is not known-clean ground truth."
         ),
+        "BOUND_NOTE": (
+            "Quote the rate and its 95% upper bound together, always. Zero "
+            "findings over n PRs is not a 0% false-positive rate; it is an "
+            "unknown rate bounded above by roughly 3/n. Reporting the point "
+            "estimate alone overstates what the sample can support."
+        ),
     }
+
+
+def describe(summary: dict) -> str:
+    """Return the one sentence that is safe to copy into a README.
+
+    Callers keep reaching for the bare point estimate. Give them a phrasing
+    that is correct by construction so that the convenient thing and the honest
+    thing are the same thing.
+    """
+    if not summary.get("gate_ready"):
+        return (
+            "No false-positive rate: coverage below the "
+            f"{int(MIN_COMPLETION_RATE * 100)}% completion floor "
+            f"({summary.get('prs_analysed')}/{summary.get('prs_attempted')} "
+            "PRs measured)."
+        )
+    analysed = summary["prs_analysed"]
+    noisy = summary["prs_with_a_report"]
+    bound = summary["false_positive_rate_upper_bound_95"]
+    if noisy == 0:
+        return (
+            f"No false positives surfaced on {analysed} apparently uneventful "
+            f"merged PRs. That bounds the false-positive rate below "
+            f"{bound * 100:.1f}% at 95% confidence; it does not establish that "
+            "the rate is zero."
+        )
+    rate = summary["false_positive_rate"]
+    return (
+        f"{noisy} of {analysed} apparently uneventful merged PRs surfaced a "
+        f"claim: a candidate false-positive rate of {rate * 100:.1f}% "
+        f"(95% upper bound {bound * 100:.1f}%). Each claim requires blind "
+        "adjudication before it counts as a false positive."
+    )
 
 
 def main() -> int:
@@ -182,6 +267,8 @@ def main() -> int:
         encoding="utf-8",
     )
     print(json.dumps(summary, indent=2))
+    print()
+    print(describe(summary))
     if not summary["gate_ready"]:
         print(
             "FAIL: insufficient measured PRs; refusing to publish a "
