@@ -7,20 +7,21 @@ import shutil
 import tempfile
 from pathlib import Path
 
-import pytest
-
 from eval.premortem3 import make_fixture, s14_windowsish_paths
 
 
 def test_long_paths_do_not_break_fixture_creation():
-    """S06: Assert make_fixture either handles >260-char paths or raises typed error."""
+    """S06: Assert make_fixture either succeeds or raises typed error."""
     tmp = Path(tempfile.mkdtemp(prefix="test-s06-"))
     try:
         deep = tmp
         while len(str(deep.resolve())) < 300:
             deep = deep / ("d" * 40)
-        with pytest.raises((RuntimeError, OSError)):
-            make_fixture(deep)
+        try:
+            repo = make_fixture(deep)
+            assert repo.exists()
+        except (RuntimeError, OSError) as exc:
+            assert "exceeds OS limits" in str(exc) or "too long" in str(exc)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
