@@ -3,6 +3,7 @@ Typer, Click and Rich into somebody else's dependency graph.
 
     jittest run --base main --head HEAD
     jittest run --dry-run          # whole pipeline, no model, no key, no cost
+    jittest oracles --changed      # assertion-strength scan, no key, no cost
     jittest doctor                 # can this environment run jittest?
     jittest stats                  # what the ledger has learned
     jittest outcome <hash> fixed_code
@@ -22,6 +23,9 @@ from .config import load_config
 from .execute import detect_runner
 from .ledger import HUMAN_OUTCOMES, Ledger
 from .llm import LLMError, build_llm
+from .oracles import OracleScanError, scan_changed, scan_paths
+from .oracles import to_markdown as oracles_markdown
+from .oracles import to_terminal as oracles_terminal
 from .pipeline import run as run_pipeline
 from .report import to_markdown, to_terminal
 
@@ -63,6 +67,25 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     _add_run_args(sub.add_parser("run", help="analyse a diff"))
+
+    oa = sub.add_parser(
+        "oracles",
+        help="classify the assertion strength of test code (no model, no cost)")
+    oa.add_argument("paths", nargs="*",
+                    help="test files or directories; omit to scan the diff")
+    oa.add_argument("--repo", default=".")
+    oa.add_argument("--base", default=os.getenv("JITTEST_BASE", "origin/main"))
+    oa.add_argument("--head", default=os.getenv("JITTEST_HEAD", "HEAD"))
+    oa.add_argument("--changed", action="store_true",
+                    help="scan only test files changed between --base and --head")
+    oa.add_argument("--json", dest="as_json", action="store_true")
+    oa.add_argument("--markdown", metavar="PATH", default=None,
+                    help="write the markdown report to this file")
+    oa.add_argument("--comment", action="store_true",
+                    help="upsert the report as a PR comment")
+    oa.add_argument("--fail-under", type=float, default=None,
+                    help="exit 1 when the strong-oracle rate is below this (0..1)")
+    oa.add_argument("--quiet", action="store_true")
 
     st = sub.add_parser("stats", help="summarise the local ledger")
     st.add_argument("--repo", default=".")
@@ -179,6 +202,64 @@ def _cmd_run(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_oracles(args: argparse.Namespace) -> int:
+    repo = Path(args.repo).resolve()
+    try:
+        if args.paths and not args.changed:
+            report = scan_paths(repo, list(args.paths))
+        else:
+            report = scan_changed(repo, args.base, args.head)
+    except OracleScanError as exc:
+        print(f"jittest: {exc}", file=sys.stderr)
+        return 2
+
+    markdown = oracles_markdown(report)
+    if args.as_json:
+        print(json.dumps(report.as_dict(), indent=2))
+    elif not args.quiet:
+        print(oracles_terminal(report))
+
+    if args.markdown:
+        try:
+            Path(args.markdown).write_text(markdown, encoding="utf-8")
+        except OSError as exc:
+            print(f"  warning: could not write markdown to {args.markdown}: "
+                  f"{exc}", file=sys.stderr)
+
+    if args.comment:
+        # Same rule as `run`: the scan is already complete and printed, so a
+        # GitHub failure must not turn a finished analysis into a red build.
+        from .github import upsert_pr_comment
+        try:
+            status = upsert_pr_comment(markdown)
+        except Exception as exc:
+            status = f"failed to comment: {exc!r}"
+        print(f"  github: {status}", file=sys.stderr)
+
+    if os.getenv("GITHUB_OUTPUT"):
+        try:
+            rate = report.strong_rate
+            with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+                fh.write(f"oracle_tests={report.total}\n")
+                fh.write(f"oracle_strong={report.strong}\n")
+                fh.write(f"oracle_weak={report.weak}\n")
+                fh.write("oracle_strong_rate="
+                         f"{'' if rate is None else f'{rate:.4f}'}\n")
+        except OSError as exc:
+            print(f"  warning: could not write GITHUB_OUTPUT: {exc}",
+                  file=sys.stderr)
+
+    # A gate must never fire on an absence of evidence. `strong_rate` is None
+    # when no test function was scanned at all, and "nothing was measured" is
+    # not the same claim as "everything measured was weak".
+    if (args.fail_under is not None and report.strong_rate is not None
+            and report.strong_rate < args.fail_under):
+        print(f"jittest: strong-oracle rate {report.strong_rate:.2f} is below "
+              f"the required {args.fail_under:.2f}", file=sys.stderr)
+        return 1
+    return 0
+
+
 def _cmd_stats(args: argparse.Namespace) -> int:
     cfg = load_config(Path(args.repo))
     with Ledger(Path(args.repo) / cfg.ledger_path) as ledger:
@@ -246,6 +327,8 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
                   ("JITTEST_API_KEY", "ANTHROPIC_API_KEY", "OPENAI_API_KEY"))
     print(f"  [{'ok  ' if has_key else 'warn'}] model API key "
           f"{'found' if has_key else 'NOT found - only --dry-run will work'}")
+    if not has_key:
+        print("         `jittest oracles` needs no key and no network; it works now.")
 
     # Check whether the configured model has known pricing.
     from .llm import price_for
@@ -271,6 +354,8 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "run":
         return _cmd_run(args)
+    if args.command == "oracles":
+        return _cmd_oracles(args)
     if args.command == "stats":
         return _cmd_stats(args)
     if args.command == "export":
