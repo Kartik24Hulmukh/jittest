@@ -1,13 +1,15 @@
 """Small pure helpers for the pipeline: paths, excerpts, telemetry emission."""
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from .diff import ChangeTarget
 from .results import CandidateTelemetry
 
 __all__ = ["import_path_for", "existing_tests_for", "_added_excerpt", "_repro",
-           "_bump", "_disposition_from_verdict", "_excerpt", "_telemetry"]
+           "_bump", "_disposition_from_verdict", "_excerpt",
+           "_strip_source_echo", "_telemetry"]
 
 
 def import_path_for(file_path: str) -> str:
@@ -75,6 +77,58 @@ def _disposition_from_verdict(verdict) -> str:
     return str(disposition)
 
 
+_CARET_RE = re.compile(r"^[ \t]*[\^~]+[ \t]*$")
+_ELIDED = "    <source elided>"
+
+
+def _is_source_echo(line: str) -> bool:
+    """Is this traceback line a copy of the candidate's own source text?
+
+    A Python traceback interleaves three kinds of line:
+
+      location   File "/path/to/x.py", line 94, in _run_file
+      echo           module = _load(path)
+      cause      ModuleNotFoundError: No module named 'yaml'
+
+    pytest adds two more echo forms, the ">" line that marks the failing
+    statement and the "E" lines that quote it back with the assertion
+    rewritten. Only the echo forms contain source code.
+    """
+    stripped = line.strip()
+    if not stripped:
+        return False
+    if _CARET_RE.match(line):
+        return True
+    if stripped in ("E", ">") or stripped.startswith(("E ", "> ", "E\t", ">\t")):
+        return True
+    if stripped.startswith("assert "):
+        return True
+    # Indented and not a frame header: the echoed statement.
+    return line[:1].isspace() and not stripped.startswith("File ")
+
+
+def _strip_source_echo(lines: list[str]) -> list[str]:
+    """Drop echoed source, collapse runs of it into a single marker. Defect 70.
+
+    Telemetry is written to logs and to artifacts that get attached to public
+    workflow runs. It must be able to say where a candidate died and why,
+    without reproducing the candidate body, which is model output about the
+    user's private code. Locations and exception messages carry the diagnosis;
+    the echoed statement carries nothing the location does not already give.
+    """
+    kept: list[str] = []
+    for line in lines:
+        if not line.strip():
+            continue
+        if _is_source_echo(line):
+            if kept and kept[-1] == _ELIDED:
+                continue
+            kept.append(_ELIDED)
+            continue
+        kept.append(line)
+    return kept
+
+
 def _excerpt(text: str, head: int = 3, tail: int = 8) -> str:
     """Keep the beginning AND the end of a failure excerpt. Defect 68.
 
@@ -91,10 +145,12 @@ def _excerpt(text: str, head: int = 3, tail: int = 8) -> str:
     diagnostic field that cannot diagnose is worse than an absent one: it
     looks like evidence.
 
-    The head is kept because the first line names the failing file. The tail
-    is kept because that is where Python puts the answer.
+    Defect 70: source echo is removed first, so widening the window cannot
+    leak the candidate body into telemetry. The head is kept because the
+    first line names the failing file. The tail is kept because that is
+    where Python puts the answer.
     """
-    lines = text.splitlines()
+    lines = _strip_source_echo(text.splitlines())
     if len(lines) <= head + tail:
         return chr(10).join(lines)
     omitted = len(lines) - head - tail
@@ -116,7 +172,8 @@ def _telemetry(report, target, rs, attempt, disposition,
         # Defect 39. Derived from the recorded per-execution outcomes rather
         # than from whether the reason string happens to contain a word.
         rerun_agree = verdict.rerun_agreement
-        # Defect 68. Head and tail, so the exception line survives.
+        # Defect 68 and 70. Head and tail so the exception line survives,
+        # source echo removed so the candidate body does not.
         excerpt = _excerpt(verdict.failure_excerpt)
 
     assess_v = ""
