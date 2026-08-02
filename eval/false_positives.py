@@ -15,18 +15,18 @@ Usage:
     # Dry run (no network, no key, no cost):
     python eval/false_positives.py --repo ~/src/requests --count 5 --dry-run
 
-Selection heuristic: merge commits older than 90 days whose own merge subject
-does not contain revert, hotfix, regression, or rollback, and whose diff
-touches at least one Python file. This does not prove cleanliness and must not
-be described as doing so.
+Selection heuristic: merge commits inside the settling window whose own merge
+subject does not contain revert, hotfix, regression, or rollback, and whose
+diff touches at least one Python file. This does not prove cleanliness and must
+not be described as doing so.
 
 On zero findings: a run that surfaces no claims does not have a 0% false
 positive rate. It has an *unknown* rate whose 95% upper bound is 3/n (the rule
-of three). At n=32 that bound is 9.4%, which is consistent with a tool that is
-wrong on roughly one PR in eleven. Every rate emitted by this module therefore
-carries an upper bound, and the two must be quoted together. Publishing the
-point estimate alone is the precision-side equivalent of writing RESULTS.md
-before a sweep exists.
+of three). At n=30 that bound is 10%, which is consistent with a tool that is
+wrong on one PR in ten. Every rate emitted by this module therefore carries an
+upper bound, and the two must be quoted together. Publishing the point estimate
+alone is the precision-side equivalent of writing RESULTS.md before a sweep
+exists.
 
 On collapse: withholding a rate is necessary and not sufficient. A run that
 measures 3 of 32 PRs has told you nothing unless it also tells you what
@@ -56,13 +56,30 @@ it, because it does not withhold a number - it produces a wrong one that looks
 reasonable. A completion rate of 0.094 divided by 32 PRs that were never
 eligible was reporting requests' merge habits as a property of jittest. The
 same arithmetic infects the published youtube-dl bound: the rule of three uses
-n, and if the eligible n was smaller than 32 then 3/n is larger than 9.4%, so
-the bound is too tight and must be recomputed before it is quoted again.
+n, and a smaller eligible n makes 3/n larger, so the widely-quoted 9.4% figure
+was too tight and the screened figure is looser, not tighter. Any recomputation
+that produces a tighter bound has changed a second variable and is wrong.
 
 Selection now screens on Python content. Because shrinking a denominator makes
 a gate easier to pass, the fix ships with a floor as well as a filter: see
 ``MIN_ELIGIBLE_SAMPLE``. A filter alone would have turned a visible collapse
 into an invisible three-sample success.
+
+On the window: screening worked and immediately exposed the next constraint.
+On requests, 40 candidate merges yielded 6 eligible PRs, so a floor of 20 is
+unreachable and the harness is now correctly refusing to publish while also
+being structurally unable to ever publish. On flask the same screening barely
+moved the completion rate at all - 40 eligible, 14 measured - which separates
+two problems that had been confused for one: sample availability, addressed
+here, and measurement rate on eligible PRs, which is a real property of jittest
+and is not addressed here.
+
+Sample availability traces to one hardcoded pair of git arguments. The
+ninety-day lag is not arbitrary; it is the settling time that gives
+"apparently uneventful" its meaning, because a merge from last week has not yet
+had the chance to be reverted. So the default does not move. The window becomes
+an explicit parameter that is recorded in the artifact, and any run that
+narrows it must say so in the sentence it publishes.
 """
 from __future__ import annotations
 
@@ -79,6 +96,20 @@ SUSPECT = re.compile(r"\b(revert|hotfix|regression|rollback)\b", re.I)
 
 # Two-sided 95% normal quantile, used for the Wilson interval.
 Z_95 = 1.959964
+
+# The settling window.
+#
+# DEFAULT_UNTIL is the load-bearing half. "Apparently uneventful" is a proxy
+# for "nobody has had to fix this yet", and that proxy is worthless without
+# elapsed time: a merge from last week has not had the opportunity to be
+# reverted, so counting it as clean assumes the conclusion. Ninety days is a
+# judgement call, not a derived constant, which is exactly why it now has to
+# be stated in the artifact rather than buried in a git invocation.
+#
+# DEFAULT_SINCE bounds the other end so the sample reflects the codebase as it
+# is maintained today rather than as it was five years ago.
+DEFAULT_SINCE = "2.years"
+DEFAULT_UNTIL = "90.days"
 
 # The smallest eligible sample this module will let anyone publish from.
 #
@@ -124,6 +155,17 @@ def upper_bound_95(observed: int, sample: int) -> float | None:
         p * (1.0 - p) / sample + (Z_95 ** 2) / (4 * sample * sample)
     )
     return round(min(1.0, (centre + margin) / denominator), 3)
+
+
+def window_is_default(since: str, until: str) -> bool:
+    """Return True when the settling window is the one the method assumes.
+
+    Compared as given rather than resolved to dates, because the question is
+    not which instants were covered - it is whether a human overrode the
+    assumption. ``--until=89.days`` is a deliberate act and is recorded as one
+    even though it is a day away from the default.
+    """
+    return since == DEFAULT_SINCE and until == DEFAULT_UNTIL
 
 
 def _as_int(value: object) -> int | None:
@@ -191,7 +233,10 @@ def failure_reasons(rows: list[dict]) -> dict[str, int]:
 
 
 def summarize_rows(
-    rows: list[dict], attempted: int, screened_out: int | None = None
+    rows: list[dict],
+    attempted: int,
+    screened_out: int | None = None,
+    window: tuple[str, str] | None = None,
 ) -> dict:
     """Withhold the rate when coverage is too low to support it.
 
@@ -220,9 +265,16 @@ def summarize_rows(
     now, and ``sample_floor_met`` exists so that the smaller denominator
     cannot quietly promote three eligible PRs into a publishable result.
 
+    A sixth is what ``window`` is for. Every number above is conditional on
+    which commits were eligible to be looked at, and that was decided by two
+    hardcoded git arguments appearing in no output. A reader could not tell a
+    run over two years of settled history from a run over last fortnight, and
+    those two support very different sentences.
+
     ``attempted`` is the eligible population. ``screened_out`` is how many
     candidate merges were rejected before analysis; it is reported so the
     ineligible population stays visible rather than vanishing from the record.
+    ``window`` is the (since, until) pair that produced the population.
     """
     usable = [
         row for row in rows
@@ -236,6 +288,7 @@ def summarize_rows(
     bound = upper_bound_95(len(noisy), len(usable)) if publishable else None
     reasons = failure_reasons(rows)
     dominant = next(iter(reasons), None)
+    since, until = window if window else (DEFAULT_SINCE, DEFAULT_UNTIL)
     diagnosis_gap = None
     if dominant == NO_REQUESTS:
         diagnosis_gap = (
@@ -270,6 +323,8 @@ def summarize_rows(
         "eligible_sample_floor": MIN_ELIGIBLE_SAMPLE,
         "sample_floor_met": sample_floor_met,
         "publishable": bool(gate_ready and sample_floor_met),
+        "selection_window": {"since": since, "until": until},
+        "selection_window_is_default": window_is_default(since, until),
         "failure_reasons": reasons,
         "dominant_failure": dominant,
         "diagnosis_gap": diagnosis_gap,
@@ -296,9 +351,37 @@ def summarize_rows(
             "measurement and never enters the denominator. Any bound computed "
             "from an unscreened denominator - including the 9.4% youtube-dl "
             "figure - used too large an n and is therefore too tight. "
-            "Recompute before quoting."
+            "Screening makes a zero-finding bound LOOSER, never tighter; a "
+            "recomputation that tightens it has moved a second variable."
+        ),
+        "WINDOW_NOTE": (
+            "Every number here is conditional on selection_window. The until "
+            "bound is the settling time that makes 'apparently uneventful' "
+            "mean anything: a merge that has not had time to be reverted is "
+            "not evidence of a clean merge. Narrowing it enlarges the sample "
+            "by weakening the assumption the sample rests on, so a rate from "
+            "a non-default window is a different measurement and must not be "
+            "compared against one from the default."
         ),
     }
+
+
+def _window_caveat(summary: dict) -> str:
+    """Return the sentence a non-default window obliges the caller to carry.
+
+    Appended to the published sentence rather than left in the JSON, because
+    the published sentence is the part that gets copied and the JSON is the
+    part that does not.
+    """
+    if summary.get("selection_window_is_default", True):
+        return ""
+    window = summary.get("selection_window") or {}
+    return (
+        " Measured over a non-default selection window "
+        f"(since={window.get('since')}, until={window.get('until')}), which "
+        "weakens the settling-time assumption behind 'uneventful'. Not "
+        "comparable with default-window results."
+    )
 
 
 def describe(summary: dict) -> str:
@@ -338,19 +421,102 @@ def describe(summary: dict) -> str:
             "samples easy to produce. No rate is published from this run."
         )
     if noisy == 0:
-        return (
+        sentence = (
             f"No false positives surfaced on {analysed} apparently uneventful "
             f"merged PRs. That bounds the false-positive rate below "
             f"{bound * 100:.1f}% at 95% confidence; it does not establish that "
             "the rate is zero."
         )
-    rate = summary["false_positive_rate"]
-    return (
-        f"{noisy} of {analysed} apparently uneventful merged PRs surfaced a "
-        f"claim: a candidate false-positive rate of {rate * 100:.1f}% "
-        f"(95% upper bound {bound * 100:.1f}%). Each claim requires blind "
-        "adjudication before it counts as a false positive."
-    )
+    else:
+        rate = summary["false_positive_rate"]
+        sentence = (
+            f"{noisy} of {analysed} apparently uneventful merged PRs surfaced "
+            f"a claim: a candidate false-positive rate of {rate * 100:.1f}% "
+            f"(95% upper bound {bound * 100:.1f}%). Each claim requires blind "
+            "adjudication before it counts as a false positive."
+        )
+    return sentence + _window_caveat(summary)
+
+
+def git(repo: Path, *args: str) -> str:
+    return subprocess.run(
+        ["git", "-C", str(repo), *args],
+        capture_output=True,
+        text=True,
+        errors="replace",
+    ).stdout
+
+
+def changed_python_files(repo: Path, base: str, head: str) -> list[str]:
+    """Return the Python files changed between two commits.
+
+    An empty list means the PR could not have produced a finding no matter how
+    good the tool is, which makes it ineligible rather than unmeasured.
+    """
+    out = git(repo, "diff", "--name-only", base, head)
+    return [line for line in out.splitlines() if is_python_path(line)]
+
+
+def select_pairs(
+    repo: Path,
+    count: int,
+    require_python: bool = True,
+    since: str = DEFAULT_SINCE,
+    until: str = DEFAULT_UNTIL,
+) -> tuple[list[tuple[str, str]], int]:
+    """Return eligible (base, head) pairs and how many were screened out.
+
+    The screened-out count is returned rather than discarded because a
+    denominator that silently shrinks is how a collapsed run turns into a
+    clean-looking one.
+
+    ``since`` and ``until`` were hardcoded until a screened run on requests
+    yielded 6 eligible PRs against a floor of 20, making the gate unreachable
+    rather than merely unmet. They are parameters now, with the defaults
+    unchanged, so that widening the sample is a recorded decision rather than
+    an edit to this file.
+    """
+    log = git(
+        repo,
+        "log",
+        "--merges",
+        f"--since={since}",
+        f"--until={until}",
+        "--pretty=%H%x00%P%x00%s",
+    ).strip().splitlines()
+    pairs: list[tuple[str, str]] = []
+    screened_out = 0
+    for line in log:
+        parts = line.split("\x00")
+        if len(parts) != 3:
+            continue
+        _sha, parents, subject = parts
+        if SUSPECT.search(subject):
+            continue
+        parent_shas = parents.split()
+        if len(parent_shas) != 2:
+            continue
+        base, head = parent_shas[0], parent_shas[1]
+        if require_python and not changed_python_files(repo, base, head):
+            screened_out += 1
+            continue
+        pairs.append((base, head))
+        if len(pairs) >= count:
+            break
+    return pairs, screened_out
+
+
+def clean_merges(
+    repo: Path,
+    count: int,
+    require_python: bool = True,
+    since: str = DEFAULT_SINCE,
+    until: str = DEFAULT_UNTIL,
+) -> list[tuple[str, str]]:
+    """Return (base_sha, head_sha) pairs for apparently uneventful merges."""
+    return select_pairs(
+        repo, count, require_python=require_python, since=since, until=until
+    )[0]
 
 
 def main() -> int:
@@ -375,6 +541,22 @@ def main() -> int:
             "Python. Diagnostic only: the resulting denominator is wrong."
         ),
     )
+    parser.add_argument(
+        "--since", default=DEFAULT_SINCE,
+        help=(
+            "Oldest commits to consider, as a git --since expression "
+            f"(default: {DEFAULT_SINCE}). Widening this is safe."
+        ),
+    )
+    parser.add_argument(
+        "--until", default=DEFAULT_UNTIL,
+        help=(
+            "Settling time a merge must have survived, as a git --until "
+            f"expression (default: {DEFAULT_UNTIL}). Narrowing this enlarges "
+            "the sample by weakening the assumption it rests on, and is "
+            "recorded in the artifact and in the published sentence."
+        ),
+    )
     args = parser.parse_args()
 
     from jittest.config import load_config
@@ -382,7 +564,11 @@ def main() -> int:
     from jittest.pipeline import run as run_pipeline
 
     pairs, screened_out = select_pairs(
-        args.repo, args.count, require_python=not args.no_python_filter
+        args.repo,
+        args.count,
+        require_python=not args.no_python_filter,
+        since=args.since,
+        until=args.until,
     )
     rows: list[dict] = []
     for base, head in pairs:
@@ -443,7 +629,12 @@ def main() -> int:
                 "model_requests": 0,
             })
 
-    summary = summarize_rows(rows, len(pairs), screened_out=screened_out)
+    summary = summarize_rows(
+        rows,
+        len(pairs),
+        screened_out=screened_out,
+        window=(args.since, args.until),
+    )
     args.out.write_text(
         json.dumps({"summary": summary, "results": rows}, indent=2),
         encoding="utf-8",
@@ -464,71 +655,6 @@ def main() -> int:
         )
         return 1
     return 0
-
-
-def git(repo: Path, *args: str) -> str:
-    return subprocess.run(
-        ["git", "-C", str(repo), *args],
-        capture_output=True,
-        text=True,
-        errors="replace",
-    ).stdout
-
-
-def changed_python_files(repo: Path, base: str, head: str) -> list[str]:
-    """Return the Python files changed between two commits.
-
-    An empty list means the PR could not have produced a finding no matter how
-    good the tool is, which makes it ineligible rather than unmeasured.
-    """
-    out = git(repo, "diff", "--name-only", base, head)
-    return [line for line in out.splitlines() if is_python_path(line)]
-
-
-def select_pairs(
-    repo: Path, count: int, require_python: bool = True
-) -> tuple[list[tuple[str, str]], int]:
-    """Return eligible (base, head) pairs and how many were screened out.
-
-    The screened-out count is returned rather than discarded because a
-    denominator that silently shrinks is how a collapsed run turns into a
-    clean-looking one.
-    """
-    log = git(
-        repo,
-        "log",
-        "--merges",
-        "--since=2.years",
-        "--until=90.days",
-        "--pretty=%H%x00%P%x00%s",
-    ).strip().splitlines()
-    pairs: list[tuple[str, str]] = []
-    screened_out = 0
-    for line in log:
-        parts = line.split("\x00")
-        if len(parts) != 3:
-            continue
-        _sha, parents, subject = parts
-        if SUSPECT.search(subject):
-            continue
-        parent_shas = parents.split()
-        if len(parent_shas) != 2:
-            continue
-        base, head = parent_shas[0], parent_shas[1]
-        if require_python and not changed_python_files(repo, base, head):
-            screened_out += 1
-            continue
-        pairs.append((base, head))
-        if len(pairs) >= count:
-            break
-    return pairs, screened_out
-
-
-def clean_merges(
-    repo: Path, count: int, require_python: bool = True
-) -> list[tuple[str, str]]:
-    """Return (base_sha, head_sha) pairs for apparently uneventful merges."""
-    return select_pairs(repo, count, require_python=require_python)[0]
 
 
 if __name__ == "__main__":
