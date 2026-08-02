@@ -114,3 +114,72 @@ class TestOddlyNamedFiles:
                 f"ls-files was: {tracked!r}")
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
+
+
+class TestPremortem6AdversarialScenarios:
+    """Premortem 6 adversarial scenarios: backwards ranges, missing commits, non-Python diffs."""
+
+    def test_backwards_revision_range_disposition(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            subprocess.run(["git", "init"], cwd=repo, capture_output=True, check=True)
+            subprocess.run(["git", "config", "user.name", "Test"], cwd=repo, capture_output=True, check=True)
+            subprocess.run(["git", "config", "user.email", "test@test.com"], cwd=repo, capture_output=True, check=True)
+
+            (repo / "app.py").write_text("def v1(): pass\n")
+            subprocess.run(["git", "add", "."], cwd=repo, capture_output=True, check=True)
+            subprocess.run(["git", "commit", "-m", "v1"], cwd=repo, capture_output=True, check=True)
+            h = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+
+            (repo / "app.py").write_text("def v1(): pass\ndef v2(): pass\n")
+            subprocess.run(["git", "commit", "-am", "v2"], cwd=repo, capture_output=True, check=True)
+            b = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+
+            from jittest.diff import extract_targets, git_diff
+            diff_text = git_diff(repo, b, h)
+            targets = extract_targets(diff_text, repo=repo, base=b, head=h)
+            assert len(targets) == 0
+
+    def test_shallow_clone_missing_commit_raises_git_error(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            subprocess.run(["git", "init"], cwd=repo, capture_output=True, check=True)
+            subprocess.run(["git", "config", "user.name", "Test"], cwd=repo, capture_output=True, check=True)
+            subprocess.run(["git", "config", "user.email", "test@test.com"], cwd=repo, capture_output=True, check=True)
+
+            (repo / "app.py").write_text("x = 1\n")
+            subprocess.run(["git", "add", "."], cwd=repo, capture_output=True, check=True)
+            subprocess.run(["git", "commit", "-m", "c1"], cwd=repo, capture_output=True, check=True)
+            h = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+
+            from jittest.diff import GitError, git_diff
+            fake_base = "1111111111111111111111111111111111111111"
+            raised = False
+            try:
+                git_diff(repo, fake_base, h)
+            except GitError as exc:
+                raised = True
+                assert "failure to measure" in str(exc)
+            assert raised is True
+
+    def test_non_python_diff_produces_zero_targets(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            subprocess.run(["git", "init"], cwd=repo, capture_output=True, check=True)
+            subprocess.run(["git", "config", "user.name", "Test"], cwd=repo, capture_output=True, check=True)
+            subprocess.run(["git", "config", "user.email", "test@test.com"], cwd=repo, capture_output=True, check=True)
+
+            (repo / "README.md").write_text("# Hello\n")
+            subprocess.run(["git", "add", "."], cwd=repo, capture_output=True, check=True)
+            subprocess.run(["git", "commit", "-m", "base"], cwd=repo, capture_output=True, check=True)
+            b = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+
+            (repo / "README.md").write_text("# Hello World\n")
+            subprocess.run(["git", "commit", "-am", "head"], cwd=repo, capture_output=True, check=True)
+            h = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+
+            from jittest.diff import extract_targets, git_diff
+            diff_text = git_diff(repo, b, h)
+            targets = extract_targets(diff_text, repo=repo, base=b, head=h)
+            assert len(targets) == 0
+
