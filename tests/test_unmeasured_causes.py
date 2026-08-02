@@ -18,19 +18,10 @@ steps including the dependency-free one.
 from __future__ import annotations
 
 import inspect
-import sys
 import unittest
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from eval.run_bugsinpy import BugResult, evaluate_one, summarize  # noqa: E402
-from eval.unmeasured import (  # noqa: E402
-    NO_CAUSE,
-    is_sandbox_advisory,
-    tally as unmeasured_causes,
-    unmeasured_reason,
-)
+from eval.run_bugsinpy import BugResult, evaluate_one, summarize
+from eval.unmeasured import NO_CAUSE, is_sandbox_advisory, tally, unmeasured_reason
 
 UNCONFINED = (
     "no container or namespace backend found (looked for podman, docker, "
@@ -45,13 +36,13 @@ DISABLED = (
 
 
 class SandboxAdvisoryDetection(unittest.TestCase):
-    def test_the_run_30754409055_string_is_recognised(self) -> None:
+    def test_the_run_30754409055_string_is_recognised(self):
         self.assertTrue(is_sandbox_advisory(UNCONFINED))
 
-    def test_the_disabled_by_configuration_note_is_recognised(self) -> None:
+    def test_the_disabled_by_configuration_note_is_recognised(self):
         self.assertTrue(is_sandbox_advisory(DISABLED))
 
-    def test_a_real_failure_is_not_an_advisory(self) -> None:
+    def test_a_real_failure_is_not_an_advisory(self):
         for message in (
             "git rev-parse failed: unknown revision",
             "no changed Python functions or classes were extracted from diff.",
@@ -63,29 +54,29 @@ class SandboxAdvisoryDetection(unittest.TestCase):
 
 
 class UnmeasuredReasonPrefersTheStatus(unittest.TestCase):
-    def test_the_advisory_never_becomes_the_reason(self) -> None:
+    def test_the_advisory_never_becomes_the_reason(self):
         reason = unmeasured_reason("below_risk_threshold", [UNCONFINED])
         self.assertEqual(reason, "below_risk_threshold")
         self.assertNotIn("unconfined", reason)
 
-    def test_the_advisory_is_skipped_even_when_it_is_first(self) -> None:
+    def test_the_advisory_is_skipped_even_when_it_is_first(self):
         reason = unmeasured_reason("ok", [UNCONFINED, "budget exhausted"])
         self.assertEqual(reason, "budget exhausted")
 
-    def test_the_status_is_preferred_over_a_real_error_but_keeps_it(self) -> None:
+    def test_the_status_is_preferred_over_a_real_error_but_keeps_it(self):
         reason = unmeasured_reason("git_failed", ["fatal: bad object abc123"])
         self.assertEqual(reason, "git_failed: fatal: bad object abc123")
 
-    def test_an_advisory_only_run_says_so_rather_than_inventing_a_cause(self) -> None:
+    def test_an_advisory_only_run_says_so_rather_than_inventing_a_cause(self):
         reason = unmeasured_reason("ok", [UNCONFINED])
         self.assertEqual(reason, NO_CAUSE)
         self.assertNotIn("unconfined", reason)
 
-    def test_no_errors_at_all_is_still_answerable(self) -> None:
+    def test_no_errors_at_all_is_still_answerable(self):
         self.assertEqual(unmeasured_reason("ok", []), NO_CAUSE)
         self.assertEqual(unmeasured_reason("ok", None), NO_CAUSE)
 
-    def test_sandbox_unavailable_is_a_status_so_it_survives(self) -> None:
+    def test_sandbox_unavailable_is_a_status_so_it_survives(self):
         # The one case where the sandbox really is the cause: mode 'required'
         # with no backend, where the pipeline returned before running anything.
         # It is distinguished by the status, never by the advisory string.
@@ -97,12 +88,12 @@ class UnmeasuredReasonPrefersTheStatus(unittest.TestCase):
 
 class UnmeasuredCauseHistogram(unittest.TestCase):
     @staticmethod
-    def _row(status: str, diff_status: str) -> BugResult:
+    def _row(status, diff_status):
         row = BugResult(project="youtube-dl", bug_id="1", status=status)
         row.diff_status = diff_status
         return row
 
-    def test_only_not_measured_rows_are_counted(self) -> None:
+    def test_only_not_measured_rows_are_counted(self):
         rows = [
             self._row("not_measured", "below_risk_threshold"),
             self._row("not_measured", "below_risk_threshold"),
@@ -113,14 +104,14 @@ class UnmeasuredCauseHistogram(unittest.TestCase):
             self._row("commits_missing", "ok"),
         ]
         self.assertEqual(
-            unmeasured_causes(rows),
+            tally(rows),
             {"below_risk_threshold": 2, "no_targets_after_ranking": 1},
         )
 
-    def test_an_empty_run_has_no_causes(self) -> None:
-        self.assertEqual(unmeasured_causes([]), {})
+    def test_an_empty_run_has_no_causes(self):
+        self.assertEqual(tally([]), {})
 
-    def test_summarize_publishes_the_histogram_beside_the_rate(self) -> None:
+    def test_summarize_publishes_the_histogram_beside_the_rate(self):
         rows = [self._row("not_measured", "below_risk_threshold") for _ in range(20)]
         summary = summarize(rows)
         self.assertEqual(summary["completion_rate"], 0.0)
@@ -128,7 +119,7 @@ class UnmeasuredCauseHistogram(unittest.TestCase):
 
 
 class DefaultsAreUnchanged(unittest.TestCase):
-    def test_the_default_risk_threshold_is_still_the_shipped_one(self) -> None:
+    def test_the_default_risk_threshold_is_still_the_shipped_one(self):
         default = inspect.signature(evaluate_one).parameters["risk_threshold"].default
         self.assertEqual(default, 0.35)
 
