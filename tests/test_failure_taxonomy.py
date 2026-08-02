@@ -17,9 +17,15 @@ that had already passed the Python eligibility screen.
 from __future__ import annotations
 
 import sys
+import unittest
 from pathlib import Path
 
-import pytest
+try:
+    import pytest
+except ModuleNotFoundError as exc:  # pragma: no cover - dependency-free ci.yml step
+    raise unittest.SkipTest(
+        "requires pytest; skipped by the zero-dependency unittest run in ci.yml"
+    ) from exc
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
