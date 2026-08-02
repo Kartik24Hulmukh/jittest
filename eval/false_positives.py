@@ -33,6 +33,16 @@ happened to the other 29. The same instrument scored 32/40 on youtube-dl and
 3/32 on requests; one of those is a fact about jittest and the other is a fact
 about a repository, and an artifact that cannot separate them is a dead end.
 Every non-result now names its dominant cause.
+
+On diagnosis: naming ``no_model_requests`` as the dominant cause is still only
+a symptom. A requests run produced ``diff_status: "ok"`` on 30 of 32 rows while
+making zero model requests on 29 of them. The diff was read, the pipeline
+decided there was nothing worth asking about, and the artifact could not say
+why. That gap was immediately filled with a guess - that ranking had rejected
+every changed symbol - which the same artifact refutes, because rows rejected
+by ranking carry ``below_risk_threshold`` or ``all_targets_ignored``, not
+``ok``. The bucket is therefore split by the funnel the pipeline already
+computes, and the residual case says out loud that it does not know.
 """
 from __future__ import annotations
 
@@ -53,6 +63,12 @@ Z_95 = 1.959964
 # A row that raised nothing but also called nothing. Distinct from an
 # exception: the pipeline decided there was no work, which is a different
 # diagnosis from the pipeline breaking.
+#
+# These three are ordered from most to least informative. The last one is a
+# confession, not a cause: it means the funnel counts were absent or mutually
+# inconsistent and the artifact cannot say which of the other two happened.
+NO_TARGETS = "no_targets_after_ranking"
+NO_CANDIDATES = "targets_but_no_candidates"
 NO_REQUESTS = "no_model_requests"
 
 
@@ -81,6 +97,45 @@ def upper_bound_95(observed: int, sample: int) -> float | None:
     return round(min(1.0, (centre + margin) / denominator), 3)
 
 
+def _as_int(value: object) -> int | None:
+    """Coerce a recorded count to an int, or None if it was never recorded.
+
+    Absent and zero must stay distinguishable. ``0`` is a measurement -
+    ranking rejected everything. ``None`` is the absence of one, and the two
+    lead to opposite conclusions.
+    """
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def classify_unmeasured(row: dict) -> str | None:
+    """Return the failure bucket for a row, or None if the row measured.
+
+    A row measured if it made at least one model request. Everything else is
+    bucketed by the furthest point the funnel reached, because that is the
+    only thing that distinguishes "this repository has no risky changes" from
+    "generation is broken", and those two demand opposite responses.
+    """
+    error = row.get("error")
+    if error:
+        return str(error).split(":", 1)[0].strip() or "Exception"
+    if (_as_int(row.get("model_requests")) or 0) > 0:
+        return None
+    targets = _as_int(row.get("targets_considered"))
+    candidates = _as_int(row.get("candidates_generated"))
+    if targets is None:
+        return NO_REQUESTS
+    if targets <= 0:
+        return NO_TARGETS
+    if candidates is not None and candidates <= 0:
+        return NO_CANDIDATES
+    return NO_REQUESTS
+
+
 def failure_reasons(rows: list[dict]) -> dict[str, int]:
     """Bucket every unmeasured row by cause, highest count first.
 
@@ -90,11 +145,9 @@ def failure_reasons(rows: list[dict]) -> dict[str, int]:
     """
     counter: Counter[str] = Counter()
     for row in rows:
-        error = row.get("error")
-        if error:
-            counter[str(error).split(":", 1)[0].strip() or "Exception"] += 1
-        elif row.get("model_requests", 0) <= 0:
-            counter[NO_REQUESTS] += 1
+        bucket = classify_unmeasured(row)
+        if bucket is not None:
+            counter[bucket] += 1
     return dict(counter.most_common())
 
 
@@ -114,6 +167,11 @@ def summarize_rows(rows: list[dict], attempted: int) -> dict:
     never says why coverage failed. That is a broken instrument reporting
     correctly rather than a diagnosis, so ``failure_reasons`` and
     ``dominant_failure`` are now part of every summary.
+
+    A fourth survived all three: a dominant cause of ``no_model_requests``,
+    which names where the pipeline stopped and not why. When that is still the
+    dominant bucket, the summary now carries ``diagnosis_gap`` so the artifact
+    states its own limit rather than leaving a reader to supply a cause.
     """
     usable = [
         row for row in rows
@@ -126,6 +184,16 @@ def summarize_rows(rows: list[dict], attempted: int) -> dict:
     bound = upper_bound_95(len(noisy), len(usable)) if publishable else None
     reasons = failure_reasons(rows)
     dominant = next(iter(reasons), None)
+    diagnosis_gap = None
+    if dominant == NO_REQUESTS:
+        diagnosis_gap = (
+            "Dominant cause is undiagnosed. These rows made no model request "
+            "and carry no usable funnel counts, so this artifact cannot say "
+            "whether ranking rejected every changed symbol or generation was "
+            "reached and produced nothing. Do not attribute a cause from this "
+            "file; re-run on a build that records targets_considered and "
+            "candidates_generated per row."
+        )
     return {
         "prs_attempted": attempted,
         "prs_analysed": len(usable),
@@ -148,6 +216,7 @@ def summarize_rows(rows: list[dict], attempted: int) -> dict:
         "gate_ready": gate_ready,
         "failure_reasons": reasons,
         "dominant_failure": dominant,
+        "diagnosis_gap": diagnosis_gap,
         "NOTE": (
             "Rate is withheld unless at least 80% of selected PRs produced "
             "measured results. Every surfaced claim still requires blind human "
@@ -190,6 +259,8 @@ def describe(summary: dict) -> str:
                 f"({count} of {summary.get('prs_errored_or_unmeasured')} "
                 "unmeasured)."
             )
+        if summary.get("diagnosis_gap"):
+            sentence += " That names where the pipeline stopped, not why."
         return sentence
     analysed = summary["prs_analysed"]
     noisy = summary["prs_with_a_report"]
@@ -266,6 +337,14 @@ def main() -> int:
                 "priced": report.priced,
                 "model_requests": getattr(report, "model_requests", 0),
                 "diff_status": getattr(report, "diff_status", None),
+                # The funnel. Without these two a zero-request row is
+                # undiagnosable, and an undiagnosable row invites a guess.
+                "targets_considered": getattr(
+                    report, "targets_considered", None
+                ),
+                "candidates_generated": getattr(
+                    report, "candidates_generated", None
+                ),
                 "model": cfg.model,
                 "claims": [
                     finding.assessment.summary for finding in reported
