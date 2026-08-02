@@ -43,6 +43,14 @@ and the bug was filed as not_measured with diff_status below_risk_threshold -
 a confident cause for a condition never measured. Revision availability is now
 verified and repaired before measuring, and an unrepairable bug gets its own
 status instead of sitting in the catch-rate denominator.
+
+ATTRIBUTION RULE (defect 74): the reason a bug was not measured comes from the
+pipeline's own diff_status, never from the first line of report.errors. On any
+runner without an isolation backend, pipeline.run appends a sandbox advisory to
+report.errors for every bug, so report.errors[0] is that advisory on every row
+whatever actually happened. Run 30754409055 was read as eighteen sandbox
+failures on that basis; the sandbox was not the cause of any of them. See
+eval/unmeasured.py.
 """
 from __future__ import annotations
 
@@ -55,6 +63,11 @@ import sys
 import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from eval.unmeasured import tally as unmeasured_causes  # noqa: E402
+from eval.unmeasured import unmeasured_reason  # noqa: E402
 
 PIP_TIMEOUT_SECONDS = 900
 GIT_TIMEOUT_SECONDS = 900
@@ -91,6 +104,11 @@ class BugResult:
     runner: str = "unknown"
     deps_status: str = "unknown"
     deps_error: str = ""
+    # Defect 74. The reason a bug went unmeasured, taken from the pipeline's
+    # own closed vocabulary rather than guessed from the first line of
+    # report.errors - which, on any runner without an isolation backend, is
+    # the sandbox advisory on every single row. See eval/unmeasured.py.
+    diff_status: str = "ok"
     telemetry: list[dict] = field(default_factory=list)
     reasons: list[str] = field(default_factory=list)
 
@@ -432,6 +450,21 @@ def environment_warnings(results: list[BugResult]) -> list[str]:
             "(over 25%). The differential oracle was rarely exercised, so "
             "this run measures the environment more than the tool."
         )
+    # Defect 74. When every unmeasured bug shares one cause, say so in the
+    # same document as the rate. A uniform cause is a statement about the
+    # harness configuration, not about the model.
+    causes = unmeasured_causes(results)
+    if causes and len(causes) == 1:
+        cause, count = next(iter(causes.items()))
+        if count >= 5:
+            warnings.append(
+                f"all {count} unmeasured bug(s) share one cause: {cause}. "
+                "A single uniform cause is a property of how this sweep was "
+                "configured, not a property of the model. If the cause is "
+                "below_risk_threshold, the risk gate rejected every changed "
+                "function before the model was ever asked - see "
+                "--risk-threshold."
+            )
     return warnings
 
 
@@ -504,6 +537,11 @@ def summarize(results: list[BugResult]) -> dict:
         ),
         # Defect 69. Published beside the rate, never below it.
         "candidate_dispositions": dispositions,
+        # Defect 74. Why the unmeasured bugs were unmeasured, in the
+        # pipeline's own closed vocabulary. Without this a reader has only
+        # free-text error strings to go on, and the loudest of those is a
+        # confinement advisory present on every bug in the run.
+        "unmeasured_causes": unmeasured_causes(results),
         "runner": sorted({r.runner for r in results}),
         "environment_warnings": environment_warnings(results),
         "rate_definition": (
@@ -518,18 +556,21 @@ def summarize(results: list[BugResult]) -> dict:
             "conservative floor. Both exclusions are counted by name above and "
             "bounded by the completion gate, so they cannot silently raise the "
             "rate. conditional_catch_rate is diagnostic only. Read "
-            "candidate_dispositions and environment_warnings before reading "
-            "any rate: a candidate that could not be collected was never given "
-            "the chance to catch anything, and a low rate driven by "
-            "head_uncollectable is a statement about the runner, not the tool. "
-            "Pair with independently adjudicated precision evidence before "
-            "publication."
+            "candidate_dispositions, unmeasured_causes and "
+            "environment_warnings before reading any rate: a candidate that "
+            "could not be collected was never given the chance to catch "
+            "anything, a low rate driven by head_uncollectable is a statement "
+            "about the runner rather than the tool, and a run whose "
+            "unmeasured_causes are entirely below_risk_threshold never asked "
+            "the model anything at all. Pair with independently adjudicated "
+            "precision evidence before publication."
         ),
     }
 
 
 def evaluate_one(spec: BugSpec, repo: Path, model: str, budget: float,
-                 dry_run: bool = False) -> BugResult:
+                 dry_run: bool = False,
+                 risk_threshold: float = 0.35) -> BugResult:
     """Run the jittest pipeline against a single BugsInPy bug.
 
     Uses the INVERTED setup: base = fixed commit, head = buggy commit.
@@ -555,7 +596,7 @@ def evaluate_one(spec: BugSpec, repo: Path, model: str, budget: float,
             "budget_usd": budget,
             "max_targets": 5,
             "candidates_per_target": 4,
-            "risk_threshold": 0.35,
+            "risk_threshold": risk_threshold,
         }
         if model is not None:
             overrides["model"] = model
@@ -597,11 +638,13 @@ def evaluate_one(spec: BugSpec, repo: Path, model: str, budget: float,
         # Loop 7 added Report.diff_status; without reading it, a git failure
         # collapses into "not_measured" and sits in the catch-rate denominator
         # as if the tool had been given its chance and failed.
+        res.diff_status = getattr(report, "diff_status", "ok")
         res.status = classify(res.model_requests, res.catching_candidates,
-                              getattr(report, "diff_status", "ok"))
-        if res.status in ("not_measured", "git_failed") and report.errors \
-                and not res.error:
-            res.error = report.errors[0]
+                              res.diff_status)
+        # Defect 74. report.errors[0] is a sandbox advisory on every bug of
+        # every run without an isolation backend, so it cannot be the cause.
+        if res.status in ("not_measured", "git_failed") and not res.error:
+            res.error = unmeasured_reason(res.diff_status, report.errors)
         res.reasons = [f.assessment.summary for f in report.findings]
         res.telemetry = [t.as_dict() for t in report.telemetry]
         res.seconds = round(time.time() - t0, 1)
@@ -623,6 +666,16 @@ def main() -> int:
     ap.add_argument("--model", default=None,
                     help="Model identifier (default: from config)")
     ap.add_argument("--budget", type=float, default=1.0)
+    ap.add_argument("--risk-threshold", type=float, default=0.35,
+                    help="Risk score a changed function must reach before it "
+                         "is sent to the model. The 0.35 default is tuned for "
+                         "pull requests. A BugsInPy fix is frequently one or "
+                         "two lines inside an existing function, which meets "
+                         "the shipped small-churn penalty, so a sweep left at "
+                         "the default can return every bug as "
+                         "below_risk_threshold. Lowering this changes what is "
+                         "measured and is recorded in the summary so no rate "
+                         "can be read without it.")
     ap.add_argument("--out", type=Path, default=Path("eval-results.json"))
     ap.add_argument("--dry-run", action="store_true",
                     help="Run with a stub model: no network, no key, no cost")
@@ -701,7 +754,8 @@ def main() -> int:
             print(f"  warning: dependency install failed for {spec.project}: "
                   f"{deps_detail}", file=sys.stderr)
 
-        r = evaluate_one(spec, repo, args.model, args.budget, args.dry_run)
+        r = evaluate_one(spec, repo, args.model, args.budget, args.dry_run,
+                         risk_threshold=args.risk_threshold)
         r.runner = runner
         r.deps_status = deps_status
         r.deps_error = deps_detail if deps_status == "install-failed" else ""
@@ -714,6 +768,8 @@ def main() -> int:
               f"{r.error}", file=sys.stderr)
 
     summary = summarize(results)
+    # Defect 74. The condition a rate was measured under travels with it.
+    summary["risk_threshold"] = args.risk_threshold
     args.out.write_text(json.dumps(
         {"summary": summary, "results": [asdict(r) for r in results]}, indent=2
     ))
