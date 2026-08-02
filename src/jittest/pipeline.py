@@ -164,7 +164,11 @@ def run(
                     if not code or P.NO_CANDIDATE in code:
                         _bump(report.discarded, "model_declined")
                         _telemetry(report, t, rs, attempt, "model_declined")
-                        continue
+                        remaining = cfg.candidates_per_target - attempt
+                        if remaining > 0:
+                            _bump(report.discarded, "model_declined_short_circuit", count=remaining)
+                        break
+
 
                     import ast as _ast
                     try:
