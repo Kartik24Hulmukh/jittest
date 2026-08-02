@@ -23,7 +23,14 @@ from .config import Config
 from .diff import GitError, extract_targets, git_diff
 from .execute import Worktree, differential_check
 from .ledger import Candidate, Ledger
-from .llm import BaseLLM, BudgetExceeded, LLMError, strip_code_fence
+from .llm import (
+    BaseLLM,
+    BudgetExceeded,
+    LLMError,
+    RateLimitedError,
+    TimedOutError,
+    strip_code_fence,
+)
 from .results import DISPOSITIONS, CandidateTelemetry, Finding, Report
 from .risk import RiskScore, rank
 from .safety import check_candidate
@@ -175,6 +182,18 @@ def run(
                         report.errors.append(str(exc))
                         emit("budget exhausted, stopping generation")
                         break
+                    except RateLimitedError as exc:
+                        report.errors.append(f"rate limited: {exc}")
+                        _bump(report.discarded, "rate_limited")
+                        _telemetry(report, t, rs, attempt, "rate_limited",
+                                   check_reason=str(exc))
+                        continue
+                    except TimedOutError as exc:
+                        report.errors.append(f"timed out: {exc}")
+                        _bump(report.discarded, "timed_out")
+                        _telemetry(report, t, rs, attempt, "timed_out",
+                                   check_reason=str(exc))
+                        continue
                     except LLMError as exc:
                         report.errors.append(f"model error: {exc}")
                         _bump(report.discarded, "model_error")

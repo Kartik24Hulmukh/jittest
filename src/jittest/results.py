@@ -27,6 +27,8 @@ _PRE_ORACLE_DISPOSITIONS = (
     "model_declined",          # model returned NO_CANDIDATE or empty
     "parse_failed",            # response could not be parsed as code
     "safety_rejected",         # static safety gate rejected the candidate
+    "rate_limited",            # model request was rate limited after retries
+    "timed_out",               # model request timed out on all retries
 )
 
 DISPOSITIONS = _PRE_ORACLE_DISPOSITIONS + tuple(d.value for d in Disposition)
