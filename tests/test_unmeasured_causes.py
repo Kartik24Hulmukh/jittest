@@ -17,16 +17,20 @@ steps including the dependency-free one.
 """
 from __future__ import annotations
 
+import inspect
 import sys
 import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from eval.run_bugsinpy import BugResult, summarize  # noqa: E402
-from eval.unmeasured import NO_CAUSE, is_sandbox_advisory  # noqa: E402
-from eval.unmeasured import tally as unmeasured_causes  # noqa: E402
-from eval.unmeasured import unmeasured_reason  # noqa: E402
+from eval.run_bugsinpy import BugResult, evaluate_one, summarize  # noqa: E402
+from eval.unmeasured import (  # noqa: E402
+    NO_CAUSE,
+    is_sandbox_advisory,
+    tally as unmeasured_causes,
+    unmeasured_reason,
+)
 
 UNCONFINED = (
     "no container or namespace backend found (looked for podman, docker, "
@@ -125,10 +129,6 @@ class UnmeasuredCauseHistogram(unittest.TestCase):
 
 class DefaultsAreUnchanged(unittest.TestCase):
     def test_the_default_risk_threshold_is_still_the_shipped_one(self) -> None:
-        import inspect
-
-        from eval.run_bugsinpy import evaluate_one
-
         default = inspect.signature(evaluate_one).parameters["risk_threshold"].default
         self.assertEqual(default, 0.35)
 
