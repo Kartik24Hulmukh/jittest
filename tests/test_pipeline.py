@@ -14,7 +14,7 @@ import unittest
 from pathlib import Path
 
 from jittest.config import Config
-from jittest.llm import DryRunLLM
+from jittest.llm import DryRunLLM, RateLimitedError, TimedOutError
 from jittest.pipeline import import_path_for, run
 from jittest.report import MARKER, to_markdown, to_terminal
 
@@ -259,6 +259,26 @@ class TestCandidateTelemetry(unittest.TestCase):
             # Backwards range: base is v2, head is v1
             report = run(repo, b, h, cfg(), llm)
             self.assertEqual(report.diff_status, "inverted_range")
+
+    def test_rate_limited_disposition(self):
+        class ErrorLLM(DryRunLLM):
+            def complete(self, system: str, user: str, n: int = 1, temperature: float | None = None) -> list[str]:
+                raise RateLimitedError("rate limited by provider")
+
+        with FixtureRepo() as repo:
+            report = run(repo.path, repo.base, repo.head, cfg(candidates_per_target=1), ErrorLLM())
+        self.assertEqual(report.discarded.get("rate_limited"), 1)
+        self.assertEqual(report.telemetry[0].disposition, "rate_limited")
+
+    def test_timed_out_disposition(self):
+        class ErrorLLM(DryRunLLM):
+            def complete(self, system: str, user: str, n: int = 1, temperature: float | None = None) -> list[str]:
+                raise TimedOutError("timed out on provider")
+
+        with FixtureRepo() as repo:
+            report = run(repo.path, repo.base, repo.head, cfg(candidates_per_target=1), ErrorLLM())
+        self.assertEqual(report.discarded.get("timed_out"), 1)
+        self.assertEqual(report.telemetry[0].disposition, "timed_out")
 
 
 if __name__ == "__main__":

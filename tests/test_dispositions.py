@@ -45,7 +45,7 @@ class TestDispositionVocabulary(unittest.TestCase):
         self.assertEqual(len(DISPOSITIONS), len(set(DISPOSITIONS)))
 
     def test_pre_oracle_dispositions_are_still_present(self):
-        for value in ("model_declined", "parse_failed", "safety_rejected"):
+        for value in ("model_declined", "parse_failed", "safety_rejected", "rate_limited", "timed_out"):
             self.assertIn(value, DISPOSITIONS)
 
     def test_endings_that_used_to_collapse_are_now_distinct(self):
