@@ -96,9 +96,29 @@ def run(
                 f"{len(kept)} changed symbol(s) were all scored below the risk "
                 f"threshold of {cfg.risk_threshold}, so nothing was analysed. "
                 f"Lower `risk_threshold` to widen the net.")
+        elif not all_targets:
+            import subprocess
+            res = subprocess.run(
+                ["git", "-C", str(repo), "merge-base", "--is-ancestor", head, base],
+                capture_output=True
+            )
+            has_py = any(
+                line.startswith("diff --git a/") and line.strip().endswith(".py")
+                for line in diff_text.splitlines()
+            )
+            if res.returncode == 0:
+                report.diff_status = "inverted_range"
+                report.errors.append("head revision is an ancestor of base (inverted revision range).")
+            elif not has_py:
+                report.diff_status = "no_python_in_diff"
+                report.errors.append("diff contains no changed Python files.")
+            else:
+                report.diff_status = "no_targets_after_ranking"
+                report.errors.append("no changed Python functions or classes were extracted from diff.")
         report.model_requests = llm.usage.calls
         report.duration_s = time.time() - started
         return report
+
 
     # Decided once up front: "required" raises rather than running unconfined.
     try:

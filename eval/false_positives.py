@@ -206,11 +206,17 @@ def classify_unmeasured(row: dict) -> str | None:
         return str(error).split(":", 1)[0].strip() or "Exception"
     if (_as_int(row.get("model_requests")) or 0) > 0:
         return None
+    diff_status = row.get("diff_status")
+    if diff_status in ("no_python_in_diff", "inverted_range", "all_targets_ignored", "below_risk_threshold", "sandbox_unavailable", "git_failed", "empty"):
+        return diff_status
     targets = _as_int(row.get("targets_considered"))
     candidates = _as_int(row.get("candidates_generated"))
     if targets is None:
         return NO_REQUESTS
     if targets <= 0:
+        python_files = _as_int(row.get("python_files_changed"))
+        if python_files == 0:
+            return NO_PYTHON
         return NO_TARGETS
     if candidates is not None and candidates <= 0:
         return NO_CANDIDATES

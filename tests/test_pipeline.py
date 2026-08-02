@@ -8,7 +8,10 @@ deterministic.
 from __future__ import annotations
 
 import json
+import subprocess
+import tempfile
 import unittest
+from pathlib import Path
 
 from jittest.config import Config
 from jittest.llm import DryRunLLM
@@ -216,6 +219,49 @@ class TestCandidateTelemetry(unittest.TestCase):
         self.assertEqual(report.discarded.get("model_declined_short_circuit"), 3)
 
 
+    def test_non_python_diff_sets_no_python_in_diff(self):
+        llm = DryRunLLM()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            subprocess.run(["git", "init"], cwd=repo, capture_output=True, check=True)
+            subprocess.run(["git", "config", "user.name", "Test"], cwd=repo, capture_output=True, check=True)
+            subprocess.run(["git", "config", "user.email", "test@test.com"], cwd=repo, capture_output=True, check=True)
+
+            (repo / "README.md").write_text("# Hello\n")
+            subprocess.run(["git", "add", "."], cwd=repo, capture_output=True, check=True)
+            subprocess.run(["git", "commit", "-m", "base"], cwd=repo, capture_output=True, check=True)
+            b = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+
+            (repo / "README.md").write_text("# Hello World\n")
+            subprocess.run(["git", "commit", "-am", "head"], cwd=repo, capture_output=True, check=True)
+            h = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+
+            report = run(repo, b, h, cfg(), llm)
+            self.assertEqual(report.diff_status, "no_python_in_diff")
+
+    def test_inverted_range_sets_inverted_range(self):
+        llm = DryRunLLM()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            subprocess.run(["git", "init"], cwd=repo, capture_output=True, check=True)
+            subprocess.run(["git", "config", "user.name", "Test"], cwd=repo, capture_output=True, check=True)
+            subprocess.run(["git", "config", "user.email", "test@test.com"], cwd=repo, capture_output=True, check=True)
+
+            (repo / "app.py").write_text("def v1(): pass\n")
+            subprocess.run(["git", "add", "."], cwd=repo, capture_output=True, check=True)
+            subprocess.run(["git", "commit", "-m", "v1"], cwd=repo, capture_output=True, check=True)
+            h = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+
+            (repo / "app.py").write_text("def v1(): pass\ndef v2(): pass\n")
+            subprocess.run(["git", "commit", "-am", "v2"], cwd=repo, capture_output=True, check=True)
+            b = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+
+            # Backwards range: base is v2, head is v1
+            report = run(repo, b, h, cfg(), llm)
+            self.assertEqual(report.diff_status, "inverted_range")
+
+
 if __name__ == "__main__":
     unittest.main()
+
 
