@@ -27,19 +27,36 @@ Everything else is reported beside the verdict as a count, never inside it. A
 row that ranking accepted is not evidence about ranking, and letting it move
 ranking's median - in either direction - is the same class of error as
 quoting a maximum to describe a sample.
+
+Import note: the package-qualified form is tried first because that is how the
+test suite reaches this package. Importing the same file under two names gives
+two class objects named ``ContaminatedPopulation``, and an ``except`` clause
+naming one will not catch the other.
 """
 from __future__ import annotations
 
-from failure_taxonomy import (  # noqa: F401
-    ALL_BELOW_THRESHOLD,
-    CAUSE_NOT_RECORDED,
-    DEFAULT_RISK_THRESHOLD,
-    NO_FUNCTIONS_EXTRACTED,
-    SCORED_BUT_NOT_ANALYSED,
-    _as_float,
-    classify_row,
-    distribution_verdict,
-)
+try:  # pragma: no cover - exercised by whichever path the caller uses
+    from eval.failure_taxonomy import (
+        ALL_BELOW_THRESHOLD,
+        CAUSE_NOT_RECORDED,
+        DEFAULT_RISK_THRESHOLD,
+        NO_FUNCTIONS_EXTRACTED,
+        SCORED_BUT_NOT_ANALYSED,
+        _as_float,
+        classify_row,
+        distribution_verdict,
+    )
+except ImportError:  # pragma: no cover - direct execution from inside eval/
+    from failure_taxonomy import (
+        ALL_BELOW_THRESHOLD,
+        CAUSE_NOT_RECORDED,
+        DEFAULT_RISK_THRESHOLD,
+        NO_FUNCTIONS_EXTRACTED,
+        SCORED_BUT_NOT_ANALYSED,
+        _as_float,
+        classify_row,
+        distribution_verdict,
+    )
 
 # The only cause whose scores describe what ranking did. Deliberately a tuple
 # of one rather than an inline comparison, so that adding a second ranking
