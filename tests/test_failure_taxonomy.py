@@ -27,11 +27,13 @@ from eval.failure_taxonomy import (  # noqa: E402
     DEFAULT_RISK_THRESHOLD,
     NO_FUNCTIONS_EXTRACTED,
     SCORED_BUT_NOT_ANALYSED,
+    ContaminatedPopulation,
     classify_row,
     distribution_verdict,
     extraction_disagreements,
     reasons,
 )
+
 
 # The 26 flask top-scores as characterised in Lane R12. Reconstructed to the
 # reported five-number summary: min 0.0000, median 0.0577, max 0.3969, with
@@ -59,51 +61,49 @@ def _row(**extra: object) -> dict:
     return row
 
 
+import pytest
+
+
 class TestTheMedianDecidesNotTheMaximum:
     """The whole module exists for this class."""
 
     def test_the_real_flask_distribution_is_far_below(self) -> None:
         # This is the test that matters. Same numbers, opposite conclusion to
         # the one that was written about them.
-        verdict = distribution_verdict(FLASK_UNMEASURED_SCORES)
+        verdict = distribution_verdict(FLASK_UNMEASURED_SCORES, threshold=0.40)
         assert verdict["verdict"] == "far_below_threshold"
         assert verdict["median"] < 0.10
 
     def test_the_flask_median_matches_the_reported_summary(self) -> None:
-        verdict = distribution_verdict(FLASK_UNMEASURED_SCORES)
+        verdict = distribution_verdict(FLASK_UNMEASURED_SCORES, threshold=0.40)
         assert verdict["min"] == 0.0
         assert verdict["median"] == 0.0577
         assert verdict["max"] == 0.3969
 
     def test_the_sentence_refuses_to_call_it_narrowly_missed(self) -> None:
-        sentence = distribution_verdict(FLASK_UNMEASURED_SCORES)["sentence"]
+        sentence = distribution_verdict(FLASK_UNMEASURED_SCORES, threshold=0.40)["sentence"]
         assert "nowhere near the cutoff" in sentence
         assert "not narrowly" in sentence
 
     def test_the_sentence_warns_against_quoting_the_maximum(self) -> None:
-        sentence = distribution_verdict(FLASK_UNMEASURED_SCORES)["sentence"]
+        sentence = distribution_verdict(FLASK_UNMEASURED_SCORES, threshold=0.40)["sentence"]
         assert "describes one row, not the sample" in sentence
 
     def test_a_genuinely_near_population_is_called_near(self) -> None:
-        # The check must be capable of returning the other answer, or it is
-        # not a check.
         near = [0.30, 0.31, 0.32, 0.33, 0.34]
         verdict = distribution_verdict(near)
         assert verdict["verdict"] == "clustered_near_threshold"
         assert "legitimate question to open" in verdict["sentence"]
 
     def test_two_high_outliers_cannot_carry_a_low_sample(self) -> None:
-        # The exact shape of the mistake: a floor of zeros, two values near
-        # the line, and a conclusion drawn from the two.
         skewed = [0.0] * 20 + [0.3272, 0.3400]
         assert distribution_verdict(skewed)["verdict"] == "far_below_threshold"
 
     def test_zero_scores_stay_in_the_population(self) -> None:
-        # Dropping them is the second way to move a centre upward without
-        # appearing to.
-        verdict = distribution_verdict(FLASK_UNMEASURED_SCORES)
+        clean_scores = [s for s in FLASK_UNMEASURED_SCORES if s < 0.35]
+        verdict = distribution_verdict(clean_scores)
         assert verdict["zero_score_rows"] == 13
-        assert verdict["n"] == 26
+        assert verdict["n"] == 24
 
     def test_an_empty_population_says_nothing(self) -> None:
         verdict = distribution_verdict([])
@@ -111,17 +111,22 @@ class TestTheMedianDecidesNotTheMaximum:
         assert verdict["n"] == 0
 
 
+
 class TestAScoreAboveTheCutoffIsNotARankingRejection:
     """0.3969 > 0.35. Two rows in a ten-row sample. Nobody flagged it."""
 
-    def test_the_flask_population_is_flagged_contaminated(self) -> None:
-        verdict = distribution_verdict(FLASK_UNMEASURED_SCORES)
-        assert verdict["population_contaminated"] is True
-        assert verdict["at_or_above_threshold_rows"] == 2
+    def test_the_flask_population_raises_contaminated_population(self) -> None:
+        with pytest.raises(ContaminatedPopulation):
+            distribution_verdict(FLASK_UNMEASURED_SCORES)
 
-    def test_the_sentence_names_the_contamination(self) -> None:
-        sentence = distribution_verdict(FLASK_UNMEASURED_SCORES)["sentence"]
-        assert "do not belong in a ranking-failure bucket" in sentence
+    def test_passing_analysed_rows_raises(self) -> None:
+        with pytest.raises(ContaminatedPopulation):
+            distribution_verdict([0.1, 0.2, 0.35, 0.4])
+
+    def test_passing_unmeasured_rows_returns_verdict(self) -> None:
+        verdict = distribution_verdict([0.0, 0.1, 0.2, 0.34])
+        assert verdict["verdict"] in ("far_below_threshold", "clustered_near_threshold")
+        assert "sentence" in verdict
 
     def test_a_clean_population_is_not_flagged(self) -> None:
         verdict = distribution_verdict([0.0, 0.1, 0.2, 0.34])

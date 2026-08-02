@@ -145,6 +145,15 @@ def classify_row(
     return ALL_BELOW_THRESHOLD
 
 
+class ContaminatedPopulation(ValueError):
+    """Raised when distribution_verdict receives scores at or above the threshold.
+
+    Scores >= threshold belong to rows that were scored and accepted by ranking,
+    so passing them to an unanalysed/ranking-failure taxonomy analysis means
+    the input population is contaminated with analysed or downstream-filtered rows.
+    """
+
+
 def distribution_verdict(
     scores: list[float], threshold: float = DEFAULT_RISK_THRESHOLD
 ) -> dict:
@@ -181,6 +190,12 @@ def distribution_verdict(
     over = [value for value in clean if value >= threshold]
     zeros = [value for value in clean if value == 0.0]
 
+    if over:
+        raise ContaminatedPopulation(
+            f"{len(over)} row(s) scored at or above the threshold (max {high:.4f}); "
+            "those were not rejected by ranking and cannot be passed to distribution_verdict."
+        )
+
     clustered = mid >= threshold - NEAR_BAND
     verdict = "clustered_near_threshold" if clustered else "far_below_threshold"
 
@@ -200,12 +215,6 @@ def distribution_verdict(
             "sample, and must not be quoted as though it did."
         )
 
-    if over:
-        sentence += (
-            f" {len(over)} row(s) scored at or above the threshold "
-            f"(max {high:.4f}); those were not rejected by ranking and do not "
-            "belong in a ranking-failure bucket at all."
-        )
 
     return {
         "n": len(clean),
