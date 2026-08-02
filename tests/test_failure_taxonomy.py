@@ -19,6 +19,8 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from eval.failure_taxonomy import (  # noqa: E402
@@ -33,7 +35,6 @@ from eval.failure_taxonomy import (  # noqa: E402
     extraction_disagreements,
     reasons,
 )
-
 
 # The 26 flask top-scores as characterised in Lane R12. Reconstructed to the
 # reported five-number summary: min 0.0000, median 0.0577, max 0.3969, with
@@ -59,9 +60,6 @@ def _row(**extra: object) -> dict:
     }
     row.update(extra)
     return row
-
-
-import pytest
 
 
 class TestTheMedianDecidesNotTheMaximum:
@@ -109,7 +107,6 @@ class TestTheMedianDecidesNotTheMaximum:
         verdict = distribution_verdict([])
         assert verdict["verdict"] == "no_scores"
         assert verdict["n"] == 0
-
 
 
 class TestAScoreAboveTheCutoffIsNotARankingRejection:
