@@ -80,6 +80,15 @@ ninety-day lag is not arbitrary; it is the settling time that gives
 had the chance to be reverted. So the default does not move. The window becomes
 an explicit parameter that is recorded in the artifact, and any run that
 narrows it must say so in the sentence it publishes.
+
+On names: the sixth version of this mistake was not in a number at all, it was
+in a label. A run over 40 flask merges reported ``model_requests_total: 0`` and
+``targets_but_no_candidates: 25`` in the same object. The second name asserts
+that generation was reached and declined; the first says nothing was ever
+asked. A reader given both believed the more specific one and reported a cause
+the data did not contain. A bucket name is an assertion, it is published
+wherever the histogram is published, and it must claim no more than the funnel
+recorded. See ``NO_CANDIDATES``.
 """
 from __future__ import annotations
 
@@ -124,12 +133,35 @@ MIN_ELIGIBLE_SAMPLE = 20
 # exception: the pipeline decided there was no work, which is a different
 # diagnosis from the pipeline breaking.
 #
-# These three are ordered from most to least informative. The last one is a
+# These are ordered from most to least informative. The residual one is a
 # confession, not a cause: it means the funnel counts were absent or mutually
-# inconsistent and the artifact cannot say which of the other two happened.
+# inconsistent and the artifact cannot say which of the others happened.
 NO_TARGETS = "no_targets_after_ranking"
-NO_CANDIDATES = "targets_but_no_candidates"
+
+# Defect 76. This bucket was called "targets_but_no_candidates", a name that
+# asserts generation was reached and returned nothing. It cannot mean that.
+# classify_unmeasured returns None for any row with model_requests > 0, so a
+# row can only ever reach this branch having made zero requests: the model was
+# never asked at all. The old name stated the opposite of what the funnel
+# recorded, and a flask run of 40 PRs published it as the dominant cause of 25
+# of them while model_requests_total was 0 in the same artifact. A reader
+# comparing those two lines has to conclude one of them is lying.
+#
+# The name now claims only what is known: targets survived ranking and no
+# request was sent. Why no request was sent is not known from this file, which
+# is what the diagnosis_gap below is for.
+NO_CANDIDATES = "generation_made_no_request"
+
 NO_REQUESTS = "no_model_requests"
+
+# Defect 75. classify_unmeasured returns this name on the "targets were zero
+# and the diff changed no Python" path, and the name was never defined, so
+# that branch raised NameError instead of returning a bucket. ci.yml runs
+# `ruff check src tests` - eval/ is outside its scope, so F821 never looked at
+# this file - and no test reached the branch. Both of those are why an
+# undefined name survived in a module whose entire purpose is to refuse to
+# report numbers it cannot support.
+NO_PYTHON = "no_python_in_diff"
 
 
 def upper_bound_95(observed: int, sample: int) -> float | None:
@@ -200,6 +232,10 @@ def classify_unmeasured(row: dict) -> str | None:
     bucketed by the furthest point the funnel reached, because that is the
     only thing that distinguishes "this repository has no risky changes" from
     "generation is broken", and those two demand opposite responses.
+
+    Note the ordering consequence: the early return on ``model_requests > 0``
+    means every branch below it describes a row that never called the model.
+    No bucket returned from here may imply otherwise.
     """
     error = row.get("error")
     if error:
@@ -277,6 +313,11 @@ def summarize_rows(
     run over two years of settled history from a run over last fortnight, and
     those two support very different sentences.
 
+    A seventh was a bucket name rather than a number: see ``NO_CANDIDATES``.
+    The gap it now carries exists because renaming it removed a false cause
+    without supplying a true one, and an empty space is where the next guess
+    goes.
+
     ``attempted`` is the eligible population. ``screened_out`` is how many
     candidate merges were rejected before analysis; it is reported so the
     ineligible population stays visible rather than vanishing from the record.
@@ -296,7 +337,20 @@ def summarize_rows(
     dominant = next(iter(reasons), None)
     since, until = window if window else (DEFAULT_SINCE, DEFAULT_UNTIL)
     diagnosis_gap = None
-    if dominant == NO_REQUESTS:
+    if dominant == NO_CANDIDATES:
+        diagnosis_gap = (
+            "Dominant cause is a contradiction, not a diagnosis. These rows "
+            "extracted targets that survived ranking and then sent no model "
+            "request, so nothing declined to generate a candidate - nothing "
+            "was asked. Three paths reach here without raising: a response "
+            "cache hit, a budget or request-ceiling guard that short-circuits "
+            "before the first POST, and a generation step that returns empty "
+            "on every ranked target. This artifact cannot say which. Re-run "
+            "with the response cache disabled and read the per-row telemetry "
+            "before attributing a cause, and do not read this bucket as "
+            "evidence about the model or the repository."
+        )
+    elif dominant == NO_REQUESTS:
         diagnosis_gap = (
             "Dominant cause is undiagnosed. These rows made no model request "
             "and carry no usable funnel counts, so this artifact cannot say "
@@ -349,7 +403,9 @@ def summarize_rows(
             "A withheld rate is not a finding. Compare dominant_failure across "
             "repositories before concluding anything about jittest: a harness "
             "that scores 32/40 on one codebase and 3/32 on another is "
-            "reporting a property of the codebases until proven otherwise."
+            "reporting a property of the codebases until proven otherwise. "
+            "Every bucket below the measured line describes a row that never "
+            "called the model; none of them is evidence about the model."
         ),
         "ELIGIBILITY_NOTE": (
             "prs_attempted counts only merges whose diff touched at least one "
