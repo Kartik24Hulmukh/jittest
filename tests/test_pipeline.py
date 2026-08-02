@@ -73,7 +73,9 @@ class TestPipeline(unittest.TestCase):
             report = run(repo.path, repo.base, repo.head, cfg(), llm)
         self.assertEqual(report.findings, [])
         self.assertEqual(report.candidates_generated, 0)
-        self.assertEqual(report.discarded.get("model_declined"), 2)
+        self.assertEqual(report.discarded.get("model_declined"), 1)
+        self.assertEqual(report.discarded.get("model_declined_short_circuit"), 1)
+
 
     def test_unsafe_candidates_never_reach_the_oracle(self):
         unsafe = "import socket\n\n\ndef test_x():\n    assert socket\n"
@@ -205,5 +207,15 @@ class TestCandidateTelemetry(unittest.TestCase):
         self.assertTrue(isinstance(d["telemetry"], list))
 
 
+    def test_model_decline_short_circuits_attempt_loop(self):
+        llm = DryRunLLM(scripted=["# NO_CANDIDATE"])
+        with FixtureRepo() as repo:
+            report = run(repo.path, repo.base, repo.head, cfg(candidates_per_target=4, max_targets=1), llm)
+        self.assertEqual(llm.usage.calls, 1)
+        self.assertEqual(report.discarded.get("model_declined"), 1)
+        self.assertEqual(report.discarded.get("model_declined_short_circuit"), 3)
+
+
 if __name__ == "__main__":
     unittest.main()
+

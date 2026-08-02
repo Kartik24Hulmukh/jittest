@@ -59,8 +59,9 @@ def _repro(base: str, head: str, file_hint: str) -> str:
             f"git checkout {base[:12]} && pytest {file_hint} -q   # expect PASS")
 
 
-def _bump(counter: dict[str, int], key: str) -> None:
-    counter[key] = counter.get(key, 0) + 1
+def _bump(counter: dict[str, int], key: str, count: int = 1) -> None:
+    counter[key] = counter.get(key, 0) + count
+
 
 
 def _disposition_from_verdict(verdict) -> str:
