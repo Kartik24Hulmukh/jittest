@@ -16,8 +16,9 @@ Usage:
     python eval/false_positives.py --repo ~/src/requests --count 5 --dry-run
 
 Selection heuristic: merge commits older than 90 days whose own merge subject
-does not contain revert, hotfix, regression, or rollback. This does not prove
-cleanliness and must not be described as doing so.
+does not contain revert, hotfix, regression, or rollback, and whose diff
+touches at least one Python file. This does not prove cleanliness and must not
+be described as doing so.
 
 On zero findings: a run that surfaces no claims does not have a 0% false
 positive rate. It has an *unknown* rate whose 95% upper bound is 3/n (the rule
@@ -43,6 +44,25 @@ every changed symbol - which the same artifact refutes, because rows rejected
 by ranking carry ``below_risk_threshold`` or ``all_targets_ignored``, not
 ``ok``. The bucket is therefore split by the funnel the pipeline already
 computes, and the residual case says out loud that it does not know.
+
+On eligibility: the split finished the trace, and the answer was that nothing
+was broken. The dominant bucket became ``no_targets_after_ranking``, and the
+first row traced by hand had changed exactly one file,
+``.github/workflows/publish.yml``. No Python, no functions, no targets. jittest
+did the right thing and the harness scored it as a failed measurement.
+
+That is a denominator defect, and it is more dangerous than the two bugs above
+it, because it does not withhold a number - it produces a wrong one that looks
+reasonable. A completion rate of 0.094 divided by 32 PRs that were never
+eligible was reporting requests' merge habits as a property of jittest. The
+same arithmetic infects the published youtube-dl bound: the rule of three uses
+n, and if the eligible n was smaller than 32 then 3/n is larger than 9.4%, so
+the bound is too tight and must be recomputed before it is quoted again.
+
+Selection now screens on Python content. Because shrinking a denominator makes
+a gate easier to pass, the fix ships with a floor as well as a filter: see
+``MIN_ELIGIBLE_SAMPLE``. A filter alone would have turned a visible collapse
+into an invisible three-sample success.
 """
 from __future__ import annotations
 
@@ -59,6 +79,15 @@ SUSPECT = re.compile(r"\b(revert|hotfix|regression|rollback)\b", re.I)
 
 # Two-sided 95% normal quantile, used for the Wilson interval.
 Z_95 = 1.959964
+
+# The smallest eligible sample this module will let anyone publish from.
+#
+# Screening ineligible PRs out of the denominator is correct and it is also
+# exactly the kind of change that turns a loud failure into a quiet false
+# success: three eligible PRs, three measured, completion 1.00, gate green.
+# At n=20 with zero findings the rule of three still only bounds the rate
+# below 15%, which is honest about how little twenty PRs can establish.
+MIN_ELIGIBLE_SAMPLE = 20
 
 # A row that raised nothing but also called nothing. Distinct from an
 # exception: the pipeline decided there was no work, which is a different
@@ -112,6 +141,16 @@ def _as_int(value: object) -> int | None:
         return None
 
 
+def is_python_path(path: str) -> bool:
+    """Return True for a path jittest could conceivably analyse.
+
+    Deliberately narrow. A .pyi stub declares no executable behaviour to catch
+    a regression in, and a .ipynb is not something the diff parser reads, so
+    neither makes a PR eligible on its own.
+    """
+    return path.strip().endswith(".py")
+
+
 def classify_unmeasured(row: dict) -> str | None:
     """Return the failure bucket for a row, or None if the row measured.
 
@@ -151,7 +190,9 @@ def failure_reasons(rows: list[dict]) -> dict[str, int]:
     return dict(counter.most_common())
 
 
-def summarize_rows(rows: list[dict], attempted: int) -> dict:
+def summarize_rows(
+    rows: list[dict], attempted: int, screened_out: int | None = None
+) -> dict:
     """Withhold the rate when coverage is too low to support it.
 
     An earlier version divided by ``max(len(usable), 1)``. Zero work therefore
@@ -172,6 +213,16 @@ def summarize_rows(rows: list[dict], attempted: int) -> dict:
     which names where the pipeline stopped and not why. When that is still the
     dominant bucket, the summary now carries ``diagnosis_gap`` so the artifact
     states its own limit rather than leaving a reader to supply a cause.
+
+    A fifth was not in this function at all. It was in the denominator handed
+    to it: PRs that changed no Python counted as failed measurements, so a
+    correct no-op looked like a broken pipeline. Selection screens them out
+    now, and ``sample_floor_met`` exists so that the smaller denominator
+    cannot quietly promote three eligible PRs into a publishable result.
+
+    ``attempted`` is the eligible population. ``screened_out`` is how many
+    candidate merges were rejected before analysis; it is reported so the
+    ineligible population stays visible rather than vanishing from the record.
     """
     usable = [
         row for row in rows
@@ -180,6 +231,7 @@ def summarize_rows(rows: list[dict], attempted: int) -> dict:
     noisy = [row for row in usable if row.get("reported", 0) > 0]
     completion = len(usable) / attempted if attempted else 0.0
     gate_ready = attempted > 0 and completion >= MIN_COMPLETION_RATE
+    sample_floor_met = len(usable) >= MIN_ELIGIBLE_SAMPLE
     publishable = bool(gate_ready and usable)
     bound = upper_bound_95(len(noisy), len(usable)) if publishable else None
     reasons = failure_reasons(rows)
@@ -196,6 +248,7 @@ def summarize_rows(rows: list[dict], attempted: int) -> dict:
         )
     return {
         "prs_attempted": attempted,
+        "prs_screened_out_as_ineligible": screened_out,
         "prs_analysed": len(usable),
         "prs_errored_or_unmeasured": attempted - len(usable),
         "model_requests_total": sum(
@@ -214,6 +267,9 @@ def summarize_rows(rows: list[dict], attempted: int) -> dict:
             round(100 * bound, 1) if bound is not None else None
         ),
         "gate_ready": gate_ready,
+        "eligible_sample_floor": MIN_ELIGIBLE_SAMPLE,
+        "sample_floor_met": sample_floor_met,
+        "publishable": bool(gate_ready and sample_floor_met),
         "failure_reasons": reasons,
         "dominant_failure": dominant,
         "diagnosis_gap": diagnosis_gap,
@@ -233,6 +289,14 @@ def summarize_rows(rows: list[dict], attempted: int) -> dict:
             "repositories before concluding anything about jittest: a harness "
             "that scores 32/40 on one codebase and 3/32 on another is "
             "reporting a property of the codebases until proven otherwise."
+        ),
+        "ELIGIBILITY_NOTE": (
+            "prs_attempted counts only merges whose diff touched at least one "
+            "Python file. A PR that changes no Python is not a failed "
+            "measurement and never enters the denominator. Any bound computed "
+            "from an unscreened denominator - including the 9.4% youtube-dl "
+            "figure - used too large an n and is therefore too tight. "
+            "Recompute before quoting."
         ),
     }
 
@@ -265,6 +329,14 @@ def describe(summary: dict) -> str:
     analysed = summary["prs_analysed"]
     noisy = summary["prs_with_a_report"]
     bound = summary["false_positive_rate_upper_bound_95"]
+    if not summary.get("sample_floor_met", True):
+        return (
+            f"Coverage held, but only {analysed} eligible PRs were measured, "
+            f"below the floor of {summary.get('eligible_sample_floor')}. A "
+            "sample this small cannot separate a good tool from a lucky one, "
+            "and screening ineligible PRs out of the denominator makes small "
+            "samples easy to produce. No rate is published from this run."
+        )
     if noisy == 0:
         return (
             f"No false positives surfaced on {analysed} apparently uneventful "
@@ -296,13 +368,22 @@ def main() -> int:
         "--dry-run", action="store_true",
         help="Run with a stub model: no network, no key, no cost",
     )
+    parser.add_argument(
+        "--no-python-filter", action="store_true",
+        help=(
+            "Reproduce pre-screening selection, including PRs that change no "
+            "Python. Diagnostic only: the resulting denominator is wrong."
+        ),
+    )
     args = parser.parse_args()
 
     from jittest.config import load_config
     from jittest.llm import build_llm
     from jittest.pipeline import run as run_pipeline
 
-    pairs = clean_merges(args.repo, args.count)
+    pairs, screened_out = select_pairs(
+        args.repo, args.count, require_python=not args.no_python_filter
+    )
     rows: list[dict] = []
     for base, head in pairs:
         try:
@@ -345,6 +426,9 @@ def main() -> int:
                 "candidates_generated": getattr(
                     report, "candidates_generated", None
                 ),
+                "python_files_changed": len(
+                    changed_python_files(args.repo, base, head)
+                ),
                 "model": cfg.model,
                 "claims": [
                     finding.assessment.summary for finding in reported
@@ -359,7 +443,7 @@ def main() -> int:
                 "model_requests": 0,
             })
 
-    summary = summarize_rows(rows, len(pairs))
+    summary = summarize_rows(rows, len(pairs), screened_out=screened_out)
     args.out.write_text(
         json.dumps({"summary": summary, "results": rows}, indent=2),
         encoding="utf-8",
@@ -371,6 +455,12 @@ def main() -> int:
         print(
             "FAIL: insufficient measured PRs; refusing to publish a "
             "false-positive rate"
+        )
+        return 1
+    if not summary["sample_floor_met"]:
+        print(
+            "FAIL: eligible sample below "
+            f"{MIN_ELIGIBLE_SAMPLE}; refusing to publish a false-positive rate"
         )
         return 1
     return 0
@@ -385,8 +475,25 @@ def git(repo: Path, *args: str) -> str:
     ).stdout
 
 
-def clean_merges(repo: Path, count: int) -> list[tuple[str, str]]:
-    """Return (base_sha, head_sha) pairs for apparently uneventful merges."""
+def changed_python_files(repo: Path, base: str, head: str) -> list[str]:
+    """Return the Python files changed between two commits.
+
+    An empty list means the PR could not have produced a finding no matter how
+    good the tool is, which makes it ineligible rather than unmeasured.
+    """
+    out = git(repo, "diff", "--name-only", base, head)
+    return [line for line in out.splitlines() if is_python_path(line)]
+
+
+def select_pairs(
+    repo: Path, count: int, require_python: bool = True
+) -> tuple[list[tuple[str, str]], int]:
+    """Return eligible (base, head) pairs and how many were screened out.
+
+    The screened-out count is returned rather than discarded because a
+    denominator that silently shrinks is how a collapsed run turns into a
+    clean-looking one.
+    """
     log = git(
         repo,
         "log",
@@ -396,6 +503,7 @@ def clean_merges(repo: Path, count: int) -> list[tuple[str, str]]:
         "--pretty=%H%x00%P%x00%s",
     ).strip().splitlines()
     pairs: list[tuple[str, str]] = []
+    screened_out = 0
     for line in log:
         parts = line.split("\x00")
         if len(parts) != 3:
@@ -406,10 +514,21 @@ def clean_merges(repo: Path, count: int) -> list[tuple[str, str]]:
         parent_shas = parents.split()
         if len(parent_shas) != 2:
             continue
-        pairs.append((parent_shas[0], parent_shas[1]))
+        base, head = parent_shas[0], parent_shas[1]
+        if require_python and not changed_python_files(repo, base, head):
+            screened_out += 1
+            continue
+        pairs.append((base, head))
         if len(pairs) >= count:
             break
-    return pairs
+    return pairs, screened_out
+
+
+def clean_merges(
+    repo: Path, count: int, require_python: bool = True
+) -> list[tuple[str, str]]:
+    """Return (base_sha, head_sha) pairs for apparently uneventful merges."""
+    return select_pairs(repo, count, require_python=require_python)[0]
 
 
 if __name__ == "__main__":
