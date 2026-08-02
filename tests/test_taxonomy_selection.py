@@ -13,18 +13,18 @@ facts have to hold at once.
 """
 from __future__ import annotations
 
-import os
 import sys
+from pathlib import Path
 
 import pytest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "eval"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from failure_taxonomy import (  # noqa: E402
+from eval.failure_taxonomy import (  # noqa: E402
     ContaminatedPopulation,
     distribution_verdict,
 )
-from taxonomy_selection import (  # noqa: E402
+from eval.taxonomy_selection import (  # noqa: E402
     ranking_rejection_scores,
     verdict_for_rows,
 )
