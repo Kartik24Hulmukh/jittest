@@ -317,7 +317,17 @@ def git_diff(repo: Path | str, base: str, head: str) -> str:
             failures.append(f"`git diff {spec}` exited {res.returncode}: {detail}")
             continue
         if res.stdout.strip():
+            if spec == f"{base}...{head}" and not any(
+                line.startswith("diff --git ") and ".py" in line
+                for line in res.stdout.splitlines()
+            ):
+                # 3-dot merge-base spec produced text, but no Python files were touched.
+                # Fall through to 2-dot direct diff to check if direct comparison contains Python changes.
+                fallback_res = res.stdout
+                continue
             return res.stdout
+    if 'fallback_res' in locals() and fallback_res:
+        return fallback_res
     if len(failures) == len(specs):
         raise GitError(
             "git could not compare these revisions, so jittest does not know "
