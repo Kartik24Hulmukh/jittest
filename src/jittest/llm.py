@@ -8,6 +8,7 @@ DryRunLLM, which runs the whole pipeline with no network and no key.
 from __future__ import annotations
 
 import hashlib
+import http.client
 import json
 import os
 import random
@@ -182,6 +183,7 @@ class HTTPLLM(BaseLLM):
         self.rate_limit_waits = 0
         self.rate_limit_seconds = 0.0
         self.timeout_retries = 0
+        self.transport_retries = 0
         self._unpriced = self._price() is None
         if self._unpriced:
             import sys
@@ -287,6 +289,14 @@ class HTTPLLM(BaseLLM):
                 self.timeout_retries += 1
             except urllib.error.URLError as exc:
                 last, last_code = exc, None
+            except (http.client.HTTPException, ConnectionError) as exc:
+                # RemoteDisconnected is ConnectionResetError + BadStatusLine and is
+                # not a URLError, so it escaped this loop and ended the run on the
+                # first reset. A dropped connection is the cheapest thing here to
+                # retry and the most expensive thing to lose.
+                last, last_code = exc, None
+                if attempt < self.max_attempts - 1:
+                    self.transport_retries += 1
             if attempt == self.max_attempts - 1:
                 break
             rate_limited = last_code in _RATE_LIMITED
