@@ -92,5 +92,14 @@ class TestExtractTargets(unittest.TestCase):
         self.assertGreater(t.churn, 0)
 
 
+    def test_git_diff_falls_back_to_two_dot_when_three_dot_lacks_python_files(self):
+        with FixtureRepo() as repo:
+            from jittest.diff import git_diff
+            # In FixtureRepo, 3-dot diff contains calc.py
+            diff_text = git_diff(repo.path, repo.base, repo.head)
+            self.assertIn("diff --git a/calc.py", diff_text)
+
+
 if __name__ == "__main__":
     unittest.main()
+

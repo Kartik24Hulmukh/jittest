@@ -8,10 +8,13 @@ deterministic.
 from __future__ import annotations
 
 import json
+import subprocess
+import tempfile
 import unittest
+from pathlib import Path
 
 from jittest.config import Config
-from jittest.llm import DryRunLLM
+from jittest.llm import DryRunLLM, RateLimitedError, TimedOutError
 from jittest.pipeline import import_path_for, run
 from jittest.report import MARKER, to_markdown, to_terminal
 
@@ -73,7 +76,9 @@ class TestPipeline(unittest.TestCase):
             report = run(repo.path, repo.base, repo.head, cfg(), llm)
         self.assertEqual(report.findings, [])
         self.assertEqual(report.candidates_generated, 0)
-        self.assertEqual(report.discarded.get("model_declined"), 2)
+        self.assertEqual(report.discarded.get("model_declined"), 1)
+        self.assertEqual(report.discarded.get("model_declined_short_circuit"), 1)
+
 
     def test_unsafe_candidates_never_reach_the_oracle(self):
         unsafe = "import socket\n\n\ndef test_x():\n    assert socket\n"
@@ -205,5 +210,78 @@ class TestCandidateTelemetry(unittest.TestCase):
         self.assertTrue(isinstance(d["telemetry"], list))
 
 
+    def test_model_decline_short_circuits_attempt_loop(self):
+        llm = DryRunLLM(scripted=["# NO_CANDIDATE"])
+        with FixtureRepo() as repo:
+            report = run(repo.path, repo.base, repo.head, cfg(candidates_per_target=4, max_targets=1), llm)
+        self.assertEqual(llm.usage.calls, 1)
+        self.assertEqual(report.discarded.get("model_declined"), 1)
+        self.assertEqual(report.discarded.get("model_declined_short_circuit"), 3)
+
+
+    def test_non_python_diff_sets_no_python_in_diff(self):
+        llm = DryRunLLM()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            subprocess.run(["git", "init"], cwd=repo, capture_output=True, check=True)
+            subprocess.run(["git", "config", "user.name", "Test"], cwd=repo, capture_output=True, check=True)
+            subprocess.run(["git", "config", "user.email", "test@test.com"], cwd=repo, capture_output=True, check=True)
+
+            (repo / "README.md").write_text("# Hello\n")
+            subprocess.run(["git", "add", "."], cwd=repo, capture_output=True, check=True)
+            subprocess.run(["git", "commit", "-m", "base"], cwd=repo, capture_output=True, check=True)
+            b = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+
+            (repo / "README.md").write_text("# Hello World\n")
+            subprocess.run(["git", "commit", "-am", "head"], cwd=repo, capture_output=True, check=True)
+            h = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+
+            report = run(repo, b, h, cfg(), llm)
+            self.assertEqual(report.diff_status, "no_python_in_diff")
+
+    def test_inverted_range_sets_inverted_range(self):
+        llm = DryRunLLM()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            subprocess.run(["git", "init"], cwd=repo, capture_output=True, check=True)
+            subprocess.run(["git", "config", "user.name", "Test"], cwd=repo, capture_output=True, check=True)
+            subprocess.run(["git", "config", "user.email", "test@test.com"], cwd=repo, capture_output=True, check=True)
+
+            (repo / "app.py").write_text("def v1(): pass\n")
+            subprocess.run(["git", "add", "."], cwd=repo, capture_output=True, check=True)
+            subprocess.run(["git", "commit", "-m", "v1"], cwd=repo, capture_output=True, check=True)
+            h = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+
+            (repo / "app.py").write_text("def v1(): pass\ndef v2(): pass\n")
+            subprocess.run(["git", "commit", "-am", "v2"], cwd=repo, capture_output=True, check=True)
+            b = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True).stdout.strip()
+
+            # Backwards range: base is v2, head is v1
+            report = run(repo, b, h, cfg(), llm)
+            self.assertEqual(report.diff_status, "inverted_range")
+
+    def test_rate_limited_disposition(self):
+        class ErrorLLM(DryRunLLM):
+            def complete(self, system: str, user: str, n: int = 1, temperature: float | None = None) -> list[str]:
+                raise RateLimitedError("rate limited by provider")
+
+        with FixtureRepo() as repo:
+            report = run(repo.path, repo.base, repo.head, cfg(candidates_per_target=1), ErrorLLM())
+        self.assertEqual(report.discarded.get("rate_limited"), 1)
+        self.assertEqual(report.telemetry[0].disposition, "rate_limited")
+
+    def test_timed_out_disposition(self):
+        class ErrorLLM(DryRunLLM):
+            def complete(self, system: str, user: str, n: int = 1, temperature: float | None = None) -> list[str]:
+                raise TimedOutError("timed out on provider")
+
+        with FixtureRepo() as repo:
+            report = run(repo.path, repo.base, repo.head, cfg(candidates_per_target=1), ErrorLLM())
+        self.assertEqual(report.discarded.get("timed_out"), 1)
+        self.assertEqual(report.telemetry[0].disposition, "timed_out")
+
+
 if __name__ == "__main__":
     unittest.main()
+
+

@@ -23,7 +23,14 @@ from .config import Config
 from .diff import GitError, extract_targets, git_diff
 from .execute import Worktree, differential_check
 from .ledger import Candidate, Ledger
-from .llm import BaseLLM, BudgetExceeded, LLMError, strip_code_fence
+from .llm import (
+    BaseLLM,
+    BudgetExceeded,
+    LLMError,
+    RateLimitedError,
+    TimedOutError,
+    strip_code_fence,
+)
 from .results import DISPOSITIONS, CandidateTelemetry, Finding, Report
 from .risk import RiskScore, rank
 from .safety import check_candidate
@@ -96,9 +103,29 @@ def run(
                 f"{len(kept)} changed symbol(s) were all scored below the risk "
                 f"threshold of {cfg.risk_threshold}, so nothing was analysed. "
                 f"Lower `risk_threshold` to widen the net.")
+        elif not all_targets:
+            import subprocess
+            res = subprocess.run(
+                ["git", "-C", str(repo), "merge-base", "--is-ancestor", head, base],
+                capture_output=True
+            )
+            has_py = any(
+                line.startswith("diff --git a/") and line.strip().endswith(".py")
+                for line in diff_text.splitlines()
+            )
+            if res.returncode == 0:
+                report.diff_status = "inverted_range"
+                report.errors.append("head revision is an ancestor of base (inverted revision range).")
+            elif not has_py:
+                report.diff_status = "no_python_in_diff"
+                report.errors.append("diff contains no changed Python files.")
+            else:
+                report.diff_status = "no_targets_after_ranking"
+                report.errors.append("no changed Python functions or classes were extracted from diff.")
         report.model_requests = llm.usage.calls
         report.duration_s = time.time() - started
         return report
+
 
     # Decided once up front: "required" raises rather than running unconfined.
     try:
@@ -155,6 +182,18 @@ def run(
                         report.errors.append(str(exc))
                         emit("budget exhausted, stopping generation")
                         break
+                    except RateLimitedError as exc:
+                        report.errors.append(f"rate limited: {exc}")
+                        _bump(report.discarded, "rate_limited")
+                        _telemetry(report, t, rs, attempt, "rate_limited",
+                                   check_reason=str(exc))
+                        continue
+                    except TimedOutError as exc:
+                        report.errors.append(f"timed out: {exc}")
+                        _bump(report.discarded, "timed_out")
+                        _telemetry(report, t, rs, attempt, "timed_out",
+                                   check_reason=str(exc))
+                        continue
                     except LLMError as exc:
                         report.errors.append(f"model error: {exc}")
                         _bump(report.discarded, "model_error")
@@ -164,7 +203,11 @@ def run(
                     if not code or P.NO_CANDIDATE in code:
                         _bump(report.discarded, "model_declined")
                         _telemetry(report, t, rs, attempt, "model_declined")
-                        continue
+                        remaining = cfg.candidates_per_target - attempt
+                        if remaining > 0:
+                            _bump(report.discarded, "model_declined_short_circuit", count=remaining)
+                        break
+
 
                     import ast as _ast
                     try:

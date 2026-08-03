@@ -61,6 +61,41 @@ def total(values):
 '''
 
 
+class FixturePathTooLong(RuntimeError):
+    """A fixture could not be built because the OS or git refused the path.
+
+    A RuntimeError subclass rather than an OSError, because the failure is not
+    always an OSError: on Windows the directory is created successfully and it
+    is ``git init`` that fails afterwards, as a CalledProcessError. Callers
+    that want to say 'this environment cannot host a 300-character path'
+    should match on this type, never on the OS error text, which is localised
+    and differs across platforms.
+    """
+
+
+# Substrings that identify a path-length refusal across platforms and locales
+# we actually run on. Lowercased before matching.
+_TOO_LONG_MARKERS = (
+    "too long",
+    "filename or extension",
+    "winerror 206",
+    "errno 36",
+    "enametoolong",
+)
+
+# Beyond this many characters, treat any fixture build failure as a path-length
+# failure even when the tool declined to say so. The classic Windows MAX_PATH
+# is 260; git and its helpers start failing below that once they append their
+# own suffixes.
+_PATH_LENGTH_SUSPECT = 240
+
+
+def _is_path_length_failure(text: str) -> bool:
+    """Does this error text describe a path-length refusal?"""
+    low = (text or "").lower()
+    return any(marker in low for marker in _TOO_LONG_MARKERS)
+
+
 def _git(args, cwd, env=None, check=True):
     e = dict(os.environ)
     e.update({
@@ -77,12 +112,9 @@ def _git(args, cwd, env=None, check=True):
     )
 
 
-def make_fixture(root: Path, n_extra_files: int = 0) -> Path:
-    """A git repo with a base commit and a head commit containing a regression."""
-    try:
-        root.mkdir(parents=True, exist_ok=True)
-    except OSError as exc:
-        raise RuntimeError(f"path exceeds OS limits: {exc}") from exc
+def _build_fixture(root: Path, n_extra_files: int = 0) -> Path:
+    """The fixture construction itself. Raises whatever the OS or git raises."""
+    root.mkdir(parents=True, exist_ok=True)
     _git(["init", "-q", "-b", "main"], root)
     (root / "pkg").mkdir(exist_ok=True)
     (root / "pkg" / "__init__.py").write_text("")
@@ -101,6 +133,30 @@ def make_fixture(root: Path, n_extra_files: int = 0) -> Path:
     _git(["add", "-A"], root)
     _git(["commit", "-q", "-m", "change innermost"], root)
     return root
+
+
+def make_fixture(root: Path, n_extra_files: int = 0) -> Path:
+    """A git repo with a base commit and a head commit containing a regression.
+
+    Raises :class:`FixturePathTooLong` when the environment cannot host the
+    requested path, whether the refusal arrives as an OSError from Python or
+    as a non-zero exit from git. Any other failure propagates unchanged: a
+    fixture that breaks for a reason we have not named is a finding, and
+    swallowing it into one generic error is how a harness stops reporting.
+    """
+    try:
+        return _build_fixture(root, n_extra_files)
+    except OSError as exc:
+        raise FixturePathTooLong(f"path exceeds OS limits: {exc}") from exc
+    except subprocess.CalledProcessError as exc:
+        detail = f"{exc.stderr or ''}{exc.stdout or ''}".strip()
+        length = len(str(root))
+        if _is_path_length_failure(detail) or length > _PATH_LENGTH_SUSPECT:
+            raise FixturePathTooLong(
+                f"path exceeds OS limits: git exited {exc.returncode} under a "
+                f"{length}-character path: {detail[:200]}"
+            ) from exc
+        raise
 
 
 def run_cli(args, cwd, env=None, timeout=180):
@@ -236,9 +292,12 @@ def s06_long_path(tmp):
         deep = deep / ("d" * 40)
     try:
         repo = make_fixture(deep)
-    except OSError as exc:
-        return {"exit": None, "stdout": "", "stderr": f"fixture OSError: {exc}",
-                "elapsed_s": 0, "timed_out": False}, [f"fixture failed: {exc}"]
+    except FixturePathTooLong as exc:
+        # Not a jittest defect: this runner cannot host the path at all, so
+        # there is nothing to point the CLI at. Recorded, not counted.
+        return {"exit": None, "stdout": "", "stderr": str(exc),
+                "elapsed_s": 0, "timed_out": False,
+                "skipped": "environment cannot host a 300-character path"}, []
     res = run_cli(["run", "--repo", str(repo), "--base", "base-ref",
                    "--dry-run", "--json", "--quiet"], cwd=tmp)
     return res, judge(res)
@@ -350,16 +409,26 @@ def s13_missing_base_ref(tmp):
     return res, judge(res)
 
 
-def s14_windowsish_paths(tmp):
-    """Backslashes and a drive-letter-looking segment in a tracked filename."""
-    repo = make_fixture(tmp / "repo")
-    odd = repo / "C__weird"
-    odd.mkdir(parents=True, exist_ok=True)
-    target_file = odd / "back" / "slash.py"
+def make_oddly_named_file(repo: Path) -> Path:
+    """Create a tracked file under a drive-letter-looking directory.
+
+    A literal backslash cannot appear in a Windows filename at all, so the
+    portable form of this scenario is a nested directory whose name looks like
+    a drive letter. Returns the created path so a test can assert on it
+    without running the CLI.
+    """
+    target_file = repo / "C__weird" / "back" / "slash.py"
     target_file.parent.mkdir(parents=True, exist_ok=True)
     target_file.write_text("X = 1\n")
     _git(["add", "-A"], repo, check=False)
     _git(["commit", "-q", "-m", "odd names"], repo, check=False)
+    return target_file
+
+
+def s14_windowsish_paths(tmp):
+    """Backslashes and a drive-letter-looking segment in a tracked filename."""
+    repo = make_fixture(tmp / "repo")
+    make_oddly_named_file(repo)
     res = run_cli(["run", "--repo", str(repo), "--base", "base-ref",
                    "--dry-run", "--json", "--quiet"], cwd=tmp)
     return res, judge(res)
@@ -448,6 +517,7 @@ def main() -> int:
         # revision of this file reported 16 of 17 scenarios green while every
         # one of them had analysed zero targets.
         parsed, targets, cands, status = None, None, None, None
+        skipped = res.get("skipped")
         out = res.get("stdout", "") or ""
         brace = out.find("{")
         if brace >= 0:
@@ -462,7 +532,7 @@ def main() -> int:
             if sid not in NO_ANALYSIS_EXPECTED and targets == 0:
                 problems.append(
                     f"analysed nothing (targets_considered=0, diff_status={status})")
-        elif sid not in NO_ANALYSIS_EXPECTED and not res.get("timed_out"):
+        elif sid not in NO_ANALYSIS_EXPECTED and not res.get("timed_out") and not skipped:
             problems.append("could not parse the --json report from stdout")
 
         rec = {
@@ -470,21 +540,26 @@ def main() -> int:
             "elapsed_s": res.get("elapsed_s"), "timed_out": res.get("timed_out"),
             "targets_considered": targets, "candidates_generated": cands,
             "diff_status": status,
+            "skipped": skipped,
             "finding": bool(problems), "problems": problems,
             "stderr_tail": res.get("stderr", "")[-400:],
         }
         records.append(rec)
-        flag = "FINDING" if problems else "ok     "
+        flag = "FINDING" if problems else ("skip   " if skipped else "ok     ")
         print(f"{flag} {sid} {name} (exit={rec['exit']}, {rec['elapsed_s']}s)")
+        if skipped:
+            print(f"        - skipped: {skipped}")
         for p in problems:
             print(f"        - {p}")
 
     findings = [r for r in records if r["finding"]]
-    print(f"\nscenarios: {len(records)}  findings: {len(findings)}")
+    skips = [r for r in records if r.get("skipped")]
+    print(f"\nscenarios: {len(records)}  findings: {len(findings)}  "
+          f"skipped: {len(skips)}")
     if ns.out:
         Path(ns.out).write_text(json.dumps(
             {"scenarios": len(records), "findings": len(findings),
-             "records": records}, indent=2))
+             "skipped": len(skips), "records": records}, indent=2))
         print(f"wrote {ns.out}")
     return 0
 

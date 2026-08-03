@@ -8,6 +8,7 @@ DryRunLLM, which runs the whole pipeline with no network and no key.
 from __future__ import annotations
 
 import hashlib
+import http.client
 import json
 import os
 import random
@@ -24,10 +25,19 @@ from ._llmcache import _Cache
 from ._llmjson import extract_json, strip_code_fence
 from ._pricing import PRICES, estimate_tokens, price_for
 
+
+class RateLimitedError(LLMError):
+    """Raised when the LLM provider rate limits requests after retries."""
+
+
+class TimedOutError(LLMError):
+    """Raised when the LLM provider times out on all retries."""
+
+
 __all__ = [
-    "LLMError", "BudgetExceeded", "Usage", "BaseLLM", "HTTPLLM", "LiteLLMBackend",
-    "DryRunLLM", "build_llm", "extract_json", "strip_code_fence", "PRICES",
-    "price_for", "estimate_tokens",
+    "LLMError", "RateLimitedError", "TimedOutError", "BudgetExceeded", "Usage",
+    "BaseLLM", "HTTPLLM", "LiteLLMBackend", "DryRunLLM", "build_llm",
+    "extract_json", "strip_code_fence", "PRICES", "price_for", "estimate_tokens",
 ]
 
 
@@ -173,6 +183,7 @@ class HTTPLLM(BaseLLM):
         self.rate_limit_waits = 0
         self.rate_limit_seconds = 0.0
         self.timeout_retries = 0
+        self.transport_retries = 0
         self._unpriced = self._price() is None
         if self._unpriced:
             import sys
@@ -278,6 +289,14 @@ class HTTPLLM(BaseLLM):
                 self.timeout_retries += 1
             except urllib.error.URLError as exc:
                 last, last_code = exc, None
+            except (http.client.HTTPException, ConnectionError) as exc:
+                # RemoteDisconnected is ConnectionResetError + BadStatusLine and is
+                # not a URLError, so it escaped this loop and ended the run on the
+                # first reset. A dropped connection is the cheapest thing here to
+                # retry and the most expensive thing to lose.
+                last, last_code = exc, None
+                if attempt < self.max_attempts - 1:
+                    self.transport_retries += 1
             if attempt == self.max_attempts - 1:
                 break
             rate_limited = last_code in _RATE_LIMITED
@@ -287,14 +306,14 @@ class HTTPLLM(BaseLLM):
                 self.rate_limit_seconds += delay
             self._sleep(delay)
         if last_code in _RATE_LIMITED:
-            raise LLMError(
+            raise RateLimitedError(
                 f"rate limited by {self.provider} after {self.max_attempts} attempts "
                 f"({self.rate_limit_waits} waits, "
                 f"{self.rate_limit_seconds:.1f}s slept). Pace requests with "
                 f"JITTEST_MIN_REQUEST_INTERVAL, or wait longer with "
                 f"JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.")
         if isinstance(last, TimeoutError):
-            raise LLMError(
+            raise TimedOutError(
                 f"{self.provider} did not answer within {self.http_timeout:.0f}s on "
                 f"any of {self.max_attempts} attempts ({self.timeout_retries} read "
                 f"timeouts). Models that always emit a reasoning trace are slow on "
