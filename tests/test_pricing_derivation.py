@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import unittest
 
-from jittest._pricing import PRICES, price_for
+from jittest._pricing import price_for
 
 
 class PricingDerivationTests(unittest.TestCase):
