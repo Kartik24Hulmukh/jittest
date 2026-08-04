@@ -24,6 +24,7 @@ PRICES: dict[str, tuple[float, float]] = {
     "deepseek-chat": (0.27, 1.10),
     "qwen-2.5-coder-32b": (0.09, 0.09),
     "moonshotai/kimi-k3": (3.00, 15.00),
+    "gemini-3.6-flash": (0.75, 3.75),
 }
 
 

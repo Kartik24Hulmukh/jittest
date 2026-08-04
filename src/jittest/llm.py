@@ -371,9 +371,14 @@ class HTTPLLM(BaseLLM):
                 choices = body.get("choices", [])
                 text = choices[0]["message"]["content"] if choices else ""
                 usage = body.get("usage", {})
-                self._account_response(usage.get("prompt_tokens"),
-                                       usage.get("completion_tokens"),
-                                       system + user, text)
+                prompt_tokens = usage.get("prompt_tokens")
+                total_tokens = usage.get("total_tokens")
+                completion_tokens = usage.get("completion_tokens")
+                if total_tokens is not None and prompt_tokens is not None:
+                    out_tokens = total_tokens - prompt_tokens
+                else:
+                    out_tokens = completion_tokens
+                self._account_response(prompt_tokens, out_tokens, system + user, text)
             outputs.append(text or "")
 
         self.cache.put(key, json.dumps(outputs))
