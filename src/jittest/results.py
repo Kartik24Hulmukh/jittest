@@ -126,6 +126,8 @@ class Report:
     # Number of model requests actually issued during this run. This is the
     # only honest answer to "was anything measured?". Elapsed time is not.
     model_requests: int = 0
+    model_request_attempts: int = 0
+    rate_limited_candidates: int = 0
     # How the diff step ended. "ok" means git ran and produced changed code.
     # "empty" is a fact about the revision pair. "git_failed" is the absence of
     # a fact: nothing was examined. A consumer that averages "empty" and
@@ -175,6 +177,8 @@ class Report:
             "output_tokens": self.output_tokens,
             "duration_s": round(self.duration_s, 2),
             "model_requests": self.model_requests,
+            "model_request_attempts": self.model_request_attempts,
+            "rate_limited_candidates": self.rate_limited_candidates,
             "diff_status": self.diff_status,
             "sandbox": self.sandbox,
             "has_regression": self.has_regression,

@@ -72,6 +72,7 @@ UPSTREAM = "upstream_of_the_gate"
 GATE_WAS_BINDING = "gate_was_binding"
 GATE_NOT_BINDING = "gate_was_not_binding"
 INCONCLUSIVE = "inconclusive"
+INCONCLUSIVE_THROTTLED = "inconclusive_throttled"
 
 
 def parse_thresholds(raw: str) -> list[float]:
@@ -130,6 +131,14 @@ def ladder_verdict(rungs: list[dict]) -> str:
     """
     if not rungs:
         return INCONCLUSIVE
+    has_throttling = any(
+        int(rung.get("rate_limited_candidates_total", 0)) > 0
+        or "rate_limited" in rung.get("failure_reasons", {})
+        for rung in rungs
+    )
+    if has_throttling:
+        return INCONCLUSIVE_THROTTLED
+
     requests = [int(rung.get("model_requests_total", 0)) for rung in rungs]
     floor = min(float(rung["risk_threshold"]) for rung in rungs)
     if all(count == 0 for count in requests):
@@ -174,6 +183,10 @@ def verdict_note(verdict: str) -> str:
             "The ladder does not decide the question. Check that the lowest "
             "rung is 0.0 and that at least two rungs ran to completion "
             "before reading anything into these counts."
+        ),
+        INCONCLUSIVE_THROTTLED: (
+            "Rate limiting occurred during execution. Monotonicity cannot be "
+            "evaluated under throttling. Pace requests or retry on a fresh quota."
         ),
     }[verdict]
 
