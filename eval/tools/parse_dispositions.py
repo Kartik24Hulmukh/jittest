@@ -6,6 +6,7 @@ associated metadata and errors.
 """
 from __future__ import annotations
 
+import contextlib
 import json
 import sys
 from pathlib import Path
@@ -48,10 +49,8 @@ def parse_dispositions(log_path: str | Path) -> dict:
                         break
         if end_json != -1:
             raw_json = text[start_json:end_json]
-            try:
+            with contextlib.suppress(Exception):
                 items.append(json.loads(raw_json, strict=False))
-            except Exception:
-                pass
             idx = end_json
         else:
             idx = pos + len(start_token)
