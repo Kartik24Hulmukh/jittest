@@ -158,6 +158,7 @@ def run(
                     if found:
                         break
                     try:
+                        report.model_request_attempts += 1
                         raw = llm.complete(
                             P.GENERATOR_SYSTEM,
                             P.GENERATOR_USER.format(
@@ -184,6 +185,7 @@ def run(
                         break
                     except RateLimitedError as exc:
                         report.errors.append(f"rate limited: {exc}")
+                        report.rate_limited_candidates += 1
                         _bump(report.discarded, "rate_limited")
                         _telemetry(report, t, rs, attempt, "rate_limited",
                                    check_reason=str(exc))
@@ -324,6 +326,8 @@ def run(
         report.output_tokens = llm.usage.output_tokens
         report.model_requests = llm.usage.calls
         report.duration_s = time.time() - started
+        if report.model_requests == 0 and report.rate_limited_candidates > 0:
+            report.diff_status = "rate_limited"
         if owns_ledger:
             ledger.close()
 

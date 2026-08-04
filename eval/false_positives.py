@@ -240,10 +240,12 @@ def classify_unmeasured(row: dict) -> str | None:
     error = row.get("error")
     if error:
         return str(error).split(":", 1)[0].strip() or "Exception"
+    if (_as_int(row.get("rate_limited_candidates")) or 0) > 0 or row.get("diff_status") == "rate_limited":
+        return "rate_limited"
     if (_as_int(row.get("model_requests")) or 0) > 0:
         return None
     diff_status = row.get("diff_status")
-    if diff_status in ("no_python_in_diff", "inverted_range", "all_targets_ignored", "below_risk_threshold", "sandbox_unavailable", "git_failed", "empty"):
+    if diff_status in ("no_python_in_diff", "inverted_range", "all_targets_ignored", "below_risk_threshold", "sandbox_unavailable", "git_failed", "empty", "rate_limited"):
         return diff_status
     targets = _as_int(row.get("targets_considered"))
     candidates = _as_int(row.get("candidates_generated"))
@@ -366,6 +368,12 @@ def summarize_rows(
         "prs_errored_or_unmeasured": attempted - len(usable),
         "model_requests_total": sum(
             int(row.get("model_requests", 0)) for row in rows
+        ),
+        "model_request_attempts_total": sum(
+            int(row.get("model_request_attempts", 0)) for row in rows
+        ),
+        "rate_limited_candidates_total": sum(
+            int(row.get("rate_limited_candidates", 0)) for row in rows
         ),
         "completion_rate": round(completion, 3) if attempted else None,
         "prs_with_a_report": len(noisy),
