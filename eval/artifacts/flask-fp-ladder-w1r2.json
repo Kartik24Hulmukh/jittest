@@ -1,0 +1,75 @@
+{
+  "refutation_condition": "If model_requests_total is still 0 at threshold 0.0 - which admits every extracted target with no filtering - then the risk gate is not the constraint and the defect is upstream of it: in diff.extract_targets, in ranking, or in the generation call. If requests rise as the threshold falls, the gate was binding and the default of 0.35 is mistuned for this repository. This condition was written before the run and must not be reinterpreted after it.",
+  "pairs_selected": 3,
+  "prs_screened_out_as_ineligible": 0,
+  "thresholds": [
+    0.35,
+    0.0
+  ],
+  "rungs": [
+    {
+      "prs_attempted": 3,
+      "prs_screened_out_as_ineligible": 0,
+      "prs_analysed": 0,
+      "prs_errored_or_unmeasured": 3,
+      "model_requests_total": 0,
+      "model_request_attempts_total": 18,
+      "rate_limited_candidates_total": 18,
+      "completion_rate": 0.0,
+      "prs_with_a_report": 0,
+      "false_positive_rate": null,
+      "false_positive_rate_upper_bound_95": null,
+      "comments_per_100_prs": null,
+      "comments_per_100_prs_upper_bound_95": null,
+      "gate_ready": false,
+      "eligible_sample_floor": 20,
+      "sample_floor_met": false,
+      "publishable": false,
+      "selection_window": {
+        "since": "2.years",
+        "until": "90.days"
+      },
+      "selection_window_is_default": true,
+      "failure_reasons": {
+        "below_risk_threshold": 1,
+        "rate_limited": 2
+      },
+      "dominant_failure": "below_risk_threshold",
+      "risk_threshold": 0.35
+    },
+    {
+      "prs_attempted": 3,
+      "prs_screened_out_as_ineligible": 0,
+      "prs_analysed": 0,
+      "prs_errored_or_unmeasured": 3,
+      "model_requests_total": 0,
+      "model_request_attempts_total": 44,
+      "rate_limited_candidates_total": 44,
+      "completion_rate": 0.0,
+      "prs_with_a_report": 0,
+      "false_positive_rate": null,
+      "false_positive_rate_upper_bound_95": null,
+      "comments_per_100_prs": null,
+      "comments_per_100_prs_upper_bound_95": null,
+      "gate_ready": false,
+      "eligible_sample_floor": 20,
+      "sample_floor_met": false,
+      "publishable": false,
+      "selection_window": {
+        "since": "2.years",
+        "until": "90.days"
+      },
+      "selection_window_is_default": true,
+      "failure_reasons": {
+        "rate_limited": 2,
+        "no_targets_after_ranking": 1
+      },
+      "dominant_failure": "rate_limited",
+      "risk_threshold": 0.0
+    }
+  ],
+  "verdict": "inconclusive_throttled",
+  "verdict_note": "Rate limiting occurred during execution. Monotonicity cannot be evaluated under throttling. Pace requests or retry on a fresh quota.",
+  "telemetry_disposition_breakdown": {},
+  "NOTE": "This artifact records the W1-R2 fp-ladder run over 3 PRs with 10s pacing and throttle-aware metering."
+}
