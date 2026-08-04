@@ -1,0 +1,914 @@
+python :   warning: pricing is unknown for model 'gemini-3.6-flash'. A request-count ceiling will be enforced instead 
+of a dollar cap.
+At line:1 char:334
++ ... RVAL = "7"; python -m eval.fp_ladder --repo C:\Users\praja\src\flask  ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (  warning: pric...f a dollar cap.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  warning: pricing is unknown for model 'gemini-3.6-flash'. A request-count ceiling will be enforced instead of a 
+dollar cap.
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 1, "disposition": "parse_failed", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "", "parse_error": 
+"unterminated string literal (detected at line 1) at line 1, col 4; len=251 lines=4 fenced=no sha256=ec51c7e45ec5"}
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 2, "disposition": "parse_failed", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "", "parse_error": 
+"unterminated string literal (detected at line 3) at line 3, col 4; len=231 lines=8 fenced=no sha256=d96f9186b659"}
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 3, "disposition": "parse_failed", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "", "parse_error": 
+"unmatched ')' at line 1, col 4; len=263 lines=10 fenced=yes sha256=ece5373d3779"}
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 4, "disposition": "head_failed_base_failed_latent", "head_outcome": "fail", "base_outcome": "fail", 
+"rerun_agreement": true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "F                     
+                                                   [100%]\n================================== FAILURES 
+===================================\n_______________________ test_app_redirect_default_code 
+________________________\n... (4 lines omitted) ...\n    <source elided>\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\nself = <DummyApp 'test'>, instance_relative = False\n    <source 
+elided>\nsrc\\flask\\sansio\\app.py:494: AttributeError\n=========================== short test summary info 
+===========================\nFAILED test_jittest_candidate_f731ad2f.py::test_app_redirect_default_code - A...\n1 
+failed in 3.40s", "check_reason": "", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 1, 
+"disposition": "parse_failed", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "", "parse_error": "unmatched ')' at line 1, 
+col 18; len=240 lines=6 fenced=yes sha256=b9efa3acdb09"}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 2, 
+"disposition": "parse_failed", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "", "parse_error": "invalid syntax at line 13, 
+col 6; len=249 lines=13 fenced=no sha256=222f6614f3e2"}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 3, 
+"disposition": "parse_failed", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "", "parse_error": "unmatched ')' at line 2, 
+col 5; len=273 lines=9 fenced=no sha256=5ffba09bcd4d"}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 4, 
+"disposition": "parse_failed", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "", "parse_error": "invalid syntax at line 1, 
+col 1; len=294 lines=7 fenced=no sha256=fa8d9dff0f49"}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.6361, 
+"candidate_index": 1, "disposition": "catching", "head_outcome": "fail", "base_outcome": "pass", "rerun_agreement": 
+true, "assessor_verdict": "real_regression", "assessor_confidence": 0.95, "failure_excerpt": "F                        
+                                                [100%]\n================================== FAILURES 
+===================================\n________________________ test_app_context_has_request _________________________\n 
+   <source elided>\ntest_jittest_candidate_432ff17b.py:8: AttributeError\n=========================== short test 
+summary info ===========================\nFAILED test_jittest_candidate_432ff17b.py::test_app_context_has_request - 
+Att...\n1 failed in 1.02s", "check_reason": "", "parse_error": ""}
+  telemetry: {"target_symbol": "RequestContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5981, 
+"candidate_index": 1, "disposition": "model_declined", "head_outcome": "", "base_outcome": "", "rerun_agreement": 
+true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 1, "disposition": "parse_failed", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "", "parse_error": 
+"unterminated string literal (detected at line 6) at line 6, col 10; len=258 lines=6 fenced=no sha256=e50307e5a579"}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 2, "disposition": "parse_failed", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "", "parse_error": "invalid 
+syntax at line 10, col 1; len=192 lines=10 fenced=yes sha256=f76e844e9c90"}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 3, "disposition": "parse_failed", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "", "parse_error": 
+"unterminated string literal (detected at line 1) at line 1, col 8; len=249 lines=11 fenced=yes sha256=98bb47bca54e"}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 4, "disposition": "parse_failed", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "", "parse_error": 
+"unterminated string literal (detected at line 3) at line 3, col 4; len=273 lines=8 fenced=yes sha256=236be059aa58"}
+  warning: pricing is unknown for model 'gemini-3.6-flash'. A request-count ceiling will be enforced instead of a 
+dollar cap.
+  warning: pricing is unknown for model 'gemini-3.6-flash'. A request-count ceiling will be enforced instead of a 
+dollar cap.
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 1, "disposition": "parse_failed", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "", "parse_error": 
+"unmatched ')' at line 1, col 11; len=252 lines=7 fenced=no sha256=65964b67baa9"}
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 2, "disposition": "parse_failed", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "", "parse_error": 
+"unterminated string literal (detected at line 3) at line 3, col 4; len=288 lines=5 fenced=no sha256=bc6cf6cc9548"}
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 3, "disposition": "parse_failed", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "", "parse_error": 
+"unterminated string literal (detected at line 3) at line 3, col 4; len=235 lines=4 fenced=no sha256=78e38ddc262d"}
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 4, "disposition": "parse_failed", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "", "parse_error": 
+"unterminated string literal (detected at line 5) at line 5, col 4; len=229 lines=8 fenced=no sha256=286c62eac1aa"}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 1, 
+"disposition": "parse_failed", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "", "parse_error": "unterminated string literal 
+(detected at line 4) at line 4, col 4; len=300 lines=9 fenced=yes sha256=9672f8f12557"}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 2, 
+"disposition": "parse_failed", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "", "parse_error": "invalid syntax at line 1, 
+col 1; len=214 lines=12 fenced=yes sha256=01ee2842919c"}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 3, 
+"disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai after 2 attempts (1 
+waits, 4.8s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with JITTEST_MAX_RETRIES / 
+JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 4, 
+"disposition": "parse_failed", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "", "parse_error": "unexpected indent at line 
+3, col 8; len=280 lines=10 fenced=yes sha256=7abddf2ae650"}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.6361, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (3 waits, 12.0s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.6361, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (4 waits, 14.1s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.6361, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (5 waits, 16.7s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.6361, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (6 waits, 19.2s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "RequestContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5981, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (7 waits, 19.7s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "RequestContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5981, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (8 waits, 23.1s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "RequestContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5981, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (9 waits, 27.6s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "RequestContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5981, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (10 waits, 30.8s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (11 waits, 32.5s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (12 waits, 34.7s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (13 waits, 35.2s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (14 waits, 37.1s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  warning: pricing is unknown for model 'gemini-3.6-flash'. A request-count ceiling will be enforced instead of a 
+dollar cap.
+  warning: pricing is unknown for model 'gemini-3.6-flash'. A request-count ceiling will be enforced instead of a 
+dollar cap.
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (1 waits, 0.5s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (2 waits, 1.1s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (3 waits, 3.7s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (4 waits, 6.6s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 1, 
+"disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai after 2 attempts (5 
+waits, 7.0s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with JITTEST_MAX_RETRIES / 
+JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 2, 
+"disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai after 2 attempts (6 
+waits, 10.6s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with JITTEST_MAX_RETRIES / 
+JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 3, 
+"disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai after 2 attempts (7 
+waits, 10.9s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with JITTEST_MAX_RETRIES / 
+JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 4, 
+"disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai after 2 attempts (8 
+waits, 14.9s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with JITTEST_MAX_RETRIES / 
+JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.6361, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (9 waits, 16.1s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.6361, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (10 waits, 16.7s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.6361, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (11 waits, 18.5s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.6361, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (12 waits, 21.8s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "RequestContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5981, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (13 waits, 25.1s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "RequestContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5981, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (14 waits, 25.4s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "RequestContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5981, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (15 waits, 29.5s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "RequestContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5981, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (16 waits, 32.2s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (17 waits, 33.0s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (18 waits, 37.9s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (19 waits, 39.2s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (20 waits, 41.1s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  warning: pricing is unknown for model 'gemini-3.6-flash'. A request-count ceiling will be enforced instead of a 
+dollar cap.
+  telemetry: {"target_symbol": "copy_current_request_context", "target_file": "src/flask/ctx.py", "risk_score": 
+0.6257, "candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", 
+"rerun_agreement": true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": 
+"rate limited by openai after 2 attempts (1 waits, 0.9s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or 
+wait longer with JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "copy_current_request_context", "target_file": "src/flask/ctx.py", "risk_score": 
+0.6257, "candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", 
+"rerun_agreement": true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": 
+"rate limited by openai after 2 attempts (2 waits, 1.0s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or 
+wait longer with JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "copy_current_request_context", "target_file": "src/flask/ctx.py", "risk_score": 
+0.6257, "candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", 
+"rerun_agreement": true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": 
+"rate limited by openai after 2 attempts (3 waits, 3.8s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or 
+wait longer with JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "copy_current_request_context", "target_file": "src/flask/ctx.py", "risk_score": 
+0.6257, "candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", 
+"rerun_agreement": true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": 
+"rate limited by openai after 2 attempts (4 waits, 5.4s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or 
+wait longer with JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "stream_with_context", "target_file": "src/flask/helpers.py", "risk_score": 0.5571, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (5 waits, 9.2s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "stream_with_context", "target_file": "src/flask/helpers.py", "risk_score": 0.5571, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (6 waits, 9.6s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "stream_with_context", "target_file": "src/flask/helpers.py", "risk_score": 0.5571, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (7 waits, 12.2s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "stream_with_context", "target_file": "src/flask/helpers.py", "risk_score": 0.5571, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (8 waits, 17.0s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  warning: pricing is unknown for model 'gemini-3.6-flash'. A request-count ceiling will be enforced instead of a 
+dollar cap.
+  telemetry: {"target_symbol": "<module>", "target_file": "src/flask/helpers.py", "risk_score": 0.4749, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (1 waits, 2.7s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "<module>", "target_file": "src/flask/helpers.py", "risk_score": 0.4749, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (2 waits, 4.9s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "<module>", "target_file": "src/flask/helpers.py", "risk_score": 0.4749, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (3 waits, 7.1s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "<module>", "target_file": "src/flask/helpers.py", "risk_score": 0.4749, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (4 waits, 11.2s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.461, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (5 waits, 12.2s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.461, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (6 waits, 16.0s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.461, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (7 waits, 16.8s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.461, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (8 waits, 20.0s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.4566, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (9 waits, 22.4s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.4566, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (10 waits, 25.2s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.4566, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (11 waits, 26.2s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.4566, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (12 waits, 30.1s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask.do_teardown_request", "target_file": "src/flask/app.py", "risk_score": 0.4261, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (13 waits, 30.8s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask.do_teardown_request", "target_file": "src/flask/app.py", "risk_score": 0.4261, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (14 waits, 31.1s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask.do_teardown_request", "target_file": "src/flask/app.py", "risk_score": 0.4261, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (15 waits, 34.2s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask.do_teardown_request", "target_file": "src/flask/app.py", "risk_score": 0.4261, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (16 waits, 35.5s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask.do_teardown_appcontext", "target_file": "src/flask/app.py", "risk_score": 
+0.3864, "candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", 
+"rerun_agreement": true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": 
+"rate limited by openai after 2 attempts (17 waits, 39.1s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or 
+wait longer with JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask.do_teardown_appcontext", "target_file": "src/flask/app.py", "risk_score": 
+0.3864, "candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", 
+"rerun_agreement": true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": 
+"rate limited by openai after 2 attempts (18 waits, 39.4s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or 
+wait longer with JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask.do_teardown_appcontext", "target_file": "src/flask/app.py", "risk_score": 
+0.3864, "candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", 
+"rerun_agreement": true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": 
+"rate limited by openai after 2 attempts (19 waits, 41.8s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or 
+wait longer with JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask.do_teardown_appcontext", "target_file": "src/flask/app.py", "risk_score": 
+0.3864, "candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", 
+"rerun_agreement": true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": 
+"rate limited by openai after 2 attempts (20 waits, 45.6s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or 
+wait longer with JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  warning: pricing is unknown for model 'gemini-3.6-flash'. A request-count ceiling will be enforced instead of a 
+dollar cap.
+  telemetry: {"target_symbol": "App.select_jinja_autoescape", "target_file": "src/flask/sansio/app.py", "risk_score": 
+0.2347, "candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", 
+"rerun_agreement": true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": 
+"rate limited by openai after 2 attempts (1 waits, 2.7s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or 
+wait longer with JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "App.select_jinja_autoescape", "target_file": "src/flask/sansio/app.py", "risk_score": 
+0.2347, "candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", 
+"rerun_agreement": true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": 
+"rate limited by openai after 2 attempts (2 waits, 5.3s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or 
+wait longer with JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "App.select_jinja_autoescape", "target_file": "src/flask/sansio/app.py", "risk_score": 
+0.2347, "candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", 
+"rerun_agreement": true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": 
+"rate limited by openai after 2 attempts (3 waits, 9.5s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or 
+wait longer with JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "App.select_jinja_autoescape", "target_file": "src/flask/sansio/app.py", "risk_score": 
+0.2347, "candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", 
+"rerun_agreement": true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": 
+"rate limited by openai after 2 attempts (4 waits, 11.5s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or 
+wait longer with JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  warning: pricing is unknown for model 'gemini-3.6-flash'. A request-count ceiling will be enforced instead of a 
+dollar cap.
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (1 waits, 4.2s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (2 waits, 9.0s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (3 waits, 11.3s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (4 waits, 12.6s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 1, 
+"disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai after 2 attempts (5 
+waits, 14.6s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with JITTEST_MAX_RETRIES / 
+JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 2, 
+"disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai after 2 attempts (6 
+waits, 17.8s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with JITTEST_MAX_RETRIES / 
+JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 3, 
+"disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai after 2 attempts (7 
+waits, 20.8s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with JITTEST_MAX_RETRIES / 
+JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 4, 
+"disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai after 2 attempts (8 
+waits, 21.3s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with JITTEST_MAX_RETRIES / 
+JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.6361, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (9 waits, 22.8s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.6361, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (10 waits, 25.9s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.6361, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (11 waits, 27.1s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.6361, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (12 waits, 28.9s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "RequestContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5981, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (13 waits, 29.4s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "RequestContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5981, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (14 waits, 31.1s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "RequestContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5981, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (15 waits, 33.8s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "RequestContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5981, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (16 waits, 36.4s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (17 waits, 41.3s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (18 waits, 43.4s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (19 waits, 47.8s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (20 waits, 51.9s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  warning: pricing is unknown for model 'gemini-3.6-flash'. A request-count ceiling will be enforced instead of a 
+dollar cap.
+  warning: pricing is unknown for model 'gemini-3.6-flash'. A request-count ceiling will be enforced instead of a 
+dollar cap.
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (1 waits, 3.0s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (2 waits, 6.7s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (3 waits, 7.9s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (4 waits, 9.5s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 1, 
+"disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai after 2 attempts (5 
+waits, 10.0s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with JITTEST_MAX_RETRIES / 
+JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 2, 
+"disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai after 2 attempts (6 
+waits, 12.4s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with JITTEST_MAX_RETRIES / 
+JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 3, 
+"disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai after 2 attempts (7 
+waits, 14.5s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with JITTEST_MAX_RETRIES / 
+JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 4, 
+"disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai after 2 attempts (8 
+waits, 17.9s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with JITTEST_MAX_RETRIES / 
+JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.6361, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (9 waits, 22.1s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.6361, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (10 waits, 26.7s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.6361, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (11 waits, 30.5s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.6361, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (12 waits, 34.0s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "RequestContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5981, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (13 waits, 36.9s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "RequestContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5981, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (14 waits, 37.4s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "RequestContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5981, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (15 waits, 41.9s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "RequestContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5981, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (16 waits, 42.6s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (17 waits, 47.4s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (18 waits, 47.5s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (19 waits, 48.7s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (20 waits, 49.8s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  warning: pricing is unknown for model 'gemini-3.6-flash'. A request-count ceiling will be enforced instead of a 
+dollar cap.
+  warning: pricing is unknown for model 'gemini-3.6-flash'. A request-count ceiling will be enforced instead of a 
+dollar cap.
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (1 waits, 2.5s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (2 waits, 6.3s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (3 waits, 9.0s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "App", "target_file": "src/flask/sansio/app.py", "risk_score": 0.7727, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (4 waits, 12.0s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 1, 
+"disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai after 2 attempts (5 
+waits, 14.4s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with JITTEST_MAX_RETRIES / 
+JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 2, 
+"disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai after 2 attempts (6 
+waits, 17.6s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with JITTEST_MAX_RETRIES / 
+JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 3, 
+"disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai after 2 attempts (7 
+waits, 18.0s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with JITTEST_MAX_RETRIES / 
+JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask", "target_file": "src/flask/app.py", "risk_score": 0.6936, "candidate_index": 4, 
+"disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, "assessor_verdict": 
+"", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai after 2 attempts (8 
+waits, 19.9s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with JITTEST_MAX_RETRIES / 
+JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.6361, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (9 waits, 23.3s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.6361, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (10 waits, 27.8s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.6361, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (11 waits, 31.7s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.6361, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (12 waits, 34.9s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "RequestContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5981, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (13 waits, 37.9s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "RequestContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5981, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (14 waits, 41.8s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "RequestContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5981, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (15 waits, 41.9s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "RequestContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5981, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (16 waits, 43.8s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (17 waits, 44.9s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (18 waits, 46.8s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (19 waits, 49.6s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.5825, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (20 waits, 54.5s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  warning: pricing is unknown for model 'gemini-3.6-flash'. A request-count ceiling will be enforced instead of a 
+dollar cap.
+  telemetry: {"target_symbol": "copy_current_request_context", "target_file": "src/flask/ctx.py", "risk_score": 
+0.6257, "candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", 
+"rerun_agreement": true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": 
+"rate limited by openai after 2 attempts (1 waits, 4.8s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or 
+wait longer with JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "copy_current_request_context", "target_file": "src/flask/ctx.py", "risk_score": 
+0.6257, "candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", 
+"rerun_agreement": true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": 
+"rate limited by openai after 2 attempts (2 waits, 9.2s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or 
+wait longer with JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "copy_current_request_context", "target_file": "src/flask/ctx.py", "risk_score": 
+0.6257, "candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", 
+"rerun_agreement": true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": 
+"rate limited by openai after 2 attempts (3 waits, 10.0s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or 
+wait longer with JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "copy_current_request_context", "target_file": "src/flask/ctx.py", "risk_score": 
+0.6257, "candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", 
+"rerun_agreement": true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": 
+"rate limited by openai after 2 attempts (4 waits, 12.1s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or 
+wait longer with JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "stream_with_context", "target_file": "src/flask/helpers.py", "risk_score": 0.5571, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (5 waits, 16.5s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "stream_with_context", "target_file": "src/flask/helpers.py", "risk_score": 0.5571, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (6 waits, 20.1s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "stream_with_context", "target_file": "src/flask/helpers.py", "risk_score": 0.5571, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (7 waits, 23.7s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "stream_with_context", "target_file": "src/flask/helpers.py", "risk_score": 0.5571, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (8 waits, 23.9s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  warning: pricing is unknown for model 'gemini-3.6-flash'. A request-count ceiling will be enforced instead of a 
+dollar cap.
+  telemetry: {"target_symbol": "<module>", "target_file": "src/flask/helpers.py", "risk_score": 0.4749, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (1 waits, 0.3s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "<module>", "target_file": "src/flask/helpers.py", "risk_score": 0.4749, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (2 waits, 0.9s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "<module>", "target_file": "src/flask/helpers.py", "risk_score": 0.4749, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (3 waits, 3.3s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "<module>", "target_file": "src/flask/helpers.py", "risk_score": 0.4749, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (4 waits, 5.8s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.461, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (5 waits, 8.5s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.461, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (6 waits, 13.1s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.461, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (7 waits, 15.2s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext.pop", "target_file": "src/flask/ctx.py", "risk_score": 0.461, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (8 waits, 17.6s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.4566, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (9 waits, 22.1s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.4566, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (10 waits, 22.6s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.4566, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (11 waits, 24.7s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "AppContext", "target_file": "src/flask/ctx.py", "risk_score": 0.4566, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (12 waits, 26.8s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask.do_teardown_request", "target_file": "src/flask/app.py", "risk_score": 0.4261, 
+"candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (13 waits, 30.1s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask.do_teardown_request", "target_file": "src/flask/app.py", "risk_score": 0.4261, 
+"candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (14 waits, 33.5s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask.do_teardown_request", "target_file": "src/flask/app.py", "risk_score": 0.4261, 
+"candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (15 waits, 38.4s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask.do_teardown_request", "target_file": "src/flask/app.py", "risk_score": 0.4261, 
+"candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", "rerun_agreement": true, 
+"assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": "rate limited by openai 
+after 2 attempts (16 waits, 38.7s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or wait longer with 
+JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask.do_teardown_appcontext", "target_file": "src/flask/app.py", "risk_score": 
+0.3864, "candidate_index": 1, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", 
+"rerun_agreement": true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": 
+"rate limited by openai after 2 attempts (17 waits, 40.4s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or 
+wait longer with JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask.do_teardown_appcontext", "target_file": "src/flask/app.py", "risk_score": 
+0.3864, "candidate_index": 2, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", 
+"rerun_agreement": true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": 
+"rate limited by openai after 2 attempts (18 waits, 45.2s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or 
+wait longer with JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask.do_teardown_appcontext", "target_file": "src/flask/app.py", "risk_score": 
+0.3864, "candidate_index": 3, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", 
+"rerun_agreement": true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": 
+"rate limited by openai after 2 attempts (19 waits, 47.9s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or 
+wait longer with JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+  telemetry: {"target_symbol": "Flask.do_teardown_appcontext", "target_file": "src/flask/app.py", "risk_score": 
+0.3864, "candidate_index": 4, "disposition": "rate_limited", "head_outcome": "", "base_outcome": "", 
+"rerun_agreement": true, "assessor_verdict": "", "assessor_confidence": 0.0, "failure_excerpt": "", "check_reason": 
+"rate limited by openai after 2 attempts (20 waits, 49.3s slept). Pace requests with JITTEST_MIN_REQUEST_INTERVAL, or 
+wait longer with JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.", "parse_error": ""}
+REFUTATION CONDITION (fixed before the run):
+If model_requests_total is still 0 at threshold 0.0 - which admits every extracted target with no filtering - then the risk gate is not the constraint and the defect is upstream of it: in diff.extract_targets, in ranking, or in the generation call. If requests rise as the threshold falls, the gate was binding and the default of 0.35 is mistuned for this repository. This condition was written before the run and must not be reinterpreted after it.
+
+8 eligible PRs, 1 screened out as ineligible. The same 8 run at every rung.
+
+--- risk_threshold = 0.35 ---
+No false-positive rate: coverage below the 80% completion floor (2/8 PRs measured). Dominant cause: generation_made_no_request (3 of 6 unmeasured). That names where the pipeline stopped, not why.
+
+--- risk_threshold = 0.0 ---
+No false-positive rate: coverage below the 80% completion floor (0/8 PRs measured). Dominant cause: generation_made_no_request (6 of 8 unmeasured). That names where the pipeline stopped, not why.
+
+=== LADDER ===
+ threshold   requests   measured  completion
+      0.35         22          2  0.25
+       0.0          0          0  0.0
+
+VERDICT: inconclusive
+The ladder does not decide the question. Check that the lowest rung is 0.0 and that at least two rungs ran to completion before reading anything into these counts.

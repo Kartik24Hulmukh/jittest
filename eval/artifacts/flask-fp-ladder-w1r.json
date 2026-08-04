@@ -1,0 +1,281 @@
+{
+  "refutation_condition": "If model_requests_total is still 0 at threshold 0.0 - which admits every extracted target with no filtering - then the risk gate is not the constraint and the defect is upstream of it: in diff.extract_targets, in ranking, or in the generation call. If requests rise as the threshold falls, the gate was binding and the default of 0.35 is mistuned for this repository. This condition was written before the run and must not be reinterpreted after it.",
+  "pairs_selected": 8,
+  "prs_screened_out_as_ineligible": 1,
+  "thresholds": [
+    0.35,
+    0.0
+  ],
+  "rungs": [
+    {
+      "prs_attempted": 8,
+      "prs_screened_out_as_ineligible": null,
+      "prs_analysed": 2,
+      "prs_errored_or_unmeasured": 6,
+      "model_requests_total": 22,
+      "completion_rate": 0.25,
+      "prs_with_a_report": 1,
+      "false_positive_rate": null,
+      "false_positive_rate_upper_bound_95": null,
+      "comments_per_100_prs": null,
+      "comments_per_100_prs_upper_bound_95": null,
+      "gate_ready": false,
+      "eligible_sample_floor": 20,
+      "sample_floor_met": false,
+      "publishable": false,
+      "selection_window": {
+        "since": "2.years",
+        "until": "90.days"
+      },
+      "selection_window_is_default": true,
+      "failure_reasons": {
+        "generation_made_no_request": 3,
+        "no_targets_after_ranking": 2,
+        "below_risk_threshold": 1
+      },
+      "dominant_failure": "generation_made_no_request",
+      "diagnosis_gap": "Dominant cause is a contradiction, not a diagnosis. These rows extracted targets that survived ranking and then sent no model request, so nothing declined to generate a candidate - nothing was asked. Three paths reach here without raising: a response cache hit, a budget or request-ceiling guard that short-circuits before the first POST, and a generation step that returns empty on every ranked target. This artifact cannot say which. Re-run with the response cache disabled and read the per-row telemetry before attributing a cause, and do not read this bucket as evidence about the model or the repository.",
+      "NOTE": "Rate is withheld unless at least 80% of selected PRs produced measured results. Every surfaced claim still requires blind human adjudication; an uneventful merge is not known-clean ground truth.",
+      "BOUND_NOTE": "Quote the rate and its 95% upper bound together, always. Zero findings over n PRs is not a 0% false-positive rate; it is an unknown rate bounded above by roughly 3/n. Reporting the point estimate alone overstates what the sample can support.",
+      "CAUSE_NOTE": "A withheld rate is not a finding. Compare dominant_failure across repositories before concluding anything about jittest: a harness that scores 32/40 on one codebase and 3/32 on another is reporting a property of the codebases until proven otherwise. Every bucket below the measured line describes a row that never called the model; none of them is evidence about the model.",
+      "ELIGIBILITY_NOTE": "prs_attempted counts only merges whose diff touched at least one Python file. A PR that changes no Python is not a failed measurement and never enters the denominator. Any bound computed from an unscreened denominator - including the 9.4% youtube-dl figure - used too large an n and is therefore too tight. Screening makes a zero-finding bound LOOSER, never tighter; a recomputation that tightens it has moved a second variable.",
+      "WINDOW_NOTE": "Every number here is conditional on selection_window. The until bound is the settling time that makes 'apparently uneventful' mean anything: a merge that has not had time to be reverted is not evidence of a clean merge. Narrowing it enlarges the sample by weakening the assumption the sample rests on, so a rate from a non-default window is a different measurement and must not be compared against one from the default.",
+      "risk_threshold": 0.35
+    },
+    {
+      "prs_attempted": 8,
+      "prs_screened_out_as_ineligible": null,
+      "prs_analysed": 0,
+      "prs_errored_or_unmeasured": 8,
+      "model_requests_total": 0,
+      "completion_rate": 0.0,
+      "prs_with_a_report": 0,
+      "false_positive_rate": null,
+      "false_positive_rate_upper_bound_95": null,
+      "comments_per_100_prs": null,
+      "comments_per_100_prs_upper_bound_95": null,
+      "gate_ready": false,
+      "eligible_sample_floor": 20,
+      "sample_floor_met": false,
+      "publishable": false,
+      "selection_window": {
+        "since": "2.years",
+        "until": "90.days"
+      },
+      "selection_window_is_default": true,
+      "failure_reasons": {
+        "generation_made_no_request": 6,
+        "no_targets_after_ranking": 2
+      },
+      "dominant_failure": "generation_made_no_request",
+      "diagnosis_gap": "Dominant cause is a contradiction, not a diagnosis. These rows extracted targets that survived ranking and then sent no model request, so nothing declined to generate a candidate - nothing was asked. Three paths reach here without raising: a response cache hit, a budget or request-ceiling guard that short-circuits before the first POST, and a generation step that returns empty on every ranked target. This artifact cannot say which. Re-run with the response cache disabled and read the per-row telemetry before attributing a cause, and do not read this bucket as evidence about the model or the repository.",
+      "NOTE": "Rate is withheld unless at least 80% of selected PRs produced measured results. Every surfaced claim still requires blind human adjudication; an uneventful merge is not known-clean ground truth.",
+      "BOUND_NOTE": "Quote the rate and its 95% upper bound together, always. Zero findings over n PRs is not a 0% false-positive rate; it is an unknown rate bounded above by roughly 3/n. Reporting the point estimate alone overstates what the sample can support.",
+      "CAUSE_NOTE": "A withheld rate is not a finding. Compare dominant_failure across repositories before concluding anything about jittest: a harness that scores 32/40 on one codebase and 3/32 on another is reporting a property of the codebases until proven otherwise. Every bucket below the measured line describes a row that never called the model; none of them is evidence about the model.",
+      "ELIGIBILITY_NOTE": "prs_attempted counts only merges whose diff touched at least one Python file. A PR that changes no Python is not a failed measurement and never enters the denominator. Any bound computed from an unscreened denominator - including the 9.4% youtube-dl figure - used too large an n and is therefore too tight. Screening makes a zero-finding bound LOOSER, never tighter; a recomputation that tightens it has moved a second variable.",
+      "WINDOW_NOTE": "Every number here is conditional on selection_window. The until bound is the settling time that makes 'apparently uneventful' mean anything: a merge that has not had time to be reverted is not evidence of a clean merge. Narrowing it enlarges the sample by weakening the assumption the sample rests on, so a rate from a non-default window is a different measurement and must not be compared against one from the default.",
+      "risk_threshold": 0.0
+    }
+  ],
+  "verdict": "inconclusive",
+  "verdict_note": "The ladder does not decide the question. Check that the lowest rung is 0.0 and that at least two rungs ran to completion before reading anything into these counts.",
+  "results_by_threshold": {
+    "0.35": [
+      {
+        "base": "06ea505c",
+        "head": "9368fb3f",
+        "reported": 0,
+        "cost_usd": 0.0,
+        "priced": true,
+        "model_requests": 0,
+        "diff_status": "below_risk_threshold",
+        "targets_considered": 0,
+        "candidates_generated": 0,
+        "python_files_changed": 1
+      },
+      {
+        "base": "258d68b6",
+        "head": "68936208",
+        "reported": 1,
+        "cost_usd": 0.0,
+        "priced": false,
+        "model_requests": 15,
+        "diff_status": "ok",
+        "targets_considered": 5,
+        "candidates_generated": 2,
+        "python_files_changed": 27
+      },
+      {
+        "base": "e4e4bf65",
+        "head": "a31e6b73",
+        "reported": 0,
+        "cost_usd": 0.0,
+        "priced": true,
+        "model_requests": 0,
+        "diff_status": "no_targets_after_ranking",
+        "targets_considered": 0,
+        "candidates_generated": 0,
+        "python_files_changed": 27
+      },
+      {
+        "base": "7ef2946f",
+        "head": "b21425d6",
+        "reported": 0,
+        "cost_usd": 0.0,
+        "priced": false,
+        "model_requests": 7,
+        "diff_status": "ok",
+        "targets_considered": 5,
+        "candidates_generated": 0,
+        "python_files_changed": 27
+      },
+      {
+        "base": "4cae5d8e",
+        "head": "91c6b3fe",
+        "reported": 0,
+        "cost_usd": 0.0,
+        "priced": true,
+        "model_requests": 0,
+        "diff_status": "no_targets_after_ranking",
+        "targets_considered": 0,
+        "candidates_generated": 0,
+        "python_files_changed": 1
+      },
+      {
+        "base": "3a9d54f3",
+        "head": "a197702e",
+        "reported": 0,
+        "cost_usd": 0.0,
+        "priced": true,
+        "model_requests": 0,
+        "diff_status": "ok",
+        "targets_considered": 5,
+        "candidates_generated": 0,
+        "python_files_changed": 27
+      },
+      {
+        "base": "c34d6e81",
+        "head": "a29f88ce",
+        "reported": 0,
+        "cost_usd": 0.0,
+        "priced": true,
+        "model_requests": 0,
+        "diff_status": "ok",
+        "targets_considered": 2,
+        "candidates_generated": 0,
+        "python_files_changed": 27
+      },
+      {
+        "base": "7b008869",
+        "head": "fbb6f0bc",
+        "reported": 0,
+        "cost_usd": 0.0,
+        "priced": true,
+        "model_requests": 0,
+        "diff_status": "ok",
+        "targets_considered": 5,
+        "candidates_generated": 0,
+        "python_files_changed": 8
+      }
+    ],
+    "0.0": [
+      {
+        "base": "06ea505c",
+        "head": "9368fb3f",
+        "reported": 0,
+        "cost_usd": 0.0,
+        "priced": true,
+        "model_requests": 0,
+        "diff_status": "ok",
+        "targets_considered": 1,
+        "candidates_generated": 0,
+        "python_files_changed": 1
+      },
+      {
+        "base": "258d68b6",
+        "head": "68936208",
+        "reported": 0,
+        "cost_usd": 0.0,
+        "priced": true,
+        "model_requests": 0,
+        "diff_status": "ok",
+        "targets_considered": 5,
+        "candidates_generated": 0,
+        "python_files_changed": 27
+      },
+      {
+        "base": "e4e4bf65",
+        "head": "a31e6b73",
+        "reported": 0,
+        "cost_usd": 0.0,
+        "priced": true,
+        "model_requests": 0,
+        "diff_status": "no_targets_after_ranking",
+        "targets_considered": 0,
+        "candidates_generated": 0,
+        "python_files_changed": 27
+      },
+      {
+        "base": "7ef2946f",
+        "head": "b21425d6",
+        "reported": 0,
+        "cost_usd": 0.0,
+        "priced": true,
+        "model_requests": 0,
+        "diff_status": "ok",
+        "targets_considered": 5,
+        "candidates_generated": 0,
+        "python_files_changed": 27
+      },
+      {
+        "base": "4cae5d8e",
+        "head": "91c6b3fe",
+        "reported": 0,
+        "cost_usd": 0.0,
+        "priced": true,
+        "model_requests": 0,
+        "diff_status": "no_targets_after_ranking",
+        "targets_considered": 0,
+        "candidates_generated": 0,
+        "python_files_changed": 1
+      },
+      {
+        "base": "3a9d54f3",
+        "head": "a197702e",
+        "reported": 0,
+        "cost_usd": 0.0,
+        "priced": true,
+        "model_requests": 0,
+        "diff_status": "ok",
+        "targets_considered": 5,
+        "candidates_generated": 0,
+        "python_files_changed": 27
+      },
+      {
+        "base": "c34d6e81",
+        "head": "a29f88ce",
+        "reported": 0,
+        "cost_usd": 0.0,
+        "priced": true,
+        "model_requests": 0,
+        "diff_status": "ok",
+        "targets_considered": 2,
+        "candidates_generated": 0,
+        "python_files_changed": 27
+      },
+      {
+        "base": "7b008869",
+        "head": "fbb6f0bc",
+        "reported": 0,
+        "cost_usd": 0.0,
+        "priced": true,
+        "model_requests": 0,
+        "diff_status": "ok",
+        "targets_considered": 5,
+        "candidates_generated": 0,
+        "python_files_changed": 8
+      }
+    ]
+  },
+  "NOTE": "This artifact answers one question: is the risk gate why the model is not being called. It is not a false-positive rate and must not be quoted as one."
+}
