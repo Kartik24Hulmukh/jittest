@@ -11,7 +11,8 @@ from .results import CandidateTelemetry
 
 __all__ = ["import_path_for", "existing_tests_for", "_added_excerpt", "_repro",
            "_bump", "_disposition_from_verdict", "_excerpt",
-           "_strip_source_echo", "_telemetry", "parse_failure_digest"]
+           "_strip_source_echo", "_telemetry", "parse_failure_digest",
+           "persist_candidate_source"]
 
 
 def import_path_for(file_path: str) -> str:
@@ -197,9 +198,30 @@ def parse_failure_digest(text: str, exc: SyntaxError) -> str:
             f"fenced={fenced} sha256={digest}")
 
 
+def persist_candidate_source(text: str, run_id: str = "default") -> tuple[str, str]:
+    """Persist generated candidate source or raw model text to local run-scoped directory (.jittest/candidates/<run_id>/<sha256_prefix>.py).
+
+    Returns (sha256, rel_path). Never raises; returns ("", "") on empty text.
+    The source text is saved locally on disk and NEVER exported to telemetry.
+    """
+    if not text:
+        return "", ""
+    sha256 = hashlib.sha256(text.encode("utf-8", "replace")).hexdigest()
+    candidate_dir = Path(".jittest") / "candidates" / run_id
+    try:
+        candidate_dir.mkdir(parents=True, exist_ok=True)
+        rel_path = str(Path(".jittest") / "candidates" / run_id / f"{sha256[:16]}.py")
+        full_path = candidate_dir / f"{sha256[:16]}.py"
+        full_path.write_text(text, encoding="utf-8", errors="replace")
+        return sha256, rel_path
+    except Exception:
+        return sha256, ""
+
+
 def _telemetry(report, target, rs, attempt, disposition,
                verdict=None, assessment=None,
-               check_reason="", parse_error="") -> None:
+               check_reason="", parse_error="",
+               candidate_source_sha256="", candidate_source_path="") -> None:
     """Emit one structured telemetry line and append to report.telemetry."""
     head_out = ""
     base_out = ""
@@ -236,6 +258,8 @@ def _telemetry(report, target, rs, attempt, disposition,
         failure_excerpt=excerpt,
         check_reason=str(check_reason or "")[:300],
         parse_error=str(parse_error or "")[:300],
+        candidate_source_sha256=candidate_source_sha256,
+        candidate_source_path=candidate_source_path,
     )
     report.telemetry.append(tel)
     # Emit structured line to stderr (visible in workflow logs). This MUST NOT
