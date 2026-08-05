@@ -207,10 +207,7 @@ def persist_candidate_source(text: str, candidate_dir: Path | str | None = None,
     if not text:
         return "", ""
     sha256 = hashlib.sha256(text.encode("utf-8", "replace")).hexdigest()
-    if candidate_dir:
-        base_dir = Path(candidate_dir)
-    else:
-        base_dir = Path.home() / ".jittest" / "candidates"
+    base_dir = Path(candidate_dir) if candidate_dir else Path.home() / ".jittest" / "candidates"
     target_dir = base_dir / run_id if run_id else base_dir
     try:
         target_dir.mkdir(parents=True, exist_ok=True)

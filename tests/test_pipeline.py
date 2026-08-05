@@ -212,8 +212,8 @@ class TestCandidateTelemetry(unittest.TestCase):
         llm = DryRunLLM(scripted=[CATCHING_TEST, ASSESSOR_REPLY])
         with FixtureRepo() as repo:
             test_ledger = str(Path(tempfile.gettempdir()) / "test_ledger_no_jit.db")
-            report = run(repo.path, repo.base, repo.head, self._cfg(ledger_path=test_ledger), llm,
-                         pr_title="refactor", pr_body="tidy")
+            run(repo.path, repo.base, repo.head, self._cfg(ledger_path=test_ledger), llm,
+                pr_title="refactor", pr_body="tidy")
             self.assertFalse((Path(repo.path) / ".jittest").exists(),
                              ".jittest directory must not be created inside analysed fixture repository")
 
