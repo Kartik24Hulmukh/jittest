@@ -198,23 +198,28 @@ def parse_failure_digest(text: str, exc: SyntaxError) -> str:
             f"fenced={fenced} sha256={digest}")
 
 
-def persist_candidate_source(text: str, run_id: str = "default") -> tuple[str, str]:
-    """Persist generated candidate source or raw model text to local run-scoped directory (.jittest/candidates/<run_id>/<sha256_prefix>.py).
+def persist_candidate_source(text: str, candidate_dir: Path | str | None = None, run_id: str = "default") -> tuple[str, str]:
+    """Persist generated candidate source or raw model text to local run-scoped directory outside analysed target repo.
 
-    Returns (sha256, rel_path). Never raises; returns ("", "") on empty text.
+    Returns (sha256, path). Never raises; returns ("", "") on empty text.
     The source text is saved locally on disk and NEVER exported to telemetry.
     """
     if not text:
         return "", ""
     sha256 = hashlib.sha256(text.encode("utf-8", "replace")).hexdigest()
-    candidate_dir = Path(".jittest") / "candidates" / run_id
+    if candidate_dir:
+        base_dir = Path(candidate_dir)
+    else:
+        base_dir = Path.home() / ".jittest" / "candidates"
+    target_dir = base_dir / run_id if run_id else base_dir
     try:
-        candidate_dir.mkdir(parents=True, exist_ok=True)
-        rel_path = str(Path(".jittest") / "candidates" / run_id / f"{sha256[:16]}.py")
-        full_path = candidate_dir / f"{sha256[:16]}.py"
+        target_dir.mkdir(parents=True, exist_ok=True)
+        full_path = target_dir / f"{sha256[:16]}.py"
         full_path.write_text(text, encoding="utf-8", errors="replace")
-        return sha256, rel_path
-    except Exception:
+        return sha256, str(full_path)
+    except Exception as exc:
+        import sys
+        print(f"WARNING: failed to persist candidate source to {target_dir}: {exc}", file=sys.stderr, flush=True)
         return sha256, ""
 
 

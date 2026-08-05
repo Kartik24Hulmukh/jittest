@@ -56,6 +56,7 @@ def run(
 ) -> Report:
     started = time.time()
     repo = Path(repo).resolve()
+    run_id = f"{repo.name}_{base[:8]}_{head[:8]}_{int(started)}"
     report = Report(repo=repo.name, base=base, head=head, model=llm.model,
                     reruns=cfg.reruns)
 
@@ -221,7 +222,7 @@ def run(
                         # code about the user's source, and telemetry is
                         # attached to public workflow runs.
                         digest = parse_failure_digest(code, exc)
-                        sha256, cpath = persist_candidate_source(code or raw)
+                        sha256, cpath = persist_candidate_source(code or raw, candidate_dir=cfg.candidate_dir, run_id=run_id)
                         _bump(report.discarded, "parse_failed")
                         _telemetry(report, t, rs, attempt, "parse_failed",
                                    parse_error=digest,
@@ -229,7 +230,7 @@ def run(
                                    candidate_source_path=cpath)
                         continue
 
-                    sha256, cpath = persist_candidate_source(code)
+                    sha256, cpath = persist_candidate_source(code, candidate_dir=cfg.candidate_dir, run_id=run_id)
                     report.candidates_generated += 1
                     check = check_candidate(code)
                     if not check.ok:
