@@ -202,11 +202,20 @@ class TestCandidateTelemetry(unittest.TestCase):
                     self.assertNotIn("assert apply_discount", val)
             # Local file persistence verification
             cpath = d.get("candidate_source_path")
-            if cpath:
-                from pathlib import Path
-                self.assertTrue(Path(cpath).exists())
-                saved_content = Path(cpath).read_text(encoding="utf-8")
-                self.assertIn("apply_discount", saved_content)
+            self.assertTrue(cpath, "candidate_source_path must be non-empty string")
+            from pathlib import Path
+            self.assertTrue(Path(cpath).exists())
+            saved_content = Path(cpath).read_text(encoding="utf-8")
+            self.assertIn("apply_discount", saved_content)
+
+    def test_no_jittest_directory_created_in_fixture_repo(self):
+        llm = DryRunLLM(scripted=[CATCHING_TEST, ASSESSOR_REPLY])
+        with FixtureRepo() as repo:
+            test_ledger = str(Path(tempfile.gettempdir()) / "test_ledger_no_jit.db")
+            run(repo.path, repo.base, repo.head, self._cfg(ledger_path=test_ledger), llm,
+                pr_title="refactor", pr_body="tidy")
+            self.assertFalse((Path(repo.path) / ".jittest").exists(),
+                             ".jittest directory must not be created inside analysed fixture repository")
 
     def test_telemetry_jsonl_serialisation(self):
         from jittest.pipeline import CandidateTelemetry
