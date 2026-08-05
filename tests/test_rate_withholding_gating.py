@@ -60,6 +60,24 @@ class RateWithholdingGatingTests(unittest.TestCase):
         self.assertIsNone(summary["comments_per_100_prs"])
         self.assertIsNone(summary["comments_per_100_prs_upper_bound_95"])
 
+    def test_floor_met_but_completion_below_80_percent_withholds_rates(self):
+        # 30 attempted, 20 measured (66.7% completion). Sample floor (20) is met, but completion (66.7%) < 80%
+        rows = [{"model_requests": 1, "reported": 0} for _ in range(20)] + \
+               [{"error": "setup failed", "model_requests": 0} for _ in range(10)]
+        summary = summarize_rows(rows, 30, 0, window=("2.years", "90.days"))
+
+        self.assertEqual(summary["prs_attempted"], 30)
+        self.assertEqual(summary["prs_analysed"], 20)
+        self.assertEqual(summary["completion_rate"], 0.667)
+        self.assertFalse(summary["gate_ready"])
+        self.assertTrue(summary["sample_floor_met"])
+        self.assertFalse(summary["publishable"])
+
+        self.assertIsNone(summary["false_positive_rate"])
+        self.assertIsNone(summary["false_positive_rate_upper_bound_95"])
+        self.assertIsNone(summary["comments_per_100_prs"])
+        self.assertIsNone(summary["comments_per_100_prs_upper_bound_95"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -47,8 +47,13 @@ def _add_run_args(p: argparse.ArgumentParser) -> None:
                    help="also report faults that fail on base too")
     p.add_argument("--dry-run", action="store_true",
                    help="run everything with a stub model: no API key, no cost")
-    p.add_argument("--no-persist-candidates", action="store_false", dest="persist_candidates",
-                   default=True, help="do not persist generated candidate source code to disk")
+    p.add_argument(
+        "--no-persist-candidates",
+        action="store_false",
+        dest="persist_candidates",
+        default=None,
+        help="do not persist generated candidate source code to disk",
+    )
     p.add_argument("--comment", action="store_true", help="upsert a PR comment")
     p.add_argument("--fail-on-regression", action="store_true",
                    help="exit 1 when a confident regression is found")

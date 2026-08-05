@@ -122,7 +122,15 @@ def parse_bool(raw: object, default: bool = True, key: str | None = None) -> tup
     if isinstance(raw, bool):
         return raw, None
     if isinstance(raw, (int, float)):
-        return bool(raw), None
+        if isinstance(raw, float) and not math.isfinite(raw):
+            note = f"`{key}` was {raw!r}, which is not a valid boolean; using default {default!r}" if key else None
+            return default, note
+        if raw == 1:
+            return True, None
+        if raw == 0:
+            return False, None
+        note = f"`{key}` was {raw!r}, which is not a valid boolean; using default {default!r}" if key else None
+        return default, note
     if isinstance(raw, str):
         text = raw.strip().lower()
         if text in _TRUE_VALUES:
