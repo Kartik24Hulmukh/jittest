@@ -253,6 +253,10 @@ def run_rung(
                 "python_files_changed": len(
                     changed_python_files(repo, base, head)
                 ),
+                "telemetry": [
+                    t.as_dict() if hasattr(t, "as_dict") else t
+                    for t in getattr(report, "telemetry", [])
+                ],
             })
         except Exception as exc:  # noqa: BLE001 - preserve every row
             rows.append({

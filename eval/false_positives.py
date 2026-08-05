@@ -264,16 +264,33 @@ def classify_unmeasured(row: dict) -> str | None:
 def failure_reasons(rows: list[dict]) -> dict[str, int]:
     """Bucket every unmeasured row by cause, highest count first.
 
-    Exceptions are keyed by their type name only. The message usually carries
-    a path, a SHA or a URL, so keying on the full string would produce one
-    bucket per row and defeat the purpose.
+    Exceptions are keyed by their type name only. Ties are broken
+    deterministically by bucket name.
     """
     counter: Counter[str] = Counter()
     for row in rows:
         bucket = classify_unmeasured(row)
         if bucket is not None:
             counter[bucket] += 1
-    return dict(counter.most_common())
+    return dict(sorted(counter.items(), key=lambda item: (-item[1], item[0])))
+
+
+def telemetry_dispositions(rows: list[dict]) -> dict[str, int]:
+    """Summarise candidate telemetry dispositions across all rows."""
+    counter: Counter[str] = Counter()
+    for row in rows:
+        telemetry = row.get("telemetry", [])
+        if isinstance(telemetry, list):
+            for item in telemetry:
+                if isinstance(item, dict):
+                    disp = item.get("disposition")
+                    if disp:
+                        counter[disp] += 1
+                elif hasattr(item, "disposition"):
+                    disp = getattr(item, "disposition", None)
+                    if disp:
+                        counter[disp] += 1
+    return dict(sorted(counter.items(), key=lambda item: (-item[1], item[0])))
 
 
 def summarize_rows(
@@ -395,6 +412,7 @@ def summarize_rows(
         "selection_window_is_default": window_is_default(since, until),
         "failure_reasons": reasons,
         "dominant_failure": dominant,
+        "telemetry_disposition_breakdown": telemetry_dispositions(rows),
         "diagnosis_gap": diagnosis_gap,
         "NOTE": (
             "Rate is withheld unless at least 80% of selected PRs produced "
