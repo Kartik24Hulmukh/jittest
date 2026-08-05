@@ -61,6 +61,11 @@ class CandidateTelemetry:
     # _pipeline_helpers.parse_failure_digest for why, and for exactly which
     # fields are and are not included.
     parse_error: str = ""
+    # SHA-256 hex digest and relative path to run-scoped local candidate source file.
+    # The actual candidate source text is stored in local disk (.jittest/candidates/<run_id>/)
+    # and NEVER exported to telemetry.
+    candidate_source_sha256: str = ""
+    candidate_source_path: str = ""
 
     def as_dict(self) -> dict:
         return {
@@ -77,6 +82,8 @@ class CandidateTelemetry:
             "failure_excerpt": self.failure_excerpt,
             "check_reason": self.check_reason,
             "parse_error": self.parse_error,
+            "candidate_source_sha256": self.candidate_source_sha256,
+            "candidate_source_path": self.candidate_source_path,
         }
 
     def as_jsonl(self) -> str:

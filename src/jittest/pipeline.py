@@ -17,6 +17,7 @@ from ._pipeline_helpers import (
     existing_tests_for,
     import_path_for,
     parse_failure_digest,
+    persist_candidate_source,
 )
 from .assess import Assessment, parse_assessment
 from .config import Config
@@ -220,11 +221,15 @@ def run(
                         # code about the user's source, and telemetry is
                         # attached to public workflow runs.
                         digest = parse_failure_digest(code, exc)
+                        sha256, cpath = persist_candidate_source(code or raw)
                         _bump(report.discarded, "parse_failed")
                         _telemetry(report, t, rs, attempt, "parse_failed",
-                                   parse_error=digest)
+                                   parse_error=digest,
+                                   candidate_source_sha256=sha256,
+                                   candidate_source_path=cpath)
                         continue
 
+                    sha256, cpath = persist_candidate_source(code)
                     report.candidates_generated += 1
                     check = check_candidate(code)
                     if not check.ok:
@@ -235,7 +240,9 @@ def run(
                         # explained after the fact.
                         _bump(report.discarded, f"unsafe_or_invalid: {check.reason}")
                         _telemetry(report, t, rs, attempt, "safety_rejected",
-                                   check_reason=check.reason)
+                                   check_reason=check.reason,
+                                   candidate_source_sha256=sha256,
+                                   candidate_source_path=cpath)
                         continue
 
                     verdict = differential_check(
@@ -259,7 +266,9 @@ def run(
                         _bump(report.discarded, verdict.reason)
                         disp = _disposition_from_verdict(verdict)
                         _telemetry(report, t, rs, attempt, disp,
-                                   verdict=verdict)
+                                   verdict=verdict,
+                                   candidate_source_sha256=sha256,
+                                   candidate_source_path=cpath)
                         if verdict.latent and cfg.latent_mode:
                             finding = Finding(
                                 target=t, test_code=code,
@@ -316,7 +325,9 @@ def run(
                     report.findings.append(finding)
                     found = True
                     _telemetry(report, t, rs, attempt, "catching",
-                               verdict=verdict, assessment=assessment)
+                               verdict=verdict, assessment=assessment,
+                               candidate_source_sha256=sha256,
+                               candidate_source_path=cpath)
                     emit(f"  catching test found ({assessment.badge})")
     finally:
         report.cost_usd = llm.usage.cost_usd

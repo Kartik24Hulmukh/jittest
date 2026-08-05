@@ -185,6 +185,29 @@ class TestCandidateTelemetry(unittest.TestCase):
                     self.assertNotIn("apply_discount(100.0, 150.0)", val)
                     self.assertNotIn("assert apply_discount", val)
 
+    def test_telemetry_never_contains_source_code_after_candidate_persistence(self):
+        llm = DryRunLLM(scripted=[CATCHING_TEST, ASSESSOR_REPLY])
+        with FixtureRepo() as repo:
+            report = run(repo.path, repo.base, repo.head, self._cfg(), llm,
+                         pr_title="refactor", pr_body="tidy")
+        self.assertTrue(report.telemetry)
+        for tel in report.telemetry:
+            d = tel.as_dict()
+            self.assertIn("candidate_source_sha256", d)
+            self.assertIn("candidate_source_path", d)
+            # Guarantee: Telemetry NEVER contains source code
+            for val in d.values():
+                if isinstance(val, str):
+                    self.assertNotIn("apply_discount(100.0, 150.0)", val)
+                    self.assertNotIn("assert apply_discount", val)
+            # Local file persistence verification
+            cpath = d.get("candidate_source_path")
+            if cpath:
+                from pathlib import Path
+                self.assertTrue(Path(cpath).exists())
+                saved_content = Path(cpath).read_text(encoding="utf-8")
+                self.assertIn("apply_discount", saved_content)
+
     def test_telemetry_jsonl_serialisation(self):
         from jittest.pipeline import CandidateTelemetry
         tel = CandidateTelemetry(
