@@ -198,7 +198,7 @@ def parse_failure_digest(text: str, exc: SyntaxError) -> str:
             f"fenced={fenced} sha256={digest}")
 
 
-def persist_candidate_source(text: str, candidate_dir: Path | str | None = None, run_id: str = "default") -> tuple[str, str]:
+def persist_candidate_source(text: str, candidate_dir: Path | str | None = None, run_id: str = "default", enabled: bool = True) -> tuple[str, str]:
     """Persist generated candidate source or raw model text to local run-scoped directory outside analysed target repo.
 
     Returns (sha256, path). Never raises; returns ("", "") on empty text.
@@ -207,6 +207,8 @@ def persist_candidate_source(text: str, candidate_dir: Path | str | None = None,
     if not text:
         return "", ""
     sha256 = hashlib.sha256(text.encode("utf-8", "replace")).hexdigest()
+    if not enabled:
+        return sha256, ""
     base_dir = Path(candidate_dir) if candidate_dir else Path.home() / ".jittest" / "candidates"
     target_dir = base_dir / run_id if run_id else base_dir
     try:

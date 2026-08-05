@@ -309,9 +309,8 @@ class HTTPLLM(BaseLLM):
             raise RateLimitedError(
                 f"rate limited by {self.provider} after {self.max_attempts} attempts "
                 f"({self.rate_limit_waits} waits, "
-                f"{self.rate_limit_seconds:.1f}s slept). Pace requests with "
-                f"JITTEST_MIN_REQUEST_INTERVAL, or wait longer with "
-                f"JITTEST_MAX_RETRIES / JITTEST_RETRY_MAX_SLEEP.")
+                f"{self.rate_limit_seconds:.1f}s slept). Check account quota/limits or pace "
+                f"requests with JITTEST_MIN_REQUEST_INTERVAL / JITTEST_MAX_RETRIES.")
         if isinstance(last, TimeoutError):
             raise TimedOutError(
                 f"{self.provider} did not answer within {self.http_timeout:.0f}s on "

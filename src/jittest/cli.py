@@ -47,6 +47,8 @@ def _add_run_args(p: argparse.ArgumentParser) -> None:
                    help="also report faults that fail on base too")
     p.add_argument("--dry-run", action="store_true",
                    help="run everything with a stub model: no API key, no cost")
+    p.add_argument("--no-persist-candidates", action="store_false", dest="persist_candidates",
+                   default=True, help="do not persist generated candidate source code to disk")
     p.add_argument("--comment", action="store_true", help="upsert a PR comment")
     p.add_argument("--fail-on-regression", action="store_true",
                    help="exit 1 when a confident regression is found")
@@ -122,6 +124,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
         "reruns": args.reruns,
         "latent_mode": True if args.latent else None,
         "fail_on_regression": True if args.fail_on_regression else None,
+        "persist_candidates": args.persist_candidates,
     })
 
     from .github import pr_context, upsert_pr_comment

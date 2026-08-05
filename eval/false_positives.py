@@ -386,6 +386,12 @@ def summarize_rows(
         "model_requests_total": sum(
             int(row.get("model_requests", 0)) for row in rows
         ),
+        "input_tokens_total": sum(
+            int(row.get("input_tokens", 0)) for row in rows
+        ),
+        "output_tokens_total": sum(
+            int(row.get("output_tokens", 0)) for row in rows
+        ),
         "model_request_attempts_total": sum(
             int(row.get("model_request_attempts", 0)) for row in rows
         ),
@@ -690,6 +696,8 @@ def main() -> int:
                 "reported": len(reported),
                 "cost_usd": report.cost_usd,
                 "priced": report.priced,
+                "input_tokens": getattr(report, "input_tokens", 0),
+                "output_tokens": getattr(report, "output_tokens", 0),
                 "model_requests": getattr(report, "model_requests", 0),
                 "diff_status": getattr(report, "diff_status", None),
                 # The funnel. Without these two a zero-request row is

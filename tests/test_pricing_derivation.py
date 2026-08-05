@@ -10,7 +10,10 @@ class PricingDerivationTests(unittest.TestCase):
     def test_gemini_36_flash_priced(self):
         price = price_for("gemini-3.6-flash")
         self.assertIsNotNone(price)
-        self.assertEqual(price, (0.75, 3.75))
+        self.assertEqual(price, (1.50, 7.50))
+
+    def test_mistral_coding_models_priced(self):
+        self.assertEqual(price_for("devstral-2512"), (0.40, 2.00))
 
     def test_output_token_derivation_includes_thinking(self):
         # Simulation of response usage block carrying unitemised thinking tokens

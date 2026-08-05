@@ -44,6 +44,7 @@ _ENV = {
     "min_confidence": ("JITTEST_MIN_CONFIDENCE", float),
     "ledger_path": ("JITTEST_LEDGER", str),
     "candidate_dir": ("JITTEST_CANDIDATE_DIR", str),
+    "persist_candidates": ("JITTEST_PERSIST_CANDIDATES", bool),
     "sandbox_mode": ("JITTEST_SANDBOX", str),
     "sandbox_backend": ("JITTEST_SANDBOX_BACKEND", str),
     "sandbox_image": ("JITTEST_SANDBOX_IMAGE", str),
@@ -88,6 +89,7 @@ class Config:
     ledger_path: str = ".jittest/ledger.db"
     cache_path: str = ".jittest/cache.db"
     candidate_dir: str = ""
+    persist_candidates: bool = True
     # Isolation. "auto" uses a container or namespace backend when one is
     # present and records a warning when one is not. "required" refuses to run
     # unconfined - the correct setting for pull requests from strangers, whose

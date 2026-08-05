@@ -242,6 +242,8 @@ def run_rung(
                 "reported": len(reported),
                 "cost_usd": report.cost_usd,
                 "priced": report.priced,
+                "input_tokens": getattr(report, "input_tokens", 0),
+                "output_tokens": getattr(report, "output_tokens", 0),
                 "model_requests": getattr(report, "model_requests", 0),
                 "diff_status": getattr(report, "diff_status", None),
                 "targets_considered": getattr(

@@ -12,6 +12,8 @@ __all__ = ["PRICES", "price_for", "estimate_tokens"]
 
 # USD per million tokens (input, output). Unknown models are not guessed: we
 # say so in the report instead of printing a confident wrong number.
+# Gemini pricing updated 2026-08-05 from https://ai.google.dev/gemini-api/docs/pricing
+# Devstral-2512 pricing updated 2026-08-05 from https://mistral.ai/news/devstral-2-vibe-cli/
 PRICES: dict[str, tuple[float, float]] = {
     "claude-sonnet-4-5": (3.00, 15.00),
     "claude-haiku-4-5": (1.00, 5.00),
@@ -24,7 +26,8 @@ PRICES: dict[str, tuple[float, float]] = {
     "deepseek-chat": (0.27, 1.10),
     "qwen-2.5-coder-32b": (0.09, 0.09),
     "moonshotai/kimi-k3": (3.00, 15.00),
-    "gemini-3.6-flash": (0.75, 3.75),
+    "gemini-3.6-flash": (1.50, 7.50),
+    "devstral-2512": (0.40, 2.00),
 }
 
 
