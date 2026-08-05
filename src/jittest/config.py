@@ -112,6 +112,27 @@ class Config:
         return asdict(self)
 
 
+_TRUE_VALUES = {"1", "true", "yes", "on"}
+_FALSE_VALUES = {"0", "false", "no", "off"}
+
+
+def parse_bool(raw: object, default: bool = True, key: str | None = None) -> tuple[bool, str | None]:
+    if raw is None or raw == "":
+        return default, None
+    if isinstance(raw, bool):
+        return raw, None
+    if isinstance(raw, (int, float)):
+        return bool(raw), None
+    if isinstance(raw, str):
+        text = raw.strip().lower()
+        if text in _TRUE_VALUES:
+            return True, None
+        if text in _FALSE_VALUES:
+            return False, None
+    note = f"`{key}` was {raw!r}, which is not a valid boolean; using default {default!r}" if key else None
+    return default, note
+
+
 def _defaults() -> dict:
     out: dict = {}
     for f in fields(Config):
@@ -162,7 +183,10 @@ def normalise_values(values: dict) -> tuple[dict, list[str]]:
             continue
 
         if isinstance(default, bool):
-            clean[key] = bool(raw)
+            val, note = parse_bool(raw, default, key)
+            if note:
+                notes.append(note)
+            clean[key] = val
             continue
 
         if key in _LIMITS:
@@ -226,14 +250,11 @@ def _from_toml(repo: Path) -> dict:
 
 def _from_env() -> dict:
     out: dict = {}
-    for key, (env_name, caster) in _ENV.items():
+    for key, (env_name, _caster) in _ENV.items():
         raw = os.getenv(env_name)
         if raw is None or raw == "":
             continue
-        try:
-            out[key] = caster(raw)
-        except ValueError:
-            continue
+        out[key] = raw
     return out
 
 
