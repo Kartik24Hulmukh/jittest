@@ -55,5 +55,33 @@ class MeterThrottlingTests(unittest.TestCase):
         self.assertEqual(summary["rate_limited_candidates_total"], 9)
 
 
+    def test_dominant_failure_selects_max_count(self):
+        rows = [
+            {"model_requests": 0, "diff_status": "below_risk_threshold"},
+            {"model_requests": 0, "diff_status": "rate_limited"},
+            {"model_requests": 0, "diff_status": "rate_limited"},
+        ]
+        summary = summarize_rows(rows, len(rows))
+        self.assertEqual(summary["failure_reasons"], {"rate_limited": 2, "below_risk_threshold": 1})
+        self.assertEqual(summary["dominant_failure"], "rate_limited")
+
+    def test_dominant_failure_deterministic_tie_breaking(self):
+        rows = [
+            {"model_requests": 0, "diff_status": "rate_limited"},
+            {"model_requests": 0, "diff_status": "below_risk_threshold"},
+        ]
+        summary = summarize_rows(rows, len(rows))
+        self.assertEqual(list(summary["failure_reasons"].keys()), ["below_risk_threshold", "rate_limited"])
+        self.assertEqual(summary["dominant_failure"], "below_risk_threshold")
+
+    def test_telemetry_disposition_breakdown_populated(self):
+        rows = [
+            {"model_requests": 1, "telemetry": [{"disposition": "rate_limited"}, {"disposition": "catching"}]},
+            {"model_requests": 0, "telemetry": [{"disposition": "rate_limited"}]},
+        ]
+        summary = summarize_rows(rows, len(rows))
+        self.assertEqual(summary["telemetry_disposition_breakdown"], {"rate_limited": 2, "catching": 1})
+
+
 if __name__ == "__main__":
     unittest.main()
