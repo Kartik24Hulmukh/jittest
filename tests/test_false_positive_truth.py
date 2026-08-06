@@ -46,17 +46,18 @@ class FalsePositiveTruthTests(unittest.TestCase):
     def test_boundary_completion_exposes_rate(self) -> None:
         rows = [{"reported": 1, "model_requests": 2}]
         rows.extend(
-            {"reported": 0, "model_requests": 2} for _ in range(7)
+            {"reported": 0, "model_requests": 2} for _ in range(19)
         )
         rows.extend(
             {"error": "setup failed", "model_requests": 0}
-            for _ in range(2)
+            for _ in range(5)
         )
-        summary = self.harness.summarize_rows(rows, 10)
+        summary = self.harness.summarize_rows(rows, 25)
         self.assertEqual(summary["completion_rate"], 0.8)
         self.assertTrue(summary["gate_ready"])
-        self.assertEqual(summary["false_positive_rate"], 0.125)
-        self.assertEqual(summary["comments_per_100_prs"], 12.5)
+        self.assertTrue(summary["sample_floor_met"])
+        self.assertEqual(summary["false_positive_rate"], 0.05)
+        self.assertEqual(summary["comments_per_100_prs"], 5.0)
 
     def test_below_boundary_withholds_rate(self) -> None:
         rows = [

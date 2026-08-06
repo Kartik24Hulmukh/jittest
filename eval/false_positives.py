@@ -350,7 +350,7 @@ def summarize_rows(
     completion = len(usable) / attempted if attempted else 0.0
     gate_ready = attempted > 0 and completion >= MIN_COMPLETION_RATE
     sample_floor_met = len(usable) >= MIN_ELIGIBLE_SAMPLE
-    publishable = bool(gate_ready and usable)
+    publishable = bool(gate_ready and sample_floor_met)
     bound = upper_bound_95(len(noisy), len(usable)) if publishable else None
     reasons = failure_reasons(rows)
     dominant = next(iter(reasons), None)
@@ -386,6 +386,12 @@ def summarize_rows(
         "model_requests_total": sum(
             int(row.get("model_requests", 0)) for row in rows
         ),
+        "input_tokens_total": sum(
+            int(row.get("input_tokens", 0)) for row in rows
+        ),
+        "output_tokens_total": sum(
+            int(row.get("output_tokens", 0)) for row in rows
+        ),
         "model_request_attempts_total": sum(
             int(row.get("model_request_attempts", 0)) for row in rows
         ),
@@ -395,19 +401,19 @@ def summarize_rows(
         "completion_rate": round(completion, 3) if attempted else None,
         "prs_with_a_report": len(noisy),
         "false_positive_rate": (
-            round(len(noisy) / len(usable), 3) if publishable else None
+            round(len(noisy) / len(usable), 3) if (publishable and len(usable) > 0) else None
         ),
         "false_positive_rate_upper_bound_95": bound,
         "comments_per_100_prs": (
-            round(100 * len(noisy) / len(usable), 1) if publishable else None
+            round(100 * len(noisy) / len(usable), 1) if (publishable and len(usable) > 0) else None
         ),
         "comments_per_100_prs_upper_bound_95": (
-            round(100 * bound, 1) if bound is not None else None
+            round(100 * bound, 1) if (publishable and bound is not None) else None
         ),
         "gate_ready": gate_ready,
         "eligible_sample_floor": MIN_ELIGIBLE_SAMPLE,
         "sample_floor_met": sample_floor_met,
-        "publishable": bool(gate_ready and sample_floor_met),
+        "publishable": publishable,
         "selection_window": {"since": since, "until": until},
         "selection_window_is_default": window_is_default(since, until),
         "failure_reasons": reasons,
@@ -690,6 +696,8 @@ def main() -> int:
                 "reported": len(reported),
                 "cost_usd": report.cost_usd,
                 "priced": report.priced,
+                "input_tokens": getattr(report, "input_tokens", 0),
+                "output_tokens": getattr(report, "output_tokens", 0),
                 "model_requests": getattr(report, "model_requests", 0),
                 "diff_status": getattr(report, "diff_status", None),
                 # The funnel. Without these two a zero-request row is

@@ -44,6 +44,7 @@ _ENV = {
     "min_confidence": ("JITTEST_MIN_CONFIDENCE", float),
     "ledger_path": ("JITTEST_LEDGER", str),
     "candidate_dir": ("JITTEST_CANDIDATE_DIR", str),
+    "persist_candidates": ("JITTEST_PERSIST_CANDIDATES", bool),
     "sandbox_mode": ("JITTEST_SANDBOX", str),
     "sandbox_backend": ("JITTEST_SANDBOX_BACKEND", str),
     "sandbox_image": ("JITTEST_SANDBOX_IMAGE", str),
@@ -88,6 +89,7 @@ class Config:
     ledger_path: str = ".jittest/ledger.db"
     cache_path: str = ".jittest/cache.db"
     candidate_dir: str = ""
+    persist_candidates: bool = True
     # Isolation. "auto" uses a container or namespace backend when one is
     # present and records a warning when one is not. "required" refuses to run
     # unconfined - the correct setting for pull requests from strangers, whose
@@ -108,6 +110,35 @@ class Config:
 
     def as_dict(self) -> dict:
         return asdict(self)
+
+
+_TRUE_VALUES = {"1", "true", "yes", "on"}
+_FALSE_VALUES = {"0", "false", "no", "off"}
+
+
+def parse_bool(raw: object, default: bool = True, key: str | None = None) -> tuple[bool, str | None]:
+    if raw is None or raw == "":
+        return default, None
+    if isinstance(raw, bool):
+        return raw, None
+    if isinstance(raw, (int, float)):
+        if isinstance(raw, float) and not math.isfinite(raw):
+            note = f"`{key}` was {raw!r}, which is not a valid boolean; using default {default!r}" if key else None
+            return default, note
+        if raw == 1:
+            return True, None
+        if raw == 0:
+            return False, None
+        note = f"`{key}` was {raw!r}, which is not a valid boolean; using default {default!r}" if key else None
+        return default, note
+    if isinstance(raw, str):
+        text = raw.strip().lower()
+        if text in _TRUE_VALUES:
+            return True, None
+        if text in _FALSE_VALUES:
+            return False, None
+    note = f"`{key}` was {raw!r}, which is not a valid boolean; using default {default!r}" if key else None
+    return default, note
 
 
 def _defaults() -> dict:
@@ -160,7 +191,10 @@ def normalise_values(values: dict) -> tuple[dict, list[str]]:
             continue
 
         if isinstance(default, bool):
-            clean[key] = bool(raw)
+            val, note = parse_bool(raw, default, key)
+            if note:
+                notes.append(note)
+            clean[key] = val
             continue
 
         if key in _LIMITS:
@@ -224,14 +258,11 @@ def _from_toml(repo: Path) -> dict:
 
 def _from_env() -> dict:
     out: dict = {}
-    for key, (env_name, caster) in _ENV.items():
+    for key, (env_name, _caster) in _ENV.items():
         raw = os.getenv(env_name)
         if raw is None or raw == "":
             continue
-        try:
-            out[key] = caster(raw)
-        except ValueError:
-            continue
+        out[key] = raw
     return out
 
 

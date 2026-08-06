@@ -197,6 +197,12 @@ the failures included. Until then they are blank rather than optimistic. If you
 see a benchmark claim in this README that is not backed by a script in `eval/`,
 it is a bug — please file it.
 
+## Privacy & Candidate Source Retention
+
+By default, generated candidate source files are persisted locally under `~/.jittest/candidates/<run_id>/` for local auditability. Candidate source code is **never** included in telemetry outputs or public logs.
+
+To disable writing candidate files to disk, set `JITTEST_PERSIST_CANDIDATES=0` or pass `--no-persist-candidates`.
+
 ## Docs
 
 - [`docs/QUICKSTART.md`](docs/QUICKSTART.md) — five minutes, no key

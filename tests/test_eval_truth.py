@@ -98,11 +98,12 @@ class FalsePositiveTruthTests(unittest.TestCase):
 
     def test_sufficient_measurement_exposes_rate(self):
         rows = [{"reported": 1, "model_requests": 2}]
-        rows += [{"reported": 0, "model_requests": 2} for _ in range(9)]
-        summary = fp.summarize_rows(rows, 10)
+        rows += [{"reported": 0, "model_requests": 2} for _ in range(19)]
+        summary = fp.summarize_rows(rows, 20)
         self.assertTrue(summary["gate_ready"])
-        self.assertEqual(summary["false_positive_rate"], 0.1)
-        self.assertEqual(summary["comments_per_100_prs"], 10.0)
+        self.assertTrue(summary["sample_floor_met"])
+        self.assertEqual(summary["false_positive_rate"], 0.05)
+        self.assertEqual(summary["comments_per_100_prs"], 5.0)
 
 
 if __name__ == "__main__":
