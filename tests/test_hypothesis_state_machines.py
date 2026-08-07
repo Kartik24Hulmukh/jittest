@@ -7,7 +7,7 @@ from pathlib import Path
 
 try:
     from hypothesis import strategies as st
-    from hypothesis.stateful import Bundle, RuleBasedStateMachine, rule
+    from hypothesis.stateful import Bundle, RuleBasedStateMachine, rule, run_state_machine_as_test
     HAS_HYPOTHESIS = True
 except ImportError:
     HAS_HYPOTHESIS = False
@@ -62,17 +62,16 @@ if HAS_HYPOTHESIS:
         def teardown(self):
             self.tmp_dir.cleanup()
 
+    # Expose the state machine as a real TestCase so Hypothesis auto-generates test sequences
+    TestBudgetManagerStateMachine = BudgetManagerStateMachine.TestCase
+
 
 class HypothesisStateMachineTests(unittest.TestCase):
-    def test_state_machine_run(self):
+    def test_state_machine_execution(self):
+        """Execute Hypothesis state machine runner for automated sequence generation."""
         if not HAS_HYPOTHESIS:
             self.skipTest("hypothesis package not installed")
-        t = BudgetManagerStateMachine()
-        r1 = t.reserve(100, 100)
-        if r1:
-            t.dispatch_start(r1)
-            t.reconcile(r1)
-        t.teardown()
+        run_state_machine_as_test(BudgetManagerStateMachine)
 
 
 if __name__ == "__main__":

@@ -179,7 +179,7 @@ def run(
                                 total_attempts=cfg.candidates_per_target,
                             ),
                             n=1,
-                            temperature=min(1.0, cfg.temperature + 0.05 * (attempt - 1)),
+                            temperature=0.0 if (getattr(llm, "phase_c", False) or getattr(cfg, "phase_c", False)) else min(1.0, cfg.temperature + 0.05 * (attempt - 1)),
                         )[0]
                     except BudgetExceeded as exc:
                         report.errors.append(str(exc))

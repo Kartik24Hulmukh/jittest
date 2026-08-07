@@ -615,11 +615,18 @@ def evaluate_one(spec: BugSpec, repo: Path, model: str, budget: float,
             res.seconds = round(time.time() - t0, 1)
             return res
 
+        from jittest.budget import BudgetManager
+        bm = BudgetManager(
+            authorized_spend_ceiling_usd=cfg.budget_usd,
+            max_requests=cfg.max_targets * cfg.candidates_per_target + 5,
+        )
         llm = build_llm(
-            cfg.model,
+            cfg.model or "mistral/codestral-2508",
             dry_run=dry_run,
             budget_usd=cfg.budget_usd,
-            temperature=cfg.temperature,
+            budget_manager=bm,
+            phase_c=not dry_run,
+            temperature=0.0,
             request_ceiling=cfg.max_targets * cfg.candidates_per_target + 5,
         )
         report = run_pipeline(

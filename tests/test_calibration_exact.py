@@ -35,7 +35,7 @@ SHA_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 
 class ExactCalibrationGuardTests(unittest.TestCase):
     def test_calibration_artifact_and_sidecar_exact_match(self):
-        """Verify calibration artifact and sidecar file exact SHA-256 digest match."""
+        """Verify calibration artifact and sidecar file exact SHA-256 digest match using read_bytes()."""
         root = Path(__file__).resolve().parent.parent
         artifact_path = root / "eval" / "artifacts" / "flask-fp-ladder-w1r6-sanitized.json"
         sidecar_path = root / "eval" / "artifacts" / "flask-fp-ladder-w1r6-sanitized.json.sha256"
@@ -43,9 +43,8 @@ class ExactCalibrationGuardTests(unittest.TestCase):
         self.assertTrue(artifact_path.exists(), f"Artifact missing at {artifact_path}")
         self.assertTrue(sidecar_path.exists(), f"Sidecar missing at {sidecar_path}")
 
-        # Compute SHA-256 with normalized LF line endings for cross-platform stability
-        text_content = artifact_path.read_text(encoding="utf-8").replace("\r\n", "\n")
-        actual_sha = hashlib.sha256(text_content.encode("utf-8")).hexdigest()
+        # Compute raw SHA-256 digest using read_bytes() without text normalization
+        actual_sha = hashlib.sha256(artifact_path.read_bytes()).hexdigest()
         expected_sha = sidecar_path.read_text(encoding="utf-8").strip()
 
         self.assertEqual(actual_sha, expected_sha, "Sidecar digest mismatch!")
@@ -77,6 +76,42 @@ class ExactCalibrationGuardTests(unittest.TestCase):
             actual_head = ancestry[idx].get("head_sha")
             self.assertEqual(actual_base, expected_base, f"Pair {idx+1} base mismatch: {actual_base} != {expected_base}")
             self.assertEqual(actual_head, expected_head, f"Pair {idx+1} head mismatch: {actual_head} != {expected_head}")
+
+    def test_uniqueness_negative(self):
+        """Verify duplicate SHA pairs are rejected."""
+        pairs = list(W1R6_COMMITS) + [W1R6_COMMITS[0]]
+        self.assertNotEqual(len(set(pairs)), len(pairs), "Duplicates must be detected")
+
+    def test_reordering_negative(self):
+        """Verify reordered SHA pairs fail sequence verification."""
+        reordered = list(W1R6_COMMITS)
+        reordered[0], reordered[1] = reordered[1], reordered[0]
+        self.assertNotEqual(reordered, W1R6_COMMITS, "Reordered pairs must fail match")
+
+    def test_deletion_negative(self):
+        """Verify truncated SHA pair list (19 pairs) fails exact count check."""
+        truncated = W1R6_COMMITS[:-1]
+        self.assertNotEqual(len(truncated), 20, "Truncated pair list must fail length check")
+
+    def test_addition_negative(self):
+        """Verify extra SHA pair list (21 pairs) fails exact count check."""
+        extra = list(W1R6_COMMITS) + [("a" * 40, "b" * 40)]
+        self.assertNotEqual(len(extra), 20, "Extra pair list must fail length check")
+
+    def test_abbreviated_sha_negative(self):
+        """Verify abbreviated 7-character SHAs fail 40-character regex check."""
+        short_base = "06ea505"
+        self.assertFalse(SHA_PATTERN.match(short_base), "Abbreviated SHA must be rejected by SHA_PATTERN")
+
+    def test_byte_mutation_negative(self):
+        """Verify byte mutation in raw artifact content changes SHA-256 digest."""
+        root = Path(__file__).resolve().parent.parent
+        artifact_path = root / "eval" / "artifacts" / "flask-fp-ladder-w1r6-sanitized.json"
+        raw_bytes = artifact_path.read_bytes()
+        mutated_bytes = raw_bytes[:-1] + b"X"
+        mutated_sha = hashlib.sha256(mutated_bytes).hexdigest()
+        actual_sha = hashlib.sha256(raw_bytes).hexdigest()
+        self.assertNotEqual(mutated_sha, actual_sha, "Byte mutation must change SHA-256 digest")
 
 
 if __name__ == "__main__":

@@ -93,9 +93,12 @@ class BudgetManager:
             elif os.name == "nt":
                 import msvcrt
 
+                pos = f.tell()
+                f.seek(0, os.SEEK_SET)
                 msvcrt.locking(f.fileno(), msvcrt.LK_LOCK, 1)
-        except Exception:
-            pass
+                f.seek(pos, os.SEEK_SET)
+        except Exception as exc:
+            raise BudgetJournalError(f"File lock acquisition failed: {exc}") from exc
 
     def _release_file_lock(self, f):
         try:
@@ -106,7 +109,10 @@ class BudgetManager:
             elif os.name == "nt":
                 import msvcrt
 
+                pos = f.tell()
+                f.seek(0, os.SEEK_SET)
                 msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+                f.seek(pos, os.SEEK_SET)
         except Exception:
             pass
 

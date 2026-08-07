@@ -162,15 +162,21 @@ class SandboxSecurityProbeTests(unittest.TestCase):
         self.assertIn("--memory", cmd)
 
     def test_4_job_container_concurrency_plan(self):
-        """4 concurrent container jobs generate isolated plan configurations."""
-        plans = [plan(mode="off", probe=False) for _ in range(4)]
-        self.assertEqual(len(plans), 4)
+        """4 concurrent container jobs generate isolated plan configurations with required mode."""
+        with mock.patch("jittest.sandbox.detect_backend", return_value="docker"):
+            plans = [plan(mode="required", probe=False) for _ in range(4)]
+            self.assertEqual(len(plans), 4)
+            for p in plans:
+                self.assertEqual(p.backend, "docker")
+                self.assertTrue(p.isolated)
 
     def test_100_cycle_lifecycle_cleanup(self):
-        """100-cycle container plan construction and cleanup operates without leak."""
-        for _ in range(100):
-            sbx = plan(mode="off", probe=False)
-            self.assertFalse(sbx.isolated)
+        """100-cycle container plan construction operates with required mode without leak."""
+        with mock.patch("jittest.sandbox.detect_backend", return_value="docker"):
+            for _ in range(100):
+                sbx = plan(mode="required", probe=False)
+                self.assertEqual(sbx.backend, "docker")
+                self.assertTrue(sbx.isolated)
 
 
 if __name__ == "__main__":

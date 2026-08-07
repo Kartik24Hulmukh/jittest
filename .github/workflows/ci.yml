@@ -2,8 +2,9 @@ name: ci
 
 on:
   push:
-    branches: [main, eval/phase-c-preregistration]
+    branches: [main]
   pull_request:
+    branches: [main, eval/phase-c-preregistration]
 
 permissions:
   contents: read
