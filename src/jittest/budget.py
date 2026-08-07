@@ -135,24 +135,24 @@ class BudgetManager:
 
         def _do_write():
             self.journal_path.parent.mkdir(parents=True, exist_ok=True)
-            # Use r+ or a+ so we can inspect last line under lock before appending
-            mode = "r+" if self.journal_path.exists() else "w+"
+            mode = "a+"
             with open(self.journal_path, mode, encoding="utf-8") as f:
                 self._acquire_file_lock(f)
                 try:
                     f.seek(0, os.SEEK_SET)
                     lines = [line.strip() for line in f.readlines() if line.strip()]
-                    if lines:
-                        parsed = [json.loads(line) for line in lines]
+                    parsed = [json.loads(line) for line in lines]
+                    if parsed:
                         last_rec = parsed[-1]
                         self.sequence_number = int(last_rec["seq"])
                         self.last_checksum = str(last_rec["checksum"])
-                        if entry_type == "reserve":
-                            res_cnt = sum(1 for r in parsed if r.get("event") == "reserve")
-                            if (res_cnt + 1) > self.max_requests:
-                                raise BudgetExceededError(
-                                    f"Request ceiling reached: {res_cnt + 1} > {self.max_requests} max requests"
-                                )
+
+                    if entry_type == "reserve":
+                        res_cnt = sum(1 for r in parsed if r.get("event") == "reserve")
+                        if (res_cnt + 1) > self.max_requests:
+                            raise BudgetExceededError(
+                                f"Request ceiling reached: {res_cnt + 1} > {self.max_requests} max requests"
+                            )
 
                     next_seq = self.sequence_number + 1
                     record = {
