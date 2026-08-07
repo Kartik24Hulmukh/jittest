@@ -21,11 +21,11 @@ jittest doctor
 jittest 0.2.1 doctor
   [ok  ] python >= 3.11 - 3.13.1
   [ok  ] git available - git version 2.45.2
-  [ok  ] inside a git repository - /home/you/your-repo
+  [ok  ] inside a git repository - <home>/your-repo
   [ok  ] test runner: pytest
   [warn] model API key present - only --dry-run will work
   [ok  ] model z-ai/glm-5.2, budget $1.00, max targets 5
-  [ok  ] ledger /home/you/your-repo/.jittest/ledger.db
+  [ok  ] ledger <home>/your-repo/.jittest/ledger.db
   [ok  ] 15 ignore pattern(s)
 ```
 
