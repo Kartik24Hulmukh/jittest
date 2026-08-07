@@ -50,7 +50,7 @@ def _parametrize_layers(fn) -> list:
         if getattr(m, "name", None) == "parametrize":
             args = getattr(m, "args", ())
             if len(args) >= 2:
-                layers.append((args[0], list(args[1]),
+                layers.append((args[0], list(args[1]),  # type: ignore[misc]
                                getattr(m, "kwargs", {}).get("ids")))
     return layers
 
@@ -218,14 +218,11 @@ def _make_method_cases(cls, class_marks: list,
     cases: list[_Case] = []
     methods = [n for n, v in vars(cls).items()
                if n.startswith("test_") and callable(v)]
-    if not methods:
-        return cases
-
     for method_name in methods:
         method = getattr(cls, method_name)
         marks = [*_marks_of(cls), *class_marks, *_marks_of(method)]
         if is_testcase:
-            def run(kwargs, cls=cls, method_name=method_name):
+            def run_testcase(kwargs, cls=cls, method_name=method_name, argdict=None, inject=None):
                 instance = cls(method_name)
                 set_up = getattr(instance, "setUp", None)
                 tear_down = getattr(instance, "tearDown", None)
@@ -237,7 +234,7 @@ def _make_method_cases(cls, class_marks: list,
                     if tear_down is not None:
                         _call(tear_down)
 
-            cases.append(_Case(f"{cls.__name__}.{method_name}", run,
+            cases.append(_Case(f"{cls.__name__}.{method_name}", run_testcase,
                                list(autouse), marks, {}))
             continue
 
@@ -253,8 +250,8 @@ def _make_method_cases(cls, class_marks: list,
                 label = (f"{cls.__name__}.{method_name}[{ids}]" if ids
                          else f"{cls.__name__}.{method_name}")
 
-                def run(kwargs, cls=cls, method_name=method_name, argdict=argdict,
-                        inject=inject):
+                def run_parametrized(kwargs, cls=cls, method_name=method_name, argdict=argdict,
+                                     inject=inject):
                     instance = cls()
                     bound = getattr(instance, method_name)
                     set_up = getattr(instance, "setup_method", None)
@@ -269,7 +266,7 @@ def _make_method_cases(cls, class_marks: list,
                         if tear_down is not None:
                             _call(lambda: tear_down(bound))
 
-                cases.append(_Case(label, run, requested, marks, overrides))
+                cases.append(_Case(label, run_parametrized, requested, marks, overrides))
     return cases
 
 

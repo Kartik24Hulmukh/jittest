@@ -6,7 +6,6 @@ Phase C uses HTTPLLM directly with explicit BudgetManager dependency injection.
 from __future__ import annotations
 
 import dataclasses
-import hashlib
 import http.client
 import json
 import os
@@ -16,6 +15,7 @@ import urllib.request
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 from pathlib import Path
+from typing import Any
 
 from ._llmbase import BaseLLM, BudgetExceeded, LLMError, Usage
 from ._llmcache import _Cache
@@ -160,20 +160,43 @@ class HTTPLLM(BaseLLM):
         http_timeout: float | None = None,
         min_request_interval: float | None = None,
         max_sleep: float | None = None,
+        phase_c: bool = False,
         **kwargs,
     ):
+        if kwargs:
+            raise TypeError(f"Unknown keyword arguments rejected: {set(kwargs)}")
+
+        is_frozen = phase_c or config is not None
+        if is_frozen:
+            if budget_manager is None:
+                raise ValueError("Phase C frozen mode requires explicit BudgetManager dependency injection")
+
+            banned_envs = [
+                "JITTEST_API_BASE",
+                "JITTEST_MAX_RETRIES",
+                "JITTEST_RETRY_MAX_SLEEP",
+                "JITTEST_MIN_REQUEST_INTERVAL",
+                "JITTEST_HTTP_TIMEOUT",
+            ]
+            found_envs = [env for env in banned_envs if os.getenv(env)]
+            if found_envs:
+                raise ValueError(f"Environment overrides rejected in Phase C frozen mode: {found_envs}")
+
+            if temperature != 0.0:
+                raise ValueError(f"Temperature override {temperature} rejected in Phase C frozen mode")
+
         self._unpriced = price_for(model) is None
         if budget_manager is None:
             max_req = request_ceiling if request_ceiling is not None else 1080
             budget_manager = BudgetManager(
                 authorized_spend_ceiling_usd=budget_usd, max_requests=max_req
             )
+
         super().__init__(model, float(budget_manager.authorized_spend_ceiling_usd), temperature)
         self.config = config or FrozenRunConfig()
         self.budget_manager = budget_manager
-        self.request_ceiling = (
-            request_ceiling if request_ceiling is not None else budget_manager.max_requests
-        )
+        self.phase_c = is_frozen
+        self.request_ceiling = request_ceiling
 
         provider, _, name = model.partition("/")
         if not name:
@@ -183,48 +206,55 @@ class HTTPLLM(BaseLLM):
         self.api_key = api_key or self._find_key(provider)
 
         api_base_env = os.getenv("JITTEST_API_BASE")
-        if api_base_env:
+        if api_base_env and not is_frozen:
             self.base_url = api_base_env.rstrip("/")
             self.api_model = model
         elif provider == "anthropic":
             self.base_url = "https://api.anthropic.com/v1"
             self.api_model = name
         elif provider == "mistral":
-            self.base_url = "https://api.mistral.ai/v1"
+            self.base_url = self.config.api_endpoint.rsplit("/chat/completions", 1)[0]
             self.api_model = self.config.model_name
         else:
             self.base_url = "https://api.openai.com/v1"
             self.api_model = name
 
-        self.cache = _Cache(cache_path)
-        if max_attempts is not None:
-            self.max_attempts = max_attempts
-        else:
-            self.max_attempts = _env_int("JITTEST_MAX_RETRIES", _DEFAULT_MAX_ATTEMPTS)
+        self.cache = _Cache(None if is_frozen else cache_path)
 
-        if max_sleep is not None:
-            self.max_sleep = max_sleep
+        if is_frozen:
+            self.max_attempts = self.config.max_attempts
+            self.max_sleep = _DEFAULT_MAX_SLEEP
+            self.min_request_interval = 0.0
+            self.http_timeout = float(self.config.timeout_seconds)
         else:
-            self.max_sleep = _env_float("JITTEST_RETRY_MAX_SLEEP", _DEFAULT_MAX_SLEEP)
-
-        if min_request_interval is not None:
-            self.min_request_interval = min_request_interval
-        else:
-            self.min_request_interval = _env_float("JITTEST_MIN_REQUEST_INTERVAL", 0.0)
-
-        eff_timeout = http_timeout if http_timeout is not None else timeout
-        if eff_timeout is not None:
-            self.http_timeout = float(eff_timeout) if float(eff_timeout) > 0 else 300.0
-        else:
-            env_t = os.getenv("JITTEST_HTTP_TIMEOUT")
-            if env_t:
-                try:
-                    tv = float(env_t)
-                    self.http_timeout = tv if tv > 0 else 300.0
-                except ValueError:
-                    self.http_timeout = _DEFAULT_HTTP_TIMEOUT
+            if max_attempts is not None:
+                self.max_attempts = max_attempts
             else:
-                self.http_timeout = _DEFAULT_HTTP_TIMEOUT
+                self.max_attempts = _env_int("JITTEST_MAX_RETRIES", _DEFAULT_MAX_ATTEMPTS)
+
+            if max_sleep is not None:
+                self.max_sleep = max_sleep
+            else:
+                self.max_sleep = _env_float("JITTEST_RETRY_MAX_SLEEP", _DEFAULT_MAX_SLEEP)
+
+            if min_request_interval is not None:
+                self.min_request_interval = min_request_interval
+            else:
+                self.min_request_interval = _env_float("JITTEST_MIN_REQUEST_INTERVAL", 0.0)
+
+            eff_timeout = http_timeout if http_timeout is not None else timeout
+            if eff_timeout is not None:
+                self.http_timeout = float(eff_timeout) if float(eff_timeout) > 0 else 300.0
+            else:
+                env_t = os.getenv("JITTEST_HTTP_TIMEOUT")
+                if env_t:
+                    try:
+                        tv = float(env_t)
+                        self.http_timeout = tv if tv > 0 else 300.0
+                    except ValueError:
+                        self.http_timeout = _DEFAULT_HTTP_TIMEOUT
+                else:
+                    self.http_timeout = _DEFAULT_HTTP_TIMEOUT
 
         self._last_request_at: float | None = None
         self.rate_limit_waits = 0
@@ -249,6 +279,62 @@ class HTTPLLM(BaseLLM):
                 return os.environ[name]
         return None
 
+    def complete(
+        self, system: str, user: str, n: int = 1, temperature: float | None = None
+    ) -> list[str]:
+        if self.phase_c and temperature is not None and temperature != 0.0:
+            raise ValueError(f"Temperature override {temperature} rejected in Phase C frozen mode")
+
+        if self._unpriced:
+            ceiling = self.request_ceiling
+            if ceiling is None:
+                ceiling = (int(os.getenv("JITTEST_MAX_TARGETS", "5")) *
+                           int(os.getenv("JITTEST_CANDIDATES", "4")) + 5)
+            self._guard_request_ceiling(ceiling)
+        else:
+            self._guard_budget()
+
+        temp = self.temperature if temperature is None else temperature
+        if self.provider == "anthropic":
+            url = f"{self.base_url}/messages"
+            headers = {
+                "x-api-key": self.api_key or "",
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            }
+            payload = {
+                "model": self.api_model,
+                "messages": [{"role": "user", "content": user}],
+                "max_tokens": 4096,
+                "temperature": temp,
+            }
+            if system:
+                payload["system"] = system
+            res = self._post(url, payload, headers)
+            content = res.get("content", [])
+            text = content[0].get("text", "") if content else ""
+            return [text] * max(1, n)
+
+        url = f"{self.base_url}/chat/completions"
+        headers = {
+            "authorization": f"Bearer {self.api_key}",
+            "content-type": "application/json",
+        }
+        messages = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        messages.append({"role": "user", "content": user})
+        payload = {
+            "model": self.api_model,
+            "messages": messages,
+            "temperature": temp,
+            "top_p": self.config.top_p,
+            "n": n,
+        }
+        res = self._post(url, payload, headers)
+        choices = res.get("choices", [])
+        return [c.get("message", {}).get("content", "") for c in choices] or [""]
+
     def _price(self) -> tuple[float, float] | None:
         return price_for(self.model_name) or price_for(self.model)
 
@@ -264,15 +350,20 @@ class HTTPLLM(BaseLLM):
             return
         self.usage.cost_usd += (input_tokens * price[0] + output_tokens * price[1]) / 1e6
 
-    def _account_response(self, reported_in, reported_out, prompt: str, text: str) -> None:
+    def _account_response(self, reported_in: Any, reported_out: Any, prompt: str, text: str) -> None:
         try:
             in_tokens = int(reported_in or 0)
             out_tokens = int(reported_out or 0)
         except (TypeError, ValueError):
             in_tokens = out_tokens = 0
+
         if in_tokens or out_tokens:
             self._account(in_tokens, out_tokens)
             return
+
+        if getattr(self, "phase_c", False):
+            self.usage.unverified = True
+
         self._account(estimate_tokens(prompt), estimate_tokens(text), estimated=True)
 
     def _sleep(self, seconds: float) -> None:
@@ -314,13 +405,16 @@ class HTTPLLM(BaseLLM):
                     projected_input_tokens=proj_in, projected_output_tokens=proj_out
                 )
             except BudgetExceededError as exc:
-                if self._unpriced and (
+                if self._unpriced and self.request_ceiling is not None and (
                     self.usage.calls >= self.request_ceiling
                     or self.budget_manager.executed_requests + self.budget_manager.reserved_requests
                     >= self.request_ceiling
                 ):
                     raise BudgetExceeded("unpriced model request ceiling reached") from exc
                 raise BudgetExceeded(str(exc)) from exc
+
+            # Persist dispatch_started immediately BEFORE network call
+            self.budget_manager.record_dispatch_start(res_id)
 
             req = urllib.request.Request(url, data=data, headers=headers, method="POST")
             self._last_request_at = time.monotonic()
@@ -331,7 +425,11 @@ class HTTPLLM(BaseLLM):
                     actual_in = usage.get("prompt_tokens") or usage.get("input_tokens")
                     actual_out = usage.get("completion_tokens") or usage.get("output_tokens")
 
+                    if (actual_in is None or actual_out is None) and getattr(self, "phase_c", False):
+                        self.usage.unverified = True
+
                     self.budget_manager.reconcile_reservation(res_id, actual_in, actual_out)
+                    self._account_response(actual_in, actual_out, json.dumps(payload), json.dumps(res_body))
                     return res_body
             except urllib.error.HTTPError as exc:
                 self.budget_manager.reconcile_reservation(
@@ -378,118 +476,34 @@ class HTTPLLM(BaseLLM):
             self._sleep(delay)
 
         if last_code in _RATE_LIMITED:
-            msg = (
+            raise RateLimitedError(
                 f"rate limited by {self.provider} after {self.max_attempts} attempts "
-                f"({self.rate_limit_waits} waits, {self.rate_limit_seconds:.1f}s slept). "
-                f"Check account quota/limits or pace requests with JITTEST_MIN_REQUEST_INTERVAL / JITTEST_MAX_RETRIES."
+                f"({self.rate_limit_waits} 429/503 responses). Try increasing JITTEST_RETRY_MAX_SLEEP or JITTEST_MIN_REQUEST_INTERVAL"
             )
-            raise RateLimitedError(msg)
         if isinstance(last, TimeoutError):
-            msg = (
-                f"{self.provider} did not answer within {self.http_timeout:.0f}s on any of {self.max_attempts} attempts "
-                f"({self.timeout_retries} read timeouts). Models that always emit a reasoning trace are slow on large diffs; raise JITTEST_HTTP_TIMEOUT."
+            raise TimedOutError(
+                f"timed out connecting to {self.provider} after {self.max_attempts} attempts "
+                f"({self.timeout_retries} read timeouts). Try increasing JITTEST_HTTP_TIMEOUT"
             )
-            raise TimedOutError(msg)
-        raise LLMError(f"model request failed after retries: {last}")
-
-    def complete(
-        self, system: str, user: str, n: int = 1, temperature: float | None = None
-    ) -> list[str]:
-        if self._unpriced:
-            ceiling = self.request_ceiling
-            if ceiling is None or ceiling == 1080:
-                ceiling = (
-                    int(os.getenv("JITTEST_MAX_TARGETS", "5"))
-                    * int(os.getenv("JITTEST_CANDIDATES", "4"))
-                    + 5
-                )
-            if (
-                self.usage.calls >= ceiling
-                or (self.budget_manager.executed_requests + self.budget_manager.reserved_requests)
-                >= ceiling
-            ):
-                raise BudgetExceeded("unpriced model request ceiling reached")
-
-        temp = self.temperature if temperature is None else temperature
-        key = hashlib.sha256(
-            f"{self.provider}|{self.model_name}|{system}|{user}|{n}|{temp}".encode()
-        ).hexdigest()
-        cached = self.cache.get(key)
-        if cached is not None:
-            return json.loads(cached)
-
-        endpoint = (
-            f"{self.base_url}/messages"
-            if self.provider == "anthropic"
-            else f"{self.base_url}/chat/completions"
-        )
-        headers = (
-            {
-                "content-type": "application/json",
-                "x-api-key": self.api_key or "",
-                "anthropic-version": "2023-06-01",
-            }
-            if self.provider == "anthropic"
-            else {
-                "content-type": "application/json",
-                "authorization": f"Bearer {self.api_key or ''}",
-            }
-        )
-
-        outputs: list[str] = []
-        for _ in range(max(1, n)):
-            body = self._post(
-                endpoint,
-                {
-                    "model": self.api_model,
-                    "temperature": temp,
-                    "top_p": self.config.top_p,
-                    "max_tokens": 2048,
-                    "messages": [
-                        {"role": "system", "content": system},
-                        {"role": "user", "content": user},
-                    ],
-                },
-                headers,
-            )
-            choices = body.get("choices", [])
-            if choices:
-                text = choices[0]["message"]["content"]
-            elif "content" in body:
-                text = body["content"][0]["text"]
-            else:
-                text = ""
-            outputs.append(text or "")
-
-        self.cache.put(key, json.dumps(outputs))
-        return outputs
+        if last is not None:
+            raise LLMError(f"model request failed after retries ({self.max_attempts} attempts): {last}")
+        raise LLMError(f"model request failed after retries ({self.max_attempts} attempts)")
 
 
 def build_llm(
-    model: str,
-    budget_manager: BudgetManager | None = None,
-    dry_run: bool = False,
-    temperature: float = 0.0,
-    cache_path: Path | str | None = None,
-    api_key: str | None = None,
+    model: str = "mistral/codestral-2508",
     budget_usd: float = 1.0,
-    request_ceiling: int | None = None,
+    dry_run: bool = False,
+    budget_manager: BudgetManager | None = None,
+    phase_c: bool = False,
     **kwargs,
 ) -> BaseLLM:
-    """Build LLM instance with explicit BudgetManager dependency injection (Section C1)."""
     if dry_run:
-        return DryRunLLM(model=f"{model} (dry run)")
-    if budget_manager is None:
-        max_req = request_ceiling if request_ceiling is not None else 1080
-        budget_manager = BudgetManager(
-            authorized_spend_ceiling_usd=budget_usd, max_requests=max_req
-        )
+        return DryRunLLM(model=model)
     return HTTPLLM(
-        model,
+        model=model,
+        budget_usd=budget_usd,
         budget_manager=budget_manager,
-        api_key=api_key,
-        temperature=temperature,
-        cache_path=cache_path,
-        request_ceiling=request_ceiling,
+        phase_c=phase_c,
         **kwargs,
     )

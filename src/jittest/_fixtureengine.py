@@ -189,10 +189,11 @@ class _FixtureState:
             if dep == "request":
                 override = (param_overrides or {}).get(name)
                 has_param = fixture.params is not None and override is not None
+                param_val = override[1] if (has_param and isinstance(override, (tuple, list)) and len(override) > 1) else None
                 deps[dep] = shim.FixtureRequest(
                     fixturename=name, scope=fixture.scope,
                     has_param=has_param,
-                    param_value=override[1] if has_param else None)
+                    param_value=param_val)
                 continue
             deps[dep] = self.resolve(dep, registry, param_overrides,
                                      (*stack, name))
@@ -221,7 +222,7 @@ class _FixtureState:
             value = fixture.fn(**deps)
             request = deps.get("request")
 
-            def finalize(request=request):
+            def finalize(gen=None, request=request):
                 if request is not None:
                     for fin in reversed(request._finalizers):
                         fin()

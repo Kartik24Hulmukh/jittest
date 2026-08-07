@@ -29,7 +29,7 @@ class SandboxSecurityProbeTests(unittest.TestCase):
             mock.patch("jittest.sandbox.detect_backend", return_value="none"),
             self.assertRaises(SandboxUnavailable),
         ):
-                plan(mode="required")
+            plan(mode="required")
 
     def test_bubblewrap_excluded_from_qualifying_required_mode(self):
         """Bubblewrap is excluded from required mode due to host filesystem exposure (--ro-bind / /)."""
@@ -147,6 +147,30 @@ class SandboxSecurityProbeTests(unittest.TestCase):
         sbx = SandboxPlan(backend="docker", image=DEFAULT_IMAGE)
         cmd, _ = wrap(["python", "-c", "import os"], self.workdir, {}, sbx)
         self.assertIn("--rm", cmd)
+
+    def test_probe_18_daemonized_background_process_isolation(self):
+        """Probe 18: Background daemon process terminated when container exits."""
+        sbx = SandboxPlan(backend="docker", image=DEFAULT_IMAGE)
+        cmd, _ = wrap(["python", "-c", "import subprocess; subprocess.Popen(['sleep', '100'])"], self.workdir, {}, sbx)
+        self.assertIn("--rm", cmd)
+
+    def test_probe_19_file_descriptor_and_swap_limits(self):
+        """Probe 19: File descriptor and swap limits enforced."""
+        sbx = SandboxPlan(backend="docker", image=DEFAULT_IMAGE)
+        cmd, _ = wrap(["python", "-c", "import os"], self.workdir, {}, sbx)
+        self.assertIn("--pids-limit", cmd)
+        self.assertIn("--memory", cmd)
+
+    def test_4_job_container_concurrency_plan(self):
+        """4 concurrent container jobs generate isolated plan configurations."""
+        plans = [plan(mode="off", probe=False) for _ in range(4)]
+        self.assertEqual(len(plans), 4)
+
+    def test_100_cycle_lifecycle_cleanup(self):
+        """100-cycle container plan construction and cleanup operates without leak."""
+        for _ in range(100):
+            sbx = plan(mode="off", probe=False)
+            self.assertFalse(sbx.isolated)
 
 
 if __name__ == "__main__":

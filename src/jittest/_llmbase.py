@@ -27,6 +27,7 @@ class Usage:
     calls: int = 0
     cost_usd: float = 0.0
     priced: bool = True
+    unverified: bool = False
     # True when any token count was estimated rather than provider-reported.
     tokens_estimated: bool = False
 

@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import threading
+import time
 import uuid
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -109,6 +110,16 @@ class BudgetManager:
         except Exception:
             pass
 
+    def _with_journal_retry(self, fn):
+        for attempt in range(50):
+            try:
+                return fn()
+            except (PermissionError, OSError) as exc:
+                if attempt == 49 or getattr(exc, "errno", None) not in (13, 32):
+                    raise
+                time.sleep(0.05)
+        return fn()
+
     def _append_journal(
         self, entry_type: str, res_id: str, input_tokens: int, output_tokens: int, cost: Decimal
     ) -> None:
@@ -132,7 +143,7 @@ class BudgetManager:
         )
         record["checksum"] = computed_ck
 
-        try:
+        def _do_write():
             self.journal_path.parent.mkdir(parents=True, exist_ok=True)
             with open(self.journal_path, "a", encoding="utf-8") as f:
                 self._acquire_file_lock(f)
@@ -142,6 +153,9 @@ class BudgetManager:
                     os.fsync(f.fileno())
                 finally:
                     self._release_file_lock(f)
+
+        try:
+            self._with_journal_retry(_do_write)
             self.sequence_number = next_seq
             self.last_checksum = computed_ck
         except Exception as exc:
@@ -152,13 +166,17 @@ class BudgetManager:
         """Startup replay/recovery from persistent journal. Fail closed on any error."""
         if not self.journal_path.exists():
             return
-        try:
+
+        def _do_read():
             with open(self.journal_path, encoding="utf-8") as f:
                 self._acquire_file_lock(f)
                 try:
-                    lines = f.readlines()
+                    return f.readlines()
                 finally:
                     self._release_file_lock(f)
+
+        try:
+            lines = self._with_journal_retry(_do_read)
 
             expected_seq = 1
             expected_prev_checksum = INITIAL_SEAL
