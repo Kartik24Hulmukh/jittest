@@ -182,6 +182,8 @@ class BudgetManager:
 
         try:
             self._with_journal_retry(_do_write)
+        except BudgetExceededError:
+            raise
         except Exception as exc:
             self._failed_closed = True
             raise BudgetJournalError(f"Fail-closed durable journal write failed: {exc}") from exc
