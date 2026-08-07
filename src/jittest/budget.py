@@ -143,9 +143,16 @@ class BudgetManager:
                     f.seek(0, os.SEEK_SET)
                     lines = [line.strip() for line in f.readlines() if line.strip()]
                     if lines:
-                        last_rec = json.loads(lines[-1])
+                        parsed = [json.loads(line) for line in lines]
+                        last_rec = parsed[-1]
                         self.sequence_number = int(last_rec["seq"])
                         self.last_checksum = str(last_rec["checksum"])
+                        if entry_type == "reserve":
+                            res_cnt = sum(1 for r in parsed if r.get("event") == "reserve")
+                            if (res_cnt + 1) > self.max_requests:
+                                raise BudgetExceededError(
+                                    f"Request ceiling reached: {res_cnt + 1} > {self.max_requests} max requests"
+                                )
 
                     next_seq = self.sequence_number + 1
                     record = {
