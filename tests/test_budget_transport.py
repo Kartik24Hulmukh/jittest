@@ -1,10 +1,7 @@
 """Zero-inference transport tests asserting zero network activity at USD 0.00 ceiling (Section E)."""
 
-import socket
-import ssl
 import tempfile
 import unittest
-import urllib.request
 from pathlib import Path
 from unittest import mock
 
