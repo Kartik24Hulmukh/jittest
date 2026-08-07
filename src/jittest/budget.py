@@ -127,37 +127,48 @@ class BudgetManager:
         if self._failed_closed:
             raise BudgetJournalError("BudgetManager is permanently latched into failed-closed state")
 
-        next_seq = self.sequence_number + 1
-        record = {
-            "run_id": self.run_id,
-            "seq": next_seq,
-            "event": entry_type,
-            "res_id": res_id,
-            "input_tokens": input_tokens,
-            "output_tokens": output_tokens,
-            "cost_usd": str(cost),
-            "prev_checksum": self.last_checksum,
-        }
-        computed_ck = self._compute_checksum(
-            {k: v for k, v in record.items() if k != "checksum"}
-        )
-        record["checksum"] = computed_ck
-
         def _do_write():
             self.journal_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.journal_path, "a", encoding="utf-8") as f:
+            # Use r+ or a+ so we can inspect last line under lock before appending
+            mode = "r+" if self.journal_path.exists() else "w+"
+            with open(self.journal_path, mode, encoding="utf-8") as f:
                 self._acquire_file_lock(f)
                 try:
+                    f.seek(0, os.SEEK_SET)
+                    lines = [line.strip() for line in f.readlines() if line.strip()]
+                    if lines:
+                        last_rec = json.loads(lines[-1])
+                        self.sequence_number = int(last_rec["seq"])
+                        self.last_checksum = str(last_rec["checksum"])
+
+                    next_seq = self.sequence_number + 1
+                    record = {
+                        "run_id": self.run_id,
+                        "seq": next_seq,
+                        "event": entry_type,
+                        "res_id": res_id,
+                        "input_tokens": input_tokens,
+                        "output_tokens": output_tokens,
+                        "cost_usd": str(cost),
+                        "prev_checksum": self.last_checksum,
+                    }
+                    computed_ck = self._compute_checksum(
+                        {k: v for k, v in record.items() if k != "checksum"}
+                    )
+                    record["checksum"] = computed_ck
+
+                    f.seek(0, os.SEEK_END)
                     f.write(json.dumps(record) + "\n")
                     f.flush()
                     os.fsync(f.fileno())
+
+                    self.sequence_number = next_seq
+                    self.last_checksum = computed_ck
                 finally:
                     self._release_file_lock(f)
 
         try:
             self._with_journal_retry(_do_write)
-            self.sequence_number = next_seq
-            self.last_checksum = computed_ck
         except Exception as exc:
             self._failed_closed = True
             raise BudgetJournalError(f"Fail-closed durable journal write failed: {exc}") from exc
