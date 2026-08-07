@@ -21,11 +21,11 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python: ["3.11", "3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@0b93645e9fea7312eed977e2855fc3d4067b0745
         with:
           python-version: ${{ matrix.python }}
 
@@ -35,16 +35,13 @@ jobs:
           git config --global user.name "jittest ci"
           git config --global init.defaultBranch main
 
-      # No install step on purpose: jittest has zero runtime dependencies and
-      # the suite runs on the stdlib alone. If this job ever needs `pip install`
-      # for the core tests, a dependency has crept in.
       - name: Test with no dependencies at all
         run: PYTHONPATH=src python -m unittest discover -s . -p 'test_*.py' -t . -v
         shell: bash
 
       - name: Test again with pytest present
         run: |
-          pip install pytest pytest-timeout
+          pip install pytest pytest-timeout hypothesis
           pytest -q
         shell: bash
 
@@ -63,25 +60,25 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.1
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-python@0b93645e9fea7312eed977e2855fc3d4067b0745
         with:
           python-version: "3.12"
       - run: pip install ruff mypy
       - run: ruff check src tests
-      - run: mypy src/jittest --ignore-missing-imports || true
+      - run: mypy src/jittest --ignore-missing-imports
 
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.1
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-python@0b93645e9fea7312eed977e2855fc3d4067b0745
         with:
           python-version: "3.12"
       - run: pip install build twine
       - run: python -m build
       - run: twine check dist/*
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d5ee6f076edca
         with:
           name: dist
           path: dist/
@@ -90,10 +87,10 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@0b93645e9fea7312eed977e2855fc3d4067b0745
         with:
           python-version: "3.12"
       - run: pip install -e .
@@ -105,9 +102,6 @@ jobs:
             --head ${{ github.event.pull_request.head.sha }} \
             --dry-run --json
 
-  # Umbrella job that reports a single "ci" check name for branch protection.
-  # dogfood is deliberately excluded from needs: it is informational only and
-  # must not block a merge.
   ci:
     if: always()
     needs: [lint, test, build]

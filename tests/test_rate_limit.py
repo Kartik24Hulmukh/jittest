@@ -145,7 +145,7 @@ class RetryBehaviour(unittest.TestCase):
             self.assertRaises(LLMError),
         ):
             client._post("https://example.invalid", {}, {})
-        self.assertGreaterEqual(sum(client.slept), 60.0)
+        self.assertGreater(sum(client.slept), 60.0)
 
     def test_exhaustion_names_the_cause_and_the_remedy(self):
         client = _client()

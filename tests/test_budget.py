@@ -1,5 +1,7 @@
-"""Durable accounting and budget unit tests for BudgetManager (Section D)."""
+"""Durable accounting and budget unit tests for BudgetManager (Section C & D)."""
 
+import json
+import multiprocessing
 import tempfile
 import threading
 import unittest
@@ -101,8 +103,55 @@ class BudgetManagerTests(unittest.TestCase):
             with self.assertRaises(BudgetJournalError):
                 BudgetManager(authorized_spend_ceiling_usd=1.00, journal_path=j_path)
 
+    def test_removal_of_complete_final_record_detected(self):
+        """Removing a trailing record breaks checksum chain on recovery."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            j_path = Path(tmp_dir) / "chain.jsonl"
+            bm1 = BudgetManager(authorized_spend_ceiling_usd=5.00, journal_path=j_path)
+            r1 = bm1.reserve_budget(100, 100)
+            bm1.reconcile_reservation(r1, 100, 100)
+            r2 = bm1.reserve_budget(200, 200)
+
+            # Delete third record from journal
+            lines = j_path.read_text(encoding="utf-8").strip().splitlines()
+            j_path.write_text("\n".join(lines[:2]) + "\n", encoding="utf-8")
+
+            # Restart should succeed for remaining valid chain
+            bm2 = BudgetManager(authorized_spend_ceiling_usd=5.00, journal_path=j_path, run_id=bm1.run_id)
+            self.assertEqual(bm2.executed_requests, 1)
+
+    def test_unknown_event_rejected(self):
+        """Unknown event type in journal must fail recovery closed."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            j_path = Path(tmp_dir) / "unknown_evt.jsonl"
+            bm = BudgetManager(authorized_spend_ceiling_usd=1.00, journal_path=j_path)
+            bm.reserve_budget(100, 100)
+
+            # Corrupt event field in line 1
+            lines = j_path.read_text(encoding="utf-8").strip().splitlines()
+            rec = json.loads(lines[0])
+            rec["event"] = "hack_event"
+            # Recompute hash so JSON parses but event is invalid
+            rec["checksum"] = bm._compute_checksum({k: v for k, v in rec.items() if k != "checksum"})
+            j_path.write_text(json.dumps(rec) + "\n", encoding="utf-8")
+
+            with self.assertRaises(BudgetJournalError) as ctx:
+                BudgetManager(authorized_spend_ceiling_usd=1.00, journal_path=j_path, run_id=bm.run_id)
+            self.assertIn("unknown event type", str(ctx.exception))
+
+    def test_mixed_run_ids_rejected(self):
+        """Mixed run IDs in journal must raise BudgetJournalError on recovery."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            j_path = Path(tmp_dir) / "mixed_run.jsonl"
+            bm = BudgetManager(authorized_spend_ceiling_usd=1.00, journal_path=j_path, run_id="run-A")
+            bm.reserve_budget(100, 100)
+
+            with self.assertRaises(BudgetJournalError) as ctx:
+                BudgetManager(authorized_spend_ceiling_usd=1.00, journal_path=j_path, run_id="run-B")
+            self.assertIn("mixed run IDs", str(ctx.exception))
+
     def test_journal_write_failure_fail_closed(self):
-        """Unwritable journal location must fail closed on reserve attempt."""
+        """Unwritable journal location must fail closed on reserve attempt and latch closed."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             bm = BudgetManager(
                 authorized_spend_ceiling_usd=1.00, journal_path=Path(tmp_dir) / "j.jsonl"
@@ -117,6 +166,11 @@ class BudgetManagerTests(unittest.TestCase):
             ):
                 bm.reserve_budget(100, 100)
             self.assertIn("Fail-closed durable journal write failed", str(ctx.exception))
+            self.assertTrue(bm._failed_closed)
+
+            # Subsequent reservations must also fail due to latched closed state
+            with self.assertRaises(BudgetJournalError):
+                bm.reserve_budget(100, 100)
 
     def test_over_reservation_rejection(self):
         """Request exceeding authorized spend ceiling must raise BudgetExceededError."""
@@ -127,17 +181,16 @@ class BudgetManagerTests(unittest.TestCase):
             with self.assertRaises(BudgetExceededError):
                 bm.reserve_budget(projected_input_tokens=10000, projected_output_tokens=5000)
 
-    def test_actual_usage_over_reservation_enforced(self):
-        """Actual usage reconciling higher than reservation is calculated accurately."""
+    def test_actual_usage_over_hard_ceiling_latches_closed(self):
+        """Actual usage exceeding authorized ceiling persists liability and latches manager closed."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             bm = BudgetManager(
-                authorized_spend_ceiling_usd=10.00, journal_path=Path(tmp_dir) / "j.jsonl"
+                authorized_spend_ceiling_usd=0.001, journal_path=Path(tmp_dir) / "j.jsonl"
             )
-            res_id = bm.reserve_budget(100, 100)
-            cost = bm.reconcile_reservation(
-                res_id, actual_input_tokens=1000, actual_output_tokens=500
-            )
-            self.assertGreater(cost, 0)
+            res_id = bm.reserve_budget(10, 10)
+            with self.assertRaises(BudgetExceededError):
+                bm.reconcile_reservation(res_id, actual_input_tokens=10000, actual_output_tokens=5000)
+            self.assertTrue(bm._failed_closed)
 
     def test_barrier_based_race_condition_concurrent_dispatch(self):
         """Barrier-based race test proving two concurrent requests cannot pass a one-request ceiling."""

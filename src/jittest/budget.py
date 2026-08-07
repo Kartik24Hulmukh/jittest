@@ -5,9 +5,11 @@ import json
 import os
 import threading
 import uuid
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
+
+INITIAL_SEAL = "INITIAL_SEAL_GENESIS_CHAIN_HEAD_00010002000300040005000600070008"
 
 
 class BudgetExceededError(Exception):
@@ -44,7 +46,8 @@ class BudgetManager:
         self.p_rate_per_token = Decimal(str(p_rate_usd_per_m)) / Decimal("1000000")
         self.c_rate_per_token = Decimal(str(c_rate_usd_per_m)) / Decimal("1000000")
         self.provider_max_tokens = provider_max_tokens
-        self.run_id = run_id or str(uuid.uuid4())
+        self._user_specified_run_id = run_id is not None
+        self.run_id = run_id
 
         self.executed_requests = 0
         self.executed_input_tokens = 0
@@ -59,97 +62,192 @@ class BudgetManager:
         self.active_reservations: dict[str, dict[str, Any]] = {}
         self.completed_reservations: set[str] = set()
         self.sequence_number = 0
+        self.last_checksum = INITIAL_SEAL
+        self._failed_closed = False
         self._lock = threading.Lock()
 
         if journal_path:
             self.journal_path = Path(journal_path)
         else:
-            self.journal_path = Path(f".jittest/journal_{self.run_id}.jsonl")
+            default_id = self.run_id or str(uuid.uuid4())
+            self.journal_path = Path(f".jittest/journal_{default_id}.jsonl")
 
         self.recover_from_journal()
+        if self.run_id is None:
+            self.run_id = str(uuid.uuid4())
 
     def _compute_checksum(self, payload: dict) -> str:
         s = json.dumps(payload, sort_keys=True)
         return hashlib.sha256(s.encode("utf-8")).hexdigest()
 
+    def _acquire_file_lock(self, f):
+        try:
+            if os.name == "posix":
+                import fcntl
+
+                fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+            elif os.name == "nt":
+                import msvcrt
+
+                msvcrt.locking(f.fileno(), msvcrt.LK_LOCK, 1)
+        except Exception:
+            pass
+
+    def _release_file_lock(self, f):
+        try:
+            if os.name == "posix":
+                import fcntl
+
+                fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+            elif os.name == "nt":
+                import msvcrt
+
+                msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+        except Exception:
+            pass
+
     def _append_journal(
         self, entry_type: str, res_id: str, input_tokens: int, output_tokens: int, cost: Decimal
     ) -> None:
         """Durable journal write with fsync (Section D1). Fail-closed on error."""
-        self.sequence_number += 1
+        if self._failed_closed:
+            raise BudgetJournalError("BudgetManager is permanently latched into failed-closed state")
+
+        next_seq = self.sequence_number + 1
         record = {
             "run_id": self.run_id,
-            "seq": self.sequence_number,
+            "seq": next_seq,
             "event": entry_type,
             "res_id": res_id,
             "input_tokens": input_tokens,
             "output_tokens": output_tokens,
             "cost_usd": str(cost),
+            "prev_checksum": self.last_checksum,
         }
-        record["checksum"] = self._compute_checksum(
+        computed_ck = self._compute_checksum(
             {k: v for k, v in record.items() if k != "checksum"}
         )
+        record["checksum"] = computed_ck
 
         try:
             self.journal_path.parent.mkdir(parents=True, exist_ok=True)
             with open(self.journal_path, "a", encoding="utf-8") as f:
-                f.write(json.dumps(record) + "\n")
-                f.flush()
-                os.fsync(f.fileno())
+                self._acquire_file_lock(f)
+                try:
+                    f.write(json.dumps(record) + "\n")
+                    f.flush()
+                    os.fsync(f.fileno())
+                finally:
+                    self._release_file_lock(f)
+            self.sequence_number = next_seq
+            self.last_checksum = computed_ck
         except Exception as exc:
+            self._failed_closed = True
             raise BudgetJournalError(f"Fail-closed durable journal write failed: {exc}") from exc
 
     def recover_from_journal(self) -> None:
-        """Startup replay/recovery from persistent journal (Section D2-D4). Fail closed on any error."""
+        """Startup replay/recovery from persistent journal. Fail closed on any error."""
         if not self.journal_path.exists():
             return
         try:
             with open(self.journal_path, encoding="utf-8") as f:
-                lines = f.readlines()
+                self._acquire_file_lock(f)
+                try:
+                    lines = f.readlines()
+                finally:
+                    self._release_file_lock(f)
 
             expected_seq = 1
+            expected_prev_checksum = INITIAL_SEAL
             for line in lines:
                 if not line.strip():
                     continue
-                record = json.loads(line)
+                try:
+                    record = json.loads(line)
+                except Exception as e:
+                    self._failed_closed = True
+                    raise BudgetJournalError(f"Malformed JSON in journal record: {line}") from e
 
                 cksum = record.get("checksum")
                 computed_ck = self._compute_checksum(
                     {k: v for k, v in record.items() if k != "checksum"}
                 )
                 if cksum != computed_ck:
+                    self._failed_closed = True
                     raise BudgetJournalError(
                         f"Journal recovery failed: checksum mismatch in record {record}"
                     )
 
+                prev_ck = record.get("prev_checksum")
+                if prev_ck != expected_prev_checksum:
+                    self._failed_closed = True
+                    raise BudgetJournalError(
+                        f"Journal recovery failed: checksum chain broken (got {prev_ck}, expected {expected_prev_checksum})"
+                    )
+
                 seq = record.get("seq")
                 if seq != expected_seq:
+                    self._failed_closed = True
                     raise BudgetJournalError(
                         f"Journal recovery failed: sequence out of order (got {seq}, expected {expected_seq})"
                     )
-                expected_seq += 1
+
+                rec_run_id = record.get("run_id")
+                if self.run_id is None or not self._user_specified_run_id:
+                    self.run_id = rec_run_id
+                    self._user_specified_run_id = True
+                elif rec_run_id != self.run_id:
+                    self._failed_closed = True
+                    raise BudgetJournalError(
+                        f"Journal recovery failed: mixed run IDs (got {rec_run_id}, expected {self.run_id})"
+                    )
 
                 evt = record.get("event")
+                if evt not in ("reserve", "dispatch_start", "reconcile", "seal"):
+                    self._failed_closed = True
+                    raise BudgetJournalError(f"Journal recovery failed: unknown event type '{evt}'")
+
                 res_id = record.get("res_id")
-                in_tok = int(record.get("input_tokens", 0))
-                out_tok = int(record.get("output_tokens", 0))
-                cost = Decimal(str(record.get("cost_usd", "0.0")))
+                try:
+                    in_tok = int(record.get("input_tokens", 0))
+                    out_tok = int(record.get("output_tokens", 0))
+                    cost = Decimal(str(record.get("cost_usd", "0.0")))
+                except (ValueError, InvalidOperation) as e:
+                    self._failed_closed = True
+                    raise BudgetJournalError(f"Journal recovery failed: malformed numbers in {record}") from e
+
+                if in_tok < 0 or out_tok < 0 or cost < Decimal("0.0"):
+                    self._failed_closed = True
+                    raise BudgetJournalError(f"Journal recovery failed: negative values in {record}")
+
+                expected_cost = self.calculate_cost(in_tok, out_tok)
+                if abs(cost - expected_cost) > Decimal("0.000001"):
+                    self._failed_closed = True
+                    raise BudgetJournalError(
+                        f"Journal recovery failed: inconsistent cost in {record} (got {cost}, expected {expected_cost})"
+                    )
 
                 if evt == "reserve":
                     if res_id in self.active_reservations:
+                        self._failed_closed = True
                         raise BudgetJournalError(f"Duplicate reservation ID in journal: {res_id}")
                     self.active_reservations[res_id] = {
                         "input_tokens": in_tok,
                         "output_tokens": out_tok,
                         "cost": cost,
+                        "dispatched": False,
                     }
                     self.reserved_requests += 1
                     self.reserved_input_tokens += in_tok
                     self.reserved_output_tokens += out_tok
                     self.reserved_spend_usd += cost
+                elif evt == "dispatch_start":
+                    if res_id in self.active_reservations:
+                        self.active_reservations[res_id]["dispatched"] = True
                 elif evt == "reconcile":
                     res = self.active_reservations.pop(res_id, None)
                     if not res:
+                        self._failed_closed = True
                         raise BudgetJournalError(
                             f"Reconciling unknown reservation ID in journal: {res_id}"
                         )
@@ -165,9 +263,14 @@ class BudgetManager:
                     self.executed_output_tokens += out_tok
                     self.executed_spend_usd += cost
 
+                expected_seq += 1
+                expected_prev_checksum = computed_ck
+
             self.sequence_number = expected_seq - 1
+            self.last_checksum = expected_prev_checksum
 
         except Exception as exc:
+            self._failed_closed = True
             if isinstance(exc, BudgetJournalError):
                 raise
             raise BudgetJournalError(f"Fail-closed journal recovery failed: {exc}") from exc
@@ -188,7 +291,10 @@ class BudgetManager:
         projected_output_tokens: int = 2000,
         max_tokens_override: int | None = None,
     ) -> str:
-        """Atomic reservation BEFORE every billable API request / POST attempt (Section C8)."""
+        """Atomic reservation BEFORE every billable API request / POST attempt."""
+        if self._failed_closed:
+            raise BudgetJournalError("BudgetManager is permanently latched into failed-closed state")
+
         if projected_input_tokens < 0 or projected_output_tokens < 0:
             raise ValueError(
                 f"Negative token projections rejected: in={projected_input_tokens}, out={projected_output_tokens}"
@@ -239,7 +345,7 @@ class BudgetManager:
 
             res_id = str(uuid.uuid4())
 
-            # Persist reservation BEFORE changing state (Section D5)
+            # Persist reservation BEFORE changing state
             self._append_journal(
                 "reserve", res_id, projected_input_tokens, projected_output_tokens, projected_cost
             )
@@ -253,8 +359,20 @@ class BudgetManager:
                 "input_tokens": projected_input_tokens,
                 "output_tokens": projected_output_tokens,
                 "cost": projected_cost,
+                "dispatched": False,
             }
             return res_id
+
+    def record_dispatch_start(self, reservation_id: str) -> None:
+        """Persist dispatch-start event before network call."""
+        with self._lock:
+            if self._failed_closed:
+                raise BudgetJournalError("BudgetManager is permanently latched into failed-closed state")
+            res = self.active_reservations.get(reservation_id)
+            if not res:
+                raise ValueError(f"Unknown reservation ID {reservation_id}")
+            self._append_journal("dispatch_start", reservation_id, res["input_tokens"], res["output_tokens"], res["cost"])
+            res["dispatched"] = True
 
     def reconcile_reservation(
         self,
@@ -265,6 +383,9 @@ class BudgetManager:
     ) -> Decimal:
         """Reconcile atomic reservation with actual provider-reported usage after dispatch."""
         with self._lock:
+            if self._failed_closed:
+                raise BudgetJournalError("BudgetManager is permanently latched into failed-closed state")
+
             if reservation_id in self.completed_reservations:
                 raise ValueError(f"Reservation ID {reservation_id} has already been reconciled!")
 
@@ -289,7 +410,15 @@ class BudgetManager:
 
             cost = self.calculate_cost(final_in, final_out)
 
-            # Persist incurred liability BEFORE releasing reservation (Section D6)
+            # Check if actual cost/usage breaches ceilings
+            exec_spend = self.executed_spend_usd + cost
+            if exec_spend > self.authorized_spend_ceiling_usd:
+                # Persist full liability, latch future dispatch closed, surface budget overage
+                self._append_journal("reconcile", reservation_id, final_in, final_out, cost)
+                self._failed_closed = True
+                raise BudgetExceededError(f"Actual usage cost ${cost:.6f} breached authorized ceiling ${self.authorized_spend_ceiling_usd:.6f}")
+
+            # Persist incurred liability BEFORE releasing reservation
             self._append_journal("reconcile", reservation_id, final_in, final_out, cost)
 
             self.active_reservations.pop(reservation_id)
@@ -308,8 +437,11 @@ class BudgetManager:
             return cost
 
     def record_usage(self, input_tokens: int, output_tokens: int) -> Decimal:
-        """Atomic direct usage recording enforcing request, input-token, output-token, and spend ceilings (Section C11)."""
+        """Atomic direct usage recording enforcing request, input-token, output-token, and spend ceilings."""
         with self._lock:
+            if self._failed_closed:
+                raise BudgetJournalError("BudgetManager is permanently latched into failed-closed state")
+
             if input_tokens < 0 or output_tokens < 0:
                 raise ValueError("Negative tokens rejected")
 
