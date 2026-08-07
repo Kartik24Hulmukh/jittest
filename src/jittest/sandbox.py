@@ -233,10 +233,7 @@ def _wrap_container(argv: list[str], workdir: Path, env: dict[str, str],
                     sbx: SandboxPlan) -> list[str]:
     getuid_fn = getattr(os, "getuid", None)
     getgid_fn = getattr(os, "getgid", None)
-    if getuid_fn and getgid_fn:
-        uid_gid = f"{getuid_fn()}:{getgid_fn()}"
-    else:
-        uid_gid = "10001:10001"
+    uid_gid = f"{getuid_fn()}:{getgid_fn()}" if getuid_fn and getgid_fn else "10001:10001"
 
     cmd = [
         sbx.backend, "run", "--rm",

@@ -1,19 +1,19 @@
 """Hypothesis property-based tests for BudgetManager, path rewriting, and config normalization (Section G)."""
 
-import tempfile
 import unittest
 from decimal import Decimal
 from pathlib import Path
 
 try:
-    from hypothesis import given, settings, strategies as st
+    from hypothesis import given, settings
+    from hypothesis import strategies as st
     HAS_HYPOTHESIS = True
 except ImportError:
     HAS_HYPOTHESIS = False
 
-from jittest.budget import BudgetExceededError, BudgetJournalError, BudgetManager
+from jittest.budget import BudgetManager
 from jittest.llm import FrozenRunConfig
-from jittest.sandbox import _container_paths, _container_pythonpath
+from jittest.sandbox import _container_paths
 
 
 class PropertyBasedTests(unittest.TestCase):
@@ -26,7 +26,7 @@ class PropertyBasedTests(unittest.TestCase):
         self.assertEqual(cfg.timeout_seconds, 120.0)
         self.assertEqual(cfg.temperature, 0.0)
         self.assertEqual(cfg.top_p, 1.0)
-        with self.assertRaises(Exception):
+        with self.assertRaises(AttributeError):
             cfg.temperature = 0.7
 
     def test_container_paths_prefix_rewriting_property(self):

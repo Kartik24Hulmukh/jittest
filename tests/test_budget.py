@@ -1,7 +1,6 @@
 """Durable accounting and budget unit tests for BudgetManager (Section C & D)."""
 
 import json
-import multiprocessing
 import tempfile
 import threading
 import unittest
@@ -110,7 +109,7 @@ class BudgetManagerTests(unittest.TestCase):
             bm1 = BudgetManager(authorized_spend_ceiling_usd=5.00, journal_path=j_path)
             r1 = bm1.reserve_budget(100, 100)
             bm1.reconcile_reservation(r1, 100, 100)
-            r2 = bm1.reserve_budget(200, 200)
+            bm1.reserve_budget(200, 200)
 
             # Delete third record from journal
             lines = j_path.read_text(encoding="utf-8").strip().splitlines()

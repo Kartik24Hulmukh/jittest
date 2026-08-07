@@ -1,13 +1,18 @@
 """Adversarial security attack probes and container isolation validation suite for jittest sandbox (Section F)."""
 
-import os
-import shutil
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
-from jittest.sandbox import DEFAULT_IMAGE, SandboxPlan, SandboxUnavailable, detect_backend, plan, wrap
+from jittest.sandbox import (
+    DEFAULT_IMAGE,
+    SandboxPlan,
+    SandboxUnavailable,
+    detect_backend,
+    plan,
+    wrap,
+)
 
 
 class SandboxSecurityProbeTests(unittest.TestCase):
@@ -20,8 +25,10 @@ class SandboxSecurityProbeTests(unittest.TestCase):
 
     def test_mode_required_without_backend_raises_sandbox_unavailable(self):
         """Required mode must raise SandboxUnavailable when no qualifying container backend is present."""
-        with mock.patch("jittest.sandbox.detect_backend", return_value="none"):
-            with self.assertRaises(SandboxUnavailable):
+        with (
+            mock.patch("jittest.sandbox.detect_backend", return_value="none"),
+            self.assertRaises(SandboxUnavailable),
+        ):
                 plan(mode="required")
 
     def test_bubblewrap_excluded_from_qualifying_required_mode(self):
