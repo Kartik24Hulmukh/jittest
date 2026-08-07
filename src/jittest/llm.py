@@ -90,9 +90,34 @@ class FrozenRunConfig:
     parser_failure_policy: str = "abort_on_parse_error_and_mark_unverified"
 
 
+def _env_float(name: str, default: float) -> float:
+    raw = os.getenv(name)
+    if not raw:
+        return default
+    try:
+        value = float(raw)
+    except ValueError:
+        return default
+    return value if value >= 0 else default
+
+
+def _env_int(name: str, default: int) -> int:
+    raw = os.getenv(name)
+    if not raw:
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        return default
+    return value if value > 0 else default
+
+
 _RETRYABLE = {408, 409, 429, 500, 502, 503, 529}
 _RATE_LIMITED = {429, 503}
 _RATE_LIMIT_FLOOR = 5.0
+_DEFAULT_MAX_ATTEMPTS = 8
+_DEFAULT_MAX_SLEEP = 90.0
+_DEFAULT_HTTP_TIMEOUT = 300.0
 
 
 class DryRunLLM(BaseLLM):
@@ -132,10 +157,12 @@ class HTTPLLM(BaseLLM):
         request_ceiling: int | None = None,
         max_attempts: int | None = None,
         timeout: float | None = None,
+        http_timeout: float | None = None,
+        min_request_interval: float | None = None,
+        max_sleep: float | None = None,
+        **kwargs,
     ):
         self._unpriced = price_for(model) is None
-        if self._unpriced and request_ceiling is None:
-            request_ceiling = 6
         if budget_manager is None:
             max_req = request_ceiling if request_ceiling is not None else 1080
             budget_manager = BudgetManager(
@@ -170,10 +197,24 @@ class HTTPLLM(BaseLLM):
             self.api_model = name
 
         self.cache = _Cache(cache_path)
-        self.max_attempts = max_attempts if max_attempts is not None else self.config.max_attempts
+        if max_attempts is not None:
+            self.max_attempts = max_attempts
+        else:
+            self.max_attempts = _env_int("JITTEST_MAX_RETRIES", _DEFAULT_MAX_ATTEMPTS)
 
-        if timeout is not None:
-            self.http_timeout = float(timeout) if float(timeout) > 0 else 300.0
+        if max_sleep is not None:
+            self.max_sleep = max_sleep
+        else:
+            self.max_sleep = _env_float("JITTEST_RETRY_MAX_SLEEP", _DEFAULT_MAX_SLEEP)
+
+        if min_request_interval is not None:
+            self.min_request_interval = min_request_interval
+        else:
+            self.min_request_interval = _env_float("JITTEST_MIN_REQUEST_INTERVAL", 0.0)
+
+        eff_timeout = http_timeout if http_timeout is not None else timeout
+        if eff_timeout is not None:
+            self.http_timeout = float(eff_timeout) if float(eff_timeout) > 0 else 300.0
         else:
             env_t = os.getenv("JITTEST_HTTP_TIMEOUT")
             if env_t:
@@ -181,9 +222,9 @@ class HTTPLLM(BaseLLM):
                     tv = float(env_t)
                     self.http_timeout = tv if tv > 0 else 300.0
                 except ValueError:
-                    self.http_timeout = self.config.timeout_seconds
+                    self.http_timeout = _DEFAULT_HTTP_TIMEOUT
             else:
-                self.http_timeout = self.config.timeout_seconds
+                self.http_timeout = _DEFAULT_HTTP_TIMEOUT
 
         self._last_request_at: float | None = None
         self.rate_limit_waits = 0
@@ -202,15 +243,57 @@ class HTTPLLM(BaseLLM):
             f"{provider.upper()}_API_KEY",
             "MISTRAL_API_KEY",
             "OPENAI_API_KEY",
+            "ANTHROPIC_API_KEY",
         ):
             if os.getenv(name):
                 return os.environ[name]
         return None
 
+    def _price(self) -> tuple[float, float] | None:
+        return price_for(self.model_name) or price_for(self.model)
+
+    def _account(self, input_tokens: int, output_tokens: int, estimated: bool = False) -> None:
+        self.usage.input_tokens += input_tokens
+        self.usage.output_tokens += output_tokens
+        self.usage.calls += 1
+        if estimated:
+            self.usage.tokens_estimated = True
+        price = self._price()
+        if price is None:
+            self.usage.priced = False
+            return
+        self.usage.cost_usd += (input_tokens * price[0] + output_tokens * price[1]) / 1e6
+
+    def _account_response(self, reported_in, reported_out, prompt: str, text: str) -> None:
+        try:
+            in_tokens = int(reported_in or 0)
+            out_tokens = int(reported_out or 0)
+        except (TypeError, ValueError):
+            in_tokens = out_tokens = 0
+        if in_tokens or out_tokens:
+            self._account(in_tokens, out_tokens)
+            return
+        self._account(estimate_tokens(prompt), estimate_tokens(text), estimated=True)
+
     def _sleep(self, seconds: float) -> None:
         if seconds > 0:
             self.slept.append(seconds)
             time.sleep(seconds)
+
+    def _pace(self) -> None:
+        if self.min_request_interval <= 0 or self._last_request_at is None:
+            return
+        gap = self.min_request_interval - (time.monotonic() - self._last_request_at)
+        if gap > 0:
+            self._sleep(gap)
+
+    def _backoff(self, attempt: int, requested: float | None, rate_limited: bool) -> float:
+        if requested is not None:
+            return min(requested, self.max_sleep)
+        base = 2.0**attempt
+        if rate_limited:
+            base = max(base, _RATE_LIMIT_FLOOR)
+        return min(base, self.max_sleep)
 
     def _post(self, url: str, payload: dict, headers: dict) -> dict:
         if "top_p" not in payload:
@@ -223,6 +306,9 @@ class HTTPLLM(BaseLLM):
         last: Exception | None = None
         last_code: int | None = None
         for attempt in range(self.max_attempts):
+            requested: float | None = None
+            self._pace()
+
             try:
                 res_id = self.budget_manager.reserve_budget(
                     projected_input_tokens=proj_in, projected_output_tokens=proj_out
@@ -255,6 +341,8 @@ class HTTPLLM(BaseLLM):
                 if exc.code not in _RETRYABLE:
                     detail = exc.read().decode("utf-8", "ignore")[:400]
                     raise LLMError(f"HTTP {exc.code} from {self.provider}: {detail}") from exc
+                if exc.code in _RATE_LIMITED:
+                    requested = retry_after_seconds(exc)
             except TimeoutError as exc:
                 self.budget_manager.reconcile_reservation(
                     res_id, is_unknown_or_partial_failure=True
@@ -282,35 +370,45 @@ class HTTPLLM(BaseLLM):
             if attempt == self.max_attempts - 1:
                 break
 
-            ra_secs = (
-                retry_after_seconds(last) if isinstance(last, urllib.error.HTTPError) else None
-            )
-            delay = ra_secs if ra_secs is not None else 2.0**attempt
-            if last_code in _RATE_LIMITED:
-                delay = min(delay, 20.0) if ra_secs is None else min(delay, 60.0)
+            rate_limited = last_code in _RATE_LIMITED
+            delay = self._backoff(attempt, requested, rate_limited)
+            if rate_limited:
+                self.rate_limit_waits += 1
+                self.rate_limit_seconds += delay
             self._sleep(delay)
 
         if last_code in _RATE_LIMITED:
-            min_int = os.getenv("JITTEST_MIN_REQUEST_INTERVAL")
-            msg = f"rate limited by {self.provider} after {self.max_attempts} attempts."
-            if min_int:
-                msg += " Consider tuning JITTEST_MIN_REQUEST_INTERVAL."
+            msg = (
+                f"rate limited by {self.provider} after {self.max_attempts} attempts "
+                f"({self.rate_limit_waits} waits, {self.rate_limit_seconds:.1f}s slept). "
+                f"Check account quota/limits or pace requests with JITTEST_MIN_REQUEST_INTERVAL / JITTEST_MAX_RETRIES."
+            )
             raise RateLimitedError(msg)
         if isinstance(last, TimeoutError):
-            raise TimedOutError(
-                f"{self.provider} did not answer within {self.http_timeout:.0f}s on any attempt."
+            msg = (
+                f"{self.provider} did not answer within {self.http_timeout:.0f}s on any of {self.max_attempts} attempts "
+                f"({self.timeout_retries} read timeouts). Models that always emit a reasoning trace are slow on large diffs; raise JITTEST_HTTP_TIMEOUT."
             )
+            raise TimedOutError(msg)
         raise LLMError(f"model request failed after retries: {last}")
 
     def complete(
         self, system: str, user: str, n: int = 1, temperature: float | None = None
     ) -> list[str]:
-        if self._unpriced and (
-            self.usage.calls >= self.request_ceiling
-            or (self.budget_manager.executed_requests + self.budget_manager.reserved_requests)
-            >= self.request_ceiling
-        ):
-            raise BudgetExceeded("unpriced model request ceiling reached")
+        if self._unpriced:
+            ceiling = self.request_ceiling
+            if ceiling is None or ceiling == 1080:
+                ceiling = (
+                    int(os.getenv("JITTEST_MAX_TARGETS", "5"))
+                    * int(os.getenv("JITTEST_CANDIDATES", "4"))
+                    + 5
+                )
+            if (
+                self.usage.calls >= ceiling
+                or (self.budget_manager.executed_requests + self.budget_manager.reserved_requests)
+                >= ceiling
+            ):
+                raise BudgetExceeded("unpriced model request ceiling reached")
 
         temp = self.temperature if temperature is None else temperature
         key = hashlib.sha256(
