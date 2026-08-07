@@ -102,10 +102,10 @@ def _is_const_str(node: ast.AST) -> bool:
 def _open_mode(node: ast.Call) -> str | None:
     """The literal mode string passed to `open`, if there is one."""
     if len(node.args) >= 2 and _is_const_str(node.args[1]):
-        return node.args[1].value  # type: ignore[union-attr,return-value]
+        return node.args[1].value  # type: ignore[union-attr,return-value,attr-defined]
     for kw in node.keywords:
         if kw.arg == "mode" and _is_const_str(kw.value):
-            return kw.value.value  # type: ignore[union-attr,return-value]
+            return kw.value.value  # type: ignore[union-attr,return-value,attr-defined]
     return None
 
 
@@ -190,7 +190,7 @@ def check_candidate(code: str, max_bytes: int = 20000) -> CodeCheck:
                         return CodeCheck(
                             False,
                             f"opens the hard-coded path "
-                            f"`{node.args[0].value}` with mode `{mode}`; a "  # type: ignore[union-attr]
+                            f"`{node.args[0].value}` with mode `{mode}`; a "  # type: ignore[union-attr,attr-defined]
                             "candidate that writes into the worktree can "
                             "corrupt the base/head comparison")
                     warnings.append(f"opens a computed path with mode `{mode}`")
