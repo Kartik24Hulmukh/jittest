@@ -30,7 +30,7 @@ class HypothesisStatefulPropertyTests(unittest.TestCase):
     def test_frozen_run_config_immutability(self):
         cfg = FrozenRunConfig(
             provider="mock",
-            model="mock-v1",
+            model_name="mock-v1",
             timeout_seconds=120.0,
             temperature=0.0,
             top_p=1.0,

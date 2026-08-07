@@ -76,6 +76,9 @@ class BudgetManager:
         if self.run_id is None:
             self.run_id = str(uuid.uuid4())
 
+    def _calculate_cost(self, input_tokens: int, token_rate: Decimal) -> Decimal:
+        return Decimal(input_tokens) * token_rate
+
     def _compute_checksum(self, payload: dict) -> str:
         s = json.dumps(payload, sort_keys=True)
         return hashlib.sha256(s.encode("utf-8")).hexdigest()
