@@ -25,7 +25,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@0b93645e9fea7312eed977e2855fc3d4067b0745
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b45ce3d27461
         with:
           python-version: ${{ matrix.python }}
 
@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - uses: actions/setup-python@0b93645e9fea7312eed977e2855fc3d4067b0745
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b45ce3d27461
         with:
           python-version: "3.12"
       - run: pip install ruff mypy
@@ -72,7 +72,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - uses: actions/setup-python@0b93645e9fea7312eed977e2855fc3d4067b0745
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b45ce3d27461
         with:
           python-version: "3.12"
       - run: pip install build twine
@@ -90,7 +90,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@0b93645e9fea7312eed977e2855fc3d4067b0745
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b45ce3d27461
         with:
           python-version: "3.12"
       - run: pip install -e .
