@@ -316,11 +316,38 @@ class BudgetManager:
             self.sequence_number = expected_seq - 1
             self.last_checksum = expected_prev_checksum
 
+            seal_path = self.journal_path.with_suffix(".seal")
+            if seal_path.exists():
+                try:
+                    seal = json.loads(seal_path.read_text(encoding="utf-8"))
+                    tot_rec = int(seal.get("total_records", 0))
+                    head_ck = str(seal.get("head_checksum", ""))
+                    if (expected_seq - 1) < tot_rec or expected_prev_checksum != head_ck:
+                        self._failed_closed = True
+                        raise BudgetJournalError(
+                            f"Journal recovery failed: complete tail deletion detected (recovered {expected_seq - 1} records, expected {tot_rec})"
+                        )
+                except Exception as e:
+                    if isinstance(e, BudgetJournalError):
+                        raise
+                    self._failed_closed = True
+                    raise BudgetJournalError(f"Journal seal verification failed: {e}") from e
+
         except Exception as exc:
             self._failed_closed = True
             if isinstance(exc, BudgetJournalError):
                 raise
             raise BudgetJournalError(f"Fail-closed journal recovery failed: {exc}") from exc
+
+    def write_seal(self) -> None:
+        """Write durable sidecar seal committing total records and head checksum for tail deletion detection."""
+        seal_path = self.journal_path.with_suffix(".seal")
+        seal_data = {
+            "run_id": self.run_id,
+            "total_records": self.sequence_number,
+            "head_checksum": self.last_checksum,
+        }
+        seal_path.write_text(json.dumps(seal_data), encoding="utf-8")
 
     def calculate_cost(self, input_tokens: int, output_tokens: int) -> Decimal:
         """Calculate exact USD cost for given token counts. Rejects negative tokens."""

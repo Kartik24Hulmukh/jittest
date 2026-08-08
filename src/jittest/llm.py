@@ -171,7 +171,21 @@ class HTTPLLM(BaseLLM):
             if budget_manager is None:
                 raise ValueError("Phase C frozen mode requires explicit BudgetManager dependency injection")
 
+            valid_models = ("mistral/codestral-2508", "codestral-2508")
+            if model not in valid_models:
+                raise ValueError(
+                    f"Phase C mode requires model 'mistral/codestral-2508' or 'codestral-2508', got {model!r}"
+                )
+
             banned_envs = [
+                "JITTEST_MODEL",
+                "JITTEST_BUDGET_USD",
+                "JITTEST_MAX_TARGETS",
+                "JITTEST_CANDIDATES",
+                "JITTEST_RISK_THRESHOLD",
+                "JITTEST_SANDBOX",
+                "JITTEST_SANDBOX_BACKEND",
+                "JITTEST_SANDBOX_IMAGE",
                 "JITTEST_API_BASE",
                 "JITTEST_MAX_RETRIES",
                 "JITTEST_RETRY_MAX_SLEEP",
@@ -431,6 +445,11 @@ class HTTPLLM(BaseLLM):
                     self.budget_manager.reconcile_reservation(res_id, actual_in, actual_out)
                     self._account_response(actual_in, actual_out, json.dumps(payload), json.dumps(res_body))
                     return res_body
+            except json.JSONDecodeError as exc:
+                self.budget_manager.reconcile_reservation(
+                    res_id, is_unknown_or_partial_failure=True
+                )
+                raise LLMError(f"Malformed JSON response from {self.provider}: {exc}") from exc
             except urllib.error.HTTPError as exc:
                 self.budget_manager.reconcile_reservation(
                     res_id, is_unknown_or_partial_failure=True

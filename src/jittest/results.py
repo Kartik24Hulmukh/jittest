@@ -123,6 +123,7 @@ class Report:
     # failure modes are different: no price at all, versus a real price
     # applied to approximate tokens.
     tokens_estimated: bool = False
+    usage_verified: bool = True
     input_tokens: int = 0
     output_tokens: int = 0
     duration_s: float = 0.0
@@ -180,6 +181,7 @@ class Report:
             "cost_usd": round(self.cost_usd, 4),
             "priced": self.priced,
             "tokens_estimated": self.tokens_estimated,
+            "usage_verified": self.usage_verified,
             "input_tokens": self.input_tokens,
             "output_tokens": self.output_tokens,
             "duration_s": round(self.duration_s, 2),

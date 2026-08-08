@@ -334,6 +334,9 @@ def run(
         report.cost_usd = llm.usage.cost_usd
         report.priced = llm.usage.priced
         report.tokens_estimated = llm.usage.tokens_estimated
+        report.usage_verified = not getattr(llm.usage, "unverified", False)
+        if not report.usage_verified:
+            report.priced = False
         report.input_tokens = llm.usage.input_tokens
         report.output_tokens = llm.usage.output_tokens
         report.model_requests = llm.usage.calls

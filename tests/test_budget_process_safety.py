@@ -27,11 +27,61 @@ def _worker_reserve(journal_path: str, run_id: str, count: int, result_queue: mu
 
 
 def _worker_reserve_capacity_one(journal_path: str, run_id: str, result_queue: multiprocessing.Queue):
-    """Helper worker for 4-process capacity-one test."""
+    """Helper worker for 4-process capacity-one request test."""
     try:
         bm = BudgetManager(
             authorized_spend_ceiling_usd=10.0,
             max_requests=1,
+            journal_path=journal_path,
+            run_id=run_id,
+        )
+        res_id = bm.reserve_budget(100, 100)
+        result_queue.put(("SUCCESS", res_id))
+    except BudgetExceededError as exc:
+        result_queue.put(("CEILING_EXCEEDED", str(exc)))
+    except Exception as exc:
+        result_queue.put(("ERROR", str(exc)))
+
+
+def _worker_reserve_input_capacity_one(journal_path: str, run_id: str, result_queue: multiprocessing.Queue):
+    """Helper worker for 4-process capacity-one input token test."""
+    try:
+        bm = BudgetManager(
+            authorized_spend_ceiling_usd=10.0,
+            max_input_tokens=100,
+            journal_path=journal_path,
+            run_id=run_id,
+        )
+        res_id = bm.reserve_budget(100, 10)
+        result_queue.put(("SUCCESS", res_id))
+    except BudgetExceededError as exc:
+        result_queue.put(("CEILING_EXCEEDED", str(exc)))
+    except Exception as exc:
+        result_queue.put(("ERROR", str(exc)))
+
+
+def _worker_reserve_output_capacity_one(journal_path: str, run_id: str, result_queue: multiprocessing.Queue):
+    """Helper worker for 4-process capacity-one output token test."""
+    try:
+        bm = BudgetManager(
+            authorized_spend_ceiling_usd=10.0,
+            max_output_tokens=100,
+            journal_path=journal_path,
+            run_id=run_id,
+        )
+        res_id = bm.reserve_budget(10, 100)
+        result_queue.put(("SUCCESS", res_id))
+    except BudgetExceededError as exc:
+        result_queue.put(("CEILING_EXCEEDED", str(exc)))
+    except Exception as exc:
+        result_queue.put(("ERROR", str(exc)))
+
+
+def _worker_reserve_spend_capacity_one(journal_path: str, run_id: str, result_queue: multiprocessing.Queue):
+    """Helper worker for 4-process capacity-one spend ceiling test."""
+    try:
+        bm = BudgetManager(
+            authorized_spend_ceiling_usd=0.000150,
             journal_path=journal_path,
             run_id=run_id,
         )
@@ -83,9 +133,9 @@ class ProcessSafeAccountingTests(unittest.TestCase):
         self.assertEqual(recovered_bm.sequence_number, 20)
         self.assertEqual(recovered_bm.reserved_requests, 20)
 
-    def test_four_processes_capacity_one_exact_race(self):
+    def test_four_processes_request_capacity_one_exact_race(self):
         """Four concurrent processes contending for max_requests=1: exactly 1 succeeds, 3 fail with ceiling error."""
-        run_id = "test-cap1-run"
+        run_id = "test-cap1-req"
         q = multiprocessing.Queue()
 
         workers = [
@@ -107,6 +157,98 @@ class ProcessSafeAccountingTests(unittest.TestCase):
 
         self.assertEqual(len(successes), 1, f"Expected exactly 1 success, got {results}")
         self.assertEqual(len(exceeded), 3, f"Expected exactly 3 ceiling errors, got {results}")
+
+    def test_four_processes_input_token_capacity_one_exact_race(self):
+        """Four concurrent processes contending for max_input_tokens=100: exactly 1 succeeds, 3 fail with ceiling error."""
+        run_id = "test-cap1-in-tok"
+        q = multiprocessing.Queue()
+
+        workers = [
+            multiprocessing.Process(target=_worker_reserve_input_capacity_one, args=(str(self.j_path), run_id, q))
+            for _ in range(4)
+        ]
+        for w in workers:
+            w.start()
+        for w in workers:
+            w.join(timeout=10)
+
+        results = []
+        while not q.empty():
+            results.append(q.get())
+
+        self.assertEqual(len(results), 4)
+        successes = [r for r in results if r[0] == "SUCCESS"]
+        exceeded = [r for r in results if r[0] == "CEILING_EXCEEDED"]
+
+        self.assertEqual(len(successes), 1, f"Expected exactly 1 success, got {results}")
+        self.assertEqual(len(exceeded), 3, f"Expected exactly 3 ceiling errors, got {results}")
+
+    def test_four_processes_output_token_capacity_one_exact_race(self):
+        """Four concurrent processes contending for max_output_tokens=100: exactly 1 succeeds, 3 fail with ceiling error."""
+        run_id = "test-cap1-out-tok"
+        q = multiprocessing.Queue()
+
+        workers = [
+            multiprocessing.Process(target=_worker_reserve_output_capacity_one, args=(str(self.j_path), run_id, q))
+            for _ in range(4)
+        ]
+        for w in workers:
+            w.start()
+        for w in workers:
+            w.join(timeout=10)
+
+        results = []
+        while not q.empty():
+            results.append(q.get())
+
+        self.assertEqual(len(results), 4)
+        successes = [r for r in results if r[0] == "SUCCESS"]
+        exceeded = [r for r in results if r[0] == "CEILING_EXCEEDED"]
+
+        self.assertEqual(len(successes), 1, f"Expected exactly 1 success, got {results}")
+        self.assertEqual(len(exceeded), 3, f"Expected exactly 3 ceiling errors, got {results}")
+
+    def test_four_processes_spend_capacity_one_exact_race(self):
+        """Four concurrent processes contending for spend ceiling: exactly 1 succeeds, 3 fail with ceiling error."""
+        run_id = "test-cap1-spend"
+        q = multiprocessing.Queue()
+
+        workers = [
+            multiprocessing.Process(target=_worker_reserve_spend_capacity_one, args=(str(self.j_path), run_id, q))
+            for _ in range(4)
+        ]
+        for w in workers:
+            w.start()
+        for w in workers:
+            w.join(timeout=10)
+
+        results = []
+        while not q.empty():
+            results.append(q.get())
+
+        self.assertEqual(len(results), 4)
+        successes = [r for r in results if r[0] == "SUCCESS"]
+        exceeded = [r for r in results if r[0] == "CEILING_EXCEEDED"]
+
+        self.assertEqual(len(successes), 1, f"Expected exactly 1 success, got {results}")
+        self.assertEqual(len(exceeded), 3, f"Expected exactly 3 ceiling errors, got {results}")
+
+    def test_tamper_detection_deleted_complete_tail_record(self):
+        """Deleting a complete final trailing record must fail recovery against sidecar seal commitment."""
+        bm = BudgetManager(authorized_spend_ceiling_usd=10.0, journal_path=self.j_path, run_id="r1")
+        r1 = bm.reserve_budget(100, 100)
+        bm.reconcile_reservation(r1, 100, 100)
+        bm.reserve_budget(200, 200)
+        bm.write_seal()
+
+        # Delete third record from journal
+        lines = self.j_path.read_text(encoding="utf-8").strip().splitlines()
+        self.assertEqual(len(lines), 3)
+        self.j_path.write_text("\n".join(lines[:2]) + "\n", encoding="utf-8")
+
+        # Restarting manager must fail recovery due to tail deletion seal check
+        with self.assertRaises(BudgetJournalError):
+            BudgetManager(authorized_spend_ceiling_usd=10.0, journal_path=self.j_path, run_id="r1")
 
     def test_one_request_ceiling(self):
         """Single request ceiling must block second reservation."""
