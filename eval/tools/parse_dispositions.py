@@ -73,10 +73,7 @@ def parse_dispositions(log_path: str | Path) -> dict:
 
 
 def main():
-    if len(sys.argv) < 2:
-        log_path = "eval/artifacts/flask-fp-ladder-w1r.log"
-    else:
-        log_path = sys.argv[1]
+    log_path = "eval/artifacts/flask-fp-ladder-w1r.log" if len(sys.argv) < 2 else sys.argv[1]
 
     res = parse_dispositions(log_path)
     print(f"Total Telemetry Records: {res['total_records']}")

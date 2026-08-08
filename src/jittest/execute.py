@@ -471,7 +471,7 @@ def _kill_tree(proc: subprocess.Popen) -> None:
     """Best effort: signal the group, then the process. Never raise."""
     try:
         if hasattr(os, "killpg") and hasattr(os, "getpgid"):
-            os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+            os.killpg(os.getpgid(proc.pid), getattr(signal, "SIGKILL", getattr(signal, "SIGTERM", 9)))  # type: ignore[attr-defined]
             return
     except OSError:
         # Covers ProcessLookupError: the group is already gone, which is the

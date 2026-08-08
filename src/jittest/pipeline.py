@@ -179,7 +179,7 @@ def run(
                                 total_attempts=cfg.candidates_per_target,
                             ),
                             n=1,
-                            temperature=min(1.0, cfg.temperature + 0.05 * (attempt - 1)),
+                            temperature=0.0 if (getattr(llm, "phase_c", False) or getattr(cfg, "phase_c", False)) else min(1.0, cfg.temperature + 0.05 * (attempt - 1)),
                         )[0]
                     except BudgetExceeded as exc:
                         report.errors.append(str(exc))
@@ -334,6 +334,9 @@ def run(
         report.cost_usd = llm.usage.cost_usd
         report.priced = llm.usage.priced
         report.tokens_estimated = llm.usage.tokens_estimated
+        report.usage_verified = not getattr(llm.usage, "unverified", False)
+        if not report.usage_verified:
+            report.priced = False
         report.input_tokens = llm.usage.input_tokens
         report.output_tokens = llm.usage.output_tokens
         report.model_requests = llm.usage.calls
