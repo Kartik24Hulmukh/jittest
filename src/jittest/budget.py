@@ -154,6 +154,24 @@ class BudgetManager:
                                 f"Request ceiling reached: {res_cnt + 1} > {self.max_requests} max requests"
                             )
 
+                        tot_in = sum(int(r.get("input_tokens", 0)) for r in parsed if r.get("event") == "reserve")
+                        if (tot_in + input_tokens) > self.max_input_tokens:
+                            raise BudgetExceededError(
+                                f"Input token ceiling reached: {tot_in + input_tokens} > {self.max_input_tokens}"
+                            )
+
+                        tot_out = sum(int(r.get("output_tokens", 0)) for r in parsed if r.get("event") == "reserve")
+                        if (tot_out + output_tokens) > self.max_output_tokens:
+                            raise BudgetExceededError(
+                                f"Output token ceiling reached: {tot_out + output_tokens} > {self.max_output_tokens}"
+                            )
+
+                        tot_spend = sum(Decimal(str(r.get("cost_usd", "0.0"))) for r in parsed if r.get("event") == "reserve")
+                        if (tot_spend + cost) > self.authorized_spend_ceiling_usd:
+                            raise BudgetExceededError(
+                                f"Spend ceiling breached: total spend ${tot_spend + cost:.6f} USD > authorized ${self.authorized_spend_ceiling_usd:.6f} USD ceiling"
+                            )
+
                     next_seq = self.sequence_number + 1
                     record = {
                         "run_id": self.run_id,
