@@ -28,7 +28,11 @@ def is_repeated_nibble_sha(sha: str) -> bool:
     return False
 
 
-def validate_r2c_manifest(manifest: dict, repo_dir_map: dict[str, Path] | None = None) -> list[str]:
+def validate_r2c_manifest(
+    manifest: dict,
+    repo_dir_map: dict[str, Path] | None = None,
+    allow_adjudicated: bool = False,
+) -> list[str]:
     """Validate control candidates manifest object against all integrity constraints.
 
     Returns a list of error strings. An empty list means the manifest is VALID.
@@ -47,6 +51,8 @@ def validate_r2c_manifest(manifest: dict, repo_dir_map: dict[str, Path] | None =
     diff_hash_set = set()
     pr_num_repo_set = set()
 
+    is_adjudicated_manifest = allow_adjudicated or manifest.get("founder_adjudication_status") == "adjudicated"
+
     for idx, cand in enumerate(candidates):
         cid = cand.get("candidate_id", f"candidate_{idx}")
 
@@ -55,10 +61,24 @@ def validate_r2c_manifest(manifest: dict, repo_dir_map: dict[str, Path] | None =
             errors.append(f"Duplicate candidate_id {cid!r}")
         cand_id_set.add(cid)
 
-        # Check human adjudication fields MUST BE NULL for founder adjudication
-        for field in ("human_decision", "human_reason", "human_reviewer", "human_adjudicated_at"):
-            if cand.get(field) is not None:
-                errors.append(f"Candidate {cid} field {field} is prefilled ({cand.get(field)!r}); MUST BE NULL by design for founder adjudication")
+        # Check human adjudication fields
+        if not is_adjudicated_manifest:
+            for field in ("human_decision", "human_reason", "human_reviewer", "human_adjudicated_at"):
+                if cand.get(field) is not None:
+                    errors.append(
+                        f"Candidate {cid} field {field} is prefilled ({cand.get(field)!r}); MUST BE NULL by design for unadjudicated manifest"
+                    )
+        else:
+            dec = cand.get("human_decision")
+            if dec is not None:
+                if dec not in ("eligible", "ineligible", "indeterminate"):
+                    errors.append(f"Candidate {cid} invalid human_decision {dec!r}")
+                if not cand.get("human_reason"):
+                    errors.append(f"Candidate {cid} has decision {dec!r} but missing human_reason")
+                if not cand.get("human_reviewer"):
+                    errors.append(f"Candidate {cid} has decision {dec!r} but missing human_reviewer")
+                if not cand.get("human_adjudicated_at"):
+                    errors.append(f"Candidate {cid} has decision {dec!r} but missing human_adjudicated_at")
 
         # Check SHAs for synthetic patterns
         for sha_field in ("real_base_sha", "real_head_sha", "merge_commit_sha"):
