@@ -1,51 +1,42 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-08-09T12:43:24.412684+00:00",
-  "protocol_commit": "361331d708bca768bd07f5aadc067b4518112e82",
-  "protocol_tree": "d89e0bfe0d661b1b4f1e140bcbc4d80023f1fbb2",
+  "generated_at": "2026-08-09T13:52:30.974927+00:00",
+  "protocol_commit": "4a1192075bcd14de8a019646ae213e260f0616b2",
+  "protocol_tree": "585c8f03582d1943696cb18afa8f20d4714f322a",
   "estimand": "catch_rate_on_preregistered_reverse_fix_constructions_derived_from_real_python_bugs",
   "selection": {
     "algorithm": "deterministic_preregistered_seed",
     "seed": "phase_c_r2b_selection_seed_2026_08_09",
     "seed_derivation": "sha256(protocol_commit + protocol_tree)",
-    "ordered_row_ids_sha256": "62eb441d8cdfe832eb9e0db8ea7c56f1aff5cdfd610d30bb0230311cb1f5a5b7"
+    "ordered_row_ids_sha256": "1f512da92e7a3d0a514cf48cad3068e62cd6fbd45c79df388d1df3ab6162bb0d"
   },
   "source_snapshots": [
     {
-      "name": "BugsInPy",
-      "url": "https://github.com/soarsmu/BugsInPy",
-      "revision": "1212121212121212121212121212121212121212",
-      "retrieved_at": "2026-08-09T12:43:24.412684+00:00",
-      "byte_count": 1048576,
-      "sha256": "d57f4ce8ebc46543d7d8cd635610470265b99a9ade24d00a8af8f68878609e4f",
-      "license": "MIT"
-    },
-    {
       "name": "Pallets/Flask",
       "url": "https://github.com/pallets/flask",
-      "revision": "27be9338f0d8a571c563e46c764a85623cf6cf38",
-      "retrieved_at": "2026-08-09T12:43:24.412684+00:00",
-      "byte_count": 2097152,
-      "sha256": "9d28e5ffa3c7c5b2083d2892c14eefe6a2166dedfe65325feb9544bfa5bef5dc",
+      "revision": "6a2f545bfd8ed31e19066a299296917e034aca58",
+      "retrieved_at": "2026-08-09T13:52:31.089616+00:00",
+      "byte_count": 1906644,
+      "sha256": "5e075dc004f75f15663f272ed56fc29147eb8c0d6eea4e7e061e040ad62b2ac2",
       "license": "BSD-3-Clause"
     },
     {
       "name": "PSF/Requests",
       "url": "https://github.com/psf/requests",
-      "revision": "1111111111111111111111111111111111111111",
-      "retrieved_at": "2026-08-09T12:43:24.412684+00:00",
-      "byte_count": 3145728,
-      "sha256": "7bc9ecb605c642f6d054782d6a5a270a23dc8c3b08d4c5a0d36b883e001a3957",
+      "revision": "414f0513c33883adf6f2b46901d4f0b38a455851",
+      "retrieved_at": "2026-08-09T13:52:31.197130+00:00",
+      "byte_count": 4470742,
+      "sha256": "9bfd297b3937baed784cdef77d1bc385196a6387f14f64ecbf1ea06c79d77b5c",
       "license": "Apache-2.0"
     },
     {
-      "name": "Tornado/Tornado",
-      "url": "https://github.com/tornadoweb/tornado",
-      "revision": "1010101010101010101010101010101010101010",
-      "retrieved_at": "2026-08-09T12:43:24.412684+00:00",
-      "byte_count": 4194304,
-      "sha256": "e531757f1e06ddd0fa2045e48a738d29b5fcdc82ca48b522c166495a65e0e7d6",
-      "license": "Apache-2.0"
+      "name": "ytdl-org/youtube-dl",
+      "url": "https://github.com/ytdl-org/youtube-dl",
+      "revision": "956b8c585591b401a543e409accb163eeaaa1193",
+      "retrieved_at": "2026-08-09T13:52:31.364290+00:00",
+      "byte_count": 7126461,
+      "sha256": "cc8df962dd65c48f8032d29f51dac2ab34c04a4970a0cd7f6e16a4f7496bfa26",
+      "license": "Unlicense"
     }
   ],
   "rows": [
@@ -53,440 +44,532 @@
       "row_id": "bug_flask_01",
       "kind": "bug",
       "repository": "https://github.com/pallets/flask",
-      "cluster_id": "cluster_flask_templating",
+      "cluster_id": "cluster_flask_cli",
       "cohort": "calibration",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "56c059d1352ec2ea7e385f1d25f593a6bcb9bb1e3ff2d2c873dc0ae40df57acd",
-      "real_buggy_sha": "27be9338f0d8a571c563e46c764a85623cf6cf38",
-      "real_fixed_sha": "c17f3793fdf6c63b27be9338f0d8a571c563e46c",
-      "derived_base_sha": "c17f3793fdf6c63b27be9338f0d8a571c563e46c",
-      "derived_head_sha": "27be9338f0d8a571c563e46c764a85623cf6cf38",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "c126d296435c10786d06f581abada340681ef042c47b8c5e7faebe58b771b30c",
+      "real_buggy_sha": "d3b78fd18a8d9e224cb9ef58a23cec9b1ffc9ce9",
+      "real_fixed_sha": "12e95c93b488725f80753f34b2e0d24838ca4646",
+      "derived_base_sha": "12e95c93b488725f80753f34b2e0d24838ca4646",
+      "derived_head_sha": "d3b78fd18a8d9e224cb9ef58a23cec9b1ffc9ce9",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "26efdb75807e3b15f2cc25387b0edbe91d8fb46c37b3bea4c098b864b541d7a8",
+      "derivation_patch_sha256": "819ecd2d24aa2427c5d576b130ce5b00ef8d84a325dbe0b40b7ede853a4f98df",
       "trigger_on_buggy": {
         "command": [
-          "pytest",
-          "tests/test_templating.py::test_custom_ctx"
+          "python",
+          "-m",
+          "unittest",
+          "tests.test_cli"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:28.900442+00:00",
+        "ended_at": "2026-08-09T13:51:29.396659+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "c4fe288aa05116fcd9f0dd979dc9aefc93f126e6d6fad6f9a91bcaf4507c80b3",
+        "stderr_sha256": "460e30a139e50ad6e6d76f4412448ed1cdb7284415b71ab0825a7a2c515415c3",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
-          "pytest",
-          "tests/test_templating.py::test_custom_ctx"
+          "python",
+          "-m",
+          "unittest",
+          "tests.test_cli"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:29.396659+00:00",
+        "ended_at": "2026-08-09T13:51:29.799127+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "bfce592720d271ca8f596c8d153b3e86abfc82dfd4939a73dcd72c4fcd48f336",
+        "stderr_sha256": "3355d14f6bcb1290ba16f1420e2c2c020a2f2967742410869afd5c38a15f4b22",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
-        "primary_path": "src/flask/templating.py"
+        "primary_path": "src/flask/cli.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "derivation_command": "git diff 12e95c93b488725f80753f34b2e0d24838ca4646~1 12e95c93b488725f80753f34b2e0d24838ca4646 -- src/flask/cli.py",
+        "trigger_command": "python -m unittest tests.test_cli"
       }
     },
     {
       "row_id": "bug_flask_02",
       "kind": "bug",
       "repository": "https://github.com/pallets/flask",
-      "cluster_id": "cluster_flask_ctx",
+      "cluster_id": "cluster_flask_json",
       "cohort": "calibration",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "62ec09ccf29bad0539d96a3b10bfe7fd36207147a317de3894ff387f93460c3f",
-      "real_buggy_sha": "d98eb69af0d8a571c563e46c764a85623cf6cf38",
-      "real_fixed_sha": "f00ad424fdf6c63b27be9338f0d8a571c563e46c",
-      "derived_base_sha": "f00ad424fdf6c63b27be9338f0d8a571c563e46c",
-      "derived_head_sha": "d98eb69af0d8a571c563e46c764a85623cf6cf38",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "9581b13e10c1371b3190ad3ad2576bd93b038cfa5d481c42971175f0f816d401",
+      "real_buggy_sha": "64dd0809c2fc732ed30539235232a268f9bd96ac",
+      "real_fixed_sha": "25642fd1fd65985fc98f95e64bc2c7ff353d6c2b",
+      "derived_base_sha": "25642fd1fd65985fc98f95e64bc2c7ff353d6c2b",
+      "derived_head_sha": "64dd0809c2fc732ed30539235232a268f9bd96ac",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "b3f1116debdf34bf81c2a0f9b265a39a0b65f5184594e2b3364830c58970580c",
+      "derivation_patch_sha256": "ad36a77ff9e935a42fdcef5244ffe2130d1bf8c10d417c2ae24102b62e4a9229",
       "trigger_on_buggy": {
         "command": [
-          "pytest",
-          "tests/test_basic.py::test_request_context"
+          "python",
+          "-m",
+          "unittest",
+          "tests.test_basic"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:29.955134+00:00",
+        "ended_at": "2026-08-09T13:51:30.330711+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "449532da2ba3e78fcd54e33f940e9690a4da7c74cbb96c1558f78c870ecb3fcd",
+        "stderr_sha256": "edc8afd0e9cdba51f4e0708d52655c656f3edf6cdfdc4482158fcbb0ee905b62",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
-          "pytest",
-          "tests/test_basic.py::test_request_context"
+          "python",
+          "-m",
+          "unittest",
+          "tests.test_basic"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:30.330711+00:00",
+        "ended_at": "2026-08-09T13:51:30.727317+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "0aec6bdc0495d7abc777323d0d633e717af8123a70675d32e2d0b416467f48e1",
+        "stderr_sha256": "684e770c4a8200d073bff0bac0f028f174d56edee563996e140a56474e73eecb",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
-        "primary_path": "src/flask/ctx.py"
+        "primary_path": "src/flask/json/__init__.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "derivation_command": "git diff 25642fd1fd65985fc98f95e64bc2c7ff353d6c2b~1 25642fd1fd65985fc98f95e64bc2c7ff353d6c2b -- src/flask/json/__init__.py",
+        "trigger_command": "python -m unittest tests.test_basic"
       }
     },
     {
       "row_id": "bug_flask_03",
       "kind": "bug",
       "repository": "https://github.com/pallets/flask",
-      "cluster_id": "cluster_flask_helpers",
+      "cluster_id": "cluster_flask_sessions",
       "cohort": "calibration",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "a25e4a12ad3cdb9a2c378c11010bfb4b675aed82dbb1c77d5ba348225e5730ed",
-      "real_buggy_sha": "eb58d862f0d8a571c563e46c764a85623cf6cf38",
-      "real_fixed_sha": "eca5fd1dfdf6c63b27be9338f0d8a571c563e46c",
-      "derived_base_sha": "eca5fd1dfdf6c63b27be9338f0d8a571c563e46c",
-      "derived_head_sha": "eb58d862f0d8a571c563e46c764a85623cf6cf38",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "71d76edbbbc02ecf7b0c5631bc50a342f6de4e7ed0b2f63b233482056fe3d038",
+      "real_buggy_sha": "941efd4a36ed0f27e13758874f95e3aa1d3ee163",
+      "real_fixed_sha": "fb54159861708558b5f5658ebdc14709d984361c",
+      "derived_base_sha": "fb54159861708558b5f5658ebdc14709d984361c",
+      "derived_head_sha": "941efd4a36ed0f27e13758874f95e3aa1d3ee163",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "26e60cb9ba5cc026c0c61b9a6e0e2a8761655a4080121238ee473ac923792b4e",
+      "derivation_patch_sha256": "320f5479bd97382fb2fe487f50b0e2872c45241e37f4574be0c1f77eef468469",
       "trigger_on_buggy": {
         "command": [
-          "pytest",
-          "tests/test_helpers.py::test_redirect"
+          "python",
+          "-m",
+          "unittest",
+          "tests.test_appctx"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:30.861492+00:00",
+        "ended_at": "2026-08-09T13:51:31.235561+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "d2ff14c858f86a91e192cd20f741d25ad11be88cbe8b3734d4a19f4e85162837",
+        "stderr_sha256": "4f4f0ccaaceefe2f93255d2c68f61386265a0cb760bf02c26c907d53156bc38c",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
-          "pytest",
-          "tests/test_helpers.py::test_redirect"
+          "python",
+          "-m",
+          "unittest",
+          "tests.test_appctx"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:31.235561+00:00",
+        "ended_at": "2026-08-09T13:51:31.733470+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "b60d5c4a6918872f8c2cc37041596abaf1b15ad94a91fddca50b81f6e32806a9",
+        "stderr_sha256": "3367bfa399e890317db8552a3d8da9a8eacfe5ffa195e8235c76baba4c07c157",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
-        "primary_path": "src/flask/helpers.py"
+        "primary_path": "src/flask/sessions.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "derivation_command": "git diff fb54159861708558b5f5658ebdc14709d984361c~1 fb54159861708558b5f5658ebdc14709d984361c -- src/flask/sessions.py",
+        "trigger_command": "python -m unittest tests.test_appctx"
       }
     },
     {
       "row_id": "bug_flask_04",
       "kind": "bug",
       "repository": "https://github.com/pallets/flask",
-      "cluster_id": "cluster_flask_sessions",
+      "cluster_id": "cluster_flask_blueprints",
       "cohort": "calibration",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "c213af431aa427738a52889a1ad064b6bd474544c2569745c7fdeb122ac1b7d3",
-      "real_buggy_sha": "a1b2c3d4f0d8a571c563e46c764a85623cf6cf38",
-      "real_fixed_sha": "b2c3d4e5fdf6c63b27be9338f0d8a571c563e46c",
-      "derived_base_sha": "b2c3d4e5fdf6c63b27be9338f0d8a571c563e46c",
-      "derived_head_sha": "a1b2c3d4f0d8a571c563e46c764a85623cf6cf38",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "1180a904bed2513c370d2e43c8e92d3438a750e85a7fb53006099ac56213b770",
+      "real_buggy_sha": "07c7d5730a2685ef2281cc635e289685e5c3d478",
+      "real_fixed_sha": "4995a775df21a206b529403bc30d71795a994fd4",
+      "derived_base_sha": "4995a775df21a206b529403bc30d71795a994fd4",
+      "derived_head_sha": "07c7d5730a2685ef2281cc635e289685e5c3d478",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "d5d02598b0bcacd25821fa24f99ef5ced72f0636376a23ade2d5b99bb4101875",
+      "derivation_patch_sha256": "89559e529d667634e328630808226740dca17a680efee5f9a139f5fbe37727cb",
       "trigger_on_buggy": {
         "command": [
-          "pytest",
-          "tests/test_basic.py::test_session"
+          "python",
+          "-m",
+          "unittest",
+          "tests.test_blueprints"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:31.891124+00:00",
+        "ended_at": "2026-08-09T13:51:32.269431+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "819b664a69e9f853e9c8bf56d28e07f30fac96171eb7a3ec7d92548c2aae0c53",
+        "stderr_sha256": "fdf99157bdb079745016a5a371f565aa13eb0f4dd8a09a8e2e486ec644468b89",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
-          "pytest",
-          "tests/test_basic.py::test_session"
+          "python",
+          "-m",
+          "unittest",
+          "tests.test_blueprints"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:32.269431+00:00",
+        "ended_at": "2026-08-09T13:51:32.632896+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "13b679bbb47c3a6d4d8ebcbcc8c2dfaa5b553fa61355e216844568f94c550294",
+        "stderr_sha256": "5e1d893ee47ebc171a6ac298820bbd1e313ba1a8be5cc794d6ba693662b2c0d1",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
-        "primary_path": "src/flask/sessions.py"
+        "primary_path": "src/flask/blueprints.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "derivation_command": "git diff 4995a775df21a206b529403bc30d71795a994fd4~1 4995a775df21a206b529403bc30d71795a994fd4 -- src/flask/blueprints.py",
+        "trigger_command": "python -m unittest tests.test_blueprints"
       }
     },
     {
       "row_id": "bug_flask_05",
       "kind": "bug",
       "repository": "https://github.com/pallets/flask",
-      "cluster_id": "cluster_flask_blueprints",
+      "cluster_id": "cluster_flask_views",
       "cohort": "calibration",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "20984eaa1d3b8543c18fdfb37c3e212c6bd9dfd496087e92412757e9f1885010",
-      "real_buggy_sha": "c3d4e5f6f0d8a571c563e46c764a85623cf6cf38",
-      "real_fixed_sha": "d4e5f6a7fdf6c63b27be9338f0d8a571c563e46c",
-      "derived_base_sha": "d4e5f6a7fdf6c63b27be9338f0d8a571c563e46c",
-      "derived_head_sha": "c3d4e5f6f0d8a571c563e46c764a85623cf6cf38",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "be92cff2aa670669559346d2da10375d74d2e641ec7beb5c7553200272e1c164",
+      "real_buggy_sha": "96800fb673cb7b2d75476096798e701e3e6d26bc",
+      "real_fixed_sha": "c62b03bcfd6e6440f8195e02f4678488e16121ac",
+      "derived_base_sha": "c62b03bcfd6e6440f8195e02f4678488e16121ac",
+      "derived_head_sha": "96800fb673cb7b2d75476096798e701e3e6d26bc",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "07d883e73a43fce6ffbe7c6337cfe37f72ab5d8fb40a3858578c19e375296156",
+      "derivation_patch_sha256": "b3e9ac3bc6210d63ff860706d39ce1f350882563a38cf26e44b78c69a5a4b00f",
       "trigger_on_buggy": {
         "command": [
-          "pytest",
-          "tests/test_blueprints.py::test_bp_url_prefix"
+          "python",
+          "-m",
+          "unittest",
+          "tests.test_views"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:32.791786+00:00",
+        "ended_at": "2026-08-09T13:51:33.172077+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "cf6d6caf2d1f4a33d8585795959196d3350b9eb90a0e090740512a5fd51d7309",
+        "stderr_sha256": "d0385d3fb5f3f01a55d4b4f62d9f5c57629c776b73445767e06fae8b8d29abdd",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
-          "pytest",
-          "tests/test_blueprints.py::test_bp_url_prefix"
+          "python",
+          "-m",
+          "unittest",
+          "tests.test_views"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:33.172077+00:00",
+        "ended_at": "2026-08-09T13:51:33.538175+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "7ca785c80f1aed70b139ef53fb31187b8ca2e500a24641ea140bb40a1c86758e",
+        "stderr_sha256": "6db2a90e717552d5b7e8aa02b1c89152a10d032c03a6ff9ab4cc8a94db1a45bb",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
-        "primary_path": "src/flask/blueprints.py"
+        "primary_path": "src/flask/views.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "derivation_command": "git diff c62b03bcfd6e6440f8195e02f4678488e16121ac~1 c62b03bcfd6e6440f8195e02f4678488e16121ac -- src/flask/views.py",
+        "trigger_command": "python -m unittest tests.test_views"
       }
     },
     {
       "row_id": "bug_flask_06",
       "kind": "bug",
       "repository": "https://github.com/pallets/flask",
-      "cluster_id": "cluster_flask_cli",
+      "cluster_id": "cluster_flask_helpers",
       "cohort": "calibration",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "0772e078c5dcb023ea88f1ae7bbb9d73f81658f878c5fc9c0e8f62823ddd5a6f",
-      "real_buggy_sha": "e5f6a7b8f0d8a571c563e46c764a85623cf6cf38",
-      "real_fixed_sha": "f6a7b8c9fdf6c63b27be9338f0d8a571c563e46c",
-      "derived_base_sha": "f6a7b8c9fdf6c63b27be9338f0d8a571c563e46c",
-      "derived_head_sha": "e5f6a7b8f0d8a571c563e46c764a85623cf6cf38",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "e2b21da4b34940a1ad95a2ace84bafeb9f1314f892030dcad5c1d16652e2dcf8",
+      "real_buggy_sha": "5e8cb740187c0561b36323dfc8510e58c3066838",
+      "real_fixed_sha": "e8b91cd38aadafdf733558bbcea4810fa65bb849",
+      "derived_base_sha": "e8b91cd38aadafdf733558bbcea4810fa65bb849",
+      "derived_head_sha": "5e8cb740187c0561b36323dfc8510e58c3066838",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "eb15d03170538b8597fa5a7025957d9d6668aed3e5cafc2ca19183c55936fcfb",
+      "derivation_patch_sha256": "b83c1459604762eab93592802cead41abf7a391ac0511f271cb119012b0e83bf",
       "trigger_on_buggy": {
         "command": [
-          "pytest",
-          "tests/test_cli.py::test_cli_custom_script"
+          "python",
+          "-m",
+          "unittest",
+          "tests.test_helpers"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:33.687440+00:00",
+        "ended_at": "2026-08-09T13:51:34.131389+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "f8b0b73bd79ae842d2cc43fc8c2a9b714a6ffef0813108fccd43b1bd3d12734e",
+        "stderr_sha256": "37512a034ad0c912c2446318f1851d3563a9305791c123b4ef2ac7285eb10611",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
-          "pytest",
-          "tests/test_cli.py::test_cli_custom_script"
+          "python",
+          "-m",
+          "unittest",
+          "tests.test_helpers"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:34.131389+00:00",
+        "ended_at": "2026-08-09T13:51:34.540806+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "5584bdbf2f4f8ce7f4107fb343174ec9d6915a81988ec8cd0be34d0c278d6a15",
+        "stderr_sha256": "28fba3de86f429eb24f0c8a18ae2edd89ffef6e3bd9cced55a0a571eee72861d",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
-        "primary_path": "src/flask/cli.py"
+        "primary_path": "src/flask/helpers.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "derivation_command": "git diff e8b91cd38aadafdf733558bbcea4810fa65bb849~1 e8b91cd38aadafdf733558bbcea4810fa65bb849 -- src/flask/helpers.py",
+        "trigger_command": "python -m unittest tests.test_helpers"
       }
     },
     {
       "row_id": "bug_flask_07",
       "kind": "bug",
       "repository": "https://github.com/pallets/flask",
-      "cluster_id": "cluster_flask_json",
+      "cluster_id": "cluster_flask_signals",
       "cohort": "calibration",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "cef61d61105edc8a3c2e18f7c0da22720d76e5998892fcc7940760145aa7abc7",
-      "real_buggy_sha": "a7b8c9d0f0d8a571c563e46c764a85623cf6cf38",
-      "real_fixed_sha": "b8c9d0e1fdf6c63b27be9338f0d8a571c563e46c",
-      "derived_base_sha": "b8c9d0e1fdf6c63b27be9338f0d8a571c563e46c",
-      "derived_head_sha": "a7b8c9d0f0d8a571c563e46c764a85623cf6cf38",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "528713bfb161b333f2ddb647f6d2e7377688d99155ac2d0e6b049a7f679a55d8",
+      "real_buggy_sha": "2c5d652493b79eecadd4407f24f2249948bd6ff2",
+      "real_fixed_sha": "40b78fa2ea9095197608287de9f0d902d2763b00",
+      "derived_base_sha": "40b78fa2ea9095197608287de9f0d902d2763b00",
+      "derived_head_sha": "2c5d652493b79eecadd4407f24f2249948bd6ff2",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "e026847b9c889eb2812ee733f5332459584155f09c9f609698128040b336f95a",
+      "derivation_patch_sha256": "c7baa4305f475e544d1b506b51e8ffc06b28815f03260c57b339e84d4f9e20d3",
       "trigger_on_buggy": {
         "command": [
-          "pytest",
-          "tests/test_json.py::test_json_encoder"
+          "python",
+          "-m",
+          "unittest",
+          "tests.test_signals"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:34.718783+00:00",
+        "ended_at": "2026-08-09T13:51:35.004999+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "6d39e8a4a7ffddf6245eead05e9fb233853ff78be37579e4deea39f029a9a6c4",
+        "stderr_sha256": "1aaed38ec71c11fbc4c2c6f396718b60db9b845fc77c1721bc1558fa220343c2",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
-          "pytest",
-          "tests/test_json.py::test_json_encoder"
+          "python",
+          "-m",
+          "unittest",
+          "tests.test_signals"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:35.004999+00:00",
+        "ended_at": "2026-08-09T13:51:35.307106+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "2a0f0328686d716311e9e841d2766370a72384783f689841e36651676ddfa353",
+        "stderr_sha256": "8dc8b711d4d4d49f5a01c182ef4d4c4d7fd8fb783c5a795e294fd72fac30d581",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
-        "primary_path": "src/flask/json/__init__.py"
+        "primary_path": "src/flask/signals.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "derivation_command": "git diff 40b78fa2ea9095197608287de9f0d902d2763b00~1 40b78fa2ea9095197608287de9f0d902d2763b00 -- src/flask/signals.py",
+        "trigger_command": "python -m unittest tests.test_signals"
       }
     },
     {
       "row_id": "bug_flask_08",
       "kind": "bug",
       "repository": "https://github.com/pallets/flask",
-      "cluster_id": "cluster_flask_signals",
-      "cohort": "calibration",
+      "cluster_id": "cluster_flask_ctx",
+      "cohort": "bug_holdout",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "42d7eb31e214177182f16692371eb0fd75b695724deec4c7b9781aff837d5cb2",
-      "real_buggy_sha": "c9d0e1f2f0d8a571c563e46c764a85623cf6cf38",
-      "real_fixed_sha": "d0e1f2a3fdf6c63b27be9338f0d8a571c563e46c",
-      "derived_base_sha": "d0e1f2a3fdf6c63b27be9338f0d8a571c563e46c",
-      "derived_head_sha": "c9d0e1f2f0d8a571c563e46c764a85623cf6cf38",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "efe3a454628deb1b32c1552e039a7aafa6b10df3d061384689d2f584727fd604",
+      "real_buggy_sha": "273123f6b8fc0d871553f707e515816777c60e24",
+      "real_fixed_sha": "860a25c390eba8e6c089a818b02800dd9d789864",
+      "derived_base_sha": "860a25c390eba8e6c089a818b02800dd9d789864",
+      "derived_head_sha": "273123f6b8fc0d871553f707e515816777c60e24",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "967fedc746c6dda39b94dd6e8ae20563668f2ab25632448ce8f5721dd89b685a",
+      "derivation_patch_sha256": "1211103e8f358ac66c91513c24a3bd655b8930bb91a3e38f8da3a5e671245171",
       "trigger_on_buggy": {
         "command": [
-          "pytest",
-          "tests/test_signals.py::test_app_signals"
+          "python",
+          "-m",
+          "unittest",
+          "tests.test_reqctx"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:35.446781+00:00",
+        "ended_at": "2026-08-09T13:51:35.816333+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "fb7753e57a53a24ba3773d5ba4085865a4c7782332939687964ad5ac2f617f00",
+        "stderr_sha256": "c99f875b07f3f560c4364604894f2565d2ec6247139c3ab0a67fcacdf44d4617",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
-          "pytest",
-          "tests/test_signals.py::test_app_signals"
+          "python",
+          "-m",
+          "unittest",
+          "tests.test_reqctx"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:35.816333+00:00",
+        "ended_at": "2026-08-09T13:51:36.176859+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "2ad2107eaf40c609e596214ee65dadd4045b05357e631d9e9574ad0a4f71ef66",
+        "stderr_sha256": "d527f09c68eeb49fff2b617408df5d3526b60af48edce1dd82af3b547d43f919",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
-        "primary_path": "src/flask/signals.py"
+        "primary_path": "src/flask/ctx.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "derivation_command": "git diff 860a25c390eba8e6c089a818b02800dd9d789864~1 860a25c390eba8e6c089a818b02800dd9d789864 -- src/flask/ctx.py",
+        "trigger_command": "python -m unittest tests.test_reqctx"
       }
     },
     {
       "row_id": "bug_requests_09",
       "kind": "bug",
       "repository": "https://github.com/psf/requests",
-      "cluster_id": "cluster_requests_models",
-      "cohort": "calibration",
+      "cluster_id": "cluster_requests_sessions",
+      "cohort": "bug_holdout",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "ec2c3e2a2c333cd4b833a3e1f78a2d319d3f9e3821743966f9343839abe0abb2",
-      "real_buggy_sha": "1111111111111111111111111111111111111111",
-      "real_fixed_sha": "2222222222222222222222222222222222222222",
-      "derived_base_sha": "2222222222222222222222222222222222222222",
-      "derived_head_sha": "1111111111111111111111111111111111111111",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "3360d243265f0713b54c0db461f62f62e760457e7015fa26bb44aadbdef689ec",
+      "real_buggy_sha": "dc9dbdfb3434c6e58d48fd102f93e5342308817e",
+      "real_fixed_sha": "b684dcb9bbf3aa557d1238e72062c4a29737dd1c",
+      "derived_base_sha": "b684dcb9bbf3aa557d1238e72062c4a29737dd1c",
+      "derived_head_sha": "dc9dbdfb3434c6e58d48fd102f93e5342308817e",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "b1de87456a53fe21dd71c7da82467fa74ef7af4c4fcd9ad6c12b33a552df6953",
+      "derivation_patch_sha256": "b7f91b4bd0154f02c05bd0166df0c04fb4c74bed3af9a7e593a3ee258ceeec0c",
       "trigger_on_buggy": {
         "command": [
           "pytest",
-          "tests/test_requests.py::test_prepared_request_url"
+          "tests/test_requests.py::TestHooks"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:36.336349+00:00",
+        "ended_at": "2026-08-09T13:51:37.854451+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "08b67ab442a26a16f5635fa64e603601b165339815e8324d6ea9e1563fa5d705",
+        "stderr_sha256": "88d10c55e39fda2f9e10b519c31af5714f28c8b81c14a506a92d30206f8a3641",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
           "pytest",
-          "tests/test_requests.py::test_prepared_request_url"
+          "tests/test_requests.py::TestHooks"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:37.854451+00:00",
+        "ended_at": "2026-08-09T13:51:40.355659+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "1f784dd332dd57e4289687c0821f91653f3e851db7da1b56b2b7ebdc46e85aac",
+        "stderr_sha256": "8ad4fcd42e8d2f076ce9920f379af54e94901d01921ac36f7264e1e128041c37",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
-        "primary_path": "src/requests/models.py"
+        "primary_path": "src/requests/sessions.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "derivation_command": "git diff b684dcb9bbf3aa557d1238e72062c4a29737dd1c~1 b684dcb9bbf3aa557d1238e72062c4a29737dd1c -- src/requests/sessions.py",
+        "trigger_command": "pytest tests/test_requests.py::TestHooks"
       }
     },
     {
       "row_id": "bug_requests_10",
       "kind": "bug",
       "repository": "https://github.com/psf/requests",
-      "cluster_id": "cluster_requests_sessions",
-      "cohort": "calibration",
+      "cluster_id": "cluster_requests_auth",
+      "cohort": "bug_holdout",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "d0a8f66dcf7757ed6d93c763a31e73544c821099364fcb99ce5a5adff244ffc5",
-      "real_buggy_sha": "3333333333333333333333333333333333333333",
-      "real_fixed_sha": "4444444444444444444444444444444444444444",
-      "derived_base_sha": "4444444444444444444444444444444444444444",
-      "derived_head_sha": "3333333333333333333333333333333333333333",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "6d24711ca3635690301afdabf337226a4aff0b3067ae223c9242a0f3585b6aca",
+      "real_buggy_sha": "96ba401c1296ab1dda74a2365ef36d88f7d144ef",
+      "real_fixed_sha": "7bc45877a86192af77645e156eb3744f95b47dae",
+      "derived_base_sha": "7bc45877a86192af77645e156eb3744f95b47dae",
+      "derived_head_sha": "96ba401c1296ab1dda74a2365ef36d88f7d144ef",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "8a761b2b6b5cffcecfd6d4f73b900d02ea267d8bf5b5b6c00fd81d3d10538f24",
+      "derivation_patch_sha256": "4c218cdaa85f120bd7ab192f269a5913401639ea218784462246ba72446fa29f",
       "trigger_on_buggy": {
         "command": [
           "pytest",
-          "tests/test_requests.py::test_session_hooks"
+          "tests/test_requests.py::TestAuth"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:40.641527+00:00",
+        "ended_at": "2026-08-09T13:51:43.205527+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "f1e0e04ce64d6a600272641f4cdfcbfd0f4833f09b8617919cc3099a43820de6",
+        "stderr_sha256": "5b34c26ea7b1acde05a5a7de2ac14863a196338fab56cc85ff7edde344758430",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
           "pytest",
-          "tests/test_requests.py::test_session_hooks"
+          "tests/test_requests.py::TestAuth"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:43.205527+00:00",
+        "ended_at": "2026-08-09T13:51:45.865326+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "9f0a348bf8602d78ab4fd46590c276d04b65cbefe1ce3f33726b35e30d44b9bf",
+        "stderr_sha256": "eac3d5923a4aa81cfac250bbd99ce6d466a30cbacd1f001c811b7b8446eb4873",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
-        "primary_path": "src/requests/sessions.py"
+        "primary_path": "src/requests/auth.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "derivation_command": "git diff 7bc45877a86192af77645e156eb3744f95b47dae~1 7bc45877a86192af77645e156eb3744f95b47dae -- src/requests/auth.py",
+        "trigger_command": "pytest tests/test_requests.py::TestAuth"
       }
     },
     {
@@ -496,965 +579,647 @@
       "cluster_id": "cluster_requests_adapters",
       "cohort": "bug_holdout",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "cc9d8f1ad588c2b55221129f7fe67847c9b0e60803fedb32f8a1f0e9cb430b51",
-      "real_buggy_sha": "5555555555555555555555555555555555555555",
-      "real_fixed_sha": "6666666666666666666666666666666666666666",
-      "derived_base_sha": "6666666666666666666666666666666666666666",
-      "derived_head_sha": "5555555555555555555555555555555555555555",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "9771506792b1873d40fcd498337953a33750b4d4bce4c00ee835cd036eabbcd0",
+      "real_buggy_sha": "eea3bbf9ac635f465ee6c9903dc57c677952dafd",
+      "real_fixed_sha": "c0813a2d910ea6b4f8438b91d315b8d181302356",
+      "derived_base_sha": "c0813a2d910ea6b4f8438b91d315b8d181302356",
+      "derived_head_sha": "eea3bbf9ac635f465ee6c9903dc57c677952dafd",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "44d9dd27c003d995edee91ca6bc0df6f97d0a915ef3d5b9af3857d4ff2dea1e3",
+      "derivation_patch_sha256": "582621fcbd27821fa040e7111cf5d25c21915ee7ff4206207cc965575a027fee",
       "trigger_on_buggy": {
         "command": [
           "pytest",
-          "tests/test_requests.py::test_HTTPAdapter"
+          "tests/test_requests.py::TestHTTPAdapter"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:46.236453+00:00",
+        "ended_at": "2026-08-09T13:51:48.602477+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "564f138fc31f3efe8d74c8a46021d595137a4c7d869508453fa54d969a31ad31",
+        "stderr_sha256": "f047047501a47250674d2ea4674e29c151542f4761c88ac105651b835443c11f",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
           "pytest",
-          "tests/test_requests.py::test_HTTPAdapter"
+          "tests/test_requests.py::TestHTTPAdapter"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:48.602902+00:00",
+        "ended_at": "2026-08-09T13:51:51.009174+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "912c53f1b5f1559afedc4abf0f1642f516ed2e9daeccda8055d3383fef6cba2d",
+        "stderr_sha256": "f14397c3a53bac3f09bab8da2dfd26d9114c580bd8fffd23df84fbab0c4df3df",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
         "primary_path": "src/requests/adapters.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "derivation_command": "git diff c0813a2d910ea6b4f8438b91d315b8d181302356~1 c0813a2d910ea6b4f8438b91d315b8d181302356 -- src/requests/adapters.py",
+        "trigger_command": "pytest tests/test_requests.py::TestHTTPAdapter"
       }
     },
     {
       "row_id": "bug_requests_12",
       "kind": "bug",
       "repository": "https://github.com/psf/requests",
-      "cluster_id": "cluster_requests_auth",
+      "cluster_id": "cluster_requests_utils",
       "cohort": "bug_holdout",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "0b3c49df93db826d9528fa0b922c76b4be7b945ab34ad86d8535aab5bf2cdd2d",
-      "real_buggy_sha": "7777777777777777777777777777777777777777",
-      "real_fixed_sha": "8888888888888888888888888888888888888888",
-      "derived_base_sha": "8888888888888888888888888888888888888888",
-      "derived_head_sha": "7777777777777777777777777777777777777777",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "a940608ea9603bc1d404c57fd790933895aad4ec71d96cd775dec2a304a88fe4",
+      "real_buggy_sha": "96b22fa18c00831656ee4b286bf1c9062459b00a",
+      "real_fixed_sha": "3ff3ff21dd45957c9e143cd500291959bb15f690",
+      "derived_base_sha": "3ff3ff21dd45957c9e143cd500291959bb15f690",
+      "derived_head_sha": "96b22fa18c00831656ee4b286bf1c9062459b00a",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "b84b0702527b3c66e4e3d788c51b5a5a47baf7ca079445f121545b2c383732b1",
+      "derivation_patch_sha256": "b85137b3a262c3f43d94fcdf631a778df0f8ca1af02147a30b86bcef7d27f160",
       "trigger_on_buggy": {
         "command": [
           "pytest",
-          "tests/test_requests.py::test_HTTPDigestAuth"
+          "tests/test_requests.py::TestCaseInsensitiveDict"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:51.198396+00:00",
+        "ended_at": "2026-08-09T13:51:52.893813+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "390d47df44ce47f892a9b98e0cf5c93859599c219a2f645b0c77606c6ada84ce",
+        "stderr_sha256": "b58edb871627323e5d39fb0926f4f73086a2042ce41fb8e97cd7009230d09a06",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
           "pytest",
-          "tests/test_requests.py::test_HTTPDigestAuth"
+          "tests/test_requests.py::TestCaseInsensitiveDict"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:52.893813+00:00",
+        "ended_at": "2026-08-09T13:51:54.553619+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "0c72e68260972602a95aeca22bf3d41b024643fd6690b43c89d4fa94f2fb2b86",
+        "stderr_sha256": "8f3539b1c232b4acb123d564c61d9697fbfb2b8b5c16e413b275c30ac83da204",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
-        "primary_path": "src/requests/auth.py"
+        "primary_path": "src/requests/utils.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "derivation_command": "git diff 3ff3ff21dd45957c9e143cd500291959bb15f690~1 3ff3ff21dd45957c9e143cd500291959bb15f690 -- src/requests/utils.py",
+        "trigger_command": "pytest tests/test_requests.py::TestCaseInsensitiveDict"
       }
     },
     {
       "row_id": "bug_requests_13",
       "kind": "bug",
       "repository": "https://github.com/psf/requests",
-      "cluster_id": "cluster_requests_cookies",
+      "cluster_id": "cluster_requests_models",
       "cohort": "bug_holdout",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "b438d94efb752b11577beddca27d154e2ab30bf37dea92246f3eb1832cc89ab0",
-      "real_buggy_sha": "9999999999999999999999999999999999999999",
-      "real_fixed_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      "derived_base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      "derived_head_sha": "9999999999999999999999999999999999999999",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "34ae432c81085698ec1038656b5a5492d95b0d22aa35880d4b8c947de8bbbd7c",
+      "real_buggy_sha": "3b5978fc5d1c121d70e83ddf59379cf36418b4ce",
+      "real_fixed_sha": "1447bccc057e7fbffdfecd75cd4922702489a14b",
+      "derived_base_sha": "1447bccc057e7fbffdfecd75cd4922702489a14b",
+      "derived_head_sha": "3b5978fc5d1c121d70e83ddf59379cf36418b4ce",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "1515d990768c0685c994701564cb6c0d00c2ece1e87c267fc12d35b426e25775",
+      "derivation_patch_sha256": "d95feee68d3bf00c4ed690aad5732070a87e523ca86fad08ae4c823dd0961fac",
       "trigger_on_buggy": {
         "command": [
           "pytest",
-          "tests/test_requests.py::test_cookie_policy"
+          "tests/test_requests.py::TestPreparedRequest"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:54.720913+00:00",
+        "ended_at": "2026-08-09T13:51:56.074655+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "e442007f2ed1dfe5a036e8986e449001d664aa672d5cc771354788652e5da997",
+        "stderr_sha256": "b15b8137ff3fa792e7c484283e4d84e1baf22d4960f17fbb6534c07b55ba0dbe",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
           "pytest",
-          "tests/test_requests.py::test_cookie_policy"
+          "tests/test_requests.py::TestPreparedRequest"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:56.074655+00:00",
+        "ended_at": "2026-08-09T13:51:57.450289+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "f42b035bfd523733b447cd3019a92a90beeea094c0443a277c282d82819a202b",
+        "stderr_sha256": "c1452213b646b7663a431e649dc943b38ac9f323e665adb4987e4859b400ceeb",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
-        "primary_path": "src/requests/cookies.py"
+        "primary_path": "src/requests/models.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "derivation_command": "git diff 1447bccc057e7fbffdfecd75cd4922702489a14b~1 1447bccc057e7fbffdfecd75cd4922702489a14b -- src/requests/models.py",
+        "trigger_command": "pytest tests/test_requests.py::TestPreparedRequest"
       }
     },
     {
       "row_id": "bug_requests_14",
       "kind": "bug",
       "repository": "https://github.com/psf/requests",
-      "cluster_id": "cluster_requests_utils",
+      "cluster_id": "cluster_requests_super_len",
       "cohort": "bug_holdout",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "da98b8f9391dad8eeb14115096ed5678c7704f2eeeef33c97279ca4d9cd361a4",
-      "real_buggy_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-      "real_fixed_sha": "cccccccccccccccccccccccccccccccccccccccc",
-      "derived_base_sha": "cccccccccccccccccccccccccccccccccccccccc",
-      "derived_head_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "7c69e3e699ca248540a77bef253cd299216be2b433565e2cb9b6eb92683a8884",
+      "real_buggy_sha": "f6707042d8b18d2a3737380bf58ff020872fb07b",
+      "real_fixed_sha": "3fd309a5c14e4cfbd96bea6c8e71b4958fe090bb",
+      "derived_base_sha": "3fd309a5c14e4cfbd96bea6c8e71b4958fe090bb",
+      "derived_head_sha": "f6707042d8b18d2a3737380bf58ff020872fb07b",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "756d7519d5c7de1e2ccf90198f5610515c4c99eab112a8506defaba10597d40b",
+      "derivation_patch_sha256": "cc04b3dd93a363bcd4237645a5453e428c17d7d00401103cd64bfb8b360591e8",
       "trigger_on_buggy": {
         "command": [
           "pytest",
-          "tests/test_requests.py::test_super_len"
+          "tests/test_utils.py"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:57.602449+00:00",
+        "ended_at": "2026-08-09T13:51:59.241520+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "779ceb700f5720ea985afb3c3a2824c7feb5ea9035defaa4189e7f693fabe9f3",
+        "stderr_sha256": "fd74ba50f3ed8196c8f6724654372818016d1359f04bc12ca3e3109135a240d9",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
           "pytest",
-          "tests/test_requests.py::test_super_len"
+          "tests/test_utils.py"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:51:59.241520+00:00",
+        "ended_at": "2026-08-09T13:52:00.985522+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "662c1605222630a521b16fac836e9ee827b1013e96affa17809aa28a2cb72062",
+        "stderr_sha256": "e42d77b6dcf5d80a31e8746a908141888c966362728239870f3fb4b4f79746c1",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
         "primary_path": "src/requests/utils.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "derivation_command": "git diff 3fd309a5c14e4cfbd96bea6c8e71b4958fe090bb~1 3fd309a5c14e4cfbd96bea6c8e71b4958fe090bb -- src/requests/utils.py",
+        "trigger_command": "pytest tests/test_utils.py"
       }
     },
     {
       "row_id": "bug_requests_15",
       "kind": "bug",
       "repository": "https://github.com/psf/requests",
-      "cluster_id": "cluster_requests_exceptions",
+      "cluster_id": "cluster_requests_compat",
       "cohort": "bug_holdout",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "c3fbaef94ec6813dcd11b5c980d21b4453fc7548151e77ec7c73f44e20d3f99b",
-      "real_buggy_sha": "dddddddddddddddddddddddddddddddddddddddd",
-      "real_fixed_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-      "derived_base_sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-      "derived_head_sha": "dddddddddddddddddddddddddddddddddddddddd",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "057890a7064507e6197d215811409691e5bbdc2f1f8ea856b37d2d7a6691885d",
+      "real_buggy_sha": "61c324da43dd8b775d3930d76265538b3ca27bc1",
+      "real_fixed_sha": "16a17a3ca7134b0a56c49653165ef37cb6acfece",
+      "derived_base_sha": "16a17a3ca7134b0a56c49653165ef37cb6acfece",
+      "derived_head_sha": "61c324da43dd8b775d3930d76265538b3ca27bc1",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "8076f0386dd516f002cb66d9052660cb9312a4b8c7127cce03a37ddb3d800c24",
+      "derivation_patch_sha256": "400c385e262886b07fa3fb8a5ffd1dbd628f4b6d334ccd5c23b8111e24d35815",
       "trigger_on_buggy": {
         "command": [
           "pytest",
-          "tests/test_requests.py::test_exception_inheritance"
+          "tests/test_requests.py::TestSession"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:52:01.146160+00:00",
+        "ended_at": "2026-08-09T13:52:02.442910+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "4f3080be21473bf8e1cb7032a6a12cc1f7dd5b618d8a014f1ee6757c480943c3",
+        "stderr_sha256": "de2a1552e12fab8cc3202c925507e4445ad3a0ce2ad56d5fd83cbd3ada4d07d8",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
           "pytest",
-          "tests/test_requests.py::test_exception_inheritance"
+          "tests/test_requests.py::TestSession"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:52:02.442910+00:00",
+        "ended_at": "2026-08-09T13:52:03.924857+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "9784fe73b5a173b2bbc9f99dfb4c2b1889d2e9c7cea42743dbd50dafa334e056",
+        "stderr_sha256": "27edeee2734071bcf8d66e8bfddab4ac5e2e665b331fae1d2ed4eb6d5fd898ce",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
-        "primary_path": "src/requests/exceptions.py"
+        "primary_path": "src/requests/compat.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "derivation_command": "git diff 16a17a3ca7134b0a56c49653165ef37cb6acfece~1 16a17a3ca7134b0a56c49653165ef37cb6acfece -- src/requests/compat.py",
+        "trigger_command": "pytest tests/test_requests.py::TestSession"
       }
     },
     {
       "row_id": "bug_requests_16",
       "kind": "bug",
       "repository": "https://github.com/psf/requests",
-      "cluster_id": "cluster_requests_status_codes",
+      "cluster_id": "cluster_requests_hooks",
       "cohort": "bug_holdout",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "51f2f560d0027e78c6feb38046180570e0cdaabddbe85c117c951a74d2757a32",
-      "real_buggy_sha": "ffffffffffffffffffffffffffffffffffffffff",
-      "real_fixed_sha": "0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a",
-      "derived_base_sha": "0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a",
-      "derived_head_sha": "ffffffffffffffffffffffffffffffffffffffff",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "b8c2e77875f5b4875cc995799e9dd32268cb4b291078e78a14bcbbc92c4b069c",
+      "real_buggy_sha": "0192aac24123735b3eaf9b08df46429bb770c283",
+      "real_fixed_sha": "8fa9724398c4f44090997ff430a1dd3e935a9057",
+      "derived_base_sha": "8fa9724398c4f44090997ff430a1dd3e935a9057",
+      "derived_head_sha": "0192aac24123735b3eaf9b08df46429bb770c283",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "7f4207012b8a7988436455162f170991eafd09264aae150f9c56aea8c8840d54",
+      "derivation_patch_sha256": "bc493fffb8ca831dee2806e4f9d84fd17495deafb9057a113cf54f492ec56ec8",
       "trigger_on_buggy": {
         "command": [
           "pytest",
-          "tests/test_requests.py::test_status_codes"
+          "tests/test_hooks.py"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:52:04.107673+00:00",
+        "ended_at": "2026-08-09T13:52:05.653082+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "2503f00b6ee82a4eb544f0655bcce41028744573df9cc87d359e5f950c405523",
+        "stderr_sha256": "a8ff55b2c27b2b48acfb5cfd9c071157bda154af068e0f959b6b187369a3b5f7",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
           "pytest",
-          "tests/test_requests.py::test_status_codes"
+          "tests/test_hooks.py"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:52:05.653082+00:00",
+        "ended_at": "2026-08-09T13:52:07.012300+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "e7d2b9259e25b4cb6511c0007f18f0f9cc3268d7aae2b81ec09fabbc5077114c",
+        "stderr_sha256": "d18b6390807421d4dec7368068705c8b3f155ab58ab928ebd930e31cc4fefa74",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
-        "primary_path": "src/requests/status_codes.py"
+        "primary_path": "src/requests/hooks.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "derivation_command": "git diff 8fa9724398c4f44090997ff430a1dd3e935a9057~1 8fa9724398c4f44090997ff430a1dd3e935a9057 -- src/requests/hooks.py",
+        "trigger_command": "pytest tests/test_hooks.py"
       }
     },
     {
-      "row_id": "bug_tornado_17",
+      "row_id": "bug_youtube-dl_17",
       "kind": "bug",
-      "repository": "https://github.com/tornadoweb/tornado",
-      "cluster_id": "cluster_tornado_web",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "cluster_id": "cluster_youtube-dl_jsinterp",
       "cohort": "bug_holdout",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "fc000b693ac5622df7f6a4ec40a3c993bde04883c6ecb6bd3f93cca2a1a26d14",
-      "real_buggy_sha": "1010101010101010101010101010101010101010",
-      "real_fixed_sha": "2020202020202020202020202020202020202020",
-      "derived_base_sha": "2020202020202020202020202020202020202020",
-      "derived_head_sha": "1010101010101010101010101010101010101010",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "22bba592768d40e533ed78932279a05da6f95ce52250b43fbbe0fd5e75038e6c",
+      "real_buggy_sha": "d5f561166b9decff97ad6657cc992c7b0fd1aba2",
+      "real_fixed_sha": "956b8c585591b401a543e409accb163eeaaa1193",
+      "derived_base_sha": "956b8c585591b401a543e409accb163eeaaa1193",
+      "derived_head_sha": "d5f561166b9decff97ad6657cc992c7b0fd1aba2",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "51b57037e29691f08b1c08b50e135297d26cc6c8465ceb729718fb980965b4ad",
+      "derivation_patch_sha256": "5a6226568b2fc9d6a90a9ec07b118dcd1e21aed0dfa36bdca09cfd19595e4fd0",
       "trigger_on_buggy": {
         "command": [
-          "pytest",
-          "tornado/test/web_test.py::TestRequestHandler"
+          "python",
+          "test/test_jsinterp.py"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:52:07.149981+00:00",
+        "ended_at": "2026-08-09T13:52:07.728794+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "4a709759b09655796c1931d0d38345bd978e7362729c9076c6bc2501f9890f24",
+        "stderr_sha256": "2219ea513689c898143de474f33ec50755658664442bbc92845d72e2f1485fba",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
-          "pytest",
-          "tornado/test/web_test.py::TestRequestHandler"
+          "python",
+          "test/test_jsinterp.py"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:52:07.728794+00:00",
+        "ended_at": "2026-08-09T13:52:08.383517+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "4eadaf33427eee3fcd077195e2ed8732477aa0d1cc27617a747187b4f710b952",
+        "stderr_sha256": "03ee0a69f04dde2253f73aa8b4e5248a22b441e53c0c0d7e9334bc730b42cbe7",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
-        "primary_path": "tornado/web.py"
+        "primary_path": "youtube_dl/jsinterp.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "derivation_command": "git diff 956b8c585591b401a543e409accb163eeaaa1193~1 956b8c585591b401a543e409accb163eeaaa1193 -- youtube_dl/jsinterp.py",
+        "trigger_command": "python test/test_jsinterp.py"
       }
     },
     {
-      "row_id": "bug_tornado_18",
+      "row_id": "bug_youtube-dl_18",
       "kind": "bug",
-      "repository": "https://github.com/tornadoweb/tornado",
-      "cluster_id": "cluster_tornado_httpclient",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "cluster_id": "cluster_youtube-dl_extractor",
       "cohort": "bug_holdout",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "e6afe79130f2a98d0285d11bf2ec3c857407c0190a110817ecff89f1efaf217f",
-      "real_buggy_sha": "3030303030303030303030303030303030303030",
-      "real_fixed_sha": "4040404040404040404040404040404040404040",
-      "derived_base_sha": "4040404040404040404040404040404040404040",
-      "derived_head_sha": "3030303030303030303030303030303030303030",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "c657208c95e4fa171b6cb3157f1cecb15f9528d9c3e0ff6c643006643b6cb7b7",
+      "real_buggy_sha": "32f89de92b652bf246aa458a552c9bb397abef77",
+      "real_fixed_sha": "420d53387cff54ea1fccca061438d59bdb50a39c",
+      "derived_base_sha": "420d53387cff54ea1fccca061438d59bdb50a39c",
+      "derived_head_sha": "32f89de92b652bf246aa458a552c9bb397abef77",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "40e9cdd004404d21d0392a65699876d43f6a35765bafbf41a0a34371560172bf",
+      "derivation_patch_sha256": "307223cc18b68ff6d3ad5f108ce4a33fc0047e18df678706ce2fe2a2bf6bd963",
       "trigger_on_buggy": {
         "command": [
-          "pytest",
-          "tornado/test/httpclient_test.py::TestHTTPClient"
+          "python",
+          "test/test_all_urls.py"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:52:08.565164+00:00",
+        "ended_at": "2026-08-09T13:52:11.631335+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "83f651fceee282b192dd883f681c73af5c31f9cc6a11b9d6f94b8e80023b4d69",
+        "stderr_sha256": "10edd95eae03b53a61e169f3448644ee3121082a674c6fe79087f9209079be31",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
-          "pytest",
-          "tornado/test/httpclient_test.py::TestHTTPClient"
+          "python",
+          "test/test_all_urls.py"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:52:11.631335+00:00",
+        "ended_at": "2026-08-09T13:52:14.666527+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "9fb8a6fe72bcac28d877aba46b2060203fcceba7be27fe80d7d953481fbb8724",
+        "stderr_sha256": "a0536bade445f58e920cf4bebd8572dbf72d92a01d01a488629d4b24aac2a77c",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
-        "primary_path": "tornado/httpclient.py"
+        "primary_path": "youtube_dl/extractor/youtube.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "derivation_command": "git diff 420d53387cff54ea1fccca061438d59bdb50a39c~1 420d53387cff54ea1fccca061438d59bdb50a39c -- youtube_dl/extractor/youtube.py",
+        "trigger_command": "python test/test_all_urls.py"
       }
     },
     {
-      "row_id": "bug_tornado_19",
+      "row_id": "bug_youtube-dl_19",
       "kind": "bug",
-      "repository": "https://github.com/tornadoweb/tornado",
-      "cluster_id": "cluster_tornado_ioloop",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "cluster_id": "cluster_youtube-dl_sig",
       "cohort": "bug_holdout",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "f8b1239eedcb4ad8eefcecf3b8210e5519242459df621cdba4ba92217a11cd68",
-      "real_buggy_sha": "5050505050505050505050505050505050505050",
-      "real_fixed_sha": "6060606060606060606060606060606060606060",
-      "derived_base_sha": "6060606060606060606060606060606060606060",
-      "derived_head_sha": "5050505050505050505050505050505050505050",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "bde0e9266997ac61767fe6364ce8e5b0464cd4091635685bea142cfec3773d8d",
+      "real_buggy_sha": "b4469a0f652c450a81901795a8f522ae5457a1cf",
+      "real_fixed_sha": "eed784e15f6066b152a3cce8db6fe3f059290b22",
+      "derived_base_sha": "eed784e15f6066b152a3cce8db6fe3f059290b22",
+      "derived_head_sha": "b4469a0f652c450a81901795a8f522ae5457a1cf",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "d3136bb5a71f4767f352f44a638c0275a8a09c560b6da2a1699700bb299dd6e2",
+      "derivation_patch_sha256": "0ca45078b779889440e1e9b8b452faf2d30d22bfd9481bc973e15923402f2dec",
       "trigger_on_buggy": {
         "command": [
-          "pytest",
-          "tornado/test/ioloop_test.py::TestIOLoop"
+          "python",
+          "test/test_youtube_signature.py"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:52:14.839765+00:00",
+        "ended_at": "2026-08-09T13:52:17.876778+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "94b161a2cec590d15f2fda38c79821b047539d87f8f6c74e17397b28a5c7f92d",
+        "stderr_sha256": "322e62e198298bfd94cedfeebb714869191631e37621be6319d75048c2bf8290",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
-          "pytest",
-          "tornado/test/ioloop_test.py::TestIOLoop"
+          "python",
+          "test/test_youtube_signature.py"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:52:17.876778+00:00",
+        "ended_at": "2026-08-09T13:52:20.915588+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "d7d68867ba8f87ae642f2787c41511f5ce4628ce1da744300aff1ac04077843e",
+        "stderr_sha256": "2dee5547dae72eded11daf2b54b180b7f7d7fe3d14306b6ead5f06c7321b4acd",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
-        "primary_path": "tornado/ioloop.py"
+        "primary_path": "youtube_dl/extractor/youtube.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "derivation_command": "git diff eed784e15f6066b152a3cce8db6fe3f059290b22~1 eed784e15f6066b152a3cce8db6fe3f059290b22 -- youtube_dl/extractor/youtube.py",
+        "trigger_command": "python test/test_youtube_signature.py"
       }
     },
     {
-      "row_id": "bug_tornado_20",
+      "row_id": "bug_youtube-dl_20",
       "kind": "bug",
-      "repository": "https://github.com/tornadoweb/tornado",
-      "cluster_id": "cluster_tornado_gen",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "cluster_id": "cluster_youtube-dl_parse",
       "cohort": "bug_holdout",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "1be65dc47760aab6ddcf08125cbfb533de9d2a273de3d5392c7d4c922b3c4196",
-      "real_buggy_sha": "7070707070707070707070707070707070707070",
-      "real_fixed_sha": "8080808080808080808080808080808080808080",
-      "derived_base_sha": "8080808080808080808080808080808080808080",
-      "derived_head_sha": "7070707070707070707070707070707070707070",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "485b6ed8ab38c205880a06701c8a2b4ed22bbe4d5e16210e038fc5dc3a4b3ee6",
+      "real_buggy_sha": "756f6b45c7c9a77f0fa912f882afe7e04878a01b",
+      "real_fixed_sha": "76ac69917ec76ba663da843795f46916831e6da9",
+      "derived_base_sha": "76ac69917ec76ba663da843795f46916831e6da9",
+      "derived_head_sha": "756f6b45c7c9a77f0fa912f882afe7e04878a01b",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "a05f11dfdc8e87812e8f01d870c4ac70454507fcad2b7729db50479d3b81e295",
+      "derivation_patch_sha256": "0492cb3f8e5b3acc20935782fb654c56443f2106c3b06ea13d7a2ff3adb2fda4",
       "trigger_on_buggy": {
         "command": [
-          "pytest",
-          "tornado/test/gen_test.py::TestGen"
+          "python",
+          "test/test_download.py"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:52:21.051723+00:00",
+        "ended_at": "2026-08-09T13:52:24.087344+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "dbafb8c680e03e36d9b2807539fd5a844e0fcc7e13485ee81ad0d838bbca31b1",
+        "stderr_sha256": "d008cfeb5c28ba313b23b966750029f9dbdcd90170650e687901bb9480c5b1cc",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
-          "pytest",
-          "tornado/test/gen_test.py::TestGen"
+          "python",
+          "test/test_download.py"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:52:24.087344+00:00",
+        "ended_at": "2026-08-09T13:52:27.125196+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "daf9723fccd8972762b69665342d334e22c4aab64d5f970413dcb2cbfd04146c",
+        "stderr_sha256": "9acb9df110583af87309c2987a40ffc5c4321545f7bb22448519cd44ec0b0aeb",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
-        "primary_path": "tornado/gen.py"
+        "primary_path": "youtube_dl/jsinterp.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "derivation_command": "git diff 76ac69917ec76ba663da843795f46916831e6da9~1 76ac69917ec76ba663da843795f46916831e6da9 -- youtube_dl/jsinterp.py",
+        "trigger_command": "python test/test_download.py"
       }
     },
     {
-      "row_id": "bug_tornado_21",
+      "row_id": "bug_youtube-dl_21",
       "kind": "bug",
-      "repository": "https://github.com/tornadoweb/tornado",
-      "cluster_id": "cluster_tornado_websocket",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "cluster_id": "cluster_youtube-dl_bodmas",
       "cohort": "bug_holdout",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "fc9443d25bb4319b9bab586b6d6faf9df721175775c4cf41ded3f58401905fc8",
-      "real_buggy_sha": "9090909090909090909090909090909090909090",
-      "real_fixed_sha": "a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0",
-      "derived_base_sha": "a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0",
-      "derived_head_sha": "9090909090909090909090909090909090909090",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "af1a709c2d2cf264337737c981545a52e863b474245ff22b0b1502505ffd48b0",
+      "real_buggy_sha": "ad01fa6ccadd1ecade8002e937492a141d3b8f25",
+      "real_fixed_sha": "fd8242e3efd3c0e2ba9a45c662d6983c00b21d6d",
+      "derived_base_sha": "fd8242e3efd3c0e2ba9a45c662d6983c00b21d6d",
+      "derived_head_sha": "ad01fa6ccadd1ecade8002e937492a141d3b8f25",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "bd39b6e2b2d852c874d102fed679bf4f205f7082235aa2a7f36c8065024beb0b",
+      "derivation_patch_sha256": "65c321a94a3279ee820e58e6c21ebfdecd0afc94d17526e9e8f2b63964e36ece",
       "trigger_on_buggy": {
         "command": [
-          "pytest",
-          "tornado/test/websocket_test.py::TestWebSocket"
+          "python",
+          "test/test_jsinterp.py"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:52:27.320861+00:00",
+        "ended_at": "2026-08-09T13:52:27.953332+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "2e59652ab42c496e3a3bff892dca81f1be88ed72a77fb448af964446454a4094",
+        "stderr_sha256": "2129609afc69477e3df9f37ffe867064524a9135ac5458dbf7ccdf15d4ec9720",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
-          "pytest",
-          "tornado/test/websocket_test.py::TestWebSocket"
+          "python",
+          "test/test_jsinterp.py"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:52:27.953332+00:00",
+        "ended_at": "2026-08-09T13:52:28.558989+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "72d1aa7647a3a3bc16eec8a437bf9c780e7bb2db4e8b0a0a20161ce0f26ef27f",
+        "stderr_sha256": "ebb32349a7e227597f73ffaf177370516b08543cb05880d66198b40579f5b03d",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
-        "primary_path": "tornado/websocket.py"
+        "primary_path": "youtube_dl/jsinterp.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "derivation_command": "git diff fd8242e3efd3c0e2ba9a45c662d6983c00b21d6d~1 fd8242e3efd3c0e2ba9a45c662d6983c00b21d6d -- youtube_dl/jsinterp.py",
+        "trigger_command": "python test/test_jsinterp.py"
       }
     },
     {
-      "row_id": "bug_tornado_22",
+      "row_id": "bug_youtube-dl_22",
       "kind": "bug",
-      "repository": "https://github.com/tornadoweb/tornado",
-      "cluster_id": "cluster_tornado_httputil",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "cluster_id": "cluster_youtube-dl_youporn",
       "cohort": "bug_holdout",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "b1b43735102291afb375d9b1809c8bcf270c40806593698eda1d2eaf43b29221",
-      "real_buggy_sha": "b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0",
-      "real_fixed_sha": "c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0",
-      "derived_base_sha": "c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0",
-      "derived_head_sha": "b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "7929341ee961894804d49ee381b02621a7492d8b395d88b022d1aa1c31028038",
+      "real_buggy_sha": "c2766cb80ee9add4d2d2d94b1878e7884c63ceaf",
+      "real_fixed_sha": "0b2ce3685e02ea1a3ccee1026572e081b8f6ac83",
+      "derived_base_sha": "0b2ce3685e02ea1a3ccee1026572e081b8f6ac83",
+      "derived_head_sha": "c2766cb80ee9add4d2d2d94b1878e7884c63ceaf",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "376b7b41f97a9f0d8fe6588948fd0c3e059b6b650504466993892d06c4768b0a",
+      "derivation_patch_sha256": "0fb9f30a9f0c8f9fe9cd499e914d99b50b8bae820b260b7755a68c515c27e42e",
       "trigger_on_buggy": {
         "command": [
-          "pytest",
-          "tornado/test/httputil_test.py::TestHTTPUtil"
+          "python",
+          "test/test_utils.py"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:52:28.772780+00:00",
+        "ended_at": "2026-08-09T13:52:29.280146+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "1bf80e1212fef64fb7dc52d38774b677f1f2c9d0cedb7912a3100d1e2c37acf6",
+        "stderr_sha256": "2c56237e19c33aded9e354638e2a8114c649ffbedc5c6560dbe14cf41a3bf209",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
-          "pytest",
-          "tornado/test/httputil_test.py::TestHTTPUtil"
+          "python",
+          "test/test_utils.py"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:52:29.280146+00:00",
+        "ended_at": "2026-08-09T13:52:29.801791+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "37c0f1a45f98a389c1c948638c2f5c0acdd1d8e08fa057ca8ea7b2f5286ce677",
+        "stderr_sha256": "01ca68990fdf81176ad90159a068d381a08e9e87ac4d087e18e061d6d8de3ed6",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
-        "primary_path": "tornado/httputil.py"
+        "primary_path": "youtube_dl/extractor/youporn.py"
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "derivation_command": "git diff 0b2ce3685e02ea1a3ccee1026572e081b8f6ac83~1 0b2ce3685e02ea1a3ccee1026572e081b8f6ac83 -- youtube_dl/extractor/youporn.py",
+        "trigger_command": "python test/test_utils.py"
       }
     },
     {
-      "row_id": "bug_tornado_23",
+      "row_id": "bug_youtube-dl_23",
       "kind": "bug",
-      "repository": "https://github.com/tornadoweb/tornado",
-      "cluster_id": "cluster_tornado_escape",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "cluster_id": "cluster_youtube-dl_vbox",
       "cohort": "bug_holdout",
       "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "e3e111849a7141bf2a5e4211b90fe319d3efc49854adc49a640d8de917d2f752",
-      "real_buggy_sha": "d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0",
-      "real_fixed_sha": "e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0",
-      "derived_base_sha": "e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0",
-      "derived_head_sha": "d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0",
+      "eligibility_reason": "verified_real_git_reverse_fix_construction",
+      "artifact_sha256": "aef216cd490a6cddf6a0a77d3eb8faae03592df83d4c6162eaece13672a57012",
+      "real_buggy_sha": "bdda6b81df61f52eed2502c8ae624d297d918488",
+      "real_fixed_sha": "4416f82c809a81737d68875dcb201e366d58dabd",
+      "derived_base_sha": "4416f82c809a81737d68875dcb201e366d58dabd",
+      "derived_head_sha": "bdda6b81df61f52eed2502c8ae624d297d918488",
       "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "8e78ddc1b3266ff905fb45fa5ac8aa3246cbc561b9085b38ec253a782b4bd55f",
+      "derivation_patch_sha256": "0ca9e789593570528ba74b99b19a4e8352610fee6f82ca0c6c344c7d431cf074",
       "trigger_on_buggy": {
         "command": [
-          "pytest",
-          "tornado/test/escape_test.py::TestEscape"
+          "python",
+          "test/test_utils.py"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:52:29.965949+00:00",
+        "ended_at": "2026-08-09T13:52:30.474618+00:00",
         "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "80491531c6b555fb66b3451e651212a225e2649e5b88d3f438e42ea6db29a1ee",
+        "stderr_sha256": "2cb6dd55e1a100805523d6a27f5cada36de1c02622b22f158cae6e547d1679c6",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "trigger_on_fixed": {
         "command": [
-          "pytest",
-          "tornado/test/escape_test.py::TestEscape"
+          "python",
+          "test/test_utils.py"
         ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
+        "started_at": "2026-08-09T13:52:30.474618+00:00",
+        "ended_at": "2026-08-09T13:52:30.974927+00:00",
         "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "76efda4bf874c4e37532964e5d8cb8f8e5facfb373eae98489d2a9ef192984f1",
+        "stderr_sha256": "ea7a778acda70b49f1836f26fd8cd9306ea4962678ee0bfe5e3047ad331879cd",
         "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
       },
       "independence_receipt": {
         "cluster_type": "disjoint_file_path",
-        "primary_path": "tornado/escape.py"
-      }
-    },
-    {
-      "row_id": "bug_tornado_24",
-      "kind": "bug",
-      "repository": "https://github.com/tornadoweb/tornado",
-      "cluster_id": "cluster_tornado_template",
-      "cohort": "bug_holdout",
-      "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "f25864f7e6533af5a6d73622c99bd7b0d5cac2244101a4f0562bb5c26a3929b3",
-      "real_buggy_sha": "f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0",
-      "real_fixed_sha": "0101010101010101010101010101010101010101",
-      "derived_base_sha": "0101010101010101010101010101010101010101",
-      "derived_head_sha": "f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0",
-      "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "07cccf28ef144555deb90087718d44352036b86b5bb618e39ca48b923cc4eb9e",
-      "trigger_on_buggy": {
-        "command": [
-          "pytest",
-          "tornado/test/template_test.py::TestTemplate"
-        ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
-        "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
+        "primary_path": "youtube_dl/extractor/vbox.py"
       },
-      "trigger_on_fixed": {
-        "command": [
-          "pytest",
-          "tornado/test/template_test.py::TestTemplate"
-        ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
-        "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
-      },
-      "independence_receipt": {
-        "cluster_type": "disjoint_file_path",
-        "primary_path": "tornado/template.py"
-      }
-    },
-    {
-      "row_id": "bug_bugsinpy_25",
-      "kind": "bug",
-      "repository": "https://github.com/soarsmu/BugsInPy",
-      "cluster_id": "cluster_bugsinpy_cookiecutter",
-      "cohort": "bug_holdout",
-      "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "7427d3b82b837521234cb510df1327c08e3bebce69ffaeef2bb63f0147faeb2b",
-      "real_buggy_sha": "1212121212121212121212121212121212121212",
-      "real_fixed_sha": "2323232323232323232323232323232323232323",
-      "derived_base_sha": "2323232323232323232323232323232323232323",
-      "derived_head_sha": "1212121212121212121212121212121212121212",
-      "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "5525a4aab26d843d2da900a8ce74587e7b105a304f5e1a30c44ffc51a7a2bf8f",
-      "trigger_on_buggy": {
-        "command": [
-          "pytest",
-          "tests/test_main.py::test_cookiecutter"
-        ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
-        "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
-      },
-      "trigger_on_fixed": {
-        "command": [
-          "pytest",
-          "tests/test_main.py::test_cookiecutter"
-        ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
-        "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
-      },
-      "independence_receipt": {
-        "cluster_type": "disjoint_file_path",
-        "primary_path": "cookiecutter/main.py"
-      }
-    },
-    {
-      "row_id": "bug_bugsinpy_26",
-      "kind": "bug",
-      "repository": "https://github.com/soarsmu/BugsInPy",
-      "cluster_id": "cluster_bugsinpy_fastapi",
-      "cohort": "bug_holdout",
-      "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "253c96429e0ea0e08d68c1e8c6eacec26662c25c479751e39e19eef7e0e9e8bc",
-      "real_buggy_sha": "3434343434343434343434343434343434343434",
-      "real_fixed_sha": "4545454545454545454545454545454545454545",
-      "derived_base_sha": "4545454545454545454545454545454545454545",
-      "derived_head_sha": "3434343434343434343434343434343434343434",
-      "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "eaca4eb20571d12d617b45537aca9d127cde30ffbd2bb6ab5a0404754877a0cb",
-      "trigger_on_buggy": {
-        "command": [
-          "pytest",
-          "tests/test_routing.py::test_api_route"
-        ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
-        "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
-      },
-      "trigger_on_fixed": {
-        "command": [
-          "pytest",
-          "tests/test_routing.py::test_api_route"
-        ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
-        "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
-      },
-      "independence_receipt": {
-        "cluster_type": "disjoint_file_path",
-        "primary_path": "fastapi/routing.py"
-      }
-    },
-    {
-      "row_id": "bug_bugsinpy_27",
-      "kind": "bug",
-      "repository": "https://github.com/soarsmu/BugsInPy",
-      "cluster_id": "cluster_bugsinpy_black",
-      "cohort": "bug_holdout",
-      "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "5f008ade5134ed7ead8a85d041e9272c741a7b232e5d6815d35b1bd0ce531bb2",
-      "real_buggy_sha": "5656565656565656565656565656565656565656",
-      "real_fixed_sha": "6767676767676767676767676767676767676767",
-      "derived_base_sha": "6767676767676767676767676767676767676767",
-      "derived_head_sha": "5656565656565656565656565656565656565656",
-      "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "771c0cd3c9cf921e56b1ab6888be6ac3871c88e5f2b93e4b05e80f664b6bbba5",
-      "trigger_on_buggy": {
-        "command": [
-          "pytest",
-          "tests/test_black.py::test_format_str"
-        ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
-        "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
-      },
-      "trigger_on_fixed": {
-        "command": [
-          "pytest",
-          "tests/test_black.py::test_format_str"
-        ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
-        "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
-      },
-      "independence_receipt": {
-        "cluster_type": "disjoint_file_path",
-        "primary_path": "src/black/__init__.py"
-      }
-    },
-    {
-      "row_id": "bug_bugsinpy_28",
-      "kind": "bug",
-      "repository": "https://github.com/soarsmu/BugsInPy",
-      "cluster_id": "cluster_bugsinpy_httpie",
-      "cohort": "bug_holdout",
-      "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "b4e9ed0a4a7639e230455a08c6875ad1179317e91c9a4af1fbbe823571ecbd06",
-      "real_buggy_sha": "7878787878787878787878787878787878787878",
-      "real_fixed_sha": "8989898989898989898989898989898989898989",
-      "derived_base_sha": "8989898989898989898989898989898989898989",
-      "derived_head_sha": "7878787878787878787878787878787878787878",
-      "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "c45fca33d098fa6c87ac34c118290b53acdf8f9f03d7d760a7c3ca87c9da691e",
-      "trigger_on_buggy": {
-        "command": [
-          "pytest",
-          "tests/test_parser.py::test_arg_parser"
-        ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
-        "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
-      },
-      "trigger_on_fixed": {
-        "command": [
-          "pytest",
-          "tests/test_parser.py::test_arg_parser"
-        ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
-        "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
-      },
-      "independence_receipt": {
-        "cluster_type": "disjoint_file_path",
-        "primary_path": "httpie/cli/parser.py"
-      }
-    },
-    {
-      "row_id": "bug_bugsinpy_29",
-      "kind": "bug",
-      "repository": "https://github.com/soarsmu/BugsInPy",
-      "cluster_id": "cluster_bugsinpy_keras",
-      "cohort": "bug_holdout",
-      "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "4b027dfa13fb41772a527105b1ed3b807db8938f86da1ea34f9c953de4986597",
-      "real_buggy_sha": "9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a",
-      "real_fixed_sha": "abababababababababababababababababababab",
-      "derived_base_sha": "abababababababababababababababababababab",
-      "derived_head_sha": "9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a",
-      "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "4b6018a190376775d04245a8ccb0a32e7b0e03ff9df1c71887815254ece31158",
-      "trigger_on_buggy": {
-        "command": [
-          "pytest",
-          "tests/test_core.py::test_dense_layer"
-        ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
-        "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
-      },
-      "trigger_on_fixed": {
-        "command": [
-          "pytest",
-          "tests/test_core.py::test_dense_layer"
-        ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
-        "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
-      },
-      "independence_receipt": {
-        "cluster_type": "disjoint_file_path",
-        "primary_path": "keras/layers/core.py"
-      }
-    },
-    {
-      "row_id": "bug_bugsinpy_30",
-      "kind": "bug",
-      "repository": "https://github.com/soarsmu/BugsInPy",
-      "cluster_id": "cluster_bugsinpy_luigi",
-      "cohort": "bug_holdout",
-      "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "eaa9892251b71baf12e6693762542e230eeed74ccec9ef30d43f7a6dd775e111",
-      "real_buggy_sha": "bcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbc",
-      "real_fixed_sha": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
-      "derived_base_sha": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
-      "derived_head_sha": "bcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbc",
-      "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "99acbfd61479593327c0fa90fed28df80830f2d8cb21454a853ecda0d4b30535",
-      "trigger_on_buggy": {
-        "command": [
-          "pytest",
-          "test/task_test.py::TaskTest"
-        ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
-        "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
-      },
-      "trigger_on_fixed": {
-        "command": [
-          "pytest",
-          "test/task_test.py::TaskTest"
-        ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
-        "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
-      },
-      "independence_receipt": {
-        "cluster_type": "disjoint_file_path",
-        "primary_path": "luigi/task.py"
-      }
-    },
-    {
-      "row_id": "bug_bugsinpy_31",
-      "kind": "bug",
-      "repository": "https://github.com/soarsmu/BugsInPy",
-      "cluster_id": "cluster_bugsinpy_scikit-learn",
-      "cohort": "bug_holdout",
-      "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "05ec30ca6423968a063be3b65150cb2f065c4e8245b02eead99ca6a604f18a55",
-      "real_buggy_sha": "dededededededededededededededededededede",
-      "real_fixed_sha": "efefefefefefefefefefefefefefefefefefefef",
-      "derived_base_sha": "efefefefefefefefefefefefefefefefefefefef",
-      "derived_head_sha": "dededededededededededededededededededede",
-      "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "d4d31af0a2923bb1b45635f07dabbcaa076489ee4098d3cbc133ada787555854",
-      "trigger_on_buggy": {
-        "command": [
-          "pytest",
-          "sklearn/ensemble/tests/test_forest.py::test_forest_fit"
-        ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
-        "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
-      },
-      "trigger_on_fixed": {
-        "command": [
-          "pytest",
-          "sklearn/ensemble/tests/test_forest.py::test_forest_fit"
-        ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
-        "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
-      },
-      "independence_receipt": {
-        "cluster_type": "disjoint_file_path",
-        "primary_path": "sklearn/ensemble/_forest.py"
-      }
-    },
-    {
-      "row_id": "bug_bugsinpy_32",
-      "kind": "bug",
-      "repository": "https://github.com/soarsmu/BugsInPy",
-      "cluster_id": "cluster_bugsinpy_spacy",
-      "cohort": "bug_holdout",
-      "eligible": true,
-      "eligibility_reason": "verified_reverse_fix_trigger",
-      "artifact_sha256": "eeb1bda9c6b563d05ec71d24e245377bc51e732e9baf81d9a98420ceffefcdaa",
-      "real_buggy_sha": "f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0",
-      "real_fixed_sha": "0202020202020202020202020202020202020202",
-      "derived_base_sha": "0202020202020202020202020202020202020202",
-      "derived_head_sha": "f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0",
-      "derivation_type": "reverse_fix_local_git_object",
-      "derivation_patch_sha256": "50ba0d682ed97a79ddbee0f26ede17f455c2dc358c06e41beecdb07481e5a9eb",
-      "trigger_on_buggy": {
-        "command": [
-          "pytest",
-          "spacy/tests/test_language.py::test_language_pipe"
-        ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
-        "exit_code": 1,
-        "stdout_sha256": "a62ff9af4a029d3f16b16e68fdeea86a613301246bc8ebf9898cc8e14a68bb69",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
-      },
-      "trigger_on_fixed": {
-        "command": [
-          "pytest",
-          "spacy/tests/test_language.py::test_language_pipe"
-        ],
-        "started_at": "2026-08-09T12:43:24.412684+00:00",
-        "ended_at": "2026-08-09T12:43:24.412684+00:00",
-        "exit_code": 0,
-        "stdout_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
-        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "environment_digest": "sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb"
-      },
-      "independence_receipt": {
-        "cluster_type": "disjoint_file_path",
-        "primary_path": "spacy/language.py"
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "derivation_command": "git diff 4416f82c809a81737d68875dcb201e366d58dabd~1 4416f82c809a81737d68875dcb201e366d58dabd -- youtube_dl/extractor/vbox.py",
+        "trigger_command": "python test/test_utils.py"
       }
     }
   ]
