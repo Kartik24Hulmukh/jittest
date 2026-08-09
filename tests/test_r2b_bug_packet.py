@@ -81,7 +81,7 @@ class TestR2BBugPacketInvariants(unittest.TestCase):
     def test_negative_changed_source_pin_rejected(self):
         """Mismatched protocol commit/tree pins must be rejected."""
         m = copy.deepcopy(self.manifest)
-        m["protocol_commit"] = "0000000000000000000000000000000000000000"
+        m["protocol_commit"] = "9999999999999999999999999999999999999999"
         self.assertNotEqual(
             m["protocol_commit"], self.manifest["protocol_commit"],
             "Tampered protocol commit pin must be detected"
