@@ -45,7 +45,7 @@ jobs:
                   '--security-opt', 'no-new-privileges',
                   '--memory', '256m',
                   '--cpus', '1.0',
-                  'python:3.13-slim@sha256:d8f760e4ec89f81d115e617d3d2c67e91d5757a26fcf0113f9f30b91e9f400fb',
+                  'python:3.13-slim',
                   'python3', '-c', f'print(\"cycle_{i}_ok\")'
               ]).decode().strip()
               receipts.append({'cycle': i, 'container_id': cid, 'timestamp': time.time()})
