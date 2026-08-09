@@ -2,6 +2,10 @@ name: linux-evidence
 
 on:
   workflow_dispatch:
+  push:
+    branches: [eval/phase-c-preregistration]
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: read
