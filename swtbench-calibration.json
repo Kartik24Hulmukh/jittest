@@ -1,0 +1,23 @@
+{
+  "instances_total": 2,
+  "instances_evaluated": 2,
+  "instances_cleared_risk_gate": 0,
+  "clearance_rate": 0.0,
+  "threshold": 0.35,
+  "results": [
+    {
+      "instance_id": "pytest-dev__pytest-5221",
+      "repo": "pytest-dev/pytest",
+      "base": "d98eb69a",
+      "head": "eca5fd1d",
+      "status": "instance_mapped"
+    },
+    {
+      "instance_id": "pallets__flask-4992",
+      "repo": "pallets/flask",
+      "base": "27be9338",
+      "head": "c17f3793",
+      "status": "instance_mapped"
+    }
+  ]
+}

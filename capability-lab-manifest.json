@@ -1,0 +1,19 @@
+{
+  "archive_filename": "capability-lab-archive.tar.gz",
+  "archive_size_bytes": 589,
+  "archive_sha256": "629c848912238e84fd1d75c7700d83f2a1607d1419d17a56caa706867e77c859",
+  "evidence_artifacts": [
+    {
+      "name": "fp-ladder.json",
+      "path": "fp-ladder.json",
+      "description": "False positive ladder evaluation artifact and refutation condition verdict",
+      "verdict": "gate_was_binding"
+    },
+    {
+      "name": "linux-evidence.yml",
+      "path": ".github/workflows/linux-evidence.yml",
+      "description": "GitHub-hosted Ubuntu runner workflow for Docker probes, Podman probes, and mutmut oracle"
+    }
+  ],
+  "timestamp": 1786274054.0771117
+}
