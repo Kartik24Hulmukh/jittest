@@ -63,10 +63,11 @@ class TestR2BRealBugPacketValidation(unittest.TestCase):
         self.assertTrue(any("fabricated exact MiB" in e for e in errors), f"Expected exact MiB error, got: {errors}")
 
     def test_validator_rejects_non_existent_git_commits(self):
-        """validate_manifest must fail when a claimed real_buggy_sha does not exist in local clone."""
+        """validate_manifest must fail when a claimed real_buggy_sha does not exist in real clone."""
         m = copy.deepcopy(self.manifest)
         m["rows"][0]["real_buggy_sha"] = "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0"
-        errors = validate_manifest(m, LOCAL_REPOS)
+        test_repo_map = {m["rows"][0]["repository"]: REPO_ROOT}
+        errors = validate_manifest(m, test_repo_map)
         self.assertTrue(any("does not exist in real clone" in e for e in errors), f"Expected missing commit error, got: {errors}")
 
 
