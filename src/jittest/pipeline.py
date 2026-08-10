@@ -87,6 +87,18 @@ def run(
     kept = [t for t in all_targets if not cfg.is_ignored(t.file_path)]
     report.targets_skipped = len(all_targets) - len(kept)
 
+    import subprocess
+    res = subprocess.run(
+        ["git", "-C", str(repo), "merge-base", "--is-ancestor", head, base],
+        capture_output=True
+    )
+    if res.returncode == 0 and not getattr(cfg, "allow_reverse_fix", False):
+        report.diff_status = "inverted_range"
+        report.errors.append("head revision is an ancestor of base (inverted revision range).")
+        report.model_requests = llm.usage.calls
+        report.duration_s = time.time() - started
+        return report
+
     ranked: list[RiskScore] = rank(kept, cfg.risk_threshold, cfg.max_targets)
     report.targets_considered = len(ranked)
     emit(f"{len(all_targets)} changed symbol(s), {len(ranked)} above risk threshold")
@@ -115,7 +127,7 @@ def run(
                 line.startswith("diff --git a/") and line.strip().endswith(".py")
                 for line in diff_text.splitlines()
             )
-            if res.returncode == 0:
+            if res.returncode == 0 and not getattr(cfg, "allow_reverse_fix", False):
                 report.diff_status = "inverted_range"
                 report.errors.append("head revision is an ancestor of base (inverted revision range).")
             elif not has_py:
@@ -179,7 +191,7 @@ def run(
                                 total_attempts=cfg.candidates_per_target,
                             ),
                             n=1,
-                            temperature=min(1.0, cfg.temperature + 0.05 * (attempt - 1)),
+                            temperature=0.0 if (getattr(llm, "phase_c", False) or getattr(cfg, "phase_c", False)) else min(1.0, cfg.temperature + 0.05 * (attempt - 1)),
                         )[0]
                     except BudgetExceeded as exc:
                         report.errors.append(str(exc))
@@ -334,6 +346,9 @@ def run(
         report.cost_usd = llm.usage.cost_usd
         report.priced = llm.usage.priced
         report.tokens_estimated = llm.usage.tokens_estimated
+        report.usage_verified = not getattr(llm.usage, "unverified", False)
+        if not report.usage_verified:
+            report.priced = False
         report.input_tokens = llm.usage.input_tokens
         report.output_tokens = llm.usage.output_tokens
         report.model_requests = llm.usage.calls

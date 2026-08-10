@@ -1,0 +1,3869 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-08-09T14:18:09.908496+00:00",
+  "protocol_commit": "2a0db485247817a7ab18e5537e760bfb9ed70ea1",
+  "protocol_tree": "e17ccdcdfdf4129ec80935279354a1e03233a561",
+  "total_candidates": 110,
+  "founder_adjudication_status": "adjudicated",
+  "candidates": [
+    {
+      "candidate_id": "ctrl_flask_2001_01",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2001,
+      "title": "Merge branch 'stable'",
+      "merged_at": "2026-07-30T10:29:33-07:00",
+      "observation_window_days": 95,
+      "real_base_sha": "36e4a824f340fdee7ed50937ba8e7f6bc7d17f81",
+      "real_head_sha": "30d1c5d6fcbd62d9e902209d7a207f7510e9f5dc",
+      "merge_commit_sha": "6a2f545bfd8ed31e19066a299296917e034aca58",
+      "diff_sha256": "786f16a3a02e1526af2c59c70af196d3e093cf3de2758512581b8c50d8df9892",
+      "changed_files": [
+        "examples/celery/src/task_app/__init__.py",
+        "examples/javascript/js_example/__init__.py",
+        "src/flask/__init__.py",
+        "src/flask/app.py",
+        "src/flask/cli.py",
+        "src/flask/ctx.py",
+        "src/flask/debughelpers.py",
+        "src/flask/globals.py",
+        "src/flask/helpers.py",
+        "src/flask/json/__init__.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 36e4a824f340fdee7ed50937ba8e7f6bc7d17f81 30d1c5d6fcbd62d9e902209d7a207f7510e9f5dc"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_6095_02",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 6095,
+      "title": "Replace the use of private `monkeypatch` fixture API (#6095)",
+      "merged_at": "2026-07-30T10:05:04-07:00",
+      "observation_window_days": 96,
+      "real_base_sha": "8285adf5a4f572dbf7a0a3b8f3a96ca0b19c50a4",
+      "real_head_sha": "5ce121dd841e2dc2594d0ed3954278f4101d3521",
+      "merge_commit_sha": "548994ea0c61465574cbfdd636a894a692f54b94",
+      "diff_sha256": "8d9d44ced11e7c16096b0b041248cb6278273aaeac1a5b085dedca30005f8144",
+      "changed_files": [
+        "tests/conftest.py",
+        "tests/test_cli.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "re-read with fresh eyes: merged replacement of private monkeypatch fixture API for pytest 9.1 compat; real, merged, uncontroversial; tests-only is fine as a control",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 8285adf5a4f572dbf7a0a3b8f3a96ca0b19c50a4 5ce121dd841e2dc2594d0ed3954278f4101d3521"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2003_03",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2003,
+      "title": "Merge branch 'stable'",
+      "merged_at": "2026-05-13T07:37:53-07:00",
+      "observation_window_days": 97,
+      "real_base_sha": "7374c85ddefc3f4b177a698ab9f0cbb6a5c0b392",
+      "real_head_sha": "1d49747264554dee31f5627d4249d09aaaeced39",
+      "merge_commit_sha": "9fcd34c9f3065640bd1cd86234216ca068633fb9",
+      "diff_sha256": "49357d706b301dd0c0abf126821d5ea2f2bc391fb8d6ac121d906686e9ccca06",
+      "changed_files": [
+        "src/flask/__init__.py",
+        "src/flask/app.py",
+        "src/flask/cli.py",
+        "src/flask/ctx.py",
+        "src/flask/debughelpers.py",
+        "src/flask/globals.py",
+        "src/flask/helpers.py",
+        "src/flask/json/__init__.py",
+        "src/flask/json/provider.py",
+        "src/flask/sansio/app.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 7374c85ddefc3f4b177a698ab9f0cbb6a5c0b392 1d49747264554dee31f5627d4249d09aaaeced39"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_6013_04",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 6013,
+      "title": "autoescape selection uses case-insensitive comparison (#6013)",
+      "merged_at": "2026-05-01T20:58:56-07:00",
+      "observation_window_days": 99,
+      "real_base_sha": "06ea505ce2b2042af26e96d35ebf159af7c0869d",
+      "real_head_sha": "9368fb3f3c52d74534d14c1bef03c79c103356cd",
+      "merge_commit_sha": "dcbede0cb00df32e7f1895e19e37d5f40a75d1f6",
+      "diff_sha256": "f63ca97aeead19af7b5f3c4a4497efb9407730b809b82bde6fc01a38a2481679",
+      "changed_files": [
+        "src/flask/sansio/app.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "maintainer fix: autoescape selection uses case-insensitive comparison; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 06ea505ce2b2042af26e96d35ebf159af7c0869d 9368fb3f3c52d74534d14c1bef03c79c103356cd"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2005_05",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2005,
+      "title": "Merge branch 'stable'",
+      "merged_at": "2026-04-08T21:04:03-07:00",
+      "observation_window_days": 122,
+      "real_base_sha": "258d68b6ff5e2244386540f48b48bab90d6ab827",
+      "real_head_sha": "689362089edd09b6d68f7cfe99075e1345e0fede",
+      "merge_commit_sha": "2ac89889f4cc330eabd50f295dcef02828522c69",
+      "diff_sha256": "a96c2ebd355e9818279f86e8155ca43083116424c9b5a351e00e8a866fee93cb",
+      "changed_files": [
+        "src/flask/__init__.py",
+        "src/flask/app.py",
+        "src/flask/cli.py",
+        "src/flask/ctx.py",
+        "src/flask/debughelpers.py",
+        "src/flask/globals.py",
+        "src/flask/helpers.py",
+        "src/flask/json/__init__.py",
+        "src/flask/json/provider.py",
+        "src/flask/sansio/app.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 258d68b6ff5e2244386540f48b48bab90d6ab827 689362089edd09b6d68f7cfe99075e1345e0fede"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2006_06",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2006,
+      "title": "Merge branch 'stable'",
+      "merged_at": "2026-04-05T12:32:14-07:00",
+      "observation_window_days": 125,
+      "real_base_sha": "e4e4bf6543ac1f132afddb1ffd0bf02bea4c93f7",
+      "real_head_sha": "a31e6b73469cb2bf7eb8f70b5ff21f710fd2e23c",
+      "merge_commit_sha": "258d68b6ff5e2244386540f48b48bab90d6ab827",
+      "diff_sha256": "cb5bd03ee985ecf390fdcd98576340c384d5186a0d36fa6c8619457ae9b831ec",
+      "changed_files": [
+        "src/flask/__init__.py",
+        "src/flask/app.py",
+        "src/flask/cli.py",
+        "src/flask/ctx.py",
+        "src/flask/debughelpers.py",
+        "src/flask/globals.py",
+        "src/flask/helpers.py",
+        "src/flask/json/__init__.py",
+        "src/flask/json/provider.py",
+        "src/flask/sansio/app.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff e4e4bf6543ac1f132afddb1ffd0bf02bea4c93f7 a31e6b73469cb2bf7eb8f70b5ff21f710fd2e23c"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2007_07",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2007,
+      "title": "Merge branch 'stable'",
+      "merged_at": "2026-04-05T11:24:48-07:00",
+      "observation_window_days": 125,
+      "real_base_sha": "7ef2946fb5151b745df30201b8c27790cac53875",
+      "real_head_sha": "b21425d6df207fec0c47e9563faa10a2819984ca",
+      "merge_commit_sha": "e4e4bf6543ac1f132afddb1ffd0bf02bea4c93f7",
+      "diff_sha256": "647bfea93d07a1852214597cfe47f1751b3f17d01cd83fc84f3264ed391d91b2",
+      "changed_files": [
+        "src/flask/__init__.py",
+        "src/flask/app.py",
+        "src/flask/cli.py",
+        "src/flask/ctx.py",
+        "src/flask/debughelpers.py",
+        "src/flask/globals.py",
+        "src/flask/helpers.py",
+        "src/flask/json/__init__.py",
+        "src/flask/json/provider.py",
+        "src/flask/sansio/app.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 7ef2946fb5151b745df30201b8c27790cac53875 b21425d6df207fec0c47e9563faa10a2819984ca"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_5962_08",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 5962,
+      "title": "remove unicode host test (#5962)",
+      "merged_at": "2026-03-24T06:55:57-07:00",
+      "observation_window_days": 138,
+      "real_base_sha": "4cae5d8e411b1e69949d8fae669afeacbd3e5908",
+      "real_head_sha": "91c6b3fecf36b1f04554e57cc4060ccb737a445d",
+      "merge_commit_sha": "7ef2946fb5151b745df30201b8c27790cac53875",
+      "diff_sha256": "857f37bd91d6306fc0a591ce25f77723db8511d2ccbb4445036c2cddf0728275",
+      "changed_files": [
+        "tests/test_reqctx.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "re-read with fresh eyes: maintainer-merged removal of an invalid unicode-host test; a real, merged, uncontroversial change that only touches tests; a tests-only merged PR is a valid known-quiet control",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 4cae5d8e411b1e69949d8fae669afeacbd3e5908 91c6b3fecf36b1f04554e57cc4060ccb737a445d"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2009_09",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2009,
+      "title": "Merge branch 'stable'",
+      "merged_at": "2026-03-08T16:21:50-07:00",
+      "observation_window_days": 153,
+      "real_base_sha": "3a9d54f3da1de540adfdf6f1e2dea6fc0006e15d",
+      "real_head_sha": "a197702e2cbcdd43c0d09296b3cea02efe16e407",
+      "merge_commit_sha": "4cae5d8e411b1e69949d8fae669afeacbd3e5908",
+      "diff_sha256": "365e059649fa99f2cf8c0ed4242b9c5b1725eeda6a022b14495a31bca0b1f3cd",
+      "changed_files": [
+        "src/flask/__init__.py",
+        "src/flask/app.py",
+        "src/flask/cli.py",
+        "src/flask/ctx.py",
+        "src/flask/debughelpers.py",
+        "src/flask/globals.py",
+        "src/flask/helpers.py",
+        "src/flask/json/__init__.py",
+        "src/flask/json/provider.py",
+        "src/flask/sansio/app.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 3a9d54f3da1de540adfdf6f1e2dea6fc0006e15d a197702e2cbcdd43c0d09296b3cea02efe16e407"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2010_11",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2010,
+      "title": "Merge branch 'stable'",
+      "merged_at": "2026-03-04T07:36:21-08:00",
+      "observation_window_days": 157,
+      "real_base_sha": "c34d6e81fd8e405e6d4178bf24b364918811ef17",
+      "real_head_sha": "a29f88ce6f2f9843bd6fcbbfce1390a2071965d6",
+      "merge_commit_sha": "3a9d54f3da1de540adfdf6f1e2dea6fc0006e15d",
+      "diff_sha256": "d07a0385f705a7aabacf372620d001ce07afddda15bd8c1a1fbbd5da57927dca",
+      "changed_files": [
+        "src/flask/__init__.py",
+        "src/flask/app.py",
+        "src/flask/cli.py",
+        "src/flask/ctx.py",
+        "src/flask/debughelpers.py",
+        "src/flask/globals.py",
+        "src/flask/helpers.py",
+        "src/flask/json/__init__.py",
+        "src/flask/json/provider.py",
+        "src/flask/sansio/app.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff c34d6e81fd8e405e6d4178bf24b364918811ef17 a29f88ce6f2f9843bd6fcbbfce1390a2071965d6"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_5928_12",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 5928,
+      "title": "all teardown callbacks are called despite errors (#5928)",
+      "merged_at": "2026-02-19T20:00:34-08:00",
+      "observation_window_days": 170,
+      "real_base_sha": "7b0088693ece1bd3a9238a6fdf56ed8df7a4d43b",
+      "real_head_sha": "fbb6f0bc4c60a0bada0e03c3480d0ccf30a3c1df",
+      "merge_commit_sha": "c34d6e81fd8e405e6d4178bf24b364918811ef17",
+      "diff_sha256": "f154fe3d64e743db90b4ad671bc8c030f7581c104e360a635bf6ad343c7a06a5",
+      "changed_files": [
+        "src/flask/app.py",
+        "src/flask/ctx.py",
+        "src/flask/helpers.py",
+        "tests/test_appctx.py",
+        "tests/test_basic.py",
+        "tests/test_blueprints.py",
+        "tests/test_helpers.py",
+        "tests/test_testing.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "maintainer change: all teardown callbacks are called despite errors; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 7b0088693ece1bd3a9238a6fdf56ed8df7a4d43b fbb6f0bc4c60a0bada0e03c3480d0ccf30a3c1df"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2012_13",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2012,
+      "title": "Merge branch 'stable'",
+      "merged_at": "2026-02-18T21:56:24-08:00",
+      "observation_window_days": 171,
+      "real_base_sha": "d98eb69a354158252854ed4a5c9778e03d089191",
+      "real_head_sha": "f00ad424ee3b050d382cc5b4aabb18afbb5e4ae7",
+      "merge_commit_sha": "daca74d93a0edc458e618136de7d14803f06bc28",
+      "diff_sha256": "cf006e53790e04d0abe0eafa1893dc5d1db98175b4ff0e867709cf8311578235",
+      "changed_files": [
+        "src/flask/__init__.py",
+        "src/flask/app.py",
+        "src/flask/cli.py",
+        "src/flask/ctx.py",
+        "src/flask/debughelpers.py",
+        "src/flask/globals.py",
+        "src/flask/helpers.py",
+        "src/flask/json/__init__.py",
+        "src/flask/json/provider.py",
+        "src/flask/sansio/app.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff d98eb69a354158252854ed4a5c9778e03d089191 f00ad424ee3b050d382cc5b4aabb18afbb5e4ae7"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2013_15",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2013,
+      "title": "Merge commit from fork",
+      "merged_at": "2026-02-18T19:35:58-08:00",
+      "observation_window_days": 171,
+      "real_base_sha": "27be9338405382445a7cb01151e084559b98d602",
+      "real_head_sha": "c17f379390731543eea33a570a47bd4ef76a54fa",
+      "merge_commit_sha": "089cb86dd22bff589a4eafb7ab8e42dc357623b4",
+      "diff_sha256": "2a2bf9791e8a05c58d8c0654dabbd9eecd9fa538ded8b4c0561e029cd2530684",
+      "changed_files": [
+        "src/flask/app.py",
+        "src/flask/ctx.py",
+        "src/flask/sessions.py",
+        "src/flask/templating.py",
+        "tests/test_basic.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 27be9338405382445a7cb01151e084559b98d602 c17f379390731543eea33a570a47bd4ef76a54fa"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_5917_16",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 5917,
+      "title": "fix provide_automatic_options override (#5917)",
+      "merged_at": "2026-02-12T13:07:50-08:00",
+      "observation_window_days": 177,
+      "real_base_sha": "d3b78fd18a8d9e224cb9ef58a23cec9b1ffc9ce9",
+      "real_head_sha": "e82db2ca3a22c9614c1987392c9cfaa8c6ce99ad",
+      "merge_commit_sha": "12e95c93b488725f80753f34b2e0d24838ca4646",
+      "diff_sha256": "e06f755eabb2606a6703aeefbe6e20dd35fb1e9449ccd2fe6b4b5bb1fea558c6",
+      "changed_files": [
+        "src/flask/sansio/app.py",
+        "tests/test_basic.py",
+        "tests/test_blueprints.py",
+        "tests/test_cli.py",
+        "tests/test_views.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "maintainer fix for provide_automatic_options override; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff d3b78fd18a8d9e224cb9ef58a23cec9b1ffc9ce9 e82db2ca3a22c9614c1987392c9cfaa8c6ce99ad"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2015_17",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2015,
+      "title": "Merge remote-tracking branch 'origin/stable'",
+      "merged_at": "2026-02-06T13:22:54-08:00",
+      "observation_window_days": 183,
+      "real_base_sha": "663198d7b453ffdbe86d0e0238b1feafde6ce569",
+      "real_head_sha": "4e652d3f68b90d50aa2301d3b7e68c3fafd9251d",
+      "merge_commit_sha": "d3b78fd18a8d9e224cb9ef58a23cec9b1ffc9ce9",
+      "diff_sha256": "f5e1a44954bf007e6e77cfc0e602786acccb45c54c00716e0ce6cefb07318608",
+      "changed_files": [
+        "examples/tutorial/flaskr/__init__.py",
+        "src/flask/__init__.py",
+        "src/flask/app.py",
+        "src/flask/cli.py",
+        "src/flask/ctx.py",
+        "src/flask/debughelpers.py",
+        "src/flask/globals.py",
+        "src/flask/helpers.py",
+        "src/flask/json/__init__.py",
+        "src/flask/json/provider.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 663198d7b453ffdbe86d0e0238b1feafde6ce569 4e652d3f68b90d50aa2301d3b7e68c3fafd9251d"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_5903_18",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 5903,
+      "title": "Abort if the instance folder cannot be created (#5903)",
+      "merged_at": "2026-01-28T07:43:00-08:00",
+      "observation_window_days": 192,
+      "real_base_sha": "407eb76b27884848383a37c7274654f0271e4bc4",
+      "real_head_sha": "3d03098a97ddc6a908aa4a50c2ef7381f8297d0a",
+      "merge_commit_sha": "4e652d3f68b90d50aa2301d3b7e68c3fafd9251d",
+      "diff_sha256": "43314683e5bf607741c165df478073d23bdda7b83881c2afacb4e14966734321",
+      "changed_files": [
+        "examples/tutorial/flaskr/__init__.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "merged bug fix: abort when the instance folder cannot be created; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 407eb76b27884848383a37c7274654f0271e4bc4 3d03098a97ddc6a908aa4a50c2ef7381f8297d0a"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2017_19",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2017,
+      "title": "Merge branch 'stable'",
+      "merged_at": "2026-01-25T10:38:42-08:00",
+      "observation_window_days": 195,
+      "real_base_sha": "23df07d799f0bed3feb5beb9e5633651687da92b",
+      "real_head_sha": "407eb76b27884848383a37c7274654f0271e4bc4",
+      "merge_commit_sha": "798e006f435887adceb6aab9b57cde8e20276793",
+      "diff_sha256": "002b0012d9447f4848708f9c759c4efac0053b0f16bf0b77149afbcbcd7d78bd",
+      "changed_files": [
+        "src/flask/__init__.py",
+        "src/flask/app.py",
+        "src/flask/cli.py",
+        "src/flask/ctx.py",
+        "src/flask/debughelpers.py",
+        "src/flask/globals.py",
+        "src/flask/helpers.py",
+        "src/flask/json/__init__.py",
+        "src/flask/json/provider.py",
+        "src/flask/sansio/app.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 23df07d799f0bed3feb5beb9e5633651687da92b 407eb76b27884848383a37c7274654f0271e4bc4"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2018_21",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2018,
+      "title": "Merge branch 'stable'",
+      "merged_at": "2026-01-24T19:55:36-08:00",
+      "observation_window_days": 196,
+      "real_base_sha": "4b8bde97d4fa3486e18dce21c3c5f75570d50164",
+      "real_head_sha": "4f79d5b59a56bc4356a97f2e81a35f98cb18d7b3",
+      "merge_commit_sha": "23df07d799f0bed3feb5beb9e5633651687da92b",
+      "diff_sha256": "4d67659ec5ce2dc52296d3e05ba12a0f961c19cd8b83c3b45925663b3904476b",
+      "changed_files": [
+        "src/flask/__init__.py",
+        "src/flask/app.py",
+        "src/flask/cli.py",
+        "src/flask/ctx.py",
+        "src/flask/debughelpers.py",
+        "src/flask/globals.py",
+        "src/flask/helpers.py",
+        "src/flask/json/__init__.py",
+        "src/flask/json/provider.py",
+        "src/flask/sansio/app.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 4b8bde97d4fa3486e18dce21c3c5f75570d50164 4f79d5b59a56bc4356a97f2e81a35f98cb18d7b3"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_5899_22",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 5899,
+      "title": "deprecate `should_ignore_error` (#5899)",
+      "merged_at": "2026-01-24T19:53:11-08:00",
+      "observation_window_days": 196,
+      "real_base_sha": "0292047b22c82921dcf165322d93a0b988328c2e",
+      "real_head_sha": "c77a5203438fe772d41f6a47303ad3f57a4efe6d",
+      "merge_commit_sha": "4b8bde97d4fa3486e18dce21c3c5f75570d50164",
+      "diff_sha256": "9cf4110177239a03266f758b4aedbd275a81e98592c53f74db707609f426e537",
+      "changed_files": [
+        "src/flask/app.py",
+        "src/flask/sansio/app.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "maintainer deprecation of should_ignore_error; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 0292047b22c82921dcf165322d93a0b988328c2e c77a5203438fe772d41f6a47303ad3f57a4efe6d"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2020_23",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2020,
+      "title": "Merge branch 'stable'",
+      "merged_at": "2026-01-24T19:05:26-08:00",
+      "observation_window_days": 196,
+      "real_base_sha": "809d5a8869d4ffe8656680b2438b10f7c8845613",
+      "real_head_sha": "5559ef42b5334075cbde82b2870ca725ac606fa4",
+      "merge_commit_sha": "5880befcd22490c40f3c63d6178427f7753672c1",
+      "diff_sha256": "b0572d26f298324bd13df4b6310cd2a73bf86b21d26cb9577d54dc1bee0e7cb1",
+      "changed_files": [
+        "src/flask/__init__.py",
+        "src/flask/app.py",
+        "src/flask/cli.py",
+        "src/flask/ctx.py",
+        "src/flask/debughelpers.py",
+        "src/flask/globals.py",
+        "src/flask/helpers.py",
+        "src/flask/json/__init__.py",
+        "src/flask/json/provider.py",
+        "src/flask/sansio/app.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 809d5a8869d4ffe8656680b2438b10f7c8845613 5559ef42b5334075cbde82b2870ca725ac606fa4"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_5844_25",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 5844,
+      "title": "pre-commit: Add codespell (#5844)",
+      "merged_at": "2026-01-24T19:00:23-08:00",
+      "observation_window_days": 196,
+      "real_base_sha": "30da640ffe23b6e461fa91d387ffea6b9d9fa847",
+      "real_head_sha": "3709c4a9a87e6ce8c26dc4a951e1df52ac9ecad0",
+      "merge_commit_sha": "5559ef42b5334075cbde82b2870ca725ac606fa4",
+      "diff_sha256": "6899a6ff7ed88bce776c19d6e71a3cbb6838c00764558e1c01e79cd894d14ee2",
+      "changed_files": [
+        "src/flask/app.py",
+        "src/flask/sessions.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "merged tooling PR adding codespell to pre-commit config and pyproject plus src comment cleanup; not docs/tests; ordinary maintenance",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 30da640ffe23b6e461fa91d387ffea6b9d9fa847 3709c4a9a87e6ce8c26dc4a951e1df52ac9ecad0"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_5808_26",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 5808,
+      "title": "fix annotation for select_jinja_autoescape (#5808)",
+      "merged_at": "2026-01-24T18:25:31-08:00",
+      "observation_window_days": 196,
+      "real_base_sha": "64dd0809c2fc732ed30539235232a268f9bd96ac",
+      "real_head_sha": "dbd4c2882593f6118103120aa96fa9acdf7deedb",
+      "merge_commit_sha": "25642fd1fd65985fc98f95e64bc2c7ff353d6c2b",
+      "diff_sha256": "02077b60c792753dd5566913b397718e608afb92e0654b539c792866275e64ee",
+      "changed_files": [
+        "src/flask/sansio/app.py",
+        "src/flask/sessions.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "merged 1-line annotation fix (str or None) for select_jinja_autoescape; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 64dd0809c2fc732ed30539235232a268f9bd96ac dbd4c2882593f6118103120aa96fa9acdf7deedb"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_5898_27",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 5898,
+      "title": "redirect defaults to 303 (#5898)",
+      "merged_at": "2026-01-24T17:18:35-08:00",
+      "observation_window_days": 196,
+      "real_base_sha": "eb58d862cc4a8f31a369b6e9ad1724e9e642f13f",
+      "real_head_sha": "eca5fd1dfdc614c2df876cc32018a7d71f84ea82",
+      "merge_commit_sha": "809d5a8869d4ffe8656680b2438b10f7c8845613",
+      "diff_sha256": "e1987d16fb984c9c08ddc4386dcae0816770c541c875dd00b163c4cab387b3ca",
+      "changed_files": [
+        "src/flask/helpers.py",
+        "src/flask/sansio/app.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "maintainer change: redirect defaults to 303; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff eb58d862cc4a8f31a369b6e9ad1724e9e642f13f eca5fd1dfdc614c2df876cc32018a7d71f84ea82"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2024_28",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2024,
+      "title": "Merge branch 'stable'",
+      "merged_at": "2026-01-24T17:15:54-08:00",
+      "observation_window_days": 196,
+      "real_base_sha": "2579ce9f18e67ec3213c6eceb5240310ccd46af8",
+      "real_head_sha": "64dd0809c2fc732ed30539235232a268f9bd96ac",
+      "merge_commit_sha": "eb58d862cc4a8f31a369b6e9ad1724e9e642f13f",
+      "diff_sha256": "6c3e909c099a6bff607513970374355e72591bdcb6814931c8c5ac922a61440c",
+      "changed_files": [
+        "src/flask/__init__.py",
+        "src/flask/app.py",
+        "src/flask/cli.py",
+        "src/flask/ctx.py",
+        "src/flask/debughelpers.py",
+        "src/flask/globals.py",
+        "src/flask/helpers.py",
+        "src/flask/json/__init__.py",
+        "src/flask/json/provider.py",
+        "src/flask/sansio/app.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 2579ce9f18e67ec3213c6eceb5240310ccd46af8 64dd0809c2fc732ed30539235232a268f9bd96ac"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2025_29",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2025,
+      "title": "Merge branch 'stable'",
+      "merged_at": "2025-11-17T10:05:51-08:00",
+      "observation_window_days": 264,
+      "real_base_sha": "218880c7fdedee139ac09caaf93da469b4dba14c",
+      "real_head_sha": "607d1948b8747776f4a45d5b7c7eaeb57b6b9f80",
+      "merge_commit_sha": "2579ce9f18e67ec3213c6eceb5240310ccd46af8",
+      "diff_sha256": "e6e0063ae4e3dc7174af8a4e6c9317e542e0778974247b30b38703f027258e4d",
+      "changed_files": [
+        "src/flask/__init__.py",
+        "src/flask/app.py",
+        "src/flask/cli.py",
+        "src/flask/ctx.py",
+        "src/flask/debughelpers.py",
+        "src/flask/globals.py",
+        "src/flask/helpers.py",
+        "src/flask/json/__init__.py",
+        "src/flask/json/provider.py",
+        "src/flask/sansio/app.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 218880c7fdedee139ac09caaf93da469b4dba14c 607d1948b8747776f4a45d5b7c7eaeb57b6b9f80"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2026_30",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2026,
+      "title": "Merge branch 'stable'",
+      "merged_at": "2025-11-17T10:03:42-08:00",
+      "observation_window_days": 264,
+      "real_base_sha": "96a01e420b741c59af59301f15612fde39bfb39d",
+      "real_head_sha": "917000097fc17875104176e2c71318ab25c508c3",
+      "merge_commit_sha": "218880c7fdedee139ac09caaf93da469b4dba14c",
+      "diff_sha256": "3ffdb369d89bdbc4c40c8be41c50421bb4e805d35cabbe8124dc7e9f62e2446e",
+      "changed_files": [
+        "src/flask/__init__.py",
+        "src/flask/app.py",
+        "src/flask/cli.py",
+        "src/flask/ctx.py",
+        "src/flask/debughelpers.py",
+        "src/flask/globals.py",
+        "src/flask/helpers.py",
+        "src/flask/json/__init__.py",
+        "src/flask/json/provider.py",
+        "src/flask/sansio/app.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 96a01e420b741c59af59301f15612fde39bfb39d 917000097fc17875104176e2c71318ab25c508c3"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2027_31",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2027,
+      "title": "Merge branch 'stable'",
+      "merged_at": "2025-11-17T09:45:56-08:00",
+      "observation_window_days": 264,
+      "real_base_sha": "70d04b5a2620705011e65f79ccfd52caa86f5d6a",
+      "real_head_sha": "da6d075dfde71b2e2a64f39b29ba957d5ffb00b0",
+      "merge_commit_sha": "96a01e420b741c59af59301f15612fde39bfb39d",
+      "diff_sha256": "0a9472327f5c39b091c6ce5c66b91fe1ab5ecf537b26b0c6f5e2c3c476ee7638",
+      "changed_files": [
+        "src/flask/__init__.py",
+        "src/flask/app.py",
+        "src/flask/cli.py",
+        "src/flask/ctx.py",
+        "src/flask/debughelpers.py",
+        "src/flask/globals.py",
+        "src/flask/helpers.py",
+        "src/flask/json/__init__.py",
+        "src/flask/json/provider.py",
+        "src/flask/sansio/app.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 70d04b5a2620705011e65f79ccfd52caa86f5d6a da6d075dfde71b2e2a64f39b29ba957d5ffb00b0"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_5818_32",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 5818,
+      "title": "pass context through dispatch methods (#5818)",
+      "merged_at": "2025-11-17T08:49:53-08:00",
+      "observation_window_days": 264,
+      "real_base_sha": "88a65bb374e87a18816a780dbd4ae69d307aa85c",
+      "real_head_sha": "6a64969009bf1898bd302e6a9633f71942523f7f",
+      "merge_commit_sha": "70d04b5a2620705011e65f79ccfd52caa86f5d6a",
+      "diff_sha256": "57e9267eaabf8b433c0f103d8d278423e945ef6dd3ea44490cce322dc8b0b086",
+      "changed_files": [
+        "src/flask/app.py",
+        "src/flask/ctx.py",
+        "src/flask/templating.py",
+        "tests/test_reqctx.py",
+        "tests/test_subclassing.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "maintainer refactor passing ctx through dispatch methods with backcompat shims; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 88a65bb374e87a18816a780dbd4ae69d307aa85c 6a64969009bf1898bd302e6a9633f71942523f7f"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_5812_33",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 5812,
+      "title": "merge app and request context (#5812)",
+      "merged_at": "2025-09-19T16:45:27-07:00",
+      "observation_window_days": 323,
+      "real_base_sha": "330123258e8c3dc391cbe55ab1ed94891ca83af3",
+      "real_head_sha": "c2705ffd9ce1dc8476cb29eaf5ff5d4c719852d9",
+      "merge_commit_sha": "adf363679da2d9a5ddc564bb2da563c7ca083916",
+      "diff_sha256": "09aad45951e6c1c8150cebb399a92350b5853cd01d765e1b4f3b7675e721de61",
+      "changed_files": [
+        "src/flask/app.py",
+        "src/flask/cli.py",
+        "src/flask/ctx.py",
+        "src/flask/debughelpers.py",
+        "src/flask/globals.py",
+        "src/flask/helpers.py",
+        "src/flask/json/__init__.py",
+        "src/flask/sansio/app.py",
+        "src/flask/sansio/scaffold.py",
+        "src/flask/templating.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "large but ordinary maintainer refactor merging app and request context into 3.2.0; reviewed and merged",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 330123258e8c3dc391cbe55ab1ed94891ca83af3 c2705ffd9ce1dc8476cb29eaf5ff5d4c719852d9"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2030_34",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2030,
+      "title": "Merge branch 'stable'",
+      "merged_at": "2025-08-19T14:09:56-07:00",
+      "observation_window_days": 354,
+      "real_base_sha": "ed1c9e953e2d67c0994e32e6c8d878291e36d4f7",
+      "real_head_sha": "85793d6c223dd845e8f218403a5ced83041d37e1",
+      "merge_commit_sha": "330123258e8c3dc391cbe55ab1ed94891ca83af3",
+      "diff_sha256": "9c8fd31dc5b0a66a1670bc1534e1f2cfdfce2d78714a29f0dae21a8b1a343938",
+      "changed_files": [
+        "src/flask/__init__.py",
+        "src/flask/cli.py",
+        "src/flask/helpers.py",
+        "src/flask/json/provider.py",
+        "src/flask/sansio/app.py",
+        "src/flask/sansio/blueprints.py",
+        "src/flask/templating.py",
+        "src/flask/testing.py",
+        "src/flask/typing.py",
+        "tests/test_blueprints.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff ed1c9e953e2d67c0994e32e6c8d878291e36d4f7 85793d6c223dd845e8f218403a5ced83041d37e1"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_5736_37",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 5736,
+      "title": "support call template_filter without parens (#5736)",
+      "merged_at": "2025-08-19T12:36:00-07:00",
+      "observation_window_days": 354,
+      "real_base_sha": "85c5d93cbd049c4bd0679c36fd1ddcae8c37b642",
+      "real_head_sha": "edebd3704437f19b5b137eaffe97130fe817d144",
+      "merge_commit_sha": "ed1c9e953e2d67c0994e32e6c8d878291e36d4f7",
+      "diff_sha256": "2e98191379cfc5a1e961aa2073424379e43b1641fffde3f1249642060ba15919",
+      "changed_files": [
+        "src/flask/sansio/app.py",
+        "src/flask/sansio/blueprints.py",
+        "tests/test_blueprints.py",
+        "tests/test_templating.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "merged feature: call template_filter without parens; reviewed, iterated, merged by maintainer; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 85c5d93cbd049c4bd0679c36fd1ddcae8c37b642 edebd3704437f19b5b137eaffe97130fe817d144"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_5799_38",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 5799,
+      "title": "refactor stream_with_context for async views (#5799)",
+      "merged_at": "2025-08-19T08:23:51-07:00",
+      "observation_window_days": 354,
+      "real_base_sha": "49b7e7bc8fb69d605719991d1c0a99fcee689053",
+      "real_head_sha": "9822a0351574790cb66c652fcc396ad7aa2b09d8",
+      "merge_commit_sha": "38b4c1e19b50494cfcdc9332899e09b7fed34979",
+      "diff_sha256": "84d80c98e77ddfa69e007afd01de33a7bd0a95f3168720f56e2dbdb0086bd458",
+      "changed_files": [
+        "src/flask/helpers.py",
+        "tests/test_helpers.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "maintainer refactor of stream_with_context for async views; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 49b7e7bc8fb69d605719991d1c0a99fcee689053 9822a0351574790cb66c652fcc396ad7aa2b09d8"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_5777_40",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 5777,
+      "title": "use IO[bytes] instead of BinaryIO for wider compatibility (#5777)",
+      "merged_at": "2025-08-18T10:26:12-07:00",
+      "observation_window_days": 355,
+      "real_base_sha": "c56c5ec7c41e6ffd02516bf7cb80dd2ba9ba7aa3",
+      "real_head_sha": "d44f1c65239c3e33509224aa1931631243dbfa7f",
+      "merge_commit_sha": "1dfd7cd5555d9e62a2e198a131c366242e724b35",
+      "diff_sha256": "cab891572913575bd70a754019f13d2ad58a3e7c3fc561636d84a203f57071d5",
+      "changed_files": [
+        "src/flask/helpers.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "merged typing relaxation IO[bytes] instead of BinaryIO in send_file; milestone 3.1.2; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff c56c5ec7c41e6ffd02516bf7cb80dd2ba9ba7aa3 d44f1c65239c3e33509224aa1931631243dbfa7f"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_5723_42",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 5723,
+      "title": "Update macOS UI reference to \u00e2\u20ac\u0153System Settings\u00e2\u20ac\ufffd (#5723)",
+      "merged_at": "2025-08-18T10:08:07-07:00",
+      "observation_window_days": 355,
+      "real_base_sha": "24824ff666e096c4c07d0b75a889088571afe4a6",
+      "real_head_sha": "7bf3be8dfa5832ef03a3fd8f07f6736e770440e4",
+      "merge_commit_sha": "7fea7cf15688b2a2712b01c45c9e3385ea382e67",
+      "diff_sha256": "f07dbc1a6eb2fec700a1770c7fabe6d486ed53fc7eb05e528e57475cdaf78ecb",
+      "changed_files": [
+        "docs/conf.py",
+        "src/flask/ctx.py",
+        "src/flask/helpers.py",
+        "src/flask/sansio/app.py",
+        "src/flask/sansio/scaffold.py",
+        "src/flask/sessions.py",
+        "src/flask/testing.py",
+        "tests/test_testing.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "genuine read: diff is docs/server.rst only (System Preferences -> System Settings); PR body itself says no code/behavior change; documentation-only, consistent with DOCS-ONLY exclusions",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 24824ff666e096c4c07d0b75a889088571afe4a6 7bf3be8dfa5832ef03a3fd8f07f6736e770440e4"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_5797_43",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 5797,
+      "title": "push preserved contexts in correct order (#5797)",
+      "merged_at": "2025-08-18T09:56:39-07:00",
+      "observation_window_days": 355,
+      "real_base_sha": "5addaf833b2e8c7a616f89dd8ad5a44b07d7c000",
+      "real_head_sha": "53b8f08218796d95764c5252bccd8a50a173a6fb",
+      "merge_commit_sha": "24824ff666e096c4c07d0b75a889088571afe4a6",
+      "diff_sha256": "a3b683b2612ab61e6b6f1ba2eec11b5c2945a8568a71bf747001356d60c63310",
+      "changed_files": [
+        "src/flask/testing.py",
+        "tests/test_testing.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "maintainer bug fix pushing preserved contexts in correct order in test client; merged same day; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 5addaf833b2e8c7a616f89dd8ad5a44b07d7c000 53b8f08218796d95764c5252bccd8a50a173a6fb"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2036_44",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2036,
+      "title": "Merge branch 'stable'",
+      "merged_at": "2025-06-12T13:48:07-07:00",
+      "observation_window_days": 422,
+      "real_base_sha": "284273e3c5d8005bbb4b43c4d934409a5215886e",
+      "real_head_sha": "85cc71046475f9cb3efd17d496356795961249f9",
+      "merge_commit_sha": "85c5d93cbd049c4bd0679c36fd1ddcae8c37b642",
+      "diff_sha256": "d0191933200b6875dfdc161507b56b6c8881739c71f0fd9053201a30b8b1d99c",
+      "changed_files": [
+        "docs/conf.py",
+        "src/flask/__init__.py",
+        "src/flask/cli.py",
+        "src/flask/json/provider.py",
+        "src/flask/sansio/app.py",
+        "src/flask/typing.py",
+        "tests/test_cli.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 284273e3c5d8005bbb4b43c4d934409a5215886e 85cc71046475f9cb3efd17d496356795961249f9"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2037_45",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2037,
+      "title": "Merge branch 'stable'",
+      "merged_at": "2025-06-10T13:18:26-07:00",
+      "observation_window_days": 424,
+      "real_base_sha": "d6009c0aeb3c7fe3a841733e9dbdfbbb63b9bfd1",
+      "real_head_sha": "f17d9869489aea57d3fa05d5a3f1504fcf8e588c",
+      "merge_commit_sha": "284273e3c5d8005bbb4b43c4d934409a5215886e",
+      "diff_sha256": "5f62901527b690b10ad5aea1693cf87bb3b9ae998e5592028fca03028de1e008",
+      "changed_files": [
+        "src/flask/__init__.py",
+        "src/flask/cli.py",
+        "src/flask/json/provider.py",
+        "src/flask/sansio/app.py",
+        "src/flask/typing.py",
+        "tests/test_cli.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff d6009c0aeb3c7fe3a841733e9dbdfbbb63b9bfd1 f17d9869489aea57d3fa05d5a3f1504fcf8e588c"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2038_46",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2038,
+      "title": "Merge branch 'stable'",
+      "merged_at": "2025-06-09T21:20:46-07:00",
+      "observation_window_days": 425,
+      "real_base_sha": "211cce038ab6354a15a76b2c7f98fa98bfc9e6a3",
+      "real_head_sha": "2b42a803a25e56a3a0e2af939ee5be4dcc3f29c8",
+      "merge_commit_sha": "d6009c0aeb3c7fe3a841733e9dbdfbbb63b9bfd1",
+      "diff_sha256": "838c77b7a8c3b9e6751de85d650e44b100bec24e0e1e2d7d2a02e700cfd46133",
+      "changed_files": [
+        "src/flask/__init__.py",
+        "src/flask/cli.py",
+        "src/flask/json/provider.py",
+        "src/flask/sansio/app.py",
+        "src/flask/typing.py",
+        "tests/test_cli.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 211cce038ab6354a15a76b2c7f98fa98bfc9e6a3 2b42a803a25e56a3a0e2af939ee5be4dcc3f29c8"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2039_47",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2039,
+      "title": "Merge branch 'stable'",
+      "merged_at": "2025-06-09T14:33:44-07:00",
+      "observation_window_days": 425,
+      "real_base_sha": "e9741288637e0d9abe95311247b4842a017f7d5c",
+      "real_head_sha": "a7b67c99f922f26b1071a90994e14261dc0a6df2",
+      "merge_commit_sha": "211cce038ab6354a15a76b2c7f98fa98bfc9e6a3",
+      "diff_sha256": "5979febd0d13830b051a757c5cb1da96c7222c03407a849b4047e2124b3e581e",
+      "changed_files": [
+        "docs/conf.py",
+        "src/flask/__init__.py",
+        "src/flask/cli.py",
+        "src/flask/json/provider.py",
+        "src/flask/sansio/app.py",
+        "src/flask/typing.py",
+        "tests/test_cli.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff e9741288637e0d9abe95311247b4842a017f7d5c a7b67c99f922f26b1071a90994e14261dc0a6df2"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_5757_48",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 5757,
+      "title": "svg logo (#5757)",
+      "merged_at": "2025-06-09T14:33:26-07:00",
+      "observation_window_days": 425,
+      "real_base_sha": "f04c5e696400badaa52b3450ded53e9091c2078a",
+      "real_head_sha": "a758915893352f5986c6ee101cdf7e3b7a64fa28",
+      "merge_commit_sha": "a7b67c99f922f26b1071a90994e14261dc0a6df2",
+      "diff_sha256": "39b95d51857cbe3158e0a0f4315b2a94771ec5f64a6c962d809d51a484b997b7",
+      "changed_files": [
+        "docs/conf.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "no runtime behavior change (DOCS-ONLY)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff f04c5e696400badaa52b3450ded53e9091c2078a a758915893352f5986c6ee101cdf7e3b7a64fa28"
+      }
+    },
+    {
+      "candidate_id": "ctrl_flask_2041_49",
+      "repository": "https://github.com/pallets/flask",
+      "project": "flask",
+      "pr_number": 2041,
+      "title": "Merge branch 'stable'",
+      "merged_at": "2025-06-08T09:54:32-07:00",
+      "observation_window_days": 426,
+      "real_base_sha": "a5f9742398c9429ef84ac8a57b0f3eb418394d9e",
+      "real_head_sha": "f04c5e696400badaa52b3450ded53e9091c2078a",
+      "merge_commit_sha": "e9741288637e0d9abe95311247b4842a017f7d5c",
+      "diff_sha256": "515477d8f5f9c5c0efdd152f6fa084eaa5bf6e791a3b3db5432d84d2a8704d65",
+      "changed_files": [
+        "src/flask/__init__.py",
+        "src/flask/cli.py",
+        "src/flask/ctx.py",
+        "src/flask/helpers.py",
+        "src/flask/json/provider.py",
+        "src/flask/sansio/app.py",
+        "src/flask/sansio/scaffold.py",
+        "src/flask/sessions.py",
+        "src/flask/testing.py",
+        "src/flask/typing.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/pallets/flask",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff a5f9742398c9429ef84ac8a57b0f3eb418394d9e f04c5e696400badaa52b3450ded53e9091c2078a"
+      }
+    },
+    {
+      "candidate_id": "ctrl_requests_6951_13",
+      "repository": "https://github.com/psf/requests",
+      "project": "requests",
+      "pr_number": 6951,
+      "title": "Merge pull request #6951 from tswast/patch-1",
+      "merged_at": "2025-06-01T11:07:17-07:00",
+      "observation_window_days": 433,
+      "real_base_sha": "c65c780849563c891f35ffc98d3198b71011c012",
+      "real_head_sha": "6716d7c9f29df636643fa2489f98890216525cb0",
+      "merge_commit_sha": "7341690e842a23cf18ded0abd9229765fa88c4e2",
+      "diff_sha256": "ca87fccf545697f45b6bc6e2c072edd45274093975f78cffcb1dffc2cb9cc4fc",
+      "changed_files": [
+        "docs/conf.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "no runtime behavior change (DOCS-ONLY)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff c65c780849563c891f35ffc98d3198b71011c012 6716d7c9f29df636643fa2489f98890216525cb0"
+      }
+    },
+    {
+      "candidate_id": "ctrl_requests_6529_19",
+      "repository": "https://github.com/psf/requests",
+      "project": "requests",
+      "pr_number": 6529,
+      "title": "Merge pull request #6529 from anupam-arista/patch-1",
+      "merged_at": "2025-02-13T08:49:49-08:00",
+      "observation_window_days": 541,
+      "real_base_sha": "f761e74a4d50d2e88d9e30e660494b36c9d630f8",
+      "real_head_sha": "5d31ddbf7b3f512dd3c61952d2c16e980a2b7dc1",
+      "merge_commit_sha": "1b7c37ef4e3db003cc52f09da9ab6b947054e245",
+      "diff_sha256": "e962d6a597d45bb415fba04f8638f0dbecfdbf6fb5b3f608774046d69155f48a",
+      "changed_files": [
+        "src/requests/models.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: correct models.Response.json() docstring in shipped source file; merged; ordinary source-level doc fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff f761e74a4d50d2e88d9e30e660494b36c9d630f8 5d31ddbf7b3f512dd3c61952d2c16e980a2b7dc1"
+      }
+    },
+    {
+      "candidate_id": "ctrl_requests_2044_20",
+      "repository": "https://github.com/psf/requests",
+      "project": "requests",
+      "pr_number": 2044,
+      "title": "Merge branch 'psf:main' into patch-1",
+      "merged_at": "2025-02-11T07:49:26+05:30",
+      "observation_window_days": 544,
+      "real_base_sha": "b653d80ded3680dc3780557ded01e23074f7e6a4",
+      "real_head_sha": "f761e74a4d50d2e88d9e30e660494b36c9d630f8",
+      "merge_commit_sha": "b25f2b5ec2a113d4b3a1e6311f617a015f4155f3",
+      "diff_sha256": "d440c8ed8f9fb306704bf1c36dafc7a779621342391f5d14149b4aa88980adf8",
+      "changed_files": [
+        "src/requests/models.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff b653d80ded3680dc3780557ded01e23074f7e6a4 f761e74a4d50d2e88d9e30e660494b36c9d630f8"
+      }
+    },
+    {
+      "candidate_id": "ctrl_requests_2045_24",
+      "repository": "https://github.com/psf/requests",
+      "project": "requests",
+      "pr_number": 2045,
+      "title": "Merge branch 'psf:main' into patch-1",
+      "merged_at": "2024-12-13T05:08:45+05:30",
+      "observation_window_days": 604,
+      "real_base_sha": "06d2a384418ed86effa2d804d32d4705b91c37eb",
+      "real_head_sha": "23540c93cac97c763fe59e843a08fa2825aa80fd",
+      "merge_commit_sha": "b653d80ded3680dc3780557ded01e23074f7e6a4",
+      "diff_sha256": "f76fb01dd2a1005b8206274bca2b3e0836b6d182774773de9e9da89e0ede249e",
+      "changed_files": [
+        "setup.py",
+        "src/requests/compat.py",
+        "src/requests/models.py",
+        "src/requests/utils.py",
+        "tests/test_requests.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 06d2a384418ed86effa2d804d32d4705b91c37eb 23540c93cac97c763fe59e843a08fa2825aa80fd"
+      }
+    },
+    {
+      "candidate_id": "ctrl_requests_6802_29",
+      "repository": "https://github.com/psf/requests",
+      "project": "requests",
+      "pr_number": 6802,
+      "title": "Merge pull request #6802 from graingert/3.13",
+      "merged_at": "2024-09-19T06:19:03-05:00",
+      "observation_window_days": 689,
+      "real_base_sha": "f12ccbef6d6b95564da8d22e280d28c39d53f0e9",
+      "real_head_sha": "5984296b6a4cea1b20a6747127c335d95595e7d9",
+      "merge_commit_sha": "1ae6fc3137a11e11565ed22436aa1e77277ac98c",
+      "diff_sha256": "25e327c1276f9d2e7d85d73aa94071bde8d26fb0a9f31fe50e40274677781607",
+      "changed_files": [
+        "setup.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: start testing on Python 3.13rc (CI); merged; ordinary CI maintenance",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff f12ccbef6d6b95564da8d22e280d28c39d53f0e9 5984296b6a4cea1b20a6747127c335d95595e7d9"
+      }
+    },
+    {
+      "candidate_id": "ctrl_requests_2047_30",
+      "repository": "https://github.com/psf/requests",
+      "project": "requests",
+      "pr_number": 2047,
+      "title": "Merge branch 'main' of github.com:psf/requests into 3.13",
+      "merged_at": "2024-09-18T15:03:08+01:00",
+      "observation_window_days": 690,
+      "real_base_sha": "2e1452234d8a3240aa27fc5fa5db93d53d799c25",
+      "real_head_sha": "f12ccbef6d6b95564da8d22e280d28c39d53f0e9",
+      "merge_commit_sha": "0f5ef1be8cb33a28dec67728b8c7220b9c58d366",
+      "diff_sha256": "ed4e7cc949c98bed416b92b7063b812a942aa639a30100b7fd3b04bf48d8adac",
+      "changed_files": [
+        "setup.py",
+        "src/requests/__version__.py",
+        "src/requests/adapters.py",
+        "src/requests/compat.py",
+        "src/requests/utils.py",
+        "tests/test_requests.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 2e1452234d8a3240aa27fc5fa5db93d53d799c25 f12ccbef6d6b95564da8d22e280d28c39d53f0e9"
+      }
+    },
+    {
+      "candidate_id": "ctrl_requests_6757_33",
+      "repository": "https://github.com/psf/requests",
+      "project": "requests",
+      "pr_number": 6757,
+      "title": "Merge pull request #6757 from nateprewitt/urllib-1.x-tests",
+      "merged_at": "2024-07-29T18:44:13-07:00",
+      "observation_window_days": 740,
+      "real_base_sha": "15e1f17bb6f3f978787dd23da0268388148bc3d5",
+      "real_head_sha": "01353d3b4afe3afa838f8f5c08e5f30a5b50cb05",
+      "merge_commit_sha": "79b74ef704dc0d804937c0d015c5e9c3b02b79bd",
+      "diff_sha256": "2178d5f1c84f20f7b796a9542a27116a9b96851cbb8f0bc2c2bf9a7721ce6a04",
+      "changed_files": [
+        "setup.py",
+        "src/requests/compat.py",
+        "src/requests/utils.py",
+        "tests/test_requests.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: test on urllib3 1.26.x (CI matrix); merged maintainer PR; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 15e1f17bb6f3f978787dd23da0268388148bc3d5 01353d3b4afe3afa838f8f5c08e5f30a5b50cb05"
+      }
+    },
+    {
+      "candidate_id": "ctrl_requests_2049_34",
+      "repository": "https://github.com/psf/requests",
+      "project": "requests",
+      "pr_number": 2049,
+      "title": "Merge branch 'psf:main' into patch-1",
+      "merged_at": "2024-07-01T10:46:41+05:30",
+      "observation_window_days": 769,
+      "real_base_sha": "12862617df7391a87f30d5bc30fffbcfd8fa3761",
+      "real_head_sha": "0e322af87745eff34caffe4df68456ebc20d9068",
+      "merge_commit_sha": "06d2a384418ed86effa2d804d32d4705b91c37eb",
+      "diff_sha256": "85f828c981b899cbbd732a41c5356e00417a0457d9b8af019f2c09c97bb12cea",
+      "changed_files": [
+        "setup.py",
+        "src/requests/__init__.py",
+        "src/requests/__version__.py",
+        "src/requests/adapters.py",
+        "src/requests/compat.py",
+        "src/requests/exceptions.py",
+        "src/requests/models.py",
+        "src/requests/packages.py",
+        "src/requests/status_codes.py",
+        "src/requests/utils.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 12862617df7391a87f30d5bc30fffbcfd8fa3761 0e322af87745eff34caffe4df68456ebc20d9068"
+      }
+    },
+    {
+      "candidate_id": "ctrl_requests_6716_35",
+      "repository": "https://github.com/psf/requests",
+      "project": "requests",
+      "pr_number": 6716,
+      "title": "Merge pull request #6716 from sigmavirus24/bug/6715",
+      "merged_at": "2024-05-24T14:37:06-07:00",
+      "observation_window_days": 806,
+      "real_base_sha": "88dce9d854797c05d0ff296b70e0430535ef8aaf",
+      "real_head_sha": "b1d73ddb509a3a2d3e10744e85f9cdebdbde90f0",
+      "merge_commit_sha": "145b5399486b56e00250204f033441f3fdf2f3c9",
+      "diff_sha256": "3828433c1dfa90d7cc279896aae4e093f11f3be9d35198d86d1be004fac390fa",
+      "changed_files": [
+        "src/requests/adapters.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: allow overriding specific pool key params (closes 6715); merged; ordinary bug fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 88dce9d854797c05d0ff296b70e0430535ef8aaf b1d73ddb509a3a2d3e10744e85f9cdebdbde90f0"
+      }
+    },
+    {
+      "candidate_id": "ctrl_requests_6710_36",
+      "repository": "https://github.com/psf/requests",
+      "project": "requests",
+      "pr_number": 6710,
+      "title": "Merge pull request #6710 from nateprewitt/api_rename",
+      "merged_at": "2024-05-21T09:41:18-07:00",
+      "observation_window_days": 809,
+      "real_base_sha": "970e8cec988421bd43da57350723b05c8ce8dc7e",
+      "real_head_sha": "92075b330a30b9883f466a43d3f7566ab849f91b",
+      "merge_commit_sha": "c98e4d133ef29c46a9b68cd783087218a8075e05",
+      "diff_sha256": "0cadf4e94bc880c097aec1a3994afad8ad3065ac34412f4517f4f52494dd19f4",
+      "changed_files": [
+        "src/requests/adapters.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: add public get_connection_with_tls_context API (CVE-2024-35195 follow-up); merged maintainer PR; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 970e8cec988421bd43da57350723b05c8ce8dc7e 92075b330a30b9883f466a43d3f7566ab849f91b"
+      }
+    },
+    {
+      "candidate_id": "ctrl_requests_6702_37",
+      "repository": "https://github.com/psf/requests",
+      "project": "requests",
+      "pr_number": 6702,
+      "title": "Merge pull request #6702 from nateprewitt/no_char_detection",
+      "merged_at": "2024-05-14T19:15:19-05:00",
+      "observation_window_days": 816,
+      "real_base_sha": "d6dded3f00afcf56a7e866cb0732799045301eb0",
+      "real_head_sha": "555b870eb19d497ddb67042645420083ec8efb02",
+      "merge_commit_sha": "0c030f78d24f29a459dbf39b28b4cc765e2153d7",
+      "diff_sha256": "689597fb1ee717611b98c790b528a382bb077873a6577a0bfb27134fd43f54c3",
+      "changed_files": [
+        "src/requests/__init__.py",
+        "src/requests/compat.py",
+        "src/requests/models.py",
+        "src/requests/packages.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: allow optional char-detection dependencies post-packaging; merged maintainer PR; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff d6dded3f00afcf56a7e866cb0732799045301eb0 555b870eb19d497ddb67042645420083ec8efb02"
+      }
+    },
+    {
+      "candidate_id": "ctrl_requests_6700_38",
+      "repository": "https://github.com/psf/requests",
+      "project": "requests",
+      "pr_number": 6700,
+      "title": "Merge pull request #6700 from franekmagiera/update-redirect-to-invalid-uri-test",
+      "merged_at": "2024-05-12T16:33:47-05:00",
+      "observation_window_days": 818,
+      "real_base_sha": "2d5f54779ad174035c5437b3b3c1146b0eaf60fe",
+      "real_head_sha": "bf24b7d8d17da34be720c19e5978b2d3bf94a53b",
+      "merge_commit_sha": "d6dded3f00afcf56a7e866cb0732799045301eb0",
+      "diff_sha256": "efdac573c66e768f2fb64cfc88588a0e096f00e5a7a4900d04dbf8d05218739c",
+      "changed_files": [
+        "tests/test_requests.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "re-read with fresh eyes: merged 1-line test fix using an invalid URI that does not make httpbin throw 500; real, merged, uncontroversial; tests-only is fine as a control",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 2d5f54779ad174035c5437b3b3c1146b0eaf60fe bf24b7d8d17da34be720c19e5978b2d3bf94a53b"
+      }
+    },
+    {
+      "candidate_id": "ctrl_requests_6682_40",
+      "repository": "https://github.com/psf/requests",
+      "project": "requests",
+      "pr_number": 6682,
+      "title": "Merge pull request #6682 from frenzymadness/pytest8",
+      "merged_at": "2024-04-11T14:49:35-05:00",
+      "observation_window_days": 849,
+      "real_base_sha": "0790ea4250bce844734f625a1a8b37d5581fd8cd",
+      "real_head_sha": "cc23d1c6445d61c1e6905cae4861d6e3c3244274",
+      "merge_commit_sha": "31ebb8102c00f8cf8b396a6356743cca4362e07b",
+      "diff_sha256": "abac4cb085b8ca08ad2de32100961cd5f5c5bc4c1c495887cab1113c72037547",
+      "changed_files": [
+        "src/requests/status_codes.py",
+        "tests/test_requests.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: fix compatibility with pytest 8 (pytest.warns deprecation); merged; ordinary test-compat fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 0790ea4250bce844734f625a1a8b37d5581fd8cd cc23d1c6445d61c1e6905cae4861d6e3c3244274"
+      }
+    },
+    {
+      "candidate_id": "ctrl_requests_6680_41",
+      "repository": "https://github.com/psf/requests",
+      "project": "requests",
+      "pr_number": 6680,
+      "title": "Merge pull request #6680 from mbeijen/rfc9110",
+      "merged_at": "2024-04-11T07:10:57-07:00",
+      "observation_window_days": 850,
+      "real_base_sha": "2a438c27b5a5828c8ea0dc958112eecffca70b12",
+      "real_head_sha": "e45b428960ff3927812fc9b555e2ac627ba95769",
+      "merge_commit_sha": "0790ea4250bce844734f625a1a8b37d5581fd8cd",
+      "diff_sha256": "dbd197e9be5e94e18c440fc6d88e17faa6a59f230551a5568f5455dc949b4049",
+      "changed_files": [
+        "src/requests/status_codes.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: add RFC 9110 HTTP status code names; merged; ordinary constants update",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 2a438c27b5a5828c8ea0dc958112eecffca70b12 e45b428960ff3927812fc9b555e2ac627ba95769"
+      }
+    },
+    {
+      "candidate_id": "ctrl_requests_6302_43",
+      "repository": "https://github.com/psf/requests",
+      "project": "requests",
+      "pr_number": 6302,
+      "title": "Merge pull request #6302 from flysee/main",
+      "merged_at": "2024-03-18T16:38:16-05:00",
+      "observation_window_days": 873,
+      "real_base_sha": "eeafb6ab3a54ab01cbf864d452ea30f5fdb67ce8",
+      "real_head_sha": "13d892bdbe9a2aa374959a166e8067c35253705d",
+      "merge_commit_sha": "8dd3b26bf59808de24fd654699f592abf6de581e",
+      "diff_sha256": "1efc260973c6ec885fa499f95913ffcd060b85a87dafe0fbb92a7786c5811452",
+      "changed_files": [
+        "src/requests/utils.py",
+        "tests/test_utils.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: fix proxy_bypass_registry returning true on empty strings; merged into 2.32.0; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff eeafb6ab3a54ab01cbf864d452ea30f5fdb67ce8 13d892bdbe9a2aa374959a166e8067c35253705d"
+      }
+    },
+    {
+      "candidate_id": "ctrl_requests_6662_44",
+      "repository": "https://github.com/psf/requests",
+      "project": "requests",
+      "pr_number": 6662,
+      "title": "Merge pull request #6662 from sigmavirus24/fix-tls-floppy",
+      "merged_at": "2024-03-14T06:25:24-05:00",
+      "observation_window_days": 878,
+      "real_base_sha": "a58d7f2ffb4d00b46dca2d70a3932a0b37e22fac",
+      "real_head_sha": "a94e9b5308ffcc3d2913ab873e9810a6601a67da",
+      "merge_commit_sha": "eeafb6ab3a54ab01cbf864d452ea30f5fdb67ce8",
+      "diff_sha256": "5379c1137152a1da70476c78c1832b845f86de5af6c2724745fd3a21f7419175",
+      "changed_files": [
+        "src/requests/adapters.py",
+        "tests/test_requests.py",
+        "tests/testserver/server.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: add local TLS test server and pool-manager context params; merged maintainer PR; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff a58d7f2ffb4d00b46dca2d70a3932a0b37e22fac a94e9b5308ffcc3d2913ab873e9810a6601a67da"
+      }
+    },
+    {
+      "candidate_id": "ctrl_requests_6655_45",
+      "repository": "https://github.com/psf/requests",
+      "project": "requests",
+      "pr_number": 6655,
+      "title": "Merge pull request #6655 from sigmavirus24/fix-tls-floppy",
+      "merged_at": "2024-03-11T06:21:59-05:00",
+      "observation_window_days": 881,
+      "real_base_sha": "eea3bbf9ac635f465ee6c9903dc57c677952dafd",
+      "real_head_sha": "c0813a2d910ea6b4f8438b91d315b8d181302356",
+      "merge_commit_sha": "a58d7f2ffb4d00b46dca2d70a3932a0b37e22fac",
+      "diff_sha256": "7114970db5b0dbea36acde567b5122bbb2358958f194980f84c7ba54910290f9",
+      "changed_files": [
+        "src/requests/adapters.py",
+        "tests/test_requests.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: use TLS settings in selecting connection pool; merged maintainer security-relevant fix; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff eea3bbf9ac635f465ee6c9903dc57c677952dafd c0813a2d910ea6b4f8438b91d315b8d181302356"
+      }
+    },
+    {
+      "candidate_id": "ctrl_requests_6562_46",
+      "repository": "https://github.com/psf/requests",
+      "project": "requests",
+      "pr_number": 6562,
+      "title": "Merge pull request #6562 from amkarn258/issue-6223",
+      "merged_at": "2024-02-23T06:26:38-06:00",
+      "observation_window_days": 898,
+      "real_base_sha": "f3f2611d832e762423f55e08899c64224902dad1",
+      "real_head_sha": "89cde235bec9374273281c1b4c9277c409246a6c",
+      "merge_commit_sha": "eea3bbf9ac635f465ee6c9903dc57c677952dafd",
+      "diff_sha256": "44894cb81100d8b346c40c1081aefb39925568de14faa206da419e836bf5d315",
+      "changed_files": [
+        "setup.py",
+        "src/requests/adapters.py",
+        "src/requests/exceptions.py",
+        "src/requests/packages.py",
+        "src/requests/status_codes.py",
+        "src/requests/utils.py",
+        "tests/test_adapters.py",
+        "tests/test_requests.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: map each chardet package to requests.packages.chardet.* (issue 6223); merged into 2.32.0; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff f3f2611d832e762423f55e08899c64224902dad1 89cde235bec9374273281c1b4c9277c409246a6c"
+      }
+    },
+    {
+      "candidate_id": "ctrl_requests_6589_48",
+      "repository": "https://github.com/psf/requests",
+      "project": "requests",
+      "pr_number": 6589,
+      "title": "Merge pull request #6589 from bruceadams/super_len_str_utf-8",
+      "merged_at": "2024-02-22T18:53:25-06:00",
+      "observation_window_days": 898,
+      "real_base_sha": "3587a5f869ea7ae2ba6b20d281d810b65aa2418e",
+      "real_head_sha": "3fd309a5c14e4cfbd96bea6c8e71b4958fe090bb",
+      "merge_commit_sha": "b8be93a721792deeadd2f498b8f77cf610e7765f",
+      "diff_sha256": "408f2f5c1a350379c36e8d6b4c8bf94b9c1c454f1e534db2f0355bedd86ff800",
+      "changed_files": [
+        "setup.py",
+        "src/requests/adapters.py",
+        "src/requests/exceptions.py",
+        "src/requests/status_codes.py",
+        "src/requests/utils.py",
+        "tests/test_adapters.py",
+        "tests/test_requests.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: super_len counts encoded bytes for str (issue 6586); merged; ordinary bug fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 3587a5f869ea7ae2ba6b20d281d810b65aa2418e 3fd309a5c14e4cfbd96bea6c8e71b4958fe090bb"
+      }
+    },
+    {
+      "candidate_id": "ctrl_requests_6644_49",
+      "repository": "https://github.com/psf/requests",
+      "project": "requests",
+      "pr_number": 6644,
+      "title": "Merge pull request #6644 from sigmavirus24/bug/6643",
+      "merged_at": "2024-02-22T18:49:42-06:00",
+      "observation_window_days": 898,
+      "real_base_sha": "382fc2c0c6c0ef0874bc65bc1175f97c073e5086",
+      "real_head_sha": "60389df6d69ce833164696dcf36cbb43336d3426",
+      "merge_commit_sha": "3587a5f869ea7ae2ba6b20d281d810b65aa2418e",
+      "diff_sha256": "5c3d5561a0a85ab2e9863630a35e9e94aee80d887448e936fd28855872fc40d5",
+      "changed_files": [
+        "src/requests/adapters.py",
+        "src/requests/exceptions.py",
+        "tests/test_adapters.py",
+        "tests/test_requests.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: trim excess leading path separators (closes 6643); merged maintainer fix; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 382fc2c0c6c0ef0874bc65bc1175f97c073e5086 60389df6d69ce833164696dcf36cbb43336d3426"
+      }
+    },
+    {
+      "candidate_id": "ctrl_requests_6629_50",
+      "repository": "https://github.com/psf/requests",
+      "project": "requests",
+      "pr_number": 6629,
+      "title": "Merge pull request #6629 from Tarty/fix-6628-jsondecode-error-not-deserializable",
+      "merged_at": "2024-02-22T12:27:37-08:00",
+      "observation_window_days": 898,
+      "real_base_sha": "7a13c041dbef42f9f3feb14110f02626f6892e9a",
+      "real_head_sha": "3ff3ff21dd45957c9e143cd500291959bb15f690",
+      "merge_commit_sha": "382fc2c0c6c0ef0874bc65bc1175f97c073e5086",
+      "diff_sha256": "50a264b4603632d801319dc742b5b576f65f58ff34286abb8066e97f0d4b7f1a",
+      "changed_files": [
+        "setup.py",
+        "src/requests/exceptions.py",
+        "tests/test_requests.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: make JSONDecodeError picklable/deserializable (fix 6628); merged; ordinary bug fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/psf/requests",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 7a13c041dbef42f9f3feb14110f02626f6892e9a 3ff3ff21dd45957c9e143cd500291959bb15f690"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_2063_01",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 2063,
+      "title": "Merge branch 'pukkandan-yt-searchurl' into yt-dl-master",
+      "merged_at": "2022-02-04T03:50:32Z",
+      "observation_window_days": 1647,
+      "real_base_sha": "78ce962f4fe020994c216dd2671546fbe58a5c67",
+      "real_head_sha": "a3373da70c97d356bd4927eff403abd261dd8f9f",
+      "merge_commit_sha": "5add3f4373287e6346ca3551239edab549284db3",
+      "diff_sha256": "56d9f356fd4bc52d3ee5a16fa959e4c42145765716e6780d57584581e57f65d1",
+      "changed_files": [
+        "test/test_all_urls.py",
+        "test/test_jsinterp.py",
+        "test/test_youtube_lists.py",
+        "test/test_youtube_signature.py",
+        "youtube_dl/compat.py",
+        "youtube_dl/extractor/extractors.py",
+        "youtube_dl/extractor/youtube.py",
+        "youtube_dl/jsinterp.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 78ce962f4fe020994c216dd2671546fbe58a5c67 a3373da70c97d356bd4927eff403abd261dd8f9f"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_2064_02",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 2064,
+      "title": "Merge branch 'UP/youtube-dl' into dl/YoutubeSearchURLIE",
+      "merged_at": "2022-01-30T01:07:28+05:30",
+      "observation_window_days": 1652,
+      "real_base_sha": "2c4cb134a90b49a4d44965b57ff43cfd45ec2d69",
+      "real_head_sha": "5014bd67c22b421207b2650d4dc874b95b36dda1",
+      "merge_commit_sha": "a3373da70c97d356bd4927eff403abd261dd8f9f",
+      "diff_sha256": "3301240ed03d64de7f818cefe383115ac6c348523089e33c355e731643605212",
+      "changed_files": [
+        "test/test_YoutubeDL.py",
+        "test/test_all_urls.py",
+        "test/test_execution.py",
+        "test/test_youtube_chapters.py",
+        "test/test_youtube_lists.py",
+        "test/test_youtube_misc.py",
+        "test/test_youtube_signature.py",
+        "youtube_dl/YoutubeDL.py",
+        "youtube_dl/__init__.py",
+        "youtube_dl/compat.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 2c4cb134a90b49a4d44965b57ff43cfd45ec2d69 5014bd67c22b421207b2650d4dc874b95b36dda1"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_20471_03",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 20471,
+      "title": "[openload] Add support for oladblock domains (#20471)",
+      "merged_at": "2019-04-16T23:50:04+07:00",
+      "observation_window_days": 2671,
+      "real_base_sha": "e6c9ae31df1196dc12607b83be01141eb52b80b6",
+      "real_head_sha": "6104cc15915abfe113152d24b18c84178e027265",
+      "merge_commit_sha": "c4341ea47ecb6ac9ea3dea89546339aa2e1d7981",
+      "diff_sha256": "ce00a0a154e7de2d7e9f1f91a019fe98087c182188344493c81b270a11ad8094",
+      "changed_files": [
+        "youtube_dl/YoutubeDL.py",
+        "youtube_dl/downloader/external.py",
+        "youtube_dl/extractor/adn.py",
+        "youtube_dl/extractor/adobeconnect.py",
+        "youtube_dl/extractor/adultswim.py",
+        "youtube_dl/extractor/aenetworks.py",
+        "youtube_dl/extractor/aol.py",
+        "youtube_dl/extractor/bfi.py",
+        "youtube_dl/extractor/biqle.py",
+        "youtube_dl/extractor/cbs.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "merged openload oladblock domain support after minor review iteration; ordinary extractor change",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff e6c9ae31df1196dc12607b83be01141eb52b80b6 6104cc15915abfe113152d24b18c84178e027265"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_20592_04",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 20592,
+      "title": "[streamango] add support for streamcherry.com (#20592)",
+      "merged_at": "2019-04-13T15:05:24+07:00",
+      "observation_window_days": 2675,
+      "real_base_sha": "11edb76610ba35aa2dc15b61d627147c739cce02",
+      "real_head_sha": "9ed06812ec8da6f1364acd00261935c334994e62",
+      "merge_commit_sha": "972d2dd0bc2a3ae0381cca5d58d382eb9511f2d0",
+      "diff_sha256": "52c25665d54684e0d1ece67117e6d2f7c66c96ed7601c2084ef89dd75451fe59",
+      "changed_files": [
+        "youtube_dl/extractor/aol.py",
+        "youtube_dl/extractor/dispeak.py",
+        "youtube_dl/extractor/extractors.py",
+        "youtube_dl/extractor/gdcvault.py",
+        "youtube_dl/extractor/jwplatform.py",
+        "youtube_dl/extractor/kaltura.py",
+        "youtube_dl/extractor/linkedin.py",
+        "youtube_dl/extractor/mgtv.py",
+        "youtube_dl/extractor/streamango.py",
+        "youtube_dl/extractor/stv.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "merged extractor improvement adding streamcherry.com alias for streamango; small and uncontroversial",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 11edb76610ba35aa2dc15b61d627147c739cce02 9ed06812ec8da6f1364acd00261935c334994e62"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_19025_05",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 19025,
+      "title": "[postprocessor/ffmpeg] Disable \"Last message repeated\" messages which cause non-zero exit status (#19025)",
+      "merged_at": "2019-01-28T22:59:00+07:00",
+      "observation_window_days": 2749,
+      "real_base_sha": "7f903dd8bfbc9c2de129d5b0be23ef62d8ca3df3",
+      "real_head_sha": "2b3afe6b0fee226bb1e61027d815df088cb40757",
+      "merge_commit_sha": "1397a790ffe17472a818c99d85a049253b91116c",
+      "diff_sha256": "b3721723ae22c36fe1623602efe8d5ef06b3966909cf8d908df6986e589d6c9e",
+      "changed_files": [
+        "youtube_dl/postprocessor/ffmpeg.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "merged 1-file ffmpeg postprocessor bug fix (Tatsh, merged by dstftw); ordinary uncontroversial change",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 7f903dd8bfbc9c2de129d5b0be23ef62d8ca3df3 2b3afe6b0fee226bb1e61027d815df088cb40757"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_15939_06",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 15939,
+      "title": "Merge pull request #15939 from sudovijay/patch-11",
+      "merged_at": "2018-03-22T14:42:35+08:00",
+      "observation_window_days": 3062,
+      "real_base_sha": "cba5d1b6b36d79fcafe0600d9805e6b82ed5388f",
+      "real_head_sha": "328ddf56a151830ae002842b7088464e4e391b5d",
+      "merge_commit_sha": "1d4a0520ba8b5fe4748ea74e1e6dda4e11f1e2f7",
+      "diff_sha256": "a59317a3ad969b9175f1411857191a84f9d7b7cbc645fcb8c51a22216c532640",
+      "changed_files": [
+        "youtube_dl/extractor/instagram.py",
+        "youtube_dl/extractor/youku.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[Youku] Update ccode'; merged 1-line extractor fix; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff cba5d1b6b36d79fcafe0600d9805e6b82ed5388f 328ddf56a151830ae002842b7088464e4e391b5d"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_2069_07",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 2069,
+      "title": "Merge branch 'sprhawk-weibo'",
+      "merged_at": "2018-01-09T18:13:11+08:00",
+      "observation_window_days": 3134,
+      "real_base_sha": "8005dc68cbdfc15b6353a071ef87d7e57d69ff59",
+      "real_head_sha": "5eca00a2e33a6ca26a7f52589e5d77bab7e5edf4",
+      "merge_commit_sha": "4df1098c3f580a20a9afc627171945389f3de312",
+      "diff_sha256": "1eb3a46cee252551cbe153fc13279cc463f52770261464a986e92fa59c91ca66",
+      "changed_files": [
+        "youtube_dl/extractor/extractors.py",
+        "youtube_dl/extractor/weibo.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 8005dc68cbdfc15b6353a071ef87d7e57d69ff59 5eca00a2e33a6ca26a7f52589e5d77bab7e5edf4"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_2070_08",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 2070,
+      "title": "Merge branch 'weibo' of https://github.com/sprhawk/youtube-dl into sprhawk-weibo",
+      "merged_at": "2018-01-09T17:31:52+08:00",
+      "observation_window_days": 3134,
+      "real_base_sha": "8005dc68cbdfc15b6353a071ef87d7e57d69ff59",
+      "real_head_sha": "6648fd8ad6e581354f46c840465cff4c92d2c6f3",
+      "merge_commit_sha": "1dd38dc0f40a7c3adbd9e346aa603d8ac566045a",
+      "diff_sha256": "e7b5e0f3d728f6027317b46802120f886221bd30cf02491b862a3bea6661557a",
+      "changed_files": [
+        "test/test_InfoExtractor.py",
+        "youtube_dl/YoutubeDL.py",
+        "youtube_dl/compat.py",
+        "youtube_dl/downloader/hls.py",
+        "youtube_dl/extractor/abc.py",
+        "youtube_dl/extractor/acast.py",
+        "youtube_dl/extractor/aws.py",
+        "youtube_dl/extractor/bilibili.py",
+        "youtube_dl/extractor/canalplus.py",
+        "youtube_dl/extractor/collegerama.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 8005dc68cbdfc15b6353a071ef87d7e57d69ff59 6648fd8ad6e581354f46c840465cff4c92d2c6f3"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_2071_09",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 2071,
+      "title": "Merge branch 'master' of github.com:rg3/youtube-dl into weibo",
+      "merged_at": "2017-12-26T22:27:26+08:00",
+      "observation_window_days": 3147,
+      "real_base_sha": "42a1012c7767306626c5358a18ad3e86417bd7b7",
+      "real_head_sha": "db145ee54a57f5ccc89639de8c589eb111a91b19",
+      "merge_commit_sha": "c33de004e13da11f1ae3cad7310b36500cfb9d28",
+      "diff_sha256": "fa837a9d150c5f03e1a876aebb2e0089a52f75d0e611197a856754fe23a97224",
+      "changed_files": [
+        "setup.py",
+        "test/test_utils.py",
+        "youtube_dl/YoutubeDL.py",
+        "youtube_dl/downloader/fragment.py",
+        "youtube_dl/downloader/http.py",
+        "youtube_dl/extractor/afreecatv.py",
+        "youtube_dl/extractor/animeondemand.py",
+        "youtube_dl/extractor/ard.py",
+        "youtube_dl/extractor/aws.py",
+        "youtube_dl/extractor/bbc.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 42a1012c7767306626c5358a18ad3e86417bd7b7 db145ee54a57f5ccc89639de8c589eb111a91b19"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_14392_10",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 14392,
+      "title": "Merge pull request #14392 from snipem/nbc-fix",
+      "merged_at": "2017-10-03T14:49:55Z",
+      "observation_window_days": 3231,
+      "real_base_sha": "d2ae7e24e5c574fa45621771a134e58b21443e5f",
+      "real_head_sha": "b7e14f06a4a4fbaafc593c2f118e4b0f5d8d7937",
+      "merge_commit_sha": "bfd484ccff4ea9d16af9515416d4f35d14d5b41d",
+      "diff_sha256": "421f3154cd85784b9fc32b4beecab035182799e9ce31a1fc0660c286a7a61351",
+      "changed_files": [
+        "youtube_dl/extractor/nbc.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: 'Fix for JSON meta data download' for NBC sites; merged; ordinary bug fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff d2ae7e24e5c574fa45621771a134e58b21443e5f b7e14f06a4a4fbaafc593c2f118e4b0f5d8d7937"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_14225_11",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 14225,
+      "title": "Merge pull request #14225 from Tithen-Firion/openload-phantomjs-method",
+      "merged_at": "2017-09-16T02:28:28+08:00",
+      "observation_window_days": 3249,
+      "real_base_sha": "a4245acef85ac2414e77cf2cda4cb39adb617241",
+      "real_head_sha": "feee8d32e45c9521426cf4a089c70f37542f0065",
+      "merge_commit_sha": "a88d461dff67205fcec684426afbcbeb4b0e7cf5",
+      "diff_sha256": "7f3110e71c0fe787994256564879224c44f94cf7102ddfd0b98cf2a3bd4bc2ac",
+      "changed_files": [
+        "devscripts/prepare_manpage.py",
+        "test/test_InfoExtractor.py",
+        "test/test_YoutubeDL.py",
+        "test/test_options.py",
+        "test/test_utils.py",
+        "test/test_youtube_chapters.py",
+        "youtube_dl/YoutubeDL.py",
+        "youtube_dl/compat.py",
+        "youtube_dl/downloader/common.py",
+        "youtube_dl/downloader/dash.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: 'Openload phantomjs method'; merged; ordinary site fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff a4245acef85ac2414e77cf2cda4cb39adb617241 feee8d32e45c9521426cf4a089c70f37542f0065"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_12909_12",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 12909,
+      "title": "Merge pull request #12909 from remitamine/raw-sub",
+      "merged_at": "2017-09-13T17:36:40+08:00",
+      "observation_window_days": 3252,
+      "real_base_sha": "2f483758bc6a6661f1215c38161ee626d90ab655",
+      "real_head_sha": "5ff1bc0cc10bf3006834c4b49fc36d733c83ce5c",
+      "merge_commit_sha": "757984af90ce924f917ce9d940ebd120e95a4c4e",
+      "diff_sha256": "ebfaf6f45c4e3aeef424531a7c7d1771e45576fcd3588458512bbb7e21f1ba4e",
+      "changed_files": [
+        "devscripts/prepare_manpage.py",
+        "test/test_InfoExtractor.py",
+        "test/test_YoutubeDL.py",
+        "test/test_options.py",
+        "test/test_utils.py",
+        "test/test_youtube_chapters.py",
+        "youtube_dl/YoutubeDL.py",
+        "youtube_dl/compat.py",
+        "youtube_dl/downloader/common.py",
+        "youtube_dl/downloader/dash.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[YoutubeDL] write raw subtitle files' (UTF-16 subs fix); merged; ordinary bug fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 2f483758bc6a6661f1215c38161ee626d90ab655 5ff1bc0cc10bf3006834c4b49fc36d733c83ce5c"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_13669_14",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 13669,
+      "title": "Merge pull request #13669 from bmwiedemann/master",
+      "merged_at": "2017-08-22T21:51:20+08:00",
+      "observation_window_days": 3274,
+      "real_base_sha": "8d9c2a681a1dcf99ab949e79b1b9da17513e11d8",
+      "real_head_sha": "305d99f0bd1effc0e164792199bf93a872da2962",
+      "merge_commit_sha": "7b67b60773b70ac74edd3993eeea6fe9b790c664",
+      "diff_sha256": "1889cea405774e9ad5b274308bd84d42ea9e8a113b4d73b0a9a5528b4cb67300",
+      "changed_files": [
+        "test/test_InfoExtractor.py",
+        "test/test_YoutubeDL.py",
+        "test/test_options.py",
+        "test/test_utils.py",
+        "youtube_dl/YoutubeDL.py",
+        "youtube_dl/downloader/dash.py",
+        "youtube_dl/downloader/hls.py",
+        "youtube_dl/extractor/amcnetworks.py",
+        "youtube_dl/extractor/aparat.py",
+        "youtube_dl/extractor/ard.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[build] Override timestamps in zip file' for reproducible builds; merged; ordinary build maintenance",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 8d9c2a681a1dcf99ab949e79b1b9da17513e11d8 305d99f0bd1effc0e164792199bf93a872da2962"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_13805_15",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 13805,
+      "title": "Merge pull request #13805 from gam2046/master",
+      "merged_at": "2017-08-17T16:11:35+08:00",
+      "observation_window_days": 3279,
+      "real_base_sha": "a1aa6596626a98d068780f092367b87398840c47",
+      "real_head_sha": "134d85a7bda9189dc3b07dc10a69699084529a6a",
+      "merge_commit_sha": "d22b67f35671c56310fea2effa9ab83eac6e8aee",
+      "diff_sha256": "d93cfe8ca745b9434891d36a4d19cf4dbe24576a3c9abd9603c362b9ad097bfd",
+      "changed_files": [
+        "test/test_InfoExtractor.py",
+        "youtube_dl/extractor/common.py",
+        "youtube_dl/extractor/periscope.py",
+        "youtube_dl/extractor/qqmusic.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: 'Fix QQ Music url changed'; merged; ordinary extractor fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff a1aa6596626a98d068780f092367b87398840c47 134d85a7bda9189dc3b07dc10a69699084529a6a"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_12861_16",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 12861,
+      "title": "Merge pull request #12861 from Tithen-Firion/cbsinteractive-fix",
+      "merged_at": "2017-05-24T10:21:33+02:00",
+      "observation_window_days": 3364,
+      "real_base_sha": "0551f1b07b41bf64b4b8c1150abec2903e37a81f",
+      "real_head_sha": "96820c1c6bd2a9613725fc17fd44fd00d3301475",
+      "merge_commit_sha": "9e35298f973b25c513e30bbc1fe2a05a1c6b7fab",
+      "diff_sha256": "8960fd4eea1b3500b57f42fd9402df94bea62f7112fa990691b6eb3cbe420fd1",
+      "changed_files": [
+        "test/test_InfoExtractor.py",
+        "test/test_download.py",
+        "test/test_utils.py",
+        "test/test_youtube_chapters.py",
+        "youtube_dl/YoutubeDL.py",
+        "youtube_dl/downloader/external.py",
+        "youtube_dl/downloader/fragment.py",
+        "youtube_dl/extractor/adobepass.py",
+        "youtube_dl/extractor/adultswim.py",
+        "youtube_dl/extractor/aenetworks.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[cbsinteractive] update extractor and test cases'; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 0551f1b07b41bf64b4b8c1150abec2903e37a81f 96820c1c6bd2a9613725fc17fd44fd00d3301475"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_2078_17",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 2078,
+      "title": "Merge branch 'master' into openload-phantomjs-method",
+      "merged_at": "2017-05-04T11:00:06+02:00",
+      "observation_window_days": 3384,
+      "real_base_sha": "7552f96352f35cd877e52fd0770b77ba1856fc62",
+      "real_head_sha": "0c265486016b06342fb257966474ce591667aaff",
+      "merge_commit_sha": "c89267d31ad99eb5b1a87cd354de5280a2a087b1",
+      "diff_sha256": "a808b5472d063e259e66fc3d63414ee89608dadce75c170b80ca146eae44a2fa",
+      "changed_files": [
+        "test/test_InfoExtractor.py",
+        "test/test_YoutubeDL.py",
+        "test/test_download.py",
+        "test/test_utils.py",
+        "youtube_dl/YoutubeDL.py",
+        "youtube_dl/__init__.py",
+        "youtube_dl/downloader/common.py",
+        "youtube_dl/downloader/dash.py",
+        "youtube_dl/downloader/external.py",
+        "youtube_dl/downloader/f4m.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 7552f96352f35cd877e52fd0770b77ba1856fc62 0c265486016b06342fb257966474ce591667aaff"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_12869_18",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 12869,
+      "title": "Merge pull request #12869 from Tithen-Firion/cbc-update-tests",
+      "merged_at": "2017-04-29T21:34:18+08:00",
+      "observation_window_days": 3389,
+      "real_base_sha": "a4c81e49688f081834656c6bbf3afc8bab9820cd",
+      "real_head_sha": "c95e2b59115bff314ae833f7d3fd08ef1768c6f8",
+      "merge_commit_sha": "27e70a8f6cc3f002983a31850fad81c572ced277",
+      "diff_sha256": "44bd3cf64df4f1bf1ec6f610cb9c978213c0e81f649ff48638b8ffc059e1f1f8",
+      "changed_files": [
+        "test/test_InfoExtractor.py",
+        "test/test_download.py",
+        "test/test_utils.py",
+        "youtube_dl/downloader/external.py",
+        "youtube_dl/downloader/fragment.py",
+        "youtube_dl/extractor/adobepass.py",
+        "youtube_dl/extractor/aenetworks.py",
+        "youtube_dl/extractor/afreecatv.py",
+        "youtube_dl/extractor/anvato.py",
+        "youtube_dl/extractor/appleconnect.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[cbc] update test cases' - inline extractor _TESTS refresh; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff a4c81e49688f081834656c6bbf3afc8bab9820cd c95e2b59115bff314ae833f7d3fd08ef1768c6f8"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_12854_19",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 12854,
+      "title": "Merge pull request #12854 from Tithen-Firion/appletrailer-test-fix",
+      "merged_at": "2017-04-29T19:24:38+08:00",
+      "observation_window_days": 3389,
+      "real_base_sha": "d19093bd50a0123b7d00c263b012d6d391814970",
+      "real_head_sha": "76c19510368d61acd3e1315d93ac6f16dbeb2c65",
+      "merge_commit_sha": "a1ebfd449486ae5c4e8c38a38e6d5142ce4740e6",
+      "diff_sha256": "33429bc037d772b21a7481e0a429ef62d772db299327d2c002370ef353b3fe2b",
+      "changed_files": [
+        "test/test_InfoExtractor.py",
+        "test/test_download.py",
+        "test/test_utils.py",
+        "youtube_dl/downloader/external.py",
+        "youtube_dl/downloader/fragment.py",
+        "youtube_dl/extractor/adobepass.py",
+        "youtube_dl/extractor/aenetworks.py",
+        "youtube_dl/extractor/afreecatv.py",
+        "youtube_dl/extractor/anvato.py",
+        "youtube_dl/extractor/appleconnect.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[appletrailers] update test cases' - inline extractor _TESTS refresh; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff d19093bd50a0123b7d00c263b012d6d391814970 76c19510368d61acd3e1315d93ac6f16dbeb2c65"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_12906_20",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 12906,
+      "title": "Merge pull request #12906 from Tithen-Firion/clean-html-fix",
+      "merged_at": "2017-04-29T15:58:45+08:00",
+      "observation_window_days": 3389,
+      "real_base_sha": "24eb7c257807aceef713f6d01824cf600a9d6232",
+      "real_head_sha": "9222d945107411ba657dab965fab63de8e8781b9",
+      "merge_commit_sha": "d19093bd50a0123b7d00c263b012d6d391814970",
+      "diff_sha256": "6d3464c574ca61bc8099bb07a9fad9d8a5af13530c5872ffc78e3894b5764656",
+      "changed_files": [
+        "test/test_utils.py",
+        "youtube_dl/downloader/external.py",
+        "youtube_dl/extractor/tvplayer.py",
+        "youtube_dl/extractor/xtube.py",
+        "youtube_dl/utils.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[utils] Fix inconsistent output of clean_html'; merged; ordinary bug fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 24eb7c257807aceef713f6d01824cf600a9d6232 9222d945107411ba657dab965fab63de8e8781b9"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_12752_21",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 12752,
+      "title": "Merge pull request #12752 from triple-j/go90_improvements_pull_request",
+      "merged_at": "2017-04-15T23:48:13+02:00",
+      "observation_window_days": 3402,
+      "real_base_sha": "022250a594750cf6d2e000e9ea142146d028bfe9",
+      "real_head_sha": "334f41e0d827a361b4b8d39f55b66221281d92ae",
+      "merge_commit_sha": "72950c4dce413d4274323173dc3e7a2c17d93392",
+      "diff_sha256": "9282dcb8f350255b0e0b2e4b117225cf1c52a0a244a7deeb685b9589029aa503",
+      "changed_files": [
+        "test/test_YoutubeDL.py",
+        "youtube_dl/YoutubeDL.py",
+        "youtube_dl/extractor/brightcove.py",
+        "youtube_dl/extractor/extractors.py",
+        "youtube_dl/extractor/generic.py",
+        "youtube_dl/extractor/go90.py",
+        "youtube_dl/extractor/streamango.py",
+        "youtube_dl/extractor/wsj.py",
+        "youtube_dl/version.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[go90] Improve extraction' with metadata and subtitles; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 022250a594750cf6d2e000e9ea142146d028bfe9 334f41e0d827a361b4b8d39f55b66221281d92ae"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_12307_22",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 12307,
+      "title": "Merge pull request #12307 from rndusr/fix/str-item-assignment",
+      "merged_at": "2017-03-26T21:51:09+08:00",
+      "observation_window_days": 3423,
+      "real_base_sha": "2bfaf89b6cc6dd07ed6ca32086c72a98b67c20ba",
+      "real_head_sha": "4f06c1c9fcbfbc74b81b5fa89a616914b5ce5aad",
+      "merge_commit_sha": "cc63259d18fcb2940402d35139c40077481e5a22",
+      "diff_sha256": "1b91cfac33417d886a8ed67b5dfd6b16b79d63e1e76091b36d0f545bf3f6ff45",
+      "changed_files": [
+        "youtube_dl/downloader/__init__.py",
+        "youtube_dl/downloader/hls.py",
+        "youtube_dl/extractor/common.py",
+        "youtube_dl/extractor/generic.py",
+        "youtube_dl/extractor/tvnoe.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: fix jwplayer 'str object does not support item assignment'; merged after discussion; ordinary bug fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 2bfaf89b6cc6dd07ed6ca32086c72a98b67c20ba 4f06c1c9fcbfbc74b81b5fa89a616914b5ce5aad"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_2084_23",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 2084,
+      "title": "Merge branch 'master' of github.com-rndusr:rg3/youtube-dl into fix/str-item-assignment",
+      "merged_at": "2017-03-25T21:36:59+01:00",
+      "observation_window_days": 3423,
+      "real_base_sha": "c73e330e7adc9c0c15ac51aeea8fbb7dad95351a",
+      "real_head_sha": "942b44a0525f677924c660bcb00902d705d91fc2",
+      "merge_commit_sha": "4f06c1c9fcbfbc74b81b5fa89a616914b5ce5aad",
+      "diff_sha256": "552483c86c07c349f4e2ef6cfad77230456da3a68d90a442316044c4423faf83",
+      "changed_files": [
+        "test/test_InfoExtractor.py",
+        "test/test_compat.py",
+        "test/test_download.py",
+        "test/test_utils.py",
+        "youtube_dl/YoutubeDL.py",
+        "youtube_dl/__init__.py",
+        "youtube_dl/cache.py",
+        "youtube_dl/downloader/external.py",
+        "youtube_dl/downloader/hls.py",
+        "youtube_dl/extractor/addanime.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff c73e330e7adc9c0c15ac51aeea8fbb7dad95351a 942b44a0525f677924c660bcb00902d705d91fc2"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_2085_24",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 2085,
+      "title": "Merge branch 'master' of github.com:rg3/youtube-dl",
+      "merged_at": "2017-02-13T22:58:50+07:00",
+      "observation_window_days": 3463,
+      "real_base_sha": "1e2c3f61fc952620a52a8a3a79bcd1a6f7d8ecae",
+      "real_head_sha": "89c6691f9d130ec63552a6ece4743caa572fc962",
+      "merge_commit_sha": "50fd3c2c6992693572ca4ff95e06a32cedb0ee55",
+      "diff_sha256": "014f0e4639f0b18041a8a895069a5419421a7b9a7c1e9aa9aa7ac99330454a67",
+      "changed_files": [
+        "youtube_dl/extractor/bellmedia.py",
+        "youtube_dl/extractor/disney.py",
+        "youtube_dl/extractor/generic.py",
+        "youtube_dl/extractor/limelight.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 1e2c3f61fc952620a52a8a3a79bcd1a6f7d8ecae 89c6691f9d130ec63552a6ece4743caa572fc962"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_12085_25",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 12085,
+      "title": "Merge pull request #12085 from wiiaboo/python2",
+      "merged_at": "2017-02-12T00:42:43+08:00",
+      "observation_window_days": 3465,
+      "real_base_sha": "68c22c4c15a608a7067f658f5facc1ad8334c03a",
+      "real_head_sha": "2f49bcd69076626db1b789192dd113458b1eb01c",
+      "merge_commit_sha": "f3915452ded79ebc52126a33359739ecc1594f67",
+      "diff_sha256": "5b39caeaef54288d23c6d3315b6c051b67ae791dd9c9b4fad31bde06e9fed854",
+      "changed_files": [
+        "youtube_dl/extractor/iqiyi.py",
+        "youtube_dl/utils.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: utils.py workaround for TypeError with Python 2.7.13 on Windows; merged; ordinary bug workaround",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 68c22c4c15a608a7067f658f5facc1ad8334c03a 2f49bcd69076626db1b789192dd113458b1eb01c"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_11901_26",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 11901,
+      "title": "Merge pull request #11901 from ThomasChr/randonplaylistorder",
+      "merged_at": "2017-02-03T18:53:14+08:00",
+      "observation_window_days": 3474,
+      "real_base_sha": "df0588a31f42010d4d43a428ca8a8d5908a960c9",
+      "real_head_sha": "75822ca7909d7f7e15694f73b05b2bf0f1fa61f3",
+      "merge_commit_sha": "8939f784d92a8267f5bb1967e7953c2952ca243c",
+      "diff_sha256": "a27f571bfae0f3377f7d09c3ac7e7ac90c6c7ac29aec56a456692b4e9e8d085b",
+      "changed_files": [
+        "test/test_utils.py",
+        "youtube_dl/YoutubeDL.py",
+        "youtube_dl/__init__.py",
+        "youtube_dl/compat.py",
+        "youtube_dl/downloader/external.py",
+        "youtube_dl/extractor/bilibili.py",
+        "youtube_dl/extractor/cbc.py",
+        "youtube_dl/extractor/common.py",
+        "youtube_dl/extractor/crunchyroll.py",
+        "youtube_dl/extractor/douyutv.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: new --playlist-random parameter; merged feature; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff df0588a31f42010d4d43a428ca8a8d5908a960c9 75822ca7909d7f7e15694f73b05b2bf0f1fa61f3"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_2088_27",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 2088,
+      "title": "Merge branch 'fstirlitz-filmon'",
+      "merged_at": "2017-02-03T10:15:52+01:00",
+      "observation_window_days": 3474,
+      "real_base_sha": "d7f9242e301fa7c08542932c9348140cf2e07172",
+      "real_head_sha": "4ce3407d089ae8c34341e6d68267910683d4b500",
+      "merge_commit_sha": "df0588a31f42010d4d43a428ca8a8d5908a960c9",
+      "diff_sha256": "d3d26ff3543b74c98aef5a611d80fae5b75a40d3552e6bad5e9b9bc48e811c0c",
+      "changed_files": [
+        "devscripts/bash-completion.py",
+        "devscripts/buildserver.py",
+        "devscripts/create-github-release.py",
+        "devscripts/fish-completion.py",
+        "devscripts/generate_aes_testdata.py",
+        "devscripts/gh-pages/update-sites.py",
+        "devscripts/make_contributing.py",
+        "devscripts/make_lazy_extractors.py",
+        "devscripts/make_supportedsites.py",
+        "devscripts/prepare_manpage.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff d7f9242e301fa7c08542932c9348140cf2e07172 4ce3407d089ae8c34341e6d68267910683d4b500"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_11778_28",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 11778,
+      "title": "Merge pull request #11778 from h4ck3rm1k3/master",
+      "merged_at": "2017-01-19T19:32:29+08:00",
+      "observation_window_days": 3489,
+      "real_base_sha": "eb3f008c9e686f38c50511004d5c9a51b2e8cdd2",
+      "real_head_sha": "cccd70a2752ad079ed560e42ff085adcabebaac2",
+      "merge_commit_sha": "1076858f76ac674f967c3e0cfaf9cd237c34ff62",
+      "diff_sha256": "b84d7b94baf8e78700ac7f7d98ff434168c44b466837fe69f466333317d5be8d",
+      "changed_files": [
+        "youtube_dl/extractor/flipagram.py",
+        "youtube_dl/extractor/vimeo.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: 'Fix typos' - comment-only fixes inside two extractor source files (flipagram.py, vimeo.py); merged; known-quiet ordinary control",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff eb3f008c9e686f38c50511004d5c9a51b2e8cdd2 cccd70a2752ad079ed560e42ff085adcabebaac2"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_11239_30",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 11239,
+      "title": "Merge pull request #11239 from josephfrazier/patch-1",
+      "merged_at": "2016-11-21T12:24:11+08:00",
+      "observation_window_days": 3548,
+      "real_base_sha": "8f8f182d0baf04c31e95582aa7eedea940e0cdd2",
+      "real_head_sha": "dc6a9e41955219daa4a353846a2183f6b5c910e5",
+      "merge_commit_sha": "0bb58a208bcb2b6de3a4b20655d35df281ac531f",
+      "diff_sha256": "08f2d1fb52d7142989b5dffc02f770a0cba882cb69fcf9e7e8d93204419a9a01",
+      "changed_files": [
+        "youtube_dl/extractor/crunchyroll.py",
+        "youtube_dl/extractor/generic.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "genuine read: PR is '[CONTRIBUTING.md] Fix broken link' - documentation file only, no runtime behavior; consistent with DOCS-ONLY exclusions",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 8f8f182d0baf04c31e95582aa7eedea940e0cdd2 dc6a9e41955219daa4a353846a2183f6b5c910e5"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_2091_31",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 2091,
+      "title": "Merge branch 'DarkstaIkers-master'",
+      "merged_at": "2016-11-20T00:07:35+08:00",
+      "observation_window_days": 3549,
+      "real_base_sha": "0aacd2deb1075e0d4d4b8b23b9a65b3967a1d658",
+      "real_head_sha": "303b38fa84eee94a51961e5273b4dbe174266d26",
+      "merge_commit_sha": "2176e466e0261209e52a771e66d098ef8ed41e10",
+      "diff_sha256": "ed15a75ff103705527e89d1a6b8f1acda2193651128d4902920e2650330221b8",
+      "changed_files": [
+        "youtube_dl/extractor/crunchyroll.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 0aacd2deb1075e0d4d4b8b23b9a65b3967a1d658 303b38fa84eee94a51961e5273b4dbe174266d26"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_2092_32",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 2092,
+      "title": "Merge branch 'master' of https://github.com/DarkstaIkers/youtube-dl into DarkstaIkers-master",
+      "merged_at": "2016-11-20T00:05:11+08:00",
+      "observation_window_days": 3549,
+      "real_base_sha": "0aacd2deb1075e0d4d4b8b23b9a65b3967a1d658",
+      "real_head_sha": "6cbb20bb090845898fcc368beed45708f05bf908",
+      "merge_commit_sha": "fb27d0ce5e91216296e3406d461fe5b7af78c477",
+      "diff_sha256": "97b261f9716685f8200f0faea0d5e1a1b47f4afc066ad430744538137c71f835",
+      "changed_files": [
+        "devscripts/bash-completion.py",
+        "devscripts/buildserver.py",
+        "devscripts/create-github-release.py",
+        "devscripts/fish-completion.py",
+        "devscripts/generate_aes_testdata.py",
+        "devscripts/gh-pages/generate-download.py",
+        "devscripts/gh-pages/update-sites.py",
+        "devscripts/lazy_load_template.py",
+        "devscripts/make_contributing.py",
+        "devscripts/make_lazy_extractors.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 0aacd2deb1075e0d4d4b8b23b9a65b3967a1d658 6cbb20bb090845898fcc368beed45708f05bf908"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_11210_33",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 11210,
+      "title": "Merge pull request #11210 from FooBarQuaxx/patch-2",
+      "merged_at": "2016-11-16T23:29:37+08:00",
+      "observation_window_days": 3552,
+      "real_base_sha": "d76767c90ec8d0edfabfaf51b7ab28182196d9dd",
+      "real_head_sha": "b2fc1c4fb965c08067cf42e5a7aaab45df8c2d5f",
+      "merge_commit_sha": "315cb86a95d6e5c67fef27a88d96477786072b93",
+      "diff_sha256": "ac4f8ec3915144f8e218b683d9394597ac255c5f93635d156231d0faf543db45",
+      "changed_files": [
+        "test/test_jsinterp.py",
+        "youtube_dl/__init__.py",
+        "youtube_dl/extractor/openload.py",
+        "youtube_dl/jsinterp.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: 'Strip only args urls'; small merged improvement; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff d76767c90ec8d0edfabfaf51b7ab28182196d9dd b2fc1c4fb965c08067cf42e5a7aaab45df8c2d5f"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_11122_34",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 11122,
+      "title": "Merge pull request #11122 from kasper93/openload",
+      "merged_at": "2016-11-16T20:43:19+08:00",
+      "observation_window_days": 3553,
+      "real_base_sha": "58355a3bf163349831b076c0fac4c09a286d5aa4",
+      "real_head_sha": "95ad9ce573033006b08c4f1a440f3ff04c20d8b3",
+      "merge_commit_sha": "eceba9f805e395429d1850ff2a339728c9dfed7f",
+      "diff_sha256": "ea92fa43c2f33a19bbca70772ea06056525b54d49422b5de92ab9d5f9d773065",
+      "changed_files": [
+        "test/test_jsinterp.py",
+        "youtube_dl/downloader/f4m.py",
+        "youtube_dl/downloader/fragment.py",
+        "youtube_dl/downloader/hls.py",
+        "youtube_dl/extractor/afreecatv.py",
+        "youtube_dl/extractor/cda.py",
+        "youtube_dl/extractor/common.py",
+        "youtube_dl/extractor/nrk.py",
+        "youtube_dl/extractor/openload.py",
+        "youtube_dl/extractor/plays.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[openload] Fix extraction' follow-up restoring aadecode; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 58355a3bf163349831b076c0fac4c09a286d5aa4 95ad9ce573033006b08c4f1a440f3ff04c20d8b3"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_2095_35",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 2095,
+      "title": "Merge branch 'johnhawkinson-stdin2'",
+      "merged_at": "2016-10-22T13:10:27+08:00",
+      "observation_window_days": 3578,
+      "real_base_sha": "69c2d42bd730b4ea07fe5ba9015049423b71c8a9",
+      "real_head_sha": "5378f8ce0d59d0a948d2597b175b2b1cff3e8bb2",
+      "merge_commit_sha": "e034cbc581c79b14c6337adf51bf4a99f726302d",
+      "diff_sha256": "d84fe28d46561d671d19af0160815b3b77b0300c32db0d9472150ceaaaf13697",
+      "changed_files": [
+        "youtube_dl/utils.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 69c2d42bd730b4ea07fe5ba9015049423b71c8a9 5378f8ce0d59d0a948d2597b175b2b1cff3e8bb2"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_10971_36",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 10971,
+      "title": "Merge pull request #10971 from kasper93/openload",
+      "merged_at": "2016-10-20T04:18:27+08:00",
+      "observation_window_days": 3580,
+      "real_base_sha": "a81dc8215127b4e9247bc390ade7bcf07b5079c3",
+      "real_head_sha": "60633ae9a03bd0b7008870509b47800a16969b5f",
+      "merge_commit_sha": "ad9fd84004d44c30d8b160f24ed1e58a4f95428f",
+      "diff_sha256": "d62b5f0d8086514de82a6673eebc7568b25cfe5b29c70eb9eeb0879273aba4f8",
+      "changed_files": [
+        "youtube_dl/extractor/openload.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[openload] Fix extraction' (kasper93); merged same day; ordinary site fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff a81dc8215127b4e9247bc390ade7bcf07b5079c3 60633ae9a03bd0b7008870509b47800a16969b5f"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_10819_37",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 10819,
+      "title": "Merge pull request #10819 from raleeper/adobepass",
+      "merged_at": "2016-10-19T20:16:24+01:00",
+      "observation_window_days": 3580,
+      "real_base_sha": "02af6ec70784d168fd27f379a1bf1d0f228f91b3",
+      "real_head_sha": "46f6052950585dbd8f93240984e7c0f7045fac56",
+      "merge_commit_sha": "9218a6b4f5292cc3d7761484e6b5dbe1e7a1a998",
+      "diff_sha256": "d3b4803b8b174ecc3af610704e36d674a64d5600fdafa66336b9480ac643a8b3",
+      "changed_files": [
+        "devscripts/lazy_load_template.py",
+        "docs/conf.py",
+        "setup.py",
+        "test/test_http.py",
+        "youtube_dl/YoutubeDL.py",
+        "youtube_dl/__init__.py",
+        "youtube_dl/downloader/common.py",
+        "youtube_dl/downloader/http.py",
+        "youtube_dl/extractor/abc.py",
+        "youtube_dl/extractor/adobepass.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[adobepass] Add Comcast'; merged after review; ordinary provider addition",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 02af6ec70784d168fd27f379a1bf1d0f228f91b3 46f6052950585dbd8f93240984e7c0f7045fac56"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_2098_38",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 2098,
+      "title": "Merge branch 'pyx-huajiao'",
+      "merged_at": "2016-10-15T14:56:00+08:00",
+      "observation_window_days": 3585,
+      "real_base_sha": "77c5b98dcd737accf6b40321db5a2494a4702af4",
+      "real_head_sha": "f605242bfcfe53403019f8bfcb3e10466992df7c",
+      "merge_commit_sha": "4102e64051e6949f2618f9a621641506c13a6163",
+      "diff_sha256": "949d586eeb0deb47922095a73dd5f75c0390141c59aa02a86799759b65510850",
+      "changed_files": [
+        "youtube_dl/extractor/extractors.py",
+        "youtube_dl/extractor/huajiao.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 77c5b98dcd737accf6b40321db5a2494a4702af4 f605242bfcfe53403019f8bfcb3e10466992df7c"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_2099_39",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 2099,
+      "title": "Merge branch 'huajiao' of https://github.com/pyx/youtube-dl into pyx-huajiao",
+      "merged_at": "2016-10-15T14:53:05+08:00",
+      "observation_window_days": 3585,
+      "real_base_sha": "77c5b98dcd737accf6b40321db5a2494a4702af4",
+      "real_head_sha": "2e638d7bcae26ef3f8a9d707d49c897e19571a0e",
+      "merge_commit_sha": "a347a0d08875c27287f876c2016b8c45dac051ac",
+      "diff_sha256": "625c78e87feb638d9245fa9b1800a15ed2601d6c5bddef90c96094f66f5bfdad",
+      "changed_files": [
+        "youtube_dl/extractor/canalplus.py",
+        "youtube_dl/extractor/carambatv.py",
+        "youtube_dl/extractor/cbsinteractive.py",
+        "youtube_dl/extractor/chirbit.py",
+        "youtube_dl/extractor/clipfish.py",
+        "youtube_dl/extractor/cmt.py",
+        "youtube_dl/extractor/crunchyroll.py",
+        "youtube_dl/extractor/extractors.py",
+        "youtube_dl/extractor/huajiao.py",
+        "youtube_dl/extractor/orf.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 77c5b98dcd737accf6b40321db5a2494a4702af4 2e638d7bcae26ef3f8a9d707d49c897e19571a0e"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_10829_40",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 10829,
+      "title": "Merge pull request #10829 from TRox1972/pornoxo_improve",
+      "merged_at": "2016-10-02T20:19:34+08:00",
+      "observation_window_days": 3598,
+      "real_base_sha": "6c152ce20f7bd5f1fbb786abe70c4aa3412aef26",
+      "real_head_sha": "567a5996cac5f3ba2d06748cbbfb295eab48074c",
+      "merge_commit_sha": "25291b979a7ff8dc7ab57729a724e7e372c65c4b",
+      "diff_sha256": "3ff7f19e0259a34fede52c82383c6cd71d22c29f35b747339a21c7d7c8dc53c3",
+      "changed_files": [
+        "youtube_dl/__init__.py",
+        "youtube_dl/downloader/http.py",
+        "youtube_dl/extractor/amcnetworks.py",
+        "youtube_dl/extractor/byutv.py",
+        "youtube_dl/extractor/clubic.py",
+        "youtube_dl/extractor/criterion.py",
+        "youtube_dl/extractor/extractors.py",
+        "youtube_dl/extractor/generic.py",
+        "youtube_dl/extractor/jwplatform.py",
+        "youtube_dl/extractor/periscope.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[pornoxo] Improve metadata extraction'; merged; ordinary extractor improvement",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 6c152ce20f7bd5f1fbb786abe70c4aa3412aef26 567a5996cac5f3ba2d06748cbbfb295eab48074c"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_10818_41",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 10818,
+      "title": "Merge pull request #10818 from TRox1972/criterion_match_id",
+      "merged_at": "2016-10-01T19:49:18+08:00",
+      "observation_window_days": 3599,
+      "real_base_sha": "9bd7bd0b8054231adbeb2a0eddd42a0b969fd6c4",
+      "real_head_sha": "9c51a2464276f5eb26d1b571d32052df55d6ead9",
+      "merge_commit_sha": "63e0fd5bccf5cfb85e00e5935f4b6961ff26c58c",
+      "diff_sha256": "46db54c27a5ca08d0b54937d9424f31cf03f152acaba221fec31b8babccb3366",
+      "changed_files": [
+        "test/test_utils.py",
+        "youtube_dl/__init__.py",
+        "youtube_dl/downloader/http.py",
+        "youtube_dl/extractor/aftonbladet.py",
+        "youtube_dl/extractor/clubic.py",
+        "youtube_dl/extractor/criterion.py",
+        "youtube_dl/extractor/dctp.py",
+        "youtube_dl/extractor/extractors.py",
+        "youtube_dl/extractor/instagram.py",
+        "youtube_dl/extractor/ketnet.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[criterion] Rely on _match_id, improve regex and add thumbnail to test'; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 9bd7bd0b8054231adbeb2a0eddd42a0b969fd6c4 9c51a2464276f5eb26d1b571d32052df55d6ead9"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_10817_42",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 10817,
+      "title": "Merge pull request #10817 from TRox1972/clubic_match_id",
+      "merged_at": "2016-10-01T16:20:12+08:00",
+      "observation_window_days": 3599,
+      "real_base_sha": "e295618f9e1c1fc404d9baa4ccef961d3eb3ea88",
+      "real_head_sha": "eaf9b22f94f37487d75457423a9a293dee1b1d32",
+      "merge_commit_sha": "4a76b73c6c797ec7c63432680b38198ba5ef5b9f",
+      "diff_sha256": "8341a5c59611b0e32535b712b97afad06bb89a71fc1e797ab58db8bf0b550195",
+      "changed_files": [
+        "test/test_utils.py",
+        "youtube_dl/__init__.py",
+        "youtube_dl/downloader/http.py",
+        "youtube_dl/extractor/aftonbladet.py",
+        "youtube_dl/extractor/clubic.py",
+        "youtube_dl/extractor/dctp.py",
+        "youtube_dl/extractor/extractors.py",
+        "youtube_dl/extractor/instagram.py",
+        "youtube_dl/extractor/ketnet.py",
+        "youtube_dl/extractor/leeco.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[clubic] Rely on _match_id and _parse_json'; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff e295618f9e1c1fc404d9baa4ccef961d3eb3ea88 eaf9b22f94f37487d75457423a9a293dee1b1d32"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_10788_43",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 10788,
+      "title": "Merge pull request #10788 from TRox1972/instagram_comments",
+      "merged_at": "2016-09-29T21:54:39+08:00",
+      "observation_window_days": 3601,
+      "real_base_sha": "0d72ff9c51ecc84aae1717c05f8b73ad94199687",
+      "real_head_sha": "a56e74e2713ed45f4096735cf49d1d97b5e75389",
+      "merge_commit_sha": "0ce26ef22834587920bd06f3cb32dab4fcef3c2a",
+      "diff_sha256": "9c4af84bc3a454c236793db3fb32fbcecb7e979ecda84fb75094ba82f59e8f12",
+      "changed_files": [
+        "youtube_dl/downloader/hls.py",
+        "youtube_dl/extractor/awaan.py",
+        "youtube_dl/extractor/brightcove.py",
+        "youtube_dl/extractor/cbsnews.py",
+        "youtube_dl/extractor/common.py",
+        "youtube_dl/extractor/einthusan.py",
+        "youtube_dl/extractor/extractors.py",
+        "youtube_dl/extractor/formula1.py",
+        "youtube_dl/extractor/instagram.py",
+        "youtube_dl/extractor/kaltura.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[Instagram] Extract comments'; merged improvement; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 0d72ff9c51ecc84aae1717c05f8b73ad94199687 a56e74e2713ed45f4096735cf49d1d97b5e75389"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_2104_44",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 2104,
+      "title": "Merge branch 'master' of github.com:rg3/youtube-dl",
+      "merged_at": "2016-09-10T19:21:03+07:00",
+      "observation_window_days": 3620,
+      "real_base_sha": "1e19ff2984f4887bbe79d9306841c3e2a96b2f37",
+      "real_head_sha": "6c3affcb18f7eabf7d428e5efe474e0547ab25cb",
+      "merge_commit_sha": "f009fcac0d22222803c05fa9e31477343e77988c",
+      "diff_sha256": "4d174d0ed4eea39fe6f036492b5d9211affa81cd911f7a0f786ae87241fd53bd",
+      "changed_files": [
+        "youtube_dl/extractor/extractors.py",
+        "youtube_dl/extractor/newgrounds.py",
+        "youtube_dl/extractor/polskieradio.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 1e19ff2984f4887bbe79d9306841c3e2a96b2f37 6c3affcb18f7eabf7d428e5efe474e0547ab25cb"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_2105_45",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 2105,
+      "title": "Merge branch 'polskie-radio-programme' of https://github.com/JakubAdamWieczorek/youtube-dl",
+      "merged_at": "2016-09-10T00:42:36+07:00",
+      "observation_window_days": 3620,
+      "real_base_sha": "c6129feb7f8313941a4d2044fa4b45ceaa0a91c7",
+      "real_head_sha": "8d3737cda7bb710c6de96c26602d48f75ef95537",
+      "merge_commit_sha": "1e19ff2984f4887bbe79d9306841c3e2a96b2f37",
+      "diff_sha256": "0af6d9babcc53233ffc3d290b4447234682b2958a1605de30caaa0352bf957b4",
+      "changed_files": [
+        "youtube_dl/extractor/abcnews.py",
+        "youtube_dl/extractor/abcotvs.py",
+        "youtube_dl/extractor/ard.py",
+        "youtube_dl/extractor/canvas.py",
+        "youtube_dl/extractor/cctv.py",
+        "youtube_dl/extractor/dailymotion.py",
+        "youtube_dl/extractor/extractors.py",
+        "youtube_dl/extractor/foxgay.py",
+        "youtube_dl/extractor/gamestar.py",
+        "youtube_dl/extractor/globo.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff c6129feb7f8313941a4d2044fa4b45ceaa0a91c7 8d3737cda7bb710c6de96c26602d48f75ef95537"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_10596_46",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 10596,
+      "title": "Merge pull request #10596 from stepshal/r_prefix",
+      "merged_at": "2016-09-08T18:31:09+08:00",
+      "observation_window_days": 3622,
+      "real_base_sha": "3f612f076708973fce52d6b6053b24e2234a9c26",
+      "real_head_sha": "25042f73722c37e4ec88030cf69e23ae76c4359b",
+      "merge_commit_sha": "02e552886f99a0894fa3265531f6853a19323970",
+      "diff_sha256": "524eb1eddc64b75abb229d01afecfcdbeb0067bdcb6683280d2f80cef5e7155e",
+      "changed_files": [
+        "youtube_dl/extractor/abcnews.py",
+        "youtube_dl/extractor/ard.py",
+        "youtube_dl/extractor/globo.py",
+        "youtube_dl/extractor/onet.py",
+        "youtube_dl/extractor/rutube.py",
+        "youtube_dl/extractor/spiegel.py",
+        "youtube_dl/extractor/twitter.py",
+        "youtube_dl/extractor/youtube.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "opened the PR behind the merge-commit title: 'Add missing r prefix for _VALID_URLs', merged by yan12125; ordinary regex-string fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 3f612f076708973fce52d6b6053b24e2234a9c26 25042f73722c37e4ec88030cf69e23ae76c4359b"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_10594_47",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 10594,
+      "title": "Merge pull request #10594 from stepshal/https_support",
+      "merged_at": "2016-09-08T17:28:46+08:00",
+      "observation_window_days": 3622,
+      "real_base_sha": "881f35479d50f22955fa21b148aa849a64d9dfc0",
+      "real_head_sha": "89f257d6e57131a266efae629334fe5f4bcf96e9",
+      "merge_commit_sha": "17bf6e71ccc12516c0611e19c52f2daa1f8117df",
+      "diff_sha256": "9081f82e86951a130e6430adc3d5b42d88648fa10273a344c221ffa9b182986c",
+      "changed_files": [
+        "youtube_dl/extractor/abcnews.py",
+        "youtube_dl/extractor/dailymotion.py",
+        "youtube_dl/extractor/extractors.py",
+        "youtube_dl/extractor/foxgay.py",
+        "youtube_dl/extractor/gamestar.py",
+        "youtube_dl/extractor/karaoketv.py",
+        "youtube_dl/extractor/miaopai.py",
+        "youtube_dl/extractor/moevideo.py",
+        "youtube_dl/extractor/prosiebensat1.py",
+        "youtube_dl/extractor/puls4.py"
+      ],
+      "human_decision": "eligible",
+      "human_reason": "actual PR: 'Add support for https for rest of the extractors'; merged; ordinary extractor fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 881f35479d50f22955fa21b148aa849a64d9dfc0 89f257d6e57131a266efae629334fe5f4bcf96e9"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_2108_48",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 2108,
+      "title": "Merge branch 'xyb-miaopai'",
+      "merged_at": "2016-09-08T00:31:06+08:00",
+      "observation_window_days": 3622,
+      "real_base_sha": "84b91dd4e3cd45498fb6cd3c7aa611816f61a3d5",
+      "real_head_sha": "b84d311d53a4cc023eb458072c09cf382f45c762",
+      "merge_commit_sha": "9c2718898891678038dffcb683c3948722c6b47d",
+      "diff_sha256": "4a8808b01e19a2481e6029d1ac3b0d3067cf3fa784eba320b51b390735b57787",
+      "changed_files": [
+        "youtube_dl/extractor/extractors.py",
+        "youtube_dl/extractor/miaopai.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 84b91dd4e3cd45498fb6cd3c7aa611816f61a3d5 b84d311d53a4cc023eb458072c09cf382f45c762"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_2109_49",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 2109,
+      "title": "Merge branch 'miaopai' of https://github.com/xyb/youtube-dl into xyb-miaopai",
+      "merged_at": "2016-09-08T00:08:02+08:00",
+      "observation_window_days": 3622,
+      "real_base_sha": "84b91dd4e3cd45498fb6cd3c7aa611816f61a3d5",
+      "real_head_sha": "a493f1020888e87a464ab8a948c797c18fc3aca3",
+      "merge_commit_sha": "2841bdcebb308cab2a6af6b970459889392faa40",
+      "diff_sha256": "f5411d962736a1b0a3a0c1c2e679138536495915496f1d1e83f631c4b2d2148e",
+      "changed_files": [
+        "youtube_dl/extractor/abc7news.py",
+        "youtube_dl/extractor/bilibili.py",
+        "youtube_dl/extractor/cartoonnetwork.py",
+        "youtube_dl/extractor/cctv.py",
+        "youtube_dl/extractor/extractors.py",
+        "youtube_dl/extractor/gamestar.py",
+        "youtube_dl/extractor/lci.py",
+        "youtube_dl/extractor/miaopai.py",
+        "youtube_dl/extractor/moevideo.py",
+        "youtube_dl/extractor/nick.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff 84b91dd4e3cd45498fb6cd3c7aa611816f61a3d5 a493f1020888e87a464ab8a948c797c18fc3aca3"
+      }
+    },
+    {
+      "candidate_id": "ctrl_youtube_dl_2110_50",
+      "repository": "https://github.com/ytdl-org/youtube-dl",
+      "project": "youtube_dl",
+      "pr_number": 2110,
+      "title": "Merge branch 'PeterDing-bilibili'",
+      "merged_at": "2016-09-05T13:55:07+08:00",
+      "observation_window_days": 3625,
+      "real_base_sha": "abf2c79f954c065d6bf92a2129f04eb07942d022",
+      "real_head_sha": "973dee491f24382161b1673d4d508dcede1da79e",
+      "merge_commit_sha": "340e31ca7449197450e0a50c925cf9ebd95a76d4",
+      "diff_sha256": "2859a94df33c4945e1c343250dc2816483ba944e01f28616b42e17a05e578aa9",
+      "changed_files": [
+        "youtube_dl/extractor/bilibili.py"
+      ],
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
+      "revert_receipt": {
+        "has_revert_commit": false,
+        "revert_commit_sha": null,
+        "scanned_commit_count": 50
+      },
+      "provenance": {
+        "clone_url": "https://github.com/ytdl-org/youtube-dl",
+        "cat_file_verified": true,
+        "git_diff_command": "git diff abf2c79f954c065d6bf92a2129f04eb07942d022 973dee491f24382161b1673d4d508dcede1da79e"
+      }
+    }
+  ],
+  "adjudicated_at": "2026-08-10T13:30:24.277846+00:00"
+}

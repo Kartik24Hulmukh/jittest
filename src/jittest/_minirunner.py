@@ -86,7 +86,7 @@ def run_file(path: Path) -> int:
         if previous is sentinel:
             sys.modules.pop("pytest", None)
         else:
-            sys.modules["pytest"] = previous
+            sys.modules["pytest"] = previous  # type: ignore[assignment]
 
 
 def _run_file(path: Path) -> int:

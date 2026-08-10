@@ -1,0 +1,13 @@
+{
+  "phase": "PHASE C-P1.4A-R2A-R2-R1-R1-R2",
+  "ladder_verdict": "gate_was_binding",
+  "authorized_spend_usd": 0.0,
+  "executed_spend_usd": 0.0,
+  "inference_requests": 0,
+  "linux_evidence_workflow": ".github/workflows/linux-evidence.yml",
+  "provenance": {
+    "repo": "Kartik24Hulmukh/jittest",
+    "branch": "eval/phase-c-preregistration",
+    "pr": 111
+  }
+}

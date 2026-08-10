@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-08-10T15:08:20.839748+00:00",
+  "protocol_commit": "c296e44307df4e3ced54c3ad2a007df3b7eb360f",
+  "protocol_tree": "7b0314222e9eeab245439719123ea1129a0f09fc",
+  "model": "mistral/codestral-2508",
+  "endpoint": "https://api.mistral.ai/v1/chat/completions",
+  "prompt_version": "v1.4",
+  "metrics": {
+    "catch_rate": 0.0,
+    "false_positive_rate": 0.0,
+    "cost_per_pr_usd": 0.0,
+    "total_usd_spent": 0.0,
+    "total_api_calls": 1966,
+    "total_eval_rows": 83
+  },
+  "dispositions": {
+    "calibration": {
+      "TP": 0,
+      "FN": 7,
+      "total": 7
+    },
+    "bug_holdouts": {
+      "TP": 0,
+      "FN": 16,
+      "total": 16
+    },
+    "control_holdouts": {
+      "FP": 0,
+      "TN": 60,
+      "total": 60
+    }
+  },
+  "verdict": {
+    "human_gate_2": "OPEN (MEASURED)",
+    "status": "published_unbiased_measurement"
+  }
+}
