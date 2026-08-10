@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
   "generated_at": "2026-08-10T16:37:39.054476+00:00",
-  "protocol_commit": "3159248701fe3ee95cf558a09c6ed776097180a2",
-  "protocol_tree": "7540496fad11eb3a08938a65aa9273313f6668c0",
-  "parent_sha": "090d071fd0127428b17eb3c2f50c66312461a856",
+  "protocol_commit": "f817a99958ace4d997dc97f4e84f1c799f1add28",
+  "protocol_tree": "327406eb9737370abf90607c2b99a2f30b866867",
+  "parent_sha": "c89ec34371c60993ff86df372eeb216281def82e",
   "model": "mistral/codestral-2508",
   "endpoint": "https://api.mistral.ai/v1/chat/completions",
   "prompt_version": "v1.4",

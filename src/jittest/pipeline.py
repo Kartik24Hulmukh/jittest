@@ -87,6 +87,18 @@ def run(
     kept = [t for t in all_targets if not cfg.is_ignored(t.file_path)]
     report.targets_skipped = len(all_targets) - len(kept)
 
+    import subprocess
+    res = subprocess.run(
+        ["git", "-C", str(repo), "merge-base", "--is-ancestor", head, base],
+        capture_output=True
+    )
+    if res.returncode == 0 and not getattr(cfg, "allow_reverse_fix", False):
+        report.diff_status = "inverted_range"
+        report.errors.append("head revision is an ancestor of base (inverted revision range).")
+        report.model_requests = llm.usage.calls
+        report.duration_s = time.time() - started
+        return report
+
     ranked: list[RiskScore] = rank(kept, cfg.risk_threshold, cfg.max_targets)
     report.targets_considered = len(ranked)
     emit(f"{len(all_targets)} changed symbol(s), {len(ranked)} above risk threshold")
