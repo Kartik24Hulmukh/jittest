@@ -7,10 +7,10 @@
   "endpoint": "https://api.mistral.ai/v1/chat/completions",
   "prompt_version": "v1.4",
   "pricing_source": "mistral_official_pricing_2025_08",
-  "risk_threshold": 0.35,
+  "risk_threshold": 0.15,
   "max_targets": 5,
   "candidates_per_target": 4,
-  "target_ranking_evidence": "fp-ladder.json (0.35 proven binding; 0.15 reached 0.825 completion)",
+  "target_ranking_evidence": "fp-ladder.json (0.35 proven binding at 0.625 completion; 0.15 reached 0.825 completion while retaining a functioning gate)",
   "constructor_fingerprint": "dcd8c860afd15999b7ea96f8d685d8a8311d6e1095a7c6ac5c7a92657cf7620b",
   "selection": {
     "algorithm": "deterministic_preregistered_freeze",

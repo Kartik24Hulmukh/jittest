@@ -1,0 +1,94 @@
+{
+  "schema_version": "1.0",
+  "started_at": "2026-08-10T16:32:42.196428+00:00",
+  "ended_at": "2026-08-10T16:37:39.054476+00:00",
+  "protocol_commit": "310c9aee08570fbbf22e17451248037a15d4d29f",
+  "protocol_tree": "21b2aa007acf4a31488c3e0aae917cef76614565",
+  "parent_sha": "71a63f738d019347cd3b55c1741399625f460601",
+  "entries": [
+    {
+      "row_id": "bug_flask_01",
+      "kind": "bug",
+      "cohort": "calibration",
+      "repository": "https://github.com/pallets/flask",
+      "base_sha": "12e95c93b488725f80753f34b2e0d24838ca4646",
+      "head_sha": "d3b78fd18a8d9e224cb9ef58a23cec9b1ffc9ce9",
+      "disposition": "FN",
+      "findings_count": 0,
+      "model_calls": 4,
+      "diff_status": "ok"
+    },
+    {
+      "row_id": "bug_flask_02",
+      "kind": "bug",
+      "cohort": "calibration",
+      "repository": "https://github.com/pallets/flask",
+      "base_sha": "25642fd1fd65985fc98f95e64bc2c7ff353d6c2b",
+      "head_sha": "64dd0809c2fc732ed30539235232a268f9bd96ac",
+      "disposition": "FN",
+      "findings_count": 0,
+      "model_calls": 4,
+      "diff_status": "ok"
+    },
+    {
+      "row_id": "bug_flask_03",
+      "kind": "bug",
+      "cohort": "calibration",
+      "repository": "https://github.com/pallets/flask",
+      "base_sha": "fb54159861708558b5f5658ebdc14709d984361c",
+      "head_sha": "941efd4a36ed0f27e13758874f95e3aa1d3ee163",
+      "disposition": "FN",
+      "findings_count": 0,
+      "model_calls": 4,
+      "diff_status": "ok"
+    },
+    {
+      "row_id": "bug_flask_04",
+      "kind": "bug",
+      "cohort": "calibration",
+      "repository": "https://github.com/pallets/flask",
+      "base_sha": "4995a775df21a206b529403bc30d71795a994fd4",
+      "head_sha": "07c7d5730a2685ef2281cc635e289685e5c3d478",
+      "disposition": "FN",
+      "findings_count": 0,
+      "model_calls": 4,
+      "diff_status": "ok"
+    },
+    {
+      "row_id": "bug_flask_05",
+      "kind": "bug",
+      "cohort": "calibration",
+      "repository": "https://github.com/pallets/flask",
+      "base_sha": "c62b03bcfd6e6440f8195e02f4678488e16121ac",
+      "head_sha": "96800fb673cb7b2d75476096798e701e3e6d26bc",
+      "disposition": "FN",
+      "findings_count": 0,
+      "model_calls": 0,
+      "diff_status": "no_targets_after_ranking"
+    },
+    {
+      "row_id": "bug_flask_06",
+      "kind": "bug",
+      "cohort": "calibration",
+      "repository": "https://github.com/pallets/flask",
+      "base_sha": "e8b91cd38aadafdf733558bbcea4810fa65bb849",
+      "head_sha": "5e8cb740187c0561b36323dfc8510e58c3066838",
+      "disposition": "FN",
+      "findings_count": 0,
+      "model_calls": 19,
+      "diff_status": "ok"
+    },
+    {
+      "row_id": "bug_flask_07",
+      "kind": "bug",
+      "cohort": "calibration",
+      "repository": "https://github.com/pallets/flask",
+      "base_sha": "40b78fa2ea9095197608287de9f0d902d2763b00",
+      "head_sha": "2c5d652493b79eecadd4407f24f2249948bd6ff2",
+      "disposition": "FN",
+      "findings_count": 0,
+      "model_calls": 0,
+      "diff_status": "no_python_in_diff"
+    }
+  ]
+}

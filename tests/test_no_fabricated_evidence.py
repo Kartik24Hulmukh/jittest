@@ -33,6 +33,8 @@ def test_no_fabricated_shas_in_receipts():
         REPO_ROOT / "phase-c-freeze-config.json",
         REPO_ROOT / "phase-c-benchmark-manifest.json",
         REPO_ROOT / "phase-c-freeze-receipt.json",
+        REPO_ROOT / "phase-c-calibration-ledger.json",
+        REPO_ROOT / "phase-c-calibration-report.json",
         REPO_ROOT / "phase-c-execution-ledger.json",
         REPO_ROOT / "phase-c-measurement-report.json",
     ]
