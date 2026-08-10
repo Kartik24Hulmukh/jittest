@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "freeze_timestamp": "2026-08-10T13:56:35.655553+00:00",
+  "protocol_commit": "87e320705033dcc4576add7280a14f87271f79f7",
+  "protocol_tree": "accd57487fb28241d8b014bedfc5ae4c2fbaaa51",
+  "counts": {
+    "calibration": 7,
+    "bug_holdout": 16,
+    "control_holdout": 60,
+    "total_eval_rows": 83
+  },
+  "configuration": {
+    "model": "mistral/codestral-2508",
+    "endpoint": "https://api.mistral.ai/v1/chat/completions",
+    "prompt_version": "v1.4",
+    "constructor_fingerprint": "dcd8c860afd15999b7ea96f8d685d8a8311d6e1095a7c6ac5c7a92657cf7620b",
+    "freeze_config_sha256": "5859a7e8165fbfc80278f563ccc5a2d8661987a616e22d363d3d9f4366115980",
+    "benchmark_manifest_sha256": "e6632b71a023e7004b27837375c61b820822156cac2ed4cfb020388bbcefa630"
+  },
+  "validation_summary": {
+    "r2b_validate": "PASS (0 errors)",
+    "r2c_validate": "PASS (0 errors, allow_adjudicated=True)",
+    "benchmark_manifest_rows": "PASS (83 rows bound)"
+  }
+}
