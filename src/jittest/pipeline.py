@@ -115,13 +115,12 @@ def run(
                 line.startswith("diff --git a/") and line.strip().endswith(".py")
                 for line in diff_text.splitlines()
             )
-            if not has_py:
+            if res.returncode == 0 and not getattr(cfg, "allow_reverse_fix", False):
+                report.diff_status = "inverted_range"
+                report.errors.append("head revision is an ancestor of base (inverted revision range).")
+            elif not has_py:
                 report.diff_status = "no_python_in_diff"
                 report.errors.append("diff contains no changed Python files.")
-            elif res.returncode == 0 and not getattr(cfg, "allow_reverse_fix", False):
-                # If Python files exist in diff, it is not an inverted range error.
-                report.diff_status = "no_targets_after_ranking"
-                report.errors.append("no changed Python functions or classes were extracted from diff.")
             else:
                 report.diff_status = "no_targets_after_ranking"
                 report.errors.append("no changed Python functions or classes were extracted from diff.")

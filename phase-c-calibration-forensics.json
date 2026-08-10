@@ -1,0 +1,444 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-08-10T19:50:57.260665+00:00",
+  "protocol_commit": "3159248701fe3ee95cf558a09c6ed776097180a2",
+  "protocol_tree": "7540496fad11eb3a08938a65aa9273313f6668c0",
+  "parent_sha": "090d071fd0127428b17eb3c2f50c66312461a856",
+  "verdict_reason_distribution": {
+    "differential_check: head_failed_base_failed_latent": 18,
+    "differential_check: head_passed": 13,
+    "safety_rejected: no assertion": 2,
+    "safety_rejected: imports banned module `importlib.util`": 1
+  },
+  "rows": {
+    "bug_flask_01": {
+      "diff_status": "ok",
+      "total_candidates": 4,
+      "discarded_histogram": {
+        "parse_failed": 0,
+        "safety_rejected": {},
+        "model_declined": 0,
+        "oracle_rejection": {
+          "head_failed_base_failed_latent": 4
+        }
+      },
+      "candidates": [
+        {
+          "candidate_index": 1,
+          "target_symbol": "App.add_url_rule",
+          "disposition": "head_failed_base_failed_latent",
+          "reason": "",
+          "verdict_reason": "differential_check: head_failed_base_failed_latent",
+          "sha256": "87d893f56a8a6492246f5e6021dec3f6da7234a4489d5ef4b22d582f0f4723b0",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_12e95c93_d3b78fd1_1786379562\\87d893f56a8a6492.py",
+          "code": "import pytest\nfrom flask.sansio.app import App\n\ndef test_add_url_rule_provide_automatic_options():\n    app = App()\n    app.config[\"PROVIDE_AUTOMATIC_OPTIONS\"] = True\n\n    def view_func():\n        pass\n\n    app.add_url_rule(\"/test\", view_func=view_func, methods=[\"POST\"])\n\n    assert \"OPTIONS\" in app.url_map._rules[0].methods"
+        },
+        {
+          "candidate_index": 2,
+          "target_symbol": "App.add_url_rule",
+          "disposition": "head_failed_base_failed_latent",
+          "reason": "",
+          "verdict_reason": "differential_check: head_failed_base_failed_latent",
+          "sha256": "f7f07239ecf373c201d832e660f71da3be732c1119353b78d44bc478399462cd",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_12e95c93_d3b78fd1_1786379562\\f7f07239ecf373c2.py",
+          "code": "import pytest\nfrom flask.sansio.app import App\n\ndef test_add_url_rule_provide_automatic_options():\n    app = App()\n    app.config[\"PROVIDE_AUTOMATIC_OPTIONS\"] = True\n\n    def view_func():\n        pass\n\n    app.add_url_rule(\"/test\", endpoint=\"test\", view_func=view_func, methods=[\"POST\"])\n\n    rule = app.url_map._rules_by_endpoint[\"test\"]\n    assert \"OPTIONS\" in rule.methods, \"OPTIONS should be added when PROVIDE_AUTOMATIC_OPTIONS is True and OPTIONS is not in methods\""
+        },
+        {
+          "candidate_index": 3,
+          "target_symbol": "App.add_url_rule",
+          "disposition": "head_failed_base_failed_latent",
+          "reason": "",
+          "verdict_reason": "differential_check: head_failed_base_failed_latent",
+          "sha256": "10414e2c5845a02601a1904807f4981beed52896ac20fabcb5824567c8e8c898",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_12e95c93_d3b78fd1_1786379562\\10414e2c5845a026.py",
+          "code": "import pytest\nfrom flask.sansio.app import App\n\ndef test_add_url_rule_provide_automatic_options():\n    app = App()\n    app.config[\"PROVIDE_AUTOMATIC_OPTIONS\"] = True\n\n    def view_func():\n        pass\n\n    app.add_url_rule(\"/test\", view_func=view_func, methods=[\"POST\"])\n\n    rule = app.url_map._rules[0]\n    assert rule.provide_automatic_options is False"
+        },
+        {
+          "candidate_index": 4,
+          "target_symbol": "App.add_url_rule",
+          "disposition": "head_failed_base_failed_latent",
+          "reason": "",
+          "verdict_reason": "differential_check: head_failed_base_failed_latent",
+          "sha256": "b1c905c985dedf28b0b879e3c2a41af6668445c444edd7d3df52c9202863ee7f",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_12e95c93_d3b78fd1_1786379562\\b1c905c985dedf28.py",
+          "code": "import flask.sansio.app as app\n\ndef test_add_url_rule_provide_automatic_options():\n    class MockView:\n        methods = [\"POST\"]\n        provide_automatic_options = None\n\n    flask_app = app.App()\n    flask_app.config[\"PROVIDE_AUTOMATIC_OPTIONS\"] = True\n\n    flask_app.add_url_rule(\"/test\", view_func=MockView)\n\n    assert \"OPTIONS\" in flask_app.url_map._rules[0].methods"
+        }
+      ]
+    },
+    "bug_flask_02": {
+      "diff_status": "ok",
+      "total_candidates": 4,
+      "discarded_histogram": {
+        "parse_failed": 0,
+        "safety_rejected": {},
+        "model_declined": 0,
+        "oracle_rejection": {
+          "head_failed_base_failed_latent": 4
+        }
+      },
+      "candidates": [
+        {
+          "candidate_index": 1,
+          "target_symbol": "App.select_jinja_autoescape",
+          "disposition": "head_failed_base_failed_latent",
+          "reason": "",
+          "verdict_reason": "differential_check: head_failed_base_failed_latent",
+          "sha256": "6b73199ae1145a6b6ed4191d0c4440dcfd84fe6504eef406bd4f7c0351101360",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_25642fd1_64dd0809_1786379592\\6b73199ae1145a6b.py"
+        },
+        {
+          "candidate_index": 2,
+          "target_symbol": "App.select_jinja_autoescape",
+          "disposition": "head_failed_base_failed_latent",
+          "reason": "",
+          "verdict_reason": "differential_check: head_failed_base_failed_latent",
+          "sha256": "1c4aba9e15339479cfdd10ca1803d7b330ccdff2c3dd1feb13d575910c080bd5",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_25642fd1_64dd0809_1786379592\\1c4aba9e15339479.py"
+        },
+        {
+          "candidate_index": 3,
+          "target_symbol": "App.select_jinja_autoescape",
+          "disposition": "head_failed_base_failed_latent",
+          "reason": "",
+          "verdict_reason": "differential_check: head_failed_base_failed_latent",
+          "sha256": "1c4aba9e15339479cfdd10ca1803d7b330ccdff2c3dd1feb13d575910c080bd5",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_25642fd1_64dd0809_1786379592\\1c4aba9e15339479.py"
+        },
+        {
+          "candidate_index": 4,
+          "target_symbol": "App.select_jinja_autoescape",
+          "disposition": "head_failed_base_failed_latent",
+          "reason": "",
+          "verdict_reason": "differential_check: head_failed_base_failed_latent",
+          "sha256": "6b73199ae1145a6b6ed4191d0c4440dcfd84fe6504eef406bd4f7c0351101360",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_25642fd1_64dd0809_1786379592\\6b73199ae1145a6b.py"
+        }
+      ]
+    },
+    "bug_flask_03": {
+      "diff_status": "ok",
+      "total_candidates": 4,
+      "discarded_histogram": {
+        "parse_failed": 0,
+        "safety_rejected": {},
+        "model_declined": 0,
+        "oracle_rejection": {
+          "head_failed_base_failed_latent": 4
+        }
+      },
+      "candidates": [
+        {
+          "candidate_index": 1,
+          "target_symbol": "SecureCookieSessionInterface.get_signing_serializer",
+          "disposition": "head_failed_base_failed_latent",
+          "reason": "",
+          "verdict_reason": "differential_check: head_failed_base_failed_latent",
+          "sha256": "890ba23dc93dbdeebca50c5fa5adeb7f342804150517ce7f38b8bc46713793d9",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_fb541598_941efd4a_1786379616\\890ba23dc93dbdee.py"
+        },
+        {
+          "candidate_index": 2,
+          "target_symbol": "SecureCookieSessionInterface.get_signing_serializer",
+          "disposition": "head_failed_base_failed_latent",
+          "reason": "",
+          "verdict_reason": "differential_check: head_failed_base_failed_latent",
+          "sha256": "153fd6053645ceb4226ee26cb62f047fd968c63192742916cfa21c0c4b360f09",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_fb541598_941efd4a_1786379616\\153fd6053645ceb4.py"
+        },
+        {
+          "candidate_index": 3,
+          "target_symbol": "SecureCookieSessionInterface.get_signing_serializer",
+          "disposition": "head_failed_base_failed_latent",
+          "reason": "",
+          "verdict_reason": "differential_check: head_failed_base_failed_latent",
+          "sha256": "2f5bcf819defcda27f342713b42a001c9afd8506290e045dcff4d59001d885ac",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_fb541598_941efd4a_1786379616\\2f5bcf819defcda2.py"
+        },
+        {
+          "candidate_index": 4,
+          "target_symbol": "SecureCookieSessionInterface.get_signing_serializer",
+          "disposition": "head_failed_base_failed_latent",
+          "reason": "",
+          "verdict_reason": "differential_check: head_failed_base_failed_latent",
+          "sha256": "a413f7795c4f72a7b53abe67c4afbbb45d791f4a4a36a6ba7f0ce646b20e8971",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_fb541598_941efd4a_1786379616\\a413f7795c4f72a7.py"
+        }
+      ]
+    },
+    "bug_flask_04": {
+      "diff_status": "ok",
+      "total_candidates": 4,
+      "discarded_histogram": {
+        "parse_failed": 0,
+        "safety_rejected": {},
+        "model_declined": 0,
+        "oracle_rejection": {
+          "head_passed": 3,
+          "head_failed_base_failed_latent": 1
+        }
+      },
+      "candidates": [
+        {
+          "candidate_index": 1,
+          "target_symbol": "Flask.create_url_adapter",
+          "disposition": "head_passed",
+          "reason": "",
+          "verdict_reason": "differential_check: head_passed",
+          "sha256": "4551cb7a3b534b900b4c8d3407664bff3f91246140a3a846c81ff5f9d999b8e7",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_4995a775_07c7d573_1786379680\\4551cb7a3b534b90.py",
+          "code": "from flask.app import Flask\nfrom flask import Request\n\ndef test_create_url_adapter_without_request():\n    app = Flask(__name__)\n    app.config['SERVER_NAME'] = 'example.com'\n    adapter = app.create_url_adapter(None)\n    assert adapter is not None"
+        },
+        {
+          "candidate_index": 2,
+          "target_symbol": "Flask.create_url_adapter",
+          "disposition": "head_failed_base_failed_latent",
+          "reason": "",
+          "verdict_reason": "differential_check: head_failed_base_failed_latent",
+          "sha256": "47c0ad5563541d1281abb59b17472b52b552e571a90ab521352ea3ae85945785",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_4995a775_07c7d573_1786379680\\47c0ad5563541d12.py",
+          "code": "from flask.app import Flask\nfrom flask import Request\n\ndef test_create_url_adapter_subdomain_matching():\n    app = Flask(__name__)\n    app.config['SERVER_NAME'] = 'example.com'\n    app.url_map.default_subdomain = 'www'\n    app.subdomain_matching = False\n\n    request = Request({\n        'HTTP_HOST': 'example.com',\n        'SERVER_NAME': 'example.com',\n        'SERVER_PORT': '80',\n        'REQUEST_METHOD': 'GET',\n        'PATH_INFO': '/',\n        'SCRIPT_NAME': '',\n    })\n\n    adapter = app.create_url_adapter(request)\n    assert adapter.subdomain == 'www'"
+        },
+        {
+          "candidate_index": 3,
+          "target_symbol": "Flask.create_url_adapter",
+          "disposition": "head_passed",
+          "reason": "",
+          "verdict_reason": "differential_check: head_passed",
+          "sha256": "833029aa9b0618efe733f7715d99135dbaf0b0832336fba6c07256e486d1a1ce",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_4995a775_07c7d573_1786379680\\833029aa9b0618ef.py",
+          "code": "from flask.app import Flask\nfrom flask import Request\n\ndef test_create_url_adapter_subdomain_matching():\n    app = Flask(__name__)\n    app.config['SERVER_NAME'] = 'example.com'\n    app.url_map.default_subdomain = 'www'\n    app.subdomain_matching = False\n\n    request = Request.from_values()\n    adapter = app.create_url_adapter(request)\n\n    assert adapter.subdomain == 'www'"
+        },
+        {
+          "candidate_index": 4,
+          "target_symbol": "Flask.create_url_adapter",
+          "disposition": "head_passed",
+          "reason": "",
+          "verdict_reason": "differential_check: head_passed",
+          "sha256": "5bf386dabed1e6dcd13d3fa6a8876f1a1755917d851bc59f3a2e51d521708069",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_4995a775_07c7d573_1786379680\\5bf386dabed1e6dc.py",
+          "code": "from flask.app import Flask\nfrom flask import Request\n\ndef test_create_url_adapter_without_request():\n    app = Flask(__name__)\n    app.config['SERVER_NAME'] = 'example.com'\n    app.config['APPLICATION_ROOT'] = '/'\n    app.config['PREFERRED_URL_SCHEME'] = 'http'\n\n    # In the old version, this would return a URL adapter even without a request\n    # because SERVER_NAME was set. In the new version, it should still do that.\n    adapter = app.create_url_adapter(None)\n    assert adapter is not None\n    assert adapter.url_scheme == 'http'\n    assert adapter.server_name == 'example.com'"
+        }
+      ]
+    },
+    "bug_flask_05": {
+      "diff_status": "no_targets_after_ranking",
+      "total_candidates": 0,
+      "discarded_histogram": {
+        "parse_failed": 0,
+        "safety_rejected": {},
+        "model_declined": 0,
+        "oracle_rejection": {}
+      },
+      "candidates": []
+    },
+    "bug_flask_06": {
+      "diff_status": "ok",
+      "total_candidates": 18,
+      "discarded_histogram": {
+        "parse_failed": 0,
+        "safety_rejected": {
+          "no assertion": 2,
+          "imports banned module `importlib.util`": 1
+        },
+        "model_declined": 0,
+        "oracle_rejection": {
+          "head_passed": 10,
+          "head_failed_base_failed_latent": 5
+        }
+      },
+      "candidates": [
+        {
+          "candidate_index": 1,
+          "target_symbol": "Request.on_json_loading_failed",
+          "disposition": "safety_rejected",
+          "reason": "no assertion",
+          "verdict_reason": "safety_rejected: no assertion",
+          "sha256": "642fbb97e2d03fb58b33e08267ec91fc6b0485369198ec5debabd6add5879741",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_e8b91cd3_5e8cb740_1786379728\\642fbb97e2d03fb5.py",
+          "code": "import pytest\nfrom flask.wrappers import Request\nfrom flask import Flask, current_app\nfrom werkzeug.exceptions import BadRequest\n\ndef test_on_json_loading_failed_raises_bad_request():\n    app = Flask(__name__)\n    with app.test_request_context():\n        request = Request({})\n        with pytest.raises(BadRequest):\n            request.on_json_loading_failed(ValueError())"
+        },
+        {
+          "candidate_index": 2,
+          "target_symbol": "Request.on_json_loading_failed",
+          "disposition": "head_passed",
+          "reason": "",
+          "verdict_reason": "differential_check: head_passed",
+          "sha256": "692c7e2f564ef1148aa2929e52af1edb0cb6a57451c4923dd64bececd0a640a8",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_e8b91cd3_5e8cb740_1786379728\\692c7e2f564ef114.py",
+          "code": "import pytest\nfrom flask.wrappers import Request\nfrom flask import Flask\nfrom werkzeug.exceptions import BadRequest\n\ndef test_on_json_loading_failed_raises_bad_request():\n    app = Flask(__name__)\n    app.config['TESTING'] = True\n    app.debug = False\n\n    with app.test_request_context():\n        request = Request({})\n        with pytest.raises(BadRequest) as exc_info:\n            request.on_json_loading_failed(ValueError())\n        assert exc_info.value.code == 400"
+        },
+        {
+          "candidate_index": 3,
+          "target_symbol": "Request.on_json_loading_failed",
+          "disposition": "head_failed_base_failed_latent",
+          "reason": "",
+          "verdict_reason": "differential_check: head_failed_base_failed_latent",
+          "sha256": "a89e2281ff4cbfab3c6cc049af14eb68a7c51a3661ecb44d2830dcc33c364da0",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_e8b91cd3_5e8cb740_1786379728\\a89e2281ff4cbfab.py",
+          "code": "import pytest\nfrom flask import Flask\nfrom flask.wrappers import Request\n\ndef test_on_json_loading_failed_raises_bad_request():\n    app = Flask(__name__)\n    app.config['TESTING'] = True\n    request = Request.from_values()\n    request.environ['wsgi.errors'] = None\n\n    with app.app_context():\n        with pytest.raises(BadRequest) as excinfo:\n            request.on_json_loading_failed(ValueError())\n        assert isinstance(excinfo.value, BadRequest)"
+        },
+        {
+          "candidate_index": 4,
+          "target_symbol": "Request.on_json_loading_failed",
+          "disposition": "head_passed",
+          "reason": "",
+          "verdict_reason": "differential_check: head_passed",
+          "sha256": "b08c0c0d2db3497f443682c339a1e68a0145305b58e5e3a44821660d5437ece7",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_e8b91cd3_5e8cb740_1786379728\\b08c0c0d2db3497f.py",
+          "code": "import pytest\nfrom flask import Flask, Request\nfrom werkzeug.exceptions import BadRequest\n\ndef test_on_json_loading_failed_raises_bad_request():\n    app = Flask(__name__)\n    app.config['TESTING'] = True\n    request = Request({})\n    request.environ = {'wsgi.errors': None}\n\n    with app.app_context():\n        with pytest.raises(BadRequest) as exc_info:\n            request.on_json_loading_failed(ValueError())\n        assert exc_info.value.code == 400"
+        },
+        {
+          "candidate_index": 1,
+          "target_symbol": "ScriptInfo.load_app",
+          "disposition": "head_failed_base_failed_latent",
+          "reason": "",
+          "verdict_reason": "differential_check: head_failed_base_failed_latent",
+          "sha256": "d42ca21c11a4f0434834545c0b9ba12a4d6c31b5c3feb4667a192900d01cf83c",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_e8b91cd3_5e8cb740_1786379728\\d42ca21c11a4f043.py",
+          "code": "from flask.cli import ScriptInfo\n\ndef test_load_app_debug_flag():\n    script_info = ScriptInfo()\n    script_info.set_debug_flag = True\n    script_info.create_app = lambda: Flask(__name__)\n\n    app = script_info.load_app()\n    assert app.debug is True"
+        },
+        {
+          "candidate_index": 2,
+          "target_symbol": "ScriptInfo.load_app",
+          "disposition": "head_failed_base_failed_latent",
+          "reason": "",
+          "verdict_reason": "differential_check: head_failed_base_failed_latent",
+          "sha256": "28cf6a1f48a4d8e686d90169a5f2a5eb2e5af1ededd6ea846ec26914995c07f2",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_e8b91cd3_5e8cb740_1786379728\\28cf6a1f48a4d8e6.py",
+          "code": "from flask.cli import ScriptInfo\n\ndef test_load_app_debug_flag():\n    script_info = ScriptInfo()\n    script_info.set_debug_flag = True\n    script_info.create_app = lambda: None  # Mock create_app to return None\n\n    # In the old version, the debug flag was set even if create_app returned None\n    # In the new version, this is not the case\n    app = script_info.load_app()\n    assert app.debug is True"
+        },
+        {
+          "candidate_index": 3,
+          "target_symbol": "ScriptInfo.load_app",
+          "disposition": "safety_rejected",
+          "reason": "no assertion",
+          "verdict_reason": "safety_rejected: no assertion",
+          "sha256": "5c4df2734157c3874dacfc957d3babe93bfa391c09c5924c60418e181bde9040",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_e8b91cd3_5e8cb740_1786379728\\5c4df2734157c387.py",
+          "code": "import pytest\nfrom flask.cli import ScriptInfo\n\ndef test_load_app_debug_flag():\n    script_info = ScriptInfo()\n    script_info.set_debug_flag = True\n    script_info.create_app = lambda: None  # This will raise an exception if debug flag is not set\n\n    with pytest.raises(AttributeError):\n        script_info.load_app()"
+        },
+        {
+          "candidate_index": 4,
+          "target_symbol": "ScriptInfo.load_app",
+          "disposition": "head_failed_base_failed_latent",
+          "reason": "",
+          "verdict_reason": "differential_check: head_failed_base_failed_latent",
+          "sha256": "12b107510295c67e41fd27b11923f00d79b709f1ec3a3baf9885b49839981f08",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_e8b91cd3_5e8cb740_1786379728\\12b107510295c67e.py",
+          "code": "from flask.cli import ScriptInfo\n\ndef test_load_app_debug_flag():\n    script_info = ScriptInfo()\n    script_info.set_debug_flag = True\n    script_info.create_app = lambda: None  # This will be replaced by the actual app creation function\n\n    # The old version would set the debug flag even if the app was already loaded\n    script_info._loaded_app = None\n    app = script_info.load_app()\n    assert app.debug is True, \"Debug flag should be set on the new app\"\n\n    # The new version should not set the debug flag if the app is already loaded\n    script_info._loaded_app = None\n    script_info.create_app = lambda: None  # This will be replaced by the actual app creation function\n    app = script_info.load_app()\n    assert app.debug is False, \"Debug flag should not be set on the already loaded app\""
+        },
+        {
+          "candidate_index": 1,
+          "target_symbol": "Flask.make_response",
+          "disposition": "head_passed",
+          "reason": "",
+          "verdict_reason": "differential_check: head_passed",
+          "sha256": "9c7de67f76f9bba968bae0b648e04236048c37e49ac5e48bfceb47734bd8f77f",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_e8b91cd3_5e8cb740_1786379728\\9c7de67f76f9bba9.py",
+          "code": "from flask.app import Flask\n\ndef test_tuple_with_headers():\n    app = Flask(__name__)\n\n    @app.route('/')\n    def index():\n        return ('Hello, World!', {'Content-Type': 'text/plain'})\n\n    with app.test_request_context():\n        response = app.make_response(index())\n        assert response.headers['Content-Type'] == 'text/plain'"
+        },
+        {
+          "candidate_index": 2,
+          "target_symbol": "Flask.make_response",
+          "disposition": "head_passed",
+          "reason": "",
+          "verdict_reason": "differential_check: head_passed",
+          "sha256": "9c7de67f76f9bba968bae0b648e04236048c37e49ac5e48bfceb47734bd8f77f",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_e8b91cd3_5e8cb740_1786379728\\9c7de67f76f9bba9.py",
+          "code": "from flask.app import Flask\n\ndef test_tuple_with_headers():\n    app = Flask(__name__)\n\n    @app.route('/')\n    def index():\n        return ('Hello, World!', {'Content-Type': 'text/plain'})\n\n    with app.test_request_context():\n        response = app.make_response(index())\n        assert response.headers['Content-Type'] == 'text/plain'"
+        },
+        {
+          "candidate_index": 3,
+          "target_symbol": "Flask.make_response",
+          "disposition": "head_passed",
+          "reason": "",
+          "verdict_reason": "differential_check: head_passed",
+          "sha256": "e76060c93b4a0200c39a3eaa37780baa3ccecde7062494e75ea76448329fef1c",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_e8b91cd3_5e8cb740_1786379728\\e76060c93b4a0200.py",
+          "code": "from flask.app import Flask\n\ndef test_tuple_unpacking():\n    app = Flask(__name__)\n\n    @app.route('/')\n    def index():\n        return ('Hello, World!', 200, {'Content-Type': 'text/plain'})\n\n    with app.test_request_context():\n        response = app.make_response(index())\n        assert response.status_code == 200\n        assert response.headers['Content-Type'] == 'text/plain'"
+        },
+        {
+          "candidate_index": 4,
+          "target_symbol": "Flask.make_response",
+          "disposition": "head_passed",
+          "reason": "",
+          "verdict_reason": "differential_check: head_passed",
+          "sha256": "b19c1a31511f43ef0260488271cc07ee55671285262240f492c8b20519e055bd",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_e8b91cd3_5e8cb740_1786379728\\b19c1a31511f43ef.py",
+          "code": "import pytest\nfrom flask.app import Flask\n\ndef test_make_response_tuple_unpacking():\n    app = Flask(__name__)\n\n    @app.route('/')\n    def index():\n        return ('Hello, World!', {'Content-Type': 'text/plain'})\n\n    with app.test_request_context():\n        response = app.make_response(index())\n        assert response.status_code == 200\n        assert response.headers['Content-Type'] == 'text/plain'"
+        },
+        {
+          "candidate_index": 1,
+          "target_symbol": "FlaskGroup._load_plugin_commands",
+          "disposition": "head_passed",
+          "reason": "",
+          "verdict_reason": "differential_check: head_passed",
+          "sha256": "201da042a4b9b49b4a4b83f740d28be0287f19c2609ca31e108430593357596e",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_e8b91cd3_5e8cb740_1786379728\\201da042a4b9b49b.py",
+          "code": "import sys\nfrom flask.cli import FlaskGroup\n\ndef test_load_plugin_commands_uses_backport():\n    if sys.version_info >= (3, 10):\n        # On Python 3.10+, the old code uses importlib.metadata\n        # The new code also uses importlib.metadata, so no difference\n        # This test is not applicable\n        return\n\n    # Create a FlaskGroup instance\n    group = FlaskGroup()\n\n    # Call the method to load plugin commands\n    group._load_plugin_commands()\n\n    # Assert that the backport was used\n    # This will fail if the new code does not use the backport\n    assert 'importlib_metadata' in sys.modules, \"Backport importlib_metadata was not used\""
+        },
+        {
+          "candidate_index": 2,
+          "target_symbol": "FlaskGroup._load_plugin_commands",
+          "disposition": "head_passed",
+          "reason": "",
+          "verdict_reason": "differential_check: head_passed",
+          "sha256": "bdd21ef9ec51ad704f29ec6efbdb88bd48b069b1f90e865631791e7b85b7a5f5",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_e8b91cd3_5e8cb740_1786379728\\bdd21ef9ec51ad70.py",
+          "code": "import sys\nfrom flask.cli import FlaskGroup\n\ndef test_load_plugin_commands_uses_backport():\n    if sys.version_info >= (3, 10):\n        # Skip test if running on Python 3.10 or later\n        return\n\n    group = FlaskGroup()\n    group._load_plugin_commands()\n\n    # Assert that the backport was used\n    assert 'importlib_metadata' in sys.modules, \"Backport importlib_metadata was not used\""
+        },
+        {
+          "candidate_index": 1,
+          "target_symbol": "get_root_path",
+          "disposition": "head_passed",
+          "reason": "",
+          "verdict_reason": "differential_check: head_passed",
+          "sha256": "baf1501ba4abfb1e85bf833fcb9e055cc049027e03a3845d54a051b51cd2a388",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_e8b91cd3_5e8cb740_1786379728\\baf1501ba4abfb1e.py",
+          "code": "import os\nimport sys\nimport pytest\nfrom flask.helpers import get_root_path\n\ndef test_get_root_path_returns_cwd_for_unloaded_main_module():\n    # Create a mock module that simulates an unloaded main module\n    class MockLoader:\n        def get_filename(self, import_name):\n            return None\n\n    # Add the mock module to sys.modules\n    sys.modules[\"__main__\"] = type(sys)(\"__main__\")\n    sys.modules[\"__main__\"].__loader__ = MockLoader()\n\n    # The old version of get_root_path would return the current working directory\n    # for an unloaded main module, but the new version might not.\n    assert get_root_path(\"__main__\") == os.getcwd()"
+        },
+        {
+          "candidate_index": 2,
+          "target_symbol": "get_root_path",
+          "disposition": "head_passed",
+          "reason": "",
+          "verdict_reason": "differential_check: head_passed",
+          "sha256": "41c285485160c91a26177e50dddfac26c0a1f0e8629f5100bed0545fa265db97",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_e8b91cd3_5e8cb740_1786379728\\41c285485160c91a.py",
+          "code": "import sys\nimport os\nimport pytest\nfrom flask.helpers import get_root_path\n\ndef test_get_root_path_returns_cwd_for_unloaded_main_module():\n    # Create a mock module that simulates an unloaded main module\n    class MockLoader:\n        def get_filename(self, import_name):\n            return None\n\n    # Add the mock module to sys.modules\n    sys.modules[\"__main__\"] = type(sys)(\"__main__\")\n    sys.modules[\"__main__\"].__loader__ = MockLoader()\n\n    # Assert that the old version would return the current working directory\n    assert get_root_path(\"__main__\") == os.getcwd()\n\n    # Clean up\n    del sys.modules[\"__main__\"]"
+        },
+        {
+          "candidate_index": 3,
+          "target_symbol": "get_root_path",
+          "disposition": "safety_rejected",
+          "reason": "imports banned module `importlib.util`",
+          "verdict_reason": "safety_rejected: imports banned module `importlib.util`",
+          "sha256": "7a7c53a28000b96ba4e1b492e0153c2d6b9741948686d2d76ffd25cd93e95960",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_e8b91cd3_5e8cb740_1786379728\\7a7c53a28000b96b.py",
+          "code": "import sys\nimport os\nimport importlib.util\nfrom flask.helpers import get_root_path\n\ndef test_get_root_path_returns_cwd_for_unloaded_main_module():\n    # Create a mock module that simulates an unloaded main module\n    class MockLoader:\n        def get_filename(self, import_name):\n            return None\n\n    # Create a mock spec with the MockLoader\n    mock_spec = importlib.util.spec_from_loader(\"__main__\", MockLoader())\n\n    # Add the mock spec to sys.modules\n    sys.modules[\"__main__\"] = mock_spec.loader\n\n    # Assert that the old behavior returns the current working directory\n    assert get_root_path(\"__main__\") == os.getcwd()"
+        },
+        {
+          "candidate_index": 4,
+          "target_symbol": "get_root_path",
+          "disposition": "head_failed_base_failed_latent",
+          "reason": "",
+          "verdict_reason": "differential_check: head_failed_base_failed_latent",
+          "sha256": "a1a8559aff34900286f778ce75e705908378ef1ed9f688db24a44ab73ff506b3",
+          "path": "C:\\Users\\praja\\.jittest\\candidates\\flask_e8b91cd3_5e8cb740_1786379728\\a1a8559aff349002.py",
+          "code": "import os\nimport sys\nimport pytest\nfrom flask.helpers import get_root_path\n\ndef test_get_root_path_returns_cwd_for_unloaded_main_module():\n    # Create a mock module that simulates an unloaded main module\n    class MockLoader:\n        def get_filename(self, import_name):\n            return None\n\n    # Create a mock spec with the MockLoader\n    class MockSpec:\n        def __init__(self):\n            self.loader = MockLoader()\n\n    # Patch importlib.util.find_spec to return the MockSpec\n    original_find_spec = importlib.util.find_spec\n    importlib.util.find_spec = lambda name: MockSpec()\n\n    try:\n        # The old version would return the current working directory\n        # for an unloaded main module\n        assert get_root_path(\"__main__\") == os.getcwd()\n    finally:\n        # Restore the original find_spec\n        importlib.util.find_spec = original_find_spec"
+        }
+      ]
+    },
+    "bug_flask_07": {
+      "diff_status": "no_python_in_diff",
+      "total_candidates": 0,
+      "discarded_histogram": {
+        "parse_failed": 0,
+        "safety_rejected": {},
+        "model_declined": 0,
+        "oracle_rejection": {}
+      },
+      "candidates": []
+    }
+  }
+}

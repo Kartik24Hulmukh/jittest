@@ -128,6 +128,7 @@ def main():
         cfg.risk_threshold = risk_threshold
         cfg.max_targets = max_targets
         cfg.candidates_per_target = candidates_per_target
+        cfg.allow_reverse_fix = True
 
         calls_before = llm.usage.calls
         report = run_pipeline(repo=repo_path, base=base_sha, head=head_sha, cfg=cfg, llm=llm)

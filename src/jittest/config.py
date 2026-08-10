@@ -98,6 +98,7 @@ class Config:
     sandbox_mode: str = "auto"
     sandbox_backend: str = ""
     sandbox_image: str = "python:3.13-slim"
+    allow_reverse_fix: bool = False
     ignore: list[str] = field(default_factory=lambda: list(DEFAULT_IGNORES))
 
     def is_ignored(self, path: str) -> bool:
