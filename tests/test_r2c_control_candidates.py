@@ -26,8 +26,9 @@ class TestR2CControlCandidatesValidation(unittest.TestCase):
         self.assertGreaterEqual(len(self.manifest["candidates"]), 80)
 
     def test_validator_rejects_prefilled_human_adjudication(self):
-        """validate_r2c_manifest must reject any manifest with prefilled human adjudication fields."""
+        """validate_r2c_manifest must reject any manifest with prefilled human adjudication fields when unadjudicated."""
         m = copy.deepcopy(self.manifest)
+        m["founder_adjudication_status"] = "pending_founder_adjudication"
         m["candidates"][0]["human_decision"] = "eligible"
         errors = validate_r2c_manifest(m)
         self.assertTrue(any("prefilled" in e for e in errors), f"Expected prefilled human decision error, got: {errors}")

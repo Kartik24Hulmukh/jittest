@@ -4,7 +4,7 @@
   "protocol_commit": "2a0db485247817a7ab18e5537e760bfb9ed70ea1",
   "protocol_tree": "e17ccdcdfdf4129ec80935279354a1e03233a561",
   "total_candidates": 110,
-  "founder_adjudication_status": "pending_founder_adjudication",
+  "founder_adjudication_status": "adjudicated",
   "candidates": [
     {
       "candidate_id": "ctrl_flask_2001_01",
@@ -30,10 +30,10 @@
         "src/flask/helpers.py",
         "src/flask/json/__init__.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -61,10 +61,10 @@
         "tests/conftest.py",
         "tests/test_cli.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "re-read with fresh eyes: merged replacement of private monkeypatch fixture API for pytest 9.1 compat; real, merged, uncontroversial; tests-only is fine as a control",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -100,10 +100,10 @@
         "src/flask/json/provider.py",
         "src/flask/sansio/app.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -130,10 +130,10 @@
       "changed_files": [
         "src/flask/sansio/app.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "maintainer fix: autoescape selection uses case-insensitive comparison; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -169,10 +169,10 @@
         "src/flask/json/provider.py",
         "src/flask/sansio/app.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -208,10 +208,10 @@
         "src/flask/json/provider.py",
         "src/flask/sansio/app.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -247,10 +247,10 @@
         "src/flask/json/provider.py",
         "src/flask/sansio/app.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -277,10 +277,10 @@
       "changed_files": [
         "tests/test_reqctx.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "re-read with fresh eyes: maintainer-merged removal of an invalid unicode-host test; a real, merged, uncontroversial change that only touches tests; a tests-only merged PR is a valid known-quiet control",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -316,10 +316,10 @@
         "src/flask/json/provider.py",
         "src/flask/sansio/app.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -355,10 +355,10 @@
         "src/flask/json/provider.py",
         "src/flask/sansio/app.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -392,10 +392,10 @@
         "tests/test_helpers.py",
         "tests/test_testing.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "maintainer change: all teardown callbacks are called despite errors; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -431,10 +431,10 @@
         "src/flask/json/provider.py",
         "src/flask/sansio/app.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -465,10 +465,10 @@
         "src/flask/templating.py",
         "tests/test_basic.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -499,10 +499,10 @@
         "tests/test_cli.py",
         "tests/test_views.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "maintainer fix for provide_automatic_options override; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -538,10 +538,10 @@
         "src/flask/json/__init__.py",
         "src/flask/json/provider.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -568,10 +568,10 @@
       "changed_files": [
         "examples/tutorial/flaskr/__init__.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "merged bug fix: abort when the instance folder cannot be created; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -607,10 +607,10 @@
         "src/flask/json/provider.py",
         "src/flask/sansio/app.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -646,10 +646,10 @@
         "src/flask/json/provider.py",
         "src/flask/sansio/app.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -677,10 +677,10 @@
         "src/flask/app.py",
         "src/flask/sansio/app.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "maintainer deprecation of should_ignore_error; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -716,10 +716,10 @@
         "src/flask/json/provider.py",
         "src/flask/sansio/app.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -747,10 +747,10 @@
         "src/flask/app.py",
         "src/flask/sessions.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "merged tooling PR adding codespell to pre-commit config and pyproject plus src comment cleanup; not docs/tests; ordinary maintenance",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -778,10 +778,10 @@
         "src/flask/sansio/app.py",
         "src/flask/sessions.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "merged 1-line annotation fix (str or None) for select_jinja_autoescape; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -809,10 +809,10 @@
         "src/flask/helpers.py",
         "src/flask/sansio/app.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "maintainer change: redirect defaults to 303; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -848,10 +848,10 @@
         "src/flask/json/provider.py",
         "src/flask/sansio/app.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -887,10 +887,10 @@
         "src/flask/json/provider.py",
         "src/flask/sansio/app.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -926,10 +926,10 @@
         "src/flask/json/provider.py",
         "src/flask/sansio/app.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -965,10 +965,10 @@
         "src/flask/json/provider.py",
         "src/flask/sansio/app.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -999,10 +999,10 @@
         "tests/test_reqctx.py",
         "tests/test_subclassing.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "maintainer refactor passing ctx through dispatch methods with backcompat shims; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1038,10 +1038,10 @@
         "src/flask/sansio/scaffold.py",
         "src/flask/templating.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "large but ordinary maintainer refactor merging app and request context into 3.2.0; reviewed and merged",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1077,10 +1077,10 @@
         "src/flask/typing.py",
         "tests/test_blueprints.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1110,10 +1110,10 @@
         "tests/test_blueprints.py",
         "tests/test_templating.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "merged feature: call template_filter without parens; reviewed, iterated, merged by maintainer; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1141,10 +1141,10 @@
         "src/flask/helpers.py",
         "tests/test_helpers.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "maintainer refactor of stream_with_context for async views; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1171,10 +1171,10 @@
       "changed_files": [
         "src/flask/helpers.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "merged typing relaxation IO[bytes] instead of BinaryIO in send_file; milestone 3.1.2; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1208,10 +1208,10 @@
         "src/flask/testing.py",
         "tests/test_testing.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "genuine read: diff is docs/server.rst only (System Preferences -> System Settings); PR body itself says no code/behavior change; documentation-only, consistent with DOCS-ONLY exclusions",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1239,10 +1239,10 @@
         "src/flask/testing.py",
         "tests/test_testing.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "maintainer bug fix pushing preserved contexts in correct order in test client; merged same day; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1275,10 +1275,10 @@
         "src/flask/typing.py",
         "tests/test_cli.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1310,10 +1310,10 @@
         "src/flask/typing.py",
         "tests/test_cli.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1345,10 +1345,10 @@
         "src/flask/typing.py",
         "tests/test_cli.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1381,10 +1381,10 @@
         "src/flask/typing.py",
         "tests/test_cli.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1411,10 +1411,10 @@
       "changed_files": [
         "docs/conf.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "no runtime behavior change (DOCS-ONLY)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1450,10 +1450,10 @@
         "src/flask/testing.py",
         "src/flask/typing.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1480,10 +1480,10 @@
       "changed_files": [
         "docs/conf.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "no runtime behavior change (DOCS-ONLY)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1510,10 +1510,10 @@
       "changed_files": [
         "src/requests/models.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: correct models.Response.json() docstring in shipped source file; merged; ordinary source-level doc fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1540,10 +1540,10 @@
       "changed_files": [
         "src/requests/models.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1574,10 +1574,10 @@
         "src/requests/utils.py",
         "tests/test_requests.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1604,10 +1604,10 @@
       "changed_files": [
         "setup.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: start testing on Python 3.13rc (CI); merged; ordinary CI maintenance",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1639,10 +1639,10 @@
         "src/requests/utils.py",
         "tests/test_requests.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1672,10 +1672,10 @@
         "src/requests/utils.py",
         "tests/test_requests.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: test on urllib3 1.26.x (CI matrix); merged maintainer PR; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1711,10 +1711,10 @@
         "src/requests/status_codes.py",
         "src/requests/utils.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1741,10 +1741,10 @@
       "changed_files": [
         "src/requests/adapters.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: allow overriding specific pool key params (closes 6715); merged; ordinary bug fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1771,10 +1771,10 @@
       "changed_files": [
         "src/requests/adapters.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: add public get_connection_with_tls_context API (CVE-2024-35195 follow-up); merged maintainer PR; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1804,10 +1804,10 @@
         "src/requests/models.py",
         "src/requests/packages.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: allow optional char-detection dependencies post-packaging; merged maintainer PR; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1834,10 +1834,10 @@
       "changed_files": [
         "tests/test_requests.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "re-read with fresh eyes: merged 1-line test fix using an invalid URI that does not make httpbin throw 500; real, merged, uncontroversial; tests-only is fine as a control",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1865,10 +1865,10 @@
         "src/requests/status_codes.py",
         "tests/test_requests.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: fix compatibility with pytest 8 (pytest.warns deprecation); merged; ordinary test-compat fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1895,10 +1895,10 @@
       "changed_files": [
         "src/requests/status_codes.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: add RFC 9110 HTTP status code names; merged; ordinary constants update",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1926,10 +1926,10 @@
         "src/requests/utils.py",
         "tests/test_utils.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: fix proxy_bypass_registry returning true on empty strings; merged into 2.32.0; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1958,10 +1958,10 @@
         "tests/test_requests.py",
         "tests/testserver/server.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: add local TLS test server and pool-manager context params; merged maintainer PR; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -1989,10 +1989,10 @@
         "src/requests/adapters.py",
         "tests/test_requests.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: use TLS settings in selecting connection pool; merged maintainer security-relevant fix; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2026,10 +2026,10 @@
         "tests/test_adapters.py",
         "tests/test_requests.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: map each chardet package to requests.packages.chardet.* (issue 6223); merged into 2.32.0; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2062,10 +2062,10 @@
         "tests/test_adapters.py",
         "tests/test_requests.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: super_len counts encoded bytes for str (issue 6586); merged; ordinary bug fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2095,10 +2095,10 @@
         "tests/test_adapters.py",
         "tests/test_requests.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: trim excess leading path separators (closes 6643); merged maintainer fix; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2127,10 +2127,10 @@
         "src/requests/exceptions.py",
         "tests/test_requests.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: make JSONDecodeError picklable/deserializable (fix 6628); merged; ordinary bug fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2164,10 +2164,10 @@
         "youtube_dl/extractor/youtube.py",
         "youtube_dl/jsinterp.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2203,10 +2203,10 @@
         "youtube_dl/__init__.py",
         "youtube_dl/compat.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2242,10 +2242,10 @@
         "youtube_dl/extractor/biqle.py",
         "youtube_dl/extractor/cbs.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "merged openload oladblock domain support after minor review iteration; ordinary extractor change",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2281,10 +2281,10 @@
         "youtube_dl/extractor/streamango.py",
         "youtube_dl/extractor/stv.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "merged extractor improvement adding streamcherry.com alias for streamango; small and uncontroversial",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2311,10 +2311,10 @@
       "changed_files": [
         "youtube_dl/postprocessor/ffmpeg.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "merged 1-file ffmpeg postprocessor bug fix (Tatsh, merged by dstftw); ordinary uncontroversial change",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2342,10 +2342,10 @@
         "youtube_dl/extractor/instagram.py",
         "youtube_dl/extractor/youku.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[Youku] Update ccode'; merged 1-line extractor fix; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2373,10 +2373,10 @@
         "youtube_dl/extractor/extractors.py",
         "youtube_dl/extractor/weibo.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2412,10 +2412,10 @@
         "youtube_dl/extractor/canalplus.py",
         "youtube_dl/extractor/collegerama.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2451,10 +2451,10 @@
         "youtube_dl/extractor/aws.py",
         "youtube_dl/extractor/bbc.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2481,10 +2481,10 @@
       "changed_files": [
         "youtube_dl/extractor/nbc.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: 'Fix for JSON meta data download' for NBC sites; merged; ordinary bug fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2520,10 +2520,10 @@
         "youtube_dl/downloader/common.py",
         "youtube_dl/downloader/dash.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: 'Openload phantomjs method'; merged; ordinary site fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2559,10 +2559,10 @@
         "youtube_dl/downloader/common.py",
         "youtube_dl/downloader/dash.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[YoutubeDL] write raw subtitle files' (UTF-16 subs fix); merged; ordinary bug fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2598,10 +2598,10 @@
         "youtube_dl/extractor/aparat.py",
         "youtube_dl/extractor/ard.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[build] Override timestamps in zip file' for reproducible builds; merged; ordinary build maintenance",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2631,10 +2631,10 @@
         "youtube_dl/extractor/periscope.py",
         "youtube_dl/extractor/qqmusic.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: 'Fix QQ Music url changed'; merged; ordinary extractor fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2670,10 +2670,10 @@
         "youtube_dl/extractor/adultswim.py",
         "youtube_dl/extractor/aenetworks.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[cbsinteractive] update extractor and test cases'; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2709,10 +2709,10 @@
         "youtube_dl/downloader/external.py",
         "youtube_dl/downloader/f4m.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2748,10 +2748,10 @@
         "youtube_dl/extractor/anvato.py",
         "youtube_dl/extractor/appleconnect.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[cbc] update test cases' - inline extractor _TESTS refresh; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2787,10 +2787,10 @@
         "youtube_dl/extractor/anvato.py",
         "youtube_dl/extractor/appleconnect.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[appletrailers] update test cases' - inline extractor _TESTS refresh; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2821,10 +2821,10 @@
         "youtube_dl/extractor/xtube.py",
         "youtube_dl/utils.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[utils] Fix inconsistent output of clean_html'; merged; ordinary bug fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2859,10 +2859,10 @@
         "youtube_dl/extractor/wsj.py",
         "youtube_dl/version.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[go90] Improve extraction' with metadata and subtitles; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2893,10 +2893,10 @@
         "youtube_dl/extractor/generic.py",
         "youtube_dl/extractor/tvnoe.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: fix jwplayer 'str object does not support item assignment'; merged after discussion; ordinary bug fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2932,10 +2932,10 @@
         "youtube_dl/downloader/hls.py",
         "youtube_dl/extractor/addanime.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2965,10 +2965,10 @@
         "youtube_dl/extractor/generic.py",
         "youtube_dl/extractor/limelight.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -2996,10 +2996,10 @@
         "youtube_dl/extractor/iqiyi.py",
         "youtube_dl/utils.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: utils.py workaround for TypeError with Python 2.7.13 on Windows; merged; ordinary bug workaround",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3035,10 +3035,10 @@
         "youtube_dl/extractor/crunchyroll.py",
         "youtube_dl/extractor/douyutv.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: new --playlist-random parameter; merged feature; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3074,10 +3074,10 @@
         "devscripts/make_supportedsites.py",
         "devscripts/prepare_manpage.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3105,10 +3105,10 @@
         "youtube_dl/extractor/flipagram.py",
         "youtube_dl/extractor/vimeo.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: 'Fix typos' - comment-only fixes inside two extractor source files (flipagram.py, vimeo.py); merged; known-quiet ordinary control",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3136,10 +3136,10 @@
         "youtube_dl/extractor/crunchyroll.py",
         "youtube_dl/extractor/generic.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "genuine read: PR is '[CONTRIBUTING.md] Fix broken link' - documentation file only, no runtime behavior; consistent with DOCS-ONLY exclusions",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3166,10 +3166,10 @@
       "changed_files": [
         "youtube_dl/extractor/crunchyroll.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3205,10 +3205,10 @@
         "devscripts/make_contributing.py",
         "devscripts/make_lazy_extractors.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3238,10 +3238,10 @@
         "youtube_dl/extractor/openload.py",
         "youtube_dl/jsinterp.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: 'Strip only args urls'; small merged improvement; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3277,10 +3277,10 @@
         "youtube_dl/extractor/openload.py",
         "youtube_dl/extractor/plays.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[openload] Fix extraction' follow-up restoring aadecode; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3307,10 +3307,10 @@
       "changed_files": [
         "youtube_dl/utils.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3337,10 +3337,10 @@
       "changed_files": [
         "youtube_dl/extractor/openload.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[openload] Fix extraction' (kasper93); merged same day; ordinary site fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3376,10 +3376,10 @@
         "youtube_dl/extractor/abc.py",
         "youtube_dl/extractor/adobepass.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[adobepass] Add Comcast'; merged after review; ordinary provider addition",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3407,10 +3407,10 @@
         "youtube_dl/extractor/extractors.py",
         "youtube_dl/extractor/huajiao.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3446,10 +3446,10 @@
         "youtube_dl/extractor/huajiao.py",
         "youtube_dl/extractor/orf.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3485,10 +3485,10 @@
         "youtube_dl/extractor/jwplatform.py",
         "youtube_dl/extractor/periscope.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[pornoxo] Improve metadata extraction'; merged; ordinary extractor improvement",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3524,10 +3524,10 @@
         "youtube_dl/extractor/instagram.py",
         "youtube_dl/extractor/ketnet.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[criterion] Rely on _match_id, improve regex and add thumbnail to test'; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3563,10 +3563,10 @@
         "youtube_dl/extractor/ketnet.py",
         "youtube_dl/extractor/leeco.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[clubic] Rely on _match_id and _parse_json'; merged; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3602,10 +3602,10 @@
         "youtube_dl/extractor/instagram.py",
         "youtube_dl/extractor/kaltura.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: '[Instagram] Extract comments'; merged improvement; ordinary",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3634,10 +3634,10 @@
         "youtube_dl/extractor/newgrounds.py",
         "youtube_dl/extractor/polskieradio.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3673,10 +3673,10 @@
         "youtube_dl/extractor/gamestar.py",
         "youtube_dl/extractor/globo.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3710,10 +3710,10 @@
         "youtube_dl/extractor/twitter.py",
         "youtube_dl/extractor/youtube.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "opened the PR behind the merge-commit title: 'Add missing r prefix for _VALID_URLs', merged by yan12125; ordinary regex-string fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3749,10 +3749,10 @@
         "youtube_dl/extractor/prosiebensat1.py",
         "youtube_dl/extractor/puls4.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "eligible",
+      "human_reason": "actual PR: 'Add support for https for rest of the extractors'; merged; ordinary extractor fix",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3780,10 +3780,10 @@
         "youtube_dl/extractor/extractors.py",
         "youtube_dl/extractor/miaopai.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3819,10 +3819,10 @@
         "youtube_dl/extractor/moevideo.py",
         "youtube_dl/extractor/nick.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3849,10 +3849,10 @@
       "changed_files": [
         "youtube_dl/extractor/bilibili.py"
       ],
-      "human_decision": null,
-      "human_reason": null,
-      "human_reviewer": null,
-      "human_adjudicated_at": null,
+      "human_decision": "ineligible",
+      "human_reason": "maintainer branch-sync rollup (BRANCH-SYNC)",
+      "human_reviewer": "Kartik",
+      "human_adjudicated_at": "2026-08-10T13:30:24.277846+00:00",
       "revert_receipt": {
         "has_revert_commit": false,
         "revert_commit_sha": null,
@@ -3864,5 +3864,6 @@
         "git_diff_command": "git diff abf2c79f954c065d6bf92a2129f04eb07942d022 973dee491f24382161b1673d4d508dcede1da79e"
       }
     }
-  ]
+  ],
+  "adjudicated_at": "2026-08-10T13:30:24.277846+00:00"
 }
