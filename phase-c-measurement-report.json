@@ -1,38 +1,35 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-08-10T15:08:20.839748+00:00",
-  "protocol_commit": "c296e44307df4e3ced54c3ad2a007df3b7eb360f",
-  "protocol_tree": "7b0314222e9eeab245439719123ea1129a0f09fc",
+  "generated_at": "2026-08-10T16:04:46.023996+00:00",
+  "protocol_commit": "311dca188c9bf3989ecdd4598af5755460812517",
+  "protocol_tree": "74b6b597e718c793d116d897a044aee8372b3cff",
+  "parent_sha": "e4f1e1ae61fa0b20aecb1f1edbe34696840fe557",
   "model": "mistral/codestral-2508",
   "endpoint": "https://api.mistral.ai/v1/chat/completions",
   "prompt_version": "v1.4",
+  "freeze_completeness": {
+    "risk_threshold": 0.35,
+    "max_targets": 5,
+    "candidates_per_target": 4,
+    "target_ranking_evidence": "fp-ladder.json (0.35 proven binding; 0.15 reached 0.825 completion)"
+  },
+  "invalidation_rule": "Sweep Invalidation Rule: If calibration catch rate is 0%, or if zero API calls executed, or if spend is 0, the sweep MUST be invalidated and halted prior to holdout pass.",
   "metrics": {
-    "catch_rate": 0.0,
-    "false_positive_rate": 0.0,
-    "cost_per_pr_usd": 0.0,
-    "total_usd_spent": 0.0,
-    "total_api_calls": 1966,
-    "total_eval_rows": 83
+    "calibration_catch_rate": 0.0,
+    "total_usd_spent": 0.012195,
+    "total_api_calls": 25,
+    "calibration_rows_evaluated": 7
   },
   "dispositions": {
     "calibration": {
       "TP": 0,
       "FN": 7,
       "total": 7
-    },
-    "bug_holdouts": {
-      "TP": 0,
-      "FN": 16,
-      "total": 16
-    },
-    "control_holdouts": {
-      "FP": 0,
-      "TN": 60,
-      "total": 60
     }
   },
   "verdict": {
-    "human_gate_2": "OPEN (MEASURED)",
-    "status": "published_unbiased_measurement"
+    "status": "calibration_failed_sweep_invalidated",
+    "gate_verdict": "HALTED (Sweep Invalidation Rule Triggered)",
+    "holdout_pass_executed": false
   }
 }
