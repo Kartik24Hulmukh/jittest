@@ -109,6 +109,14 @@ def _open_mode(node: ast.Call) -> str | None:
     return None
 
 
+APPROVED_UNITTEST_ASSERTIONS = {
+    "assertEqual", "assertNotEqual", "assertTrue", "assertFalse",
+    "assertIs", "assertIsNot", "assertIsNone", "assertIsNotNone",
+    "assertIn", "assertNotIn", "assertInstanceOf", "assertNotInstanceOf",
+    "assertRaises", "assertRegex", "assertAlmostEqual", "assertCountEqual",
+}
+
+
 def check_candidate(code: str, max_bytes: int = 20000) -> CodeCheck:
     if not code.strip():
         return CodeCheck(False, "empty candidate")
@@ -146,6 +154,12 @@ def check_candidate(code: str, max_bytes: int = 20000) -> CodeCheck:
                     return CodeCheck(False, "contains `assert True`, which proves nothing")
                 return CodeCheck(
                     False, f"asserts the constant `{node.test.value!r}`, which proves nothing")
+
+        if isinstance(node, ast.With):
+            for item in node.items:
+                ctx_expr = ast.unparse(item.context_expr)
+                if "pytest.raises" in ctx_expr or "raises(" in ctx_expr:
+                    has_assert = True
 
         if isinstance(node, ast.Import):
             for alias in node.names:
@@ -195,6 +209,9 @@ def check_candidate(code: str, max_bytes: int = 20000) -> CodeCheck:
                             "corrupt the base/head comparison")
                     warnings.append(f"opens a computed path with mode `{mode}`")
             if isinstance(func, ast.Attribute):
+                if isinstance(func.value, ast.Name) and func.value.id in ("self", "test"):
+                    if func.attr in APPROVED_UNITTEST_ASSERTIONS or func.attr.startswith("assert"):
+                        has_assert = True
                 if func.attr in BANNED_ATTRS:
                     return CodeCheck(False, f"calls `{func.attr}`")
                 if func.attr == "sleep":
