@@ -36,6 +36,7 @@ def _get_git_sha(repo_path: Path, ref: str) -> str:
             ["git", "-C", str(repo_path), "rev-parse", ref],
             capture_output=True,
             text=True,
+            errors="replace",
             check=True,
             env=git_env(),
         )
