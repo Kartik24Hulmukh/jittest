@@ -113,6 +113,7 @@ def sign_evidence(
 
 def verify_receipt(
     evidence_input: Path | str | dict[str, Any],
+    key_path: Path | str | None = None,
 ) -> tuple[bool, str]:
     if isinstance(evidence_input, (str, Path)):
         p = Path(evidence_input)
@@ -153,7 +154,7 @@ def verify_receipt(
     elif alg == "HMAC-SHA256":
         try:
             sig_bytes = base64.b64decode(sig_b64)
-            key, _ = get_or_create_signing_key()
+            key, _ = get_or_create_signing_key(key_path)
             expected_sig = hmac.new(key, data, hashlib.sha256).digest()
             if hmac.compare_digest(sig_bytes, expected_sig):
                 return True, "signature_valid"

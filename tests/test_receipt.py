@@ -22,7 +22,7 @@ def test_sign_and_verify_receipt():
         assert signed["signature"]["algorithm"] in ("Ed25519", "HMAC-SHA256")
 
         # Verify valid receipt
-        ok, msg = verify_receipt(signed)
+        ok, msg = verify_receipt(signed, key_path=key_file)
         assert ok is True
         assert msg == "signature_valid"
 
@@ -42,6 +42,6 @@ def test_tampered_receipt_fails():
         # Tamper payload
         signed["verdict"] = "non_discriminating"
 
-        ok, msg = verify_receipt(signed)
+        ok, msg = verify_receipt(signed, key_path=key_file)
         assert ok is False
         assert "signature_verification_failed" in msg
