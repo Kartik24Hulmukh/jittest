@@ -149,6 +149,14 @@ class ContextCompiler:
         commit_context: str = "",
         max_bytes: int = 32000,
     ) -> TargetContext:
+        if not before_source and not after_source:
+            full_path = self.repo_path / target_file
+            if full_path.exists():
+                try:
+                    after_source = full_path.read_text(encoding="utf-8", errors="ignore")
+                except Exception:
+                    pass
+
         ctx = TargetContext(
             target_symbol=target_symbol,
             target_file=target_file,

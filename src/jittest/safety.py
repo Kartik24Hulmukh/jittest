@@ -117,7 +117,7 @@ APPROVED_UNITTEST_ASSERTIONS = {
 }
 
 
-def check_candidate(code: str, max_bytes: int = 20000) -> CodeCheck:
+def check_candidate(code: str, max_bytes: int = 20000, allow_no_assertion: bool = False) -> CodeCheck:
     if not code.strip():
         return CodeCheck(False, "empty candidate")
     if len(code.encode("utf-8")) > max_bytes:
@@ -219,7 +219,7 @@ def check_candidate(code: str, max_bytes: int = 20000) -> CodeCheck:
 
     if not has_test:
         return CodeCheck(False, "no function named test_*")
-    if not has_assert:
+    if not has_assert and not allow_no_assertion:
         return CodeCheck(False, "no assertion")
 
     lowered = code.lower()

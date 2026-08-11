@@ -68,15 +68,7 @@ def run_development_replay(llm_client: Any = None) -> dict[str, Any]:
 
         pipeline = PhaseDPipeline(repo_path, cfg, llm_client)
 
-        base_sha = r.get("derived_base_sha") or r.get("real_buggy_sha") or r.get("base_sha", "")
-        head_sha = r.get("derived_head_sha") or r.get("real_fixed_sha") or r.get("head_sha", "")
-
-        telem = pipeline.process_target(
-            target_symbol=r.get("target_symbol", r["row_id"]),
-            target_file=r.get("target_file", "src/flask/app.py"),
-            base_sha=base_sha,
-            head_sha=head_sha,
-        )
+        telem = pipeline.process_target(row_manifest=r)
         data = telem.as_dict()
         data["row_id"] = r["row_id"]
         results.append(data)

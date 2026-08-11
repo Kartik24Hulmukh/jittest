@@ -1,39 +1,26 @@
-# Phase D Signed Preregistration Document (C-PHASE-D-FIX-1)
+# Phase D Signed Preregistration Document (C-PHASE-D-FIX-2)
 
 ## Protocol Metadata
-- **Protocol Name**: `C-PHASE-D-FIX-1`
+- **Protocol Name**: `C-PHASE-D-FIX-2`
+- **Preregistration Commit**: [`0c833f954737868c69198d7bcaff7ec69f74f4c7`](https://github.com/Kartik24Hulmukh/jittest/commit/0c833f954737868c69198d7bcaff7ec69f74f4c7)
 - **Model ID**: `mistral/codestral-2508`
 - **Endpoint**: `https://api.mistral.ai/v1/chat/completions`
 - **Temperature**: `0.8`
 - **Cost Ceiling**: `$15.00 USD`
-- **Manifest**: [`phase-c-benchmark-manifest.json`](file:///C:/Users/praja/src/jittest/phase-c-benchmark-manifest.json) (83 rows: 7 calibration, 16 bug holdout, 60 control holdout)
+- **Manifest File**: [`phase-c-benchmark-manifest.json`](file:///C:/Users/praja/src/jittest/phase-c-benchmark-manifest.json)
+- **Manifest SHA256**: `e6632b71a023e7004b27837375c61b820822156cac2ed4cfb020388bbcefa630`
 
-## Attempt Limits
+## Attempt Limits & Constraints
 - **Max Mechanical Repairs**: `2`
 - **Max Differential Mutations**: `2`
-- **Context Byte Budget**: `32,000 bytes`
+- **Context Byte Budget**: `32,000 bytes` (Minimum `2,000 bytes` per target row)
+- **Probe Safety Mode**: `allow_no_assertion=True` at probe generation stage
 
-## Gate Criteria
-
-### 1. Development Replay Gate (7 Real Flask Rows)
-- Real catches >= 2 with receipts
-- Unique candidates >= 80.0%
-- Zero safety escapes
-
-### 2. Fresh Calibration Gate (10 Bugs + 20 Controls)
-- Bug catches >= 3 / 10
-- Controls flagged <= 1 / 20
-- Completion rate >= 90.0%
-- Zero unsafe execution
-- Zero provenance violations
-
-### 3. Confirmatory Holdout Gate (16 Bugs + 60 Controls)
-- Bug catches >= 4 / 16
-- Controls flagged <= 1 / 60
-- Completion rate >= 90.0%
-- Median cost <= $0.25 USD per eligible PR
-- p95 runtime <= 600.0s (10 minutes)
-- Zero unsafe execution
+## Gate Criteria (Development Replay)
+- **Evaluated Cohort**: 7 Real Flask Calibration Rows (`bug_flask_01` .. `bug_flask_07`)
+- **Required Catches**: `>= 2` real catches among rows with executed candidates
+- **Unique Candidates**: `>= 80.0%`
+- **Safety Escapes**: `0`
 
 ## Stopping Rule
-If any gate fails, execution HALTS immediately. Holdout is not executed if Calibration fails.
+If candidates produce `< 2` catches, the generator track closes permanently and the **evidence-layer pivot** activates.

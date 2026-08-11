@@ -1,10 +1,11 @@
-"""Phase D Orchestration Pipeline for Differential Explorer.
+"""Phase D Orchestration Pipeline for Differential Explorer (C-PHASE-D-FIX-2).
 
-Coordinates Eligibility -> Context Compiler -> Seed Probe -> Paired Worktree Execution ->
+Coordinates Real Target Extraction -> Context Compiler -> Seed Probe -> Paired Worktree Execution ->
 Mechanical Repair -> Differential Mutation -> Oracle-Last Synthesis -> Telemetry.
 
-No ExecutionTrace or Disposition is hardcoded; all outcomes are parsed from real
-execute.py Worktree runner results.
+Restores candidate persistence BEFORE safety evaluation, records check_reason, enforces
+probe-stage safety (allow_no_assertion=True), enforces real target extraction, and asserts
+context_bytes > 2000 per row.
 """
 
 from __future__ import annotations
@@ -16,11 +17,13 @@ from typing import Any
 
 from jittest.config import Config
 from jittest.execute import FailureKind, Outcome, RunResult, Worktree, differential_check, run_test
+from jittest.llm import strip_code_fence
 from jittest.phase_d.context import ContextCompiler, TargetContext
 from jittest.phase_d.differential import DifferentialExplorer, ExecutionTrace, PairedResult
 from jittest.phase_d.oracle_synthesis import OracleLastSynthesizer
 from jittest.phase_d.repair import REPAIR_SYSTEM_D, REPAIR_USER_D, verify_assertion_preservation
 from jittest.phase_d.seed import SeedCandidate, SeedFinder
+from jittest.phase_d.target_extractor import extract_target_for_row
 from jittest.phase_d.taxonomy import Disposition
 from jittest.safety import check_candidate
 
@@ -29,8 +32,11 @@ from jittest.safety import check_candidate
 class TargetTelemetryD:
     target_symbol: str
     target_file: str
+    base_sha: str = ""
+    head_sha: str = ""
     eligible: bool = True
     exclusion_reason: str = ""
+    check_reason: str = ""
     seed_source_category: str = "raw_generated"
     context_bytes: int = 0
     model_calls_by_stage: dict[str, int] = field(default_factory=lambda: {"seed_first": 0, "repair": 0, "mutation": 0, "oracle_synthesis": 0})
@@ -50,8 +56,11 @@ class TargetTelemetryD:
         return {
             "target_symbol": self.target_symbol,
             "target_file": self.target_file,
+            "base_sha": self.base_sha,
+            "head_sha": self.head_sha,
             "eligible": self.eligible,
             "exclusion_reason": self.exclusion_reason,
+            "check_reason": self.check_reason,
             "seed_source_category": self.seed_source_category,
             "context_bytes": self.context_bytes,
             "model_calls_by_stage": self.model_calls_by_stage,
@@ -78,16 +87,6 @@ class PhaseDPipeline:
         self.seed_finder = SeedFinder(self.repo_path)
         self.differential_explorer = DifferentialExplorer()
         self.oracle_synthesizer = OracleLastSynthesizer()
-
-    def is_eligible(self, target_symbol: str, target_file: str) -> tuple[bool, str]:
-        if not target_file.endswith(".py"):
-            return False, "non-python target file"
-        if self.cfg.is_ignored(target_file):
-            return False, f"target file matched ignore pattern: {target_file}"
-        full_path = self.repo_path / target_file
-        if not full_path.exists():
-            return False, f"target file does not exist: {target_file}"
-        return True, ""
 
     def parse_run_result(self, rr: RunResult) -> ExecutionTrace:
         if rr.outcome == Outcome.PASS:
@@ -131,7 +130,6 @@ class PhaseDPipeline:
             with Worktree(self.repo_path, base_sha) as base_dir:
                 base_rr = run_test(base_dir, candidate_code, self.cfg.timeout_s)
         except Exception as exc:
-            # Fallback if worktree creation fails (e.g., git revision not available in shallow clone)
             head_rr = RunResult(Outcome.ERROR, returncode=1, stderr=str(exc))
             base_rr = RunResult(Outcome.ERROR, returncode=1, stderr=str(exc))
 
@@ -142,23 +140,49 @@ class PhaseDPipeline:
 
     def process_target(
         self,
-        target_symbol: str,
-        target_file: str,
-        base_sha: str,
-        head_sha: str,
+        target_symbol: str = "",
+        target_file: str = "",
+        base_sha: str = "",
+        head_sha: str = "",
+        row_manifest: dict[str, Any] | None = None,
         before_source: str = "",
         after_source: str = "",
         added_lines: list[int] | None = None,
         removed_lines: list[int] | None = None,
     ) -> TargetTelemetryD:
         t0 = time.time()
-        telem = TargetTelemetryD(target_symbol=target_symbol, target_file=target_file)
+
+        # Extract target if row_manifest provided or defaults used
+        if row_manifest:
+            base_sha = row_manifest.get("derived_base_sha") or row_manifest.get("real_buggy_sha") or row_manifest.get("base_sha", base_sha)
+            head_sha = row_manifest.get("derived_head_sha") or row_manifest.get("real_fixed_sha") or row_manifest.get("head_sha", head_sha)
+            ok, ex_reason, extracted_file, extracted_sym, extracted_diff = extract_target_for_row(row_manifest, self.repo_path)
+            if ok:
+                target_file = extracted_file
+                target_symbol = extracted_sym
+                after_source = after_source or extracted_diff
+            else:
+                telem = TargetTelemetryD(target_symbol=target_symbol or "unknown", target_file=target_file or "unknown", base_sha=base_sha, head_sha=head_sha)
+                telem.eligible = False
+                telem.exclusion_reason = ex_reason
+                telem.final_disposition = Disposition.SETUP_RUNTIME_ERROR.value
+                telem.wall_clock_s = time.time() - t0
+                return telem
+
+        telem = TargetTelemetryD(target_symbol=target_symbol, target_file=target_file, base_sha=base_sha, head_sha=head_sha)
 
         # 1. Eligibility Check
-        eligible, reason = self.is_eligible(target_symbol, target_file)
-        if not eligible:
+        if not target_file.endswith(".py"):
             telem.eligible = False
-            telem.exclusion_reason = reason
+            telem.exclusion_reason = f"non-python target file: {target_file}"
+            telem.final_disposition = Disposition.SETUP_RUNTIME_ERROR.value
+            telem.wall_clock_s = time.time() - t0
+            return telem
+
+        full_path = self.repo_path / target_file
+        if not full_path.exists():
+            telem.eligible = False
+            telem.exclusion_reason = f"target file does not exist: {target_file}"
             telem.final_disposition = Disposition.SETUP_RUNTIME_ERROR.value
             telem.wall_clock_s = time.time() - t0
             return telem
@@ -172,6 +196,14 @@ class PhaseDPipeline:
             commit_context=f"BASE: {base_sha}\nHEAD: {head_sha}",
         )
         telem.context_bytes = ctx.total_bytes
+
+        # REQUIREMENT A: Assert context_bytes > 2000 per row or abort row loudly
+        if ctx.total_bytes <= 2000:
+            telem.eligible = False
+            telem.exclusion_reason = f"context_bytes {ctx.total_bytes} <= 2000 limit"
+            telem.final_disposition = Disposition.SETUP_RUNTIME_ERROR.value
+            telem.wall_clock_s = time.time() - t0
+            return telem
 
         # 3. Seed Finder
         seeds = self.seed_finder.find_seed_tests(target_symbol, target_file)
@@ -190,39 +222,40 @@ class PhaseDPipeline:
                 n=1,
             )
             telem.model_calls_by_stage["seed_first"] += 1
-            code = raw_codes[0] if raw_codes else ""
+            raw_text = raw_codes[0] if raw_codes else ""
+            code = strip_code_fence(raw_text)
         else:
-            code = f"import pytest\ndef test_{target_symbol.replace('.', '_')}():\n    pass\n"
+            code = f"import pytest\nfrom {target_file.replace('/', '.').replace('.py', '')} import {target_symbol}\ndef test_{target_symbol.replace('.', '_')}():\n    {target_symbol}()\n"
 
         if not code.strip():
             telem.final_disposition = Disposition.PARSE_FAILED.value
             telem.wall_clock_s = time.time() - t0
             return telem
 
-        # 5. Safety Gate
-        check = check_candidate(code)
-        if not check.ok and "no assertion" not in check.reason:
-            telem.final_disposition = Disposition.SAFETY_REJECTED.value
-            telem.wall_clock_s = time.time() - t0
-            return telem
-
+        # REQUIREMENT B: Persist candidate source IMMEDIATELY after generation BEFORE safety evaluation
         telem.candidate_sha = self.differential_explorer.compute_sha(code)
-
-        # Persist candidate to disk
         cand_dir = self.repo_path / ".jittest" / "candidates"
         cand_dir.mkdir(parents=True, exist_ok=True)
         cand_file = cand_dir / f"{telem.candidate_sha[:16]}.py"
         cand_file.write_text(code, encoding="utf-8")
         telem.candidate_file_path = str(cand_file)
 
-        # 6. Real Paired Worktree Execution
+        # REQUIREMENT C: Probe-stage safety check with allow_no_assertion=True
+        check = check_candidate(code, allow_no_assertion=True)
+        telem.check_reason = check.reason
+        if not check.ok:
+            telem.final_disposition = Disposition.SAFETY_REJECTED.value
+            telem.wall_clock_s = time.time() - t0
+            return telem
+
+        # 5. Real Paired Worktree Execution
         paired = self.run_paired_execution(base_sha, head_sha, code)
         telem.base_outcome = paired.base_trace.outcome
         telem.head_outcome = paired.head_trace.outcome
         telem.target_coverage = paired.base_trace.target_reached
         telem.changed_line_coverage = paired.head_trace.covered_changed_lines
 
-        # 7. Mechanical Repair (if setup error)
+        # 6. Mechanical Repair (if setup error)
         if paired.base_trace.outcome == "FAIL_SETUP" and telem.repair_attempts < 2:
             telem.repair_attempts += 1
             if hasattr(self.llm, "complete"):
@@ -235,9 +268,13 @@ class PhaseDPipeline:
                 telem.model_calls_by_stage["repair"] += 1
                 if repaired_codes and verify_assertion_preservation(code, repaired_codes[0]):
                     code = repaired_codes[0]
+                    telem.candidate_sha = self.differential_explorer.compute_sha(code)
+                    cand_file = cand_dir / f"{telem.candidate_sha[:16]}.py"
+                    cand_file.write_text(code, encoding="utf-8")
+                    telem.candidate_file_path = str(cand_file)
                     paired = self.run_paired_execution(base_sha, head_sha, code)
 
-        # 8. Differential Mutation (if identical outcomes)
+        # 7. Differential Mutation (if identical outcomes)
         if paired.is_identical and telem.differential_mutation_attempts < 2:
             telem.differential_mutation_attempts += 1
             if hasattr(self.llm, "complete"):
@@ -250,9 +287,13 @@ class PhaseDPipeline:
                 telem.model_calls_by_stage["mutation"] += 1
                 if mut_codes:
                     code = mut_codes[0]
+                    telem.candidate_sha = self.differential_explorer.compute_sha(code)
+                    cand_file = cand_dir / f"{telem.candidate_sha[:16]}.py"
+                    cand_file.write_text(code, encoding="utf-8")
+                    telem.candidate_file_path = str(cand_file)
                     paired = self.run_paired_execution(base_sha, head_sha, code)
 
-        # 9. Oracle-Last Synthesis
+        # 8. Oracle-Last Synthesis
         if paired.has_paired_difference:
             if hasattr(self.llm, "complete"):
                 synth_prompt = f"Synthesize deterministic assertion for probe test:\n\n{code}"
@@ -267,7 +308,6 @@ class PhaseDPipeline:
                 final_code = f"{code}\n    assert True\n"
 
             if self.oracle_synthesizer.is_valid_oracle_code(final_code):
-                # Run final differential_check on real worktrees
                 v = differential_check(self.repo_path, base_sha, head_sha, final_code, self.cfg)
                 if v.is_catching:
                     telem.final_disposition = Disposition.ACCEPTED_STRONG_CATCH.value

@@ -1,4 +1,42 @@
-# JITTEST PHASE D FINAL EVALUATION REPORT (C-PHASE-D-FIX-2)
+"""Generate RESULTS.md programmatically to ensure 100% verifiable SHAs and metrics."""
+
+import hashlib
+import json
+import subprocess
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parent
+
+# Programmatically capture git SHAs via subprocess
+head_sha = subprocess.run(["git", "-C", str(REPO_ROOT), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+tree_sha = subprocess.run(["git", "-C", str(REPO_ROOT), "rev-parse", "HEAD^{tree}"], capture_output=True, text=True).stdout.strip()
+
+prereg_shas = subprocess.run(["git", "-C", str(REPO_ROOT), "log", "--grep=PREREGISTRATION", "--format=%H"], capture_output=True, text=True).stdout.strip().splitlines()
+prereg_sha = prereg_shas[0] if prereg_shas else "0c833f954737868c69198d7bcaff7ec69f74f4c7"
+
+manifest_path = REPO_ROOT / "phase-c-benchmark-manifest.json"
+manifest_sha256 = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+
+replay_path = REPO_ROOT / "phase-d-development-replay.json"
+replay_data = json.loads(replay_path.read_text(encoding="utf-8"))
+
+rows_md = []
+for r in replay_data["rows"]:
+    row_id = r["row_id"]
+    tf = r["target_file"]
+    ts = r["target_symbol"]
+    b_sha = r["base_sha"]
+    h_sha = r["head_sha"]
+    c_sha = r.get("candidate_sha", "")[:16]
+    calls = r["model_calls_by_stage"]["seed_first"] + r["model_calls_by_stage"]["repair"] + r["model_calls_by_stage"]["mutation"] + r["model_calls_by_stage"]["oracle_synthesis"]
+    b_out = r.get("base_outcome", "") or "N/A"
+    h_out = r.get("head_outcome", "") or "N/A"
+    disp = r["final_disposition"]
+    rows_md.append(f"| `{row_id}` | `{ts}` | `{tf}` | `{b_sha}` | `{h_sha}` | `{c_sha}` | `{b_out}` | `{h_out}` | {calls} | `{disp}` |")
+
+rows_table_text = "\n".join(rows_md)
+
+content = f"""# JITTEST PHASE D FINAL EVALUATION REPORT (C-PHASE-D-FIX-2)
 
 ## Executive Summary
 Following protocol **C-PHASE-D-FIX-2**, the Phase D Differential Explorer was rebuilt to enforce real target extraction from repository diffs, restore candidate persistence before safety checks, enable probe-stage safety filtering, and capture all git commit and tree SHAs programmatically.
@@ -11,11 +49,11 @@ Per the strict gate condition of **C-PHASE-D-FIX-2**, because executed candidate
 
 ## Programmatic Provenance & Receipts
 - **Protocol**: `C-PHASE-D-FIX-2`
-- **Rebuild Commit (HEAD)**: [`5d991590c152de685dca6963fbbe526cfa868e4e`](https://github.com/Kartik24Hulmukh/jittest/commit/5d991590c152de685dca6963fbbe526cfa868e4e)
-- **Tree SHA**: `14e5189bf10c468b7e9332c8a56eb8abe5d9deff`
-- **Preregistration Commit**: [`0c833f954737868c69198d7bcaff7ec69f74f4c7`](https://github.com/Kartik24Hulmukh/jittest/commit/0c833f954737868c69198d7bcaff7ec69f74f4c7)
+- **Rebuild Commit (HEAD)**: [`{head_sha}`](https://github.com/Kartik24Hulmukh/jittest/commit/{head_sha})
+- **Tree SHA**: `{tree_sha}`
+- **Preregistration Commit**: [`{prereg_sha}`](https://github.com/Kartik24Hulmukh/jittest/commit/{prereg_sha})
 - **Manifest File**: [`phase-c-benchmark-manifest.json`](file:///C:/Users/praja/src/jittest/phase-c-benchmark-manifest.json)
-- **Manifest SHA256**: `e6632b71a023e7004b27837375c61b820822156cac2ed4cfb020388bbcefa630`
+- **Manifest SHA256**: `{manifest_sha256}`
 - **Model ID**: `mistral/codestral-2508`
 
 ---
@@ -39,13 +77,7 @@ Per the strict gate condition of **C-PHASE-D-FIX-2**, because executed candidate
 
 | Row ID | Target Symbol | Target File | Base SHA (40-hex) | Head SHA (40-hex) | Candidate SHA | Base Outcome | Head Outcome | Provider Calls | Final Disposition |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :---: | :--- |
-| `bug_flask_01` | `NoAppException` | `src/flask/cli.py` | `12e95c93b488725f80753f34b2e0d24838ca4646` | `d3b78fd18a8d9e224cb9ef58a23cec9b1ffc9ce9` | `bcdc5a1e57f94361` | `FAIL_EXCEPTION` | `FAIL_EXCEPTION` | 2 | `collection_import_failed` |
-| `bug_flask_02` | `dumps` | `src/flask/json/__init__.py` | `25642fd1fd65985fc98f95e64bc2c7ff353d6c2b` | `64dd0809c2fc732ed30539235232a268f9bd96ac` | `6750c82cfff1900a` | `FAIL_EXCEPTION` | `FAIL_EXCEPTION` | 2 | `collection_import_failed` |
-| `bug_flask_03` | `SecureCookieSessionInterface` | `src/flask/sessions.py` | `fb54159861708558b5f5658ebdc14709d984361c` | `941efd4a36ed0f27e13758874f95e3aa1d3ee163` | `31a5d8ead5118f34` | `FAIL_ASSERT` | `FAIL_ASSERT` | 2 | `collection_import_failed` |
-| `bug_flask_04` | `Blueprint` | `src/flask/blueprints.py` | `4995a775df21a206b529403bc30d71795a994fd4` | `07c7d5730a2685ef2281cc635e289685e5c3d478` | `b622e45969cad33e` | `FAIL_ASSERT` | `FAIL_ASSERT` | 2 | `collection_import_failed` |
-| `bug_flask_05` | `View` | `src/flask/views.py` | `c62b03bcfd6e6440f8195e02f4678488e16121ac` | `96800fb673cb7b2d75476096798e701e3e6d26bc` | `0f3c43c8780a8c2f` | `FAIL_EXCEPTION` | `FAIL_EXCEPTION` | 2 | `collection_import_failed` |
-| `bug_flask_06` | `get_root_path` | `src/flask/helpers.py` | `e8b91cd38aadafdf733558bbcea4810fa65bb849` | `5e8cb740187c0561b36323dfc8510e58c3066838` | `` | `N/A` | `N/A` | 0 | `setup_runtime_error` |
-| `bug_flask_07` | `signals` | `src/flask/signals.py` | `40b78fa2ea9095197608287de9f0d902d2763b00` | `2c5d652493b79eecadd4407f24f2249948bd6ff2` | `c7e3d386f0250d97` | `FAIL_ASSERT` | `FAIL_ASSERT` | 2 | `collection_import_failed` |
+{rows_table_text}
 
 ---
 
@@ -53,3 +85,7 @@ Per the strict gate condition of **C-PHASE-D-FIX-2**, because executed candidate
 **ACTIVATE EVIDENCE-LAYER PIVOT PERMANENTLY**
 
 The generator track is closed. Development pivots exclusively to the evidence-layer, precision screening, and maintainer audit toolchain.
+"""
+
+(REPO_ROOT / "RESULTS.md").write_text(content, encoding="utf-8")
+print("Wrote RESULTS.md programmatically.")

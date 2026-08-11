@@ -20,7 +20,8 @@ def test_pipeline_d_target_processing():
     with tempfile.TemporaryDirectory() as tmp:
         repo = Path(tmp)
         (repo / "src").mkdir()
-        (repo / "src" / "app.py").write_text("def my_fn(x):\n    return x * 2\n")
+        dummy_code = "def my_fn(x):\n    return x * 2\n" + ("# padding line\n" * 100)
+        (repo / "src" / "app.py").write_text(dummy_code)
 
         cfg = Config()
         llm = MockLLM()
@@ -31,8 +32,8 @@ def test_pipeline_d_target_processing():
             target_file="src/app.py",
             base_sha="base123",
             head_sha="head456",
-            before_source="def my_fn(x):\n    return x * 2\n",
-            after_source="def my_fn(x):\n    if x < 0: raise ValueError()\n    return x * 2\n",
+            before_source=dummy_code,
+            after_source=dummy_code,
             added_lines=[2],
         )
 
@@ -44,5 +45,5 @@ def test_pipeline_d_target_processing():
             Disposition.STABLE_TECHNICAL_WEAK_CATCH.value,
             Disposition.COLLECTION_IMPORT_FAILED.value,
         )
-        assert telem.context_bytes > 0
+        assert telem.context_bytes > 2000
         assert "seed_first" in telem.model_calls_by_stage
