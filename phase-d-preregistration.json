@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "protocol": "C-PHASE-D-FIX-2",
+  "preregistered_at": "2026-08-11T15:52:00.000000+00:00",
+  "dataset_sha256": "e6632b71a023e7004b27837375c61b820822156cac2ed4cfb020388bbcefa630",
+  "manifest_file": "phase-c-benchmark-manifest.json",
+  "model_id": "mistral/codestral-2508",
+  "endpoint": "https://api.mistral.ai/v1/chat/completions",
+  "temperature": 0.8,
+  "attempt_limits": {
+    "max_mechanical_repairs": 2,
+    "max_differential_mutations": 2,
+    "context_bytes_budget": 32000
+  },
+  "cost_ceiling_usd": 15.0,
+  "development_gate": {
+    "min_bug_catches": 2,
+    "min_unique_candidates_pct": 80.0,
+    "max_safety_escapes": 0
+  },
+  "stopping_rule": "Halt immediately if development replay produces < 2 catches among executed candidates. Activate evidence-layer pivot permanently."
+}

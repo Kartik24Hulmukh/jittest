@@ -12,13 +12,20 @@ __all__ = ["strip_code_fence", "extract_json"]
 
 def strip_code_fence(text: str) -> str:
     body = (text or "").strip()
-    if not body.startswith("```"):
-        return body
-    lines = body.splitlines()
-    lines = lines[1:]
-    if lines and lines[-1].strip().startswith("```"):
-        lines = lines[:-1]
-    return chr(10).join(lines).strip()
+    if "```" in body:
+        parts = body.split("```")
+        if len(parts) >= 3:
+            code_block = parts[1]
+            lines = code_block.splitlines()
+            if lines and lines[0].strip().lower() in ("python", "py"):
+                lines = lines[1:]
+            return "\n".join(lines).strip()
+    if body.startswith("```"):
+        lines = body.splitlines()[1:]
+        if lines and lines[-1].strip().startswith("```"):
+            lines = lines[:-1]
+        return "\n".join(lines).strip()
+    return body
 
 
 def extract_json(text: str) -> dict | None:

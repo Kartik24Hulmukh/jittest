@@ -28,6 +28,9 @@ PRICES: dict[str, tuple[float, float]] = {
     "moonshotai/kimi-k3": (3.00, 15.00),
     "gemini-3.6-flash": (1.50, 7.50),
     "devstral-2512": (0.40, 2.00),
+    "codestral-2508": (0.30, 0.90),
+    "codestral": (0.30, 0.90),
+    "mistral": (0.30, 0.90),
 }
 
 
