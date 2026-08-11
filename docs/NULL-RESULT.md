@@ -2,7 +2,7 @@
 
 ## Abstract & Executive Summary
 
-Between August 2026 and August 2026, the `jittest` project designed, implemented, and preregistered two generations of automated "catching test" generators:
+In August 2026, the `jittest` project designed, implemented, and preregistered two generations of automated "catching test" generators:
 1. **Phase C (Direct Synthesis)**: Prompting LLMs to write catching tests directly from PR diff context.
 2. **Phase D (Differential Explorer)**: Mutation-first seed generation, mechanical AST repairs, paired base/head execution, changed-line feedback, and oracle-last synthesis (`C-PHASE-D-FIX-2`).
 
@@ -18,20 +18,18 @@ Rather than continuing to tune prompts or repair edge-case collection failures i
 
 | Instrument Track | Preregistration SHA | Manifest SHA256 | Real Executed Candidates | Catches | Total Provider Spend |
 | :--- | :--- | :--- | :---: | :---: | :---: |
-| **Phase C (Direct)** | [`090d071fd0127428b17eb3c2f50c66312461a856`](https://github.com/Kartik24Hulmukh/jittest/commit/090d071fd0127428b17eb3c2f50c66312461a856) | `e6632b71a023e7004b27837375c61b820822156cac2ed4cfb020388bbcefa630` | 0 / 7 | **0 / 7 (0.0%)** | $0.00 USD (Read-Only) |
+| **Phase C (Direct)** | [`090d071fd0127428b17eb3c2f50c66312461a856`](https://github.com/Kartik24Hulmukh/jittest/commit/090d071fd0127428b17eb3c2f50c66312461a856) | `e6632b71a023e7004b27837375c61b820822156cac2ed4cfb020388bbcefa630` | 31 / 34 (3 safety-rejected) | **0 / 7 (0.0%)** | ~$0.0310000 USD |
 | **Phase D (Differential)** | [`0c833f954737868c69198d7bcaff7ec69f74f4c7`](https://github.com/Kartik24Hulmukh/jittest/commit/0c833f954737868c69198d7bcaff7ec69f74f4c7) | `e6632b71a023e7004b27837375c61b820822156cac2ed4cfb020388bbcefa630` | 6 / 7 | **0 / 7 (0.0%)** | $0.0199215 USD |
 
-**Total Cumulative Provider Cost Across Both Null Studies**: **~$0.05 USD**.
+**Total Cumulative Provider Cost Across Both Null Studies**: **~$0.051 USD** (Meter delta: $0.36 -> $0.43 across Phase C calibrations + $0.0199 Phase D replay).
 
 ---
 
 ## Why the Generator Track Failed
 
-1. **Paired Execution Symmetry**: Generating a test that executes cleanly on Python repositories requires deep runtime state (mock objects, test fixtures, import context). When an LLM generates a candidate test, it either:
-   - Fails with an exception/syntax error on both commits (e.g. `collection_import_failed`).
-   - Asserts a generic property that passes on both commits (hardening test, `head_passed`).
-   - Asserts an invalid property that fails on both commits (`latent`).
-2. **Zero Paired Differences**: Across 6 candidates that executed on real worktrees under Phase D (`bug_flask_01` through `bug_flask_07`), **zero candidates exhibited a paired behavioral difference** (passing on base while failing on head).
+1. **Phase C Execution Summary**: Across 34 generated candidates evaluated on the 7 Flask calibration rows, 18 failed on both base and head worktrees (`latent`), 13 passed on both base and head worktrees (`head_passed`), 3 were rejected by static safety gates, and 0 produced a catching outcome.
+2. **Phase D Execution Summary**: Across 6 candidates that executed on real worktrees under Phase D (`bug_flask_01` through `bug_flask_07`), **zero candidates exhibited a paired behavioral difference** (passing on base while failing on head).
+3. **Paired Execution Symmetry**: Generating a test that executes cleanly on Python repositories requires deep runtime state (mock objects, test fixtures, import context). When an LLM generates a candidate test, it either fails with an exception on both commits or asserts a generic property that passes on both commits.
 
 ---
 
