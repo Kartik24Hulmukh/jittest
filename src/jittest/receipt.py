@@ -4,6 +4,10 @@ Signs evidence JSON artifacts with Ed25519 (when cryptography is installed) or
 stdlib HMAC-SHA256 (when cryptography is absent), guaranteeing zero third-party
 runtime dependency requirements while providing Ed25519 signed receipts in supported
 environments.
+
+NOTE: The stdlib HMAC-SHA256 fallback provides integrity verification (tamper detection)
+only, offering zero third-party authenticity. True cryptographic non-repudiation
+requires Ed25519 signing via the `cryptography` package.
 """
 
 from __future__ import annotations
@@ -57,7 +61,7 @@ def get_or_create_signing_key(
         key_path.write_bytes(pem_bytes)
         return priv_key, pub_key
     else:
-        # Fallback to stdlib key file
+        # Fallback to stdlib key file (integrity-only, zero third-party authenticity)
         secret_key_path = key_path.with_suffix(".key")
         if secret_key_path.exists():
             try:
@@ -99,7 +103,7 @@ def sign_evidence(
             "value": base64.b64encode(sig_bytes).decode("utf-8"),
         }
     else:
-        # stdlib HMAC-SHA256 signature fallback
+        # stdlib HMAC-SHA256 signature fallback (integrity-only)
         hmac_sig = hmac.new(priv_key, data, hashlib.sha256).digest()
         pub_hex = hashlib.sha256(pub_key).hexdigest()
         result["signature"] = {
@@ -141,8 +145,7 @@ def verify_receipt(
 
     if alg == "Ed25519":
         if not _HAS_CRYPTOGRAPHY:
-            # Without cryptography package, we accept valid Ed25519 signature payload format
-            return True, "signature_valid (format check; cryptography uninstalled)"
+            return False, "UNVERIFIABLE: cryptography package required to verify Ed25519 signature"
         try:
             pub_bytes = bytes.fromhex(pub_hex)
             sig_bytes = base64.b64decode(sig_b64)
@@ -163,3 +166,4 @@ def verify_receipt(
             return False, f"signature_verification_failed: {exc}"
 
     return False, f"unsupported_algorithm: {alg}"
+

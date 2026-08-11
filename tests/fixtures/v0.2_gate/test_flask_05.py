@@ -1,0 +1,10 @@
+import sys
+import sqlite3
+from pathlib import Path
+
+def test_converter():
+    if "timestamp" in sqlite3.converters: del sqlite3.converters["timestamp"]
+    if "TIMESTAMP" in sqlite3.converters: del sqlite3.converters["TIMESTAMP"]
+    sys.path.insert(0, str(Path("examples/tutorial").resolve()))
+    import flaskr.db
+    assert "timestamp" in sqlite3.converters or "TIMESTAMP" in sqlite3.converters

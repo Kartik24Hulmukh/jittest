@@ -64,7 +64,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
+addopts = "-q --ignore=tests/fixtures"
 pythonpath = ["src"]
 
 # jittest configures itself. Dogfooding is how we find out our defaults are wrong.

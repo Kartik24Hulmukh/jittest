@@ -204,16 +204,17 @@ class Verdict:
         return len(set(self.head_runs)) <= 1
 
 
-def detect_runner() -> list[str]:
+def detect_runner(python_exe: str | Path | None = None) -> list[str]:
     """Prefer the project's own pytest. Fall back to the bundled mini-runner."""
+    exe = str(python_exe) if python_exe else sys.executable
     if os.getenv("JITTEST_FORCE_MINIRUNNER") == "1":
-        return [sys.executable, "-m", "jittest._minirunner"]
+        return [exe, "-m", "jittest._minirunner"]
     probe = subprocess.run(
-        [sys.executable, "-c", "import pytest"], capture_output=True, text=True, errors="replace",
+        [exe, "-c", "import pytest"], capture_output=True, text=True, errors="replace",
     )
     if probe.returncode == 0:
-        return [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider"]
-    return [sys.executable, "-m", "jittest._minirunner"]
+        return [exe, "-m", "pytest", "-q", "-p", "no:cacheprovider"]
+    return [exe, "-m", "jittest._minirunner"]
 
 
 class RevisionMismatch(RuntimeError):
@@ -482,7 +483,8 @@ def _kill_tree(proc: subprocess.Popen) -> None:
 
 
 def run_test(workdir: Path, test_code: str, timeout_s: int = 120,
-             sbx: SandboxPlan | None = None) -> RunResult:
+             sbx: SandboxPlan | None = None,
+             python_path: Path | str | None = None) -> RunResult:
     """Write the candidate into the checkout, run it, then remove it.
 
     ``sbx`` selects the isolation backend. ``None`` means unconfined, which is
@@ -494,13 +496,14 @@ def run_test(workdir: Path, test_code: str, timeout_s: int = 120,
     token = uuid.uuid4().hex[:8]
     candidate = workdir / f"{CANDIDATE_PREFIX}{token}.py"
     candidate.write_text(test_code, encoding="utf-8")
-    runner = detect_runner()
+    runner = detect_runner(python_path)
     uses_pytest = "pytest" in runner
     report = workdir / f".jittest-junit-{token}.xml"
     command = [*runner, str(candidate)]
     if uses_pytest:
         command.append(f"--junitxml={report}")
     env = _env_for(workdir)
+
     if sbx is not None and sbx.isolated:
         command, extra = sandbox_wrap(command, workdir, env, sbx)
         env = extra or env
