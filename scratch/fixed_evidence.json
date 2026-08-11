@@ -5,13 +5,13 @@
   "proven_catch": false,
   "disposition": "head_passed",
   "provenance": {
-    "repo_path": "C:\\Users\\praja\\AppData\\Local\\Temp\\tmprmnv5zxn\\synthetic_repo",
-    "base_sha": "6e0ba07b1a00bd61a0d203dc110764c3e88745e5",
-    "head_sha": "6e0ba07b1a00bd61a0d203dc110764c3e88745e5",
+    "repo_path": "C:\\Users\\praja\\AppData\\Local\\Temp\\tmpggj0gk12\\synthetic_repo",
+    "base_sha": "efae4371317411ec04216b06305ee5e69fd1813e",
+    "head_sha": "efae4371317411ec04216b06305ee5e69fd1813e",
     "test_file_name": "test_app.py",
     "test_file_sha256": "dd5f0630730074de68b852269518f4dd25c3c5c51d3ba4d369bf939213c629d4",
-    "tool_commit_sha": "513c08aad886f314ea4dc058c88140173121a1eb",
-    "tool_tree_sha": "0c60e209c0b12bc88d8d34e5bb7fad6a5f84b082"
+    "tool_commit_sha": "7c67dcf99dfdc39360f896fa64fcfe817c8ff151",
+    "tool_tree_sha": "d2311a2cd564855a27f0f3606303e0df48febb22"
   },
   "base_execution": {
     "outcome": "NOTRUN",
@@ -22,10 +22,10 @@
   "head_execution": {
     "outcome": "PASS",
     "exit_code": 0,
-    "stdout_sha256": "073b1bbed3fedd224b758a734fc16517c5bf3d17bd10f69d131ecd1b1c9690ca",
+    "stdout_sha256": "82c201bb904df7561785e93b567cf9f67336470fb20ba42c9846547bf1029aea",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   },
   "rerun_agreement": true,
-  "wall_clock_s": 5.938,
+  "wall_clock_s": 3.813,
   "provider_cost_usd": 0.0
 }
