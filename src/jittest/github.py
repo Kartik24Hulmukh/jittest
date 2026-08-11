@@ -14,7 +14,7 @@ import urllib.request
 
 from .report import MARKER
 
-__all__ = ["upsert_pr_comment", "detect_pr_number", "detect_repo", "pr_context"]
+__all__ = ["upsert_pr_comment", "detect_pr_number", "detect_repo", "pr_context", "fetch_pr_base_head"]
 
 API = os.getenv("GITHUB_API_URL", "https://api.github.com")
 
@@ -137,3 +137,43 @@ def upsert_pr_comment(body: str, repo: str | None = None,
         if _gh_cli_fallback(body):
             return "posted via gh CLI after API error"
         return f"failed to comment: {exc}"
+
+
+def fetch_pr_base_head(repo: str, pr_number: int | str) -> tuple[str, str]:
+    """Fetch base and head SHAs for a given GitHub PR number.
+
+    Returns (base_sha, head_sha).
+    """
+    repo = repo.strip()
+    pr_number = str(pr_number).strip()
+
+    if _token():
+        try:
+            pr_data = _request("GET", f"/repos/{repo}/pulls/{pr_number}")
+            base_sha = pr_data.get("base", {}).get("sha", "")
+            head_sha = pr_data.get("head", {}).get("sha", "")
+            if base_sha and head_sha:
+                return base_sha, head_sha
+        except Exception:
+            pass
+
+    # Fallback to gh CLI
+    try:
+        res = subprocess.run(
+            ["gh", "pr", "view", pr_number, "--repo", repo, "--json", "baseRefOid,headRefOid"],
+            capture_output=True,
+            text=True,
+            errors="replace",
+            timeout=30,
+        )
+        if res.returncode == 0:
+            data = json.loads(res.stdout)
+            base_sha = data.get("baseRefOid", "")
+            head_sha = data.get("headRefOid", "")
+            if base_sha and head_sha:
+                return base_sha, head_sha
+    except Exception:
+        pass
+
+    raise RuntimeError(f"Could not resolve base/head SHAs for PR #{pr_number} in repo {repo}")
+

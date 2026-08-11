@@ -104,3 +104,27 @@ def test_verify_non_discriminating_test():
         assert out_artifact.exists()
         artifact_data = json.loads(out_artifact.read_text(encoding="utf-8"))
         assert artifact_data["verdict"] == VerdictClass.NON_DISCRIMINATING
+
+
+def test_verify_signed_receipt():
+    with tempfile.TemporaryDirectory() as tmp:
+        repo, base_sha, head_sha, test_file = create_synthetic_repo(Path(tmp))
+        out_artifact = Path(tmp) / "signed_evidence.json"
+
+        evidence, exit_code = verify_test(
+            repo_path=repo,
+            base_ref=base_sha,
+            head_ref=head_sha,
+            test_file_path=test_file,
+            output_path=out_artifact,
+            no_sandbox=True,
+        )
+
+        assert "signature" in evidence
+        assert evidence["signature"]["algorithm"] == "Ed25519"
+
+        from jittest.receipt import verify_receipt
+        ok, msg = verify_receipt(out_artifact)
+        assert ok is True
+        assert msg == "signature_valid"
+

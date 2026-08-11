@@ -1,26 +1,34 @@
-"""Verification MVP: Paired base/head execution and signed evidence generator.
+"""Verification Engine v0.2: Real-Repo Environments, Sandbox by Default, Signed Receipts.
 
 Usage:
-    jittest verify --repo <path> --base <sha> --head <sha> --test <file>
+    jittest verify --repo <path> --base <sha> --head <sha> --test <file> [--path <dir>] [--no-sandbox]
+    jittest verify --repo <owner/repo> --pr <number> --test <file>
 
-Executes an existing test on both base and head commits using Worktree and
-differential_check. Emits a signed evidence JSON artifact containing execution
-provenance, exit codes, and stdout/stderr hashes (no test source code).
+Executes test files across paired base and head commits using isolated git
+worktrees, provisioned per-commit virtualenvs, container/namespace sandboxing,
+and Ed25519-signed evidence JSON artifacts.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import subprocess
 import time
 from pathlib import Path
 from typing import Any
 
 from .diff import git_env
+from .env import provision_environment
 from .execute import Disposition, Outcome, Worktree, resolve_revision, run_test
+from .github import fetch_pr_base_head
+from .receipt import sign_evidence
+from .sandbox import plan as plan_sandbox
 
 __all__ = ["verify_test", "VerdictClass"]
+
+logger = logging.getLogger("jittest.verify")
 
 
 class VerdictClass:
@@ -51,14 +59,18 @@ def _hash_str(text: str) -> str:
 
 def verify_test(
     repo_path: Path | str,
-    base_ref: str,
-    head_ref: str,
-    test_file_path: Path | str,
+    base_ref: str | None = None,
+    head_ref: str | None = None,
+    test_file_path: Path | str | None = None,
+    pr_number: int | str | None = None,
+    rel_path: str = ".",
     output_path: Path | str | None = None,
-    timeout_s: int = 30,
+    timeout_s: int = 60,
     reruns: int = 2,
+    no_sandbox: bool = False,
+    signing_key_path: Path | str | None = None,
 ) -> tuple[dict[str, Any], int]:
-    """Run paired base/head verification and generate signed evidence artifact.
+    """Run paired base/head verification and generate Ed25519 signed evidence artifact.
 
     Returns:
         (evidence_dict, exit_code)
@@ -66,8 +78,18 @@ def verify_test(
     """
     start_time = time.monotonic()
     repo_path = Path(repo_path).resolve()
-    test_path = Path(test_file_path).resolve()
 
+    # Resolve PR if base/head not provided
+    if pr_number is not None and (not base_ref or not head_ref):
+        base_ref, head_ref = fetch_pr_base_head(str(repo_path), pr_number)
+
+    if not base_ref or not head_ref:
+        raise ValueError("Both base_ref and head_ref (or a valid --pr number) must be provided.")
+
+    if test_file_path is None:
+        raise ValueError("test_file_path must be provided.")
+
+    test_path = Path(test_file_path).resolve()
     if not test_path.exists():
         raise FileNotFoundError(f"Test file not found: {test_path}")
 
@@ -77,26 +99,37 @@ def verify_test(
     resolved_base = resolve_revision(repo_path, base_ref)
     resolved_head = resolve_revision(repo_path, head_ref)
 
+    # Sandbox plan setup
+    sandbox_mode = "off" if no_sandbox else "auto"
+    if no_sandbox:
+        logger.warning("WARNING: Sandbox disabled by user flag (--no-sandbox). Candidate tests will run unconfined.")
+
+    sbx_plan = plan_sandbox(mode=sandbox_mode, probe=True)
+
     # Tool repository provenance
     tool_root = Path(__file__).resolve().parent.parent.parent
     tool_commit_sha = _get_git_sha(tool_root, "HEAD")
     tool_tree_sha = _get_git_sha(tool_root, "HEAD^{tree}")
 
-    # 1. Run on HEAD worktree
+    # 1. Provision HEAD environment & run on HEAD worktree
     with Worktree(repo_path, resolved_head) as head_dir:
-        head_run1 = run_test(head_dir, test_code, timeout_s=timeout_s)
+        head_workdir = head_dir / rel_path if rel_path != "." else head_dir
+        head_env_info = provision_environment(head_workdir, resolved_head, repo_path)
+        head_run1 = run_test(head_workdir, test_code, timeout_s=timeout_s, sbx=sbx_plan)
 
     head_runs = [head_run1]
 
-    # If head failed, run a second time on HEAD to verify rerun agreement (flakiness check)
+    # Rerun on HEAD if failed to check flakiness
     if head_run1.outcome is Outcome.FAIL and reruns > 1:
         with Worktree(repo_path, resolved_head) as head_dir:
-            head_run2 = run_test(head_dir, test_code, timeout_s=timeout_s)
+            head_workdir = head_dir / rel_path if rel_path != "." else head_dir
+            head_run2 = run_test(head_workdir, test_code, timeout_s=timeout_s, sbx=sbx_plan)
             head_runs.append(head_run2)
 
     rerun_agreement = len(head_runs) > 1 and (head_runs[0].outcome == head_runs[1].outcome) if len(head_runs) > 1 else True
 
     base_run = None
+    base_env_info = None
     disposition = Disposition.HEAD_PASSED
     verdict_class = VerdictClass.NON_DISCRIMINATING
     is_proven_catch = False
@@ -109,9 +142,11 @@ def verify_test(
         disposition = Disposition.HEAD_FLAKY
         verdict_class = VerdictClass.INCONCLUSIVE
     elif head_run1.outcome is Outcome.FAIL:
-        # 2. Run on BASE worktree
+        # 2. Provision BASE environment & run on BASE worktree
         with Worktree(repo_path, resolved_base) as base_dir:
-            base_run = run_test(base_dir, test_code, timeout_s=timeout_s)
+            base_workdir = base_dir / rel_path if rel_path != "." else base_dir
+            base_env_info = provision_environment(base_workdir, resolved_base, repo_path)
+            base_run = run_test(base_workdir, test_code, timeout_s=timeout_s, sbx=sbx_plan)
 
         if base_run.outcome is Outcome.PASS:
             disposition = Disposition.CATCHING
@@ -135,6 +170,7 @@ def verify_test(
         "exit_code": base_run.returncode if base_run else -1,
         "stdout_sha256": _hash_str(base_run.stdout) if base_run else _hash_str(""),
         "stderr_sha256": _hash_str(base_run.stderr) if base_run else _hash_str(""),
+        "environment": base_env_info or {},
     }
 
     head_exec_dict = {
@@ -142,10 +178,11 @@ def verify_test(
         "exit_code": head_run1.returncode,
         "stdout_sha256": _hash_str(head_run1.stdout),
         "stderr_sha256": _hash_str(head_run1.stderr),
+        "environment": head_env_info or {},
     }
 
     evidence_dict: dict[str, Any] = {
-        "schema_version": "1.0",
+        "schema_version": "2.0",
         "tool": "jittest verify",
         "verdict": verdict_class,
         "proven_catch": is_proven_catch,
@@ -158,7 +195,9 @@ def verify_test(
             "test_file_sha256": test_file_sha256,
             "tool_commit_sha": tool_commit_sha,
             "tool_tree_sha": tool_tree_sha,
+            "rel_path": rel_path,
         },
+        "sandbox": sbx_plan.as_dict(),
         "base_execution": base_exec_dict,
         "head_execution": head_exec_dict,
         "rerun_agreement": rerun_agreement,
@@ -166,9 +205,12 @@ def verify_test(
         "provider_cost_usd": 0.0,
     }
 
+    # Cryptographically sign the evidence dictionary with Ed25519 key
+    signed_evidence = sign_evidence(evidence_dict, key_path=signing_key_path)
+
     if output_path is not None:
         out_p = Path(output_path).resolve()
         out_p.parent.mkdir(parents=True, exist_ok=True)
-        out_p.write_text(json.dumps(evidence_dict, indent=2), encoding="utf-8")
+        out_p.write_text(json.dumps(signed_evidence, indent=2), encoding="utf-8")
 
-    return evidence_dict, exit_code
+    return signed_evidence, exit_code
