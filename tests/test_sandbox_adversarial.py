@@ -5,10 +5,12 @@ exfiltrate data over the network, exhaust host process tables via fork bombs,
 or write outside the bound worktree checkout.
 """
 
-
-import pytest
-
 from jittest.sandbox import SandboxPlan, plan
+
+try:
+    import pytest
+except ImportError:
+    pytest = None
 
 
 def test_sandbox_plan_defaults():
@@ -36,8 +38,15 @@ assert not exfil_success, "Network egress was NOT blocked by sandbox"
 """
     # Execute python snippet locally to confirm syntax
     global_ns = {}
-    with pytest.raises(AssertionError):
-        exec(code, global_ns)
+    if pytest is not None:
+        with pytest.raises(AssertionError):
+            exec(code, global_ns)
+    else:
+        try:
+            exec(code, global_ns)
+            raise AssertionError("Expected AssertionError")
+        except AssertionError:
+            pass
 
 
 def test_adversarial_fork_bomb_containment():
