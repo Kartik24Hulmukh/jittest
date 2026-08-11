@@ -217,5 +217,9 @@
       "wall_clock_s": 46.20508170127869,
       "row_id": "bug_flask_07"
     }
-  ]
+  ],
+  "git_commit_sha": "4fabc683fd2625100f4e8711aef4e1aa638aa1fa",
+  "git_tree_sha": "38869cb50e26771aa5e0a99e38ff5dc496a0b7e2",
+  "preregistration_sha": "0c833f954737868c69198d7bcaff7ec69f74f4c7",
+  "manifest_sha256": "e6632b71a023e7004b27837375c61b820822156cac2ed4cfb020388bbcefa630"
 }

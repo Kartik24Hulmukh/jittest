@@ -1,18 +1,16 @@
 # JITTEST PHASE D FINAL EVALUATION REPORT (C-PHASE-D-FIX-2)
 
 ## Executive Summary
-Following protocol **C-PHASE-D-FIX-2**, the Phase D Differential Explorer was rebuilt to enforce real target extraction from repository diffs, restore candidate persistence before safety checks, enable probe-stage safety filtering, and capture all git commit and tree SHAs programmatically.
-
-Under real execution on the 7 Flask calibration rows using `mistral/codestral-2508`, **6 candidate probes executed successfully on real base and head worktrees**. However, all 6 executed candidates produced identical outcomes on both base and head worktrees, yielding **0/7 catches** (0.0%). 
+Following protocol **C-PHASE-D-FIX-2**, the Phase D Differential Explorer was evaluated against the 7 real Flask calibration rows using `mistral/codestral-2508`. **6 candidate probes executed on real base and head worktrees**. All 6 executed candidates produced identical outcomes on both base and head worktrees, yielding **0/7 catches** (0.0%). 
 
 Per the strict gate condition of **C-PHASE-D-FIX-2**, because executed candidates produced `< 2` catches, **the generator track closes permanently, and the evidence-layer pivot activates with no further repairs and no appeal.**
 
 ---
 
-## Programmatic Provenance & Receipts
+## Programmatic Provenance & Artifact Hashes
 - **Protocol**: `C-PHASE-D-FIX-2`
-- **Rebuild Commit (HEAD)**: [`5d991590c152de685dca6963fbbe526cfa868e4e`](https://github.com/Kartik24Hulmukh/jittest/commit/5d991590c152de685dca6963fbbe526cfa868e4e)
-- **Tree SHA**: `14e5189bf10c468b7e9332c8a56eb8abe5d9deff`
+- **Rebuild Commit (HEAD)**: [`4fabc683fd2625100f4e8711aef4e1aa638aa1fa`](https://github.com/Kartik24Hulmukh/jittest/commit/4fabc683fd2625100f4e8711aef4e1aa638aa1fa)
+- **Tree SHA**: `38869cb50e26771aa5e0a99e38ff5dc496a0b7e2`
 - **Preregistration Commit**: [`0c833f954737868c69198d7bcaff7ec69f74f4c7`](https://github.com/Kartik24Hulmukh/jittest/commit/0c833f954737868c69198d7bcaff7ec69f74f4c7)
 - **Manifest File**: [`phase-c-benchmark-manifest.json`](file:///C:/Users/praja/src/jittest/phase-c-benchmark-manifest.json)
 - **Manifest SHA256**: `e6632b71a023e7004b27837375c61b820822156cac2ed4cfb020388bbcefa630`
@@ -20,18 +18,18 @@ Per the strict gate condition of **C-PHASE-D-FIX-2**, because executed candidate
 
 ---
 
-## Replay Gate Performance & Meter Receipts
+## Replay Gate Performance & Meter Receipts (Strictly from Artifact)
 
-| Metric | Measured Value | Requirement | Status |
+| Metric | Measured Value (Artifact) | Requirement | Status |
 | :--- | :--- | :--- | :--- |
 | **Development Replay Catches** | **0 / 7 (0.0%)** | `>= 2` Catches | **FAILED** |
 | **Executed Candidates** | **6 / 7 (85.7%)** | `> 0` Executed | **PASSED** |
 | **Unique Candidates** | **100.0%** | `>= 80.0%` | **PASSED** |
 | **Provider Request Count (Delta)** | **12 calls** | Metered | **VERIFIED** |
-| **Provider Spend (Delta)** | **$0.0170613 USD** | Metered | **VERIFIED** |
-| **Median Cost per Row** | **$0.0024373 USD** | `< $0.25` | **VERIFIED** |
-| **p95 Wall-Clock Runtime** | **36.61 seconds** | `< 600s` | **VERIFIED** |
-| **Total Wall-Clock Runtime** | **198.75 seconds** | Metered | **VERIFIED** |
+| **Provider Spend (Delta)** | **$0.0199215 USD** | Metered | **VERIFIED** |
+| **Median Cost per Row** | **$0.0028459 USD** | `< $0.25` | **VERIFIED** |
+| **p95 Wall-Clock Runtime** | **58.42 seconds** | `< 600s` | **VERIFIED** |
+| **Total Wall-Clock Runtime** | **252.17 seconds** | Metered | **VERIFIED** |
 
 ---
 
@@ -44,7 +42,7 @@ Per the strict gate condition of **C-PHASE-D-FIX-2**, because executed candidate
 | `bug_flask_03` | `SecureCookieSessionInterface` | `src/flask/sessions.py` | `fb54159861708558b5f5658ebdc14709d984361c` | `941efd4a36ed0f27e13758874f95e3aa1d3ee163` | `31a5d8ead5118f34` | `FAIL_ASSERT` | `FAIL_ASSERT` | 2 | `collection_import_failed` |
 | `bug_flask_04` | `Blueprint` | `src/flask/blueprints.py` | `4995a775df21a206b529403bc30d71795a994fd4` | `07c7d5730a2685ef2281cc635e289685e5c3d478` | `b622e45969cad33e` | `FAIL_ASSERT` | `FAIL_ASSERT` | 2 | `collection_import_failed` |
 | `bug_flask_05` | `View` | `src/flask/views.py` | `c62b03bcfd6e6440f8195e02f4678488e16121ac` | `96800fb673cb7b2d75476096798e701e3e6d26bc` | `0f3c43c8780a8c2f` | `FAIL_EXCEPTION` | `FAIL_EXCEPTION` | 2 | `collection_import_failed` |
-| `bug_flask_06` | `get_root_path` | `src/flask/helpers.py` | `e8b91cd38aadafdf733558bbcea4810fa65bb849` | `5e8cb740187c0561b36323dfc8510e58c3066838` | `` | `N/A` | `N/A` | 0 | `setup_runtime_error` |
+| `bug_flask_06` | `get_root_path` | `src/flask/helpers.py` | `e8b91cd38aadafdf733558bbcea4810fa65bb849` | `5e8cb740187c0561b36323dfc8510e58c3066838` | `N/A` | `N/A` | `N/A` | 0 | `setup_runtime_error` |
 | `bug_flask_07` | `signals` | `src/flask/signals.py` | `40b78fa2ea9095197608287de9f0d902d2763b00` | `2c5d652493b79eecadd4407f24f2249948bd6ff2` | `c7e3d386f0250d97` | `FAIL_ASSERT` | `FAIL_ASSERT` | 2 | `collection_import_failed` |
 
 ---
