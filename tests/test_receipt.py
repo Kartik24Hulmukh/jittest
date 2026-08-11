@@ -2,7 +2,8 @@
 
 import tempfile
 from pathlib import Path
-from jittest.receipt import get_or_create_signing_key, sign_evidence, verify_receipt
+
+from jittest.receipt import sign_evidence, verify_receipt
 
 
 def test_sign_and_verify_receipt():

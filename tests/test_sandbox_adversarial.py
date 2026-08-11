@@ -5,15 +5,10 @@ exfiltrate data over the network, exhaust host process tables via fork bombs,
 or write outside the bound worktree checkout.
 """
 
-import os
-import socket
-import sys
-import tempfile
-from pathlib import Path
 
 import pytest
 
-from jittest.sandbox import DEFAULT_IMAGE, SandboxPlan, plan, wrap
+from jittest.sandbox import SandboxPlan, plan
 
 
 def test_sandbox_plan_defaults():

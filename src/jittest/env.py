@@ -7,15 +7,12 @@ both base and head worktrees.
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
-import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
 from typing import Any
-
-from .diff import git_env
 
 __all__ = ["provision_environment", "get_venv_python"]
 
@@ -88,10 +85,7 @@ def provision_environment(
     cache_key_raw = f"{repo}:{commit_sha}:{lockfile_hash}"
     cache_key = hashlib.sha256(cache_key_raw.encode("utf-8")).hexdigest()[:16]
 
-    if cache_root is None:
-        cache_root = Path.home() / ".jittest" / "envs"
-    else:
-        cache_root = Path(cache_root)
+    cache_root = Path.home() / ".jittest" / "envs" if cache_root is None else Path(cache_root)
 
     venv_dir = cache_root / f"env_{cache_key}"
     python_exe = get_venv_python(venv_dir)
@@ -139,7 +133,7 @@ def provision_environment(
 
     for target in install_targets:
         if pip_exe.exists():
-            try:
+            with contextlib.suppress(Exception):
                 subprocess.run(
                     [str(pip_exe), "install", "--no-build-isolation", *target],
                     cwd=str(worktree),
@@ -148,8 +142,6 @@ def provision_environment(
                     errors="replace",
                     timeout=300,
                 )
-            except Exception:
-                pass
 
     return {
         "venv_dir": str(venv_dir),

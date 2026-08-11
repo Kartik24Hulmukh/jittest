@@ -7,7 +7,6 @@ verification of artifact authenticity via `jittest verify-receipt <file>`.
 from __future__ import annotations
 
 import base64
-import hashlib
 import json
 from pathlib import Path
 from typing import Any
