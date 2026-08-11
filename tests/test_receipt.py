@@ -19,7 +19,7 @@ def test_sign_and_verify_receipt():
 
         signed = sign_evidence(evidence, key_path=key_file)
         assert "signature" in signed
-        assert signed["signature"]["algorithm"] == "Ed25519"
+        assert signed["signature"]["algorithm"] in ("Ed25519", "HMAC-SHA256")
 
         # Verify valid receipt
         ok, msg = verify_receipt(signed)

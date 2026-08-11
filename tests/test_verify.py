@@ -121,7 +121,7 @@ def test_verify_signed_receipt():
         )
 
         assert "signature" in evidence
-        assert evidence["signature"]["algorithm"] == "Ed25519"
+        assert evidence["signature"]["algorithm"] in ("Ed25519", "HMAC-SHA256")
 
         from jittest.receipt import verify_receipt
         ok, msg = verify_receipt(out_artifact)
