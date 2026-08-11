@@ -1,7 +1,6 @@
 """Tests for jittest verify MVP on synthetic two-commit fixture repository."""
 
 import json
-import os
 import subprocess
 import tempfile
 from pathlib import Path

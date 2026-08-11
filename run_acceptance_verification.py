@@ -1,6 +1,5 @@
 """Run acceptance verification on synthetic fixture repository and emit both artifacts."""
 
-import json
 import subprocess
 import tempfile
 from pathlib import Path

@@ -22,12 +22,13 @@ def test_no_hardcoded_execution_traces_or_dispositions():
             continue
         text = pf.read_text(encoding="utf-8")
 
-        if "ExecutionTrace(outcome=" in text and "outcome=parse_" not in text:
-            if re.search(r'ExecutionTrace\s*\(\s*outcome\s*=\s*["\']PASS["\']', text) or \
-               re.search(r'ExecutionTrace\s*\(\s*outcome\s*=\s*["\']FAIL', text):
-                raise AssertionError(
-                    f"Anti-Fabrication Failure: Hardcoded ExecutionTrace outcome found in {pf.name}"
-                )
+        if "ExecutionTrace(outcome=" in text and "outcome=parse_" not in text and (
+            re.search(r'ExecutionTrace\s*\(\s*outcome\s*=\s*["\']PASS["\']', text) or
+            re.search(r'ExecutionTrace\s*\(\s*outcome\s*=\s*["\']FAIL', text)
+        ):
+            raise AssertionError(
+                f"Anti-Fabrication Failure: Hardcoded ExecutionTrace outcome found in {pf.name}"
+            )
 
         if "telem.final_disposition = Disposition.HEAD_PASSED.value" in text and "eval" in str(pf):
             raise AssertionError(
