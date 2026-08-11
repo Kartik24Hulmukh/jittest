@@ -1,8 +1,8 @@
 <h1 align="center">jittest</h1>
 
 <p align="center">
-  <b>Generate tests that FAIL on your pull request and PASS on main.</b><br>
-  The open reference implementation of just-in-time <i>catching</i> test generation.
+  <b>Your agent writes the test. jittest proves it.</b><br>
+  <code>jittest verify</code> — paired base/head execution, signed evidence, zero trust required.
 </p>
 
 <p align="center">

@@ -18,3 +18,4 @@ eval-results.json
 false-positives.json
 .jittest-comment.md
 .DS_Store
+scratch/

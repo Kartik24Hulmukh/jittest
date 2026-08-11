@@ -110,6 +110,19 @@ def build_parser() -> argparse.ArgumentParser:
     oc.add_argument("--note", default="")
     oc.add_argument("--repo", default=".")
 
+    vf = sub.add_parser(
+        "verify",
+        help="execute test across paired base/head commits and emit signed evidence artifact",
+    )
+    vf.add_argument("--repo", default=".", help="path to git repository")
+    vf.add_argument("--base", default=os.getenv("JITTEST_BASE", "origin/main"), help="base commit/ref")
+    vf.add_argument("--head", default=os.getenv("JITTEST_HEAD", "HEAD"), help="head commit/ref")
+    vf.add_argument("--test", "-t", required=True, help="path to test file")
+    vf.add_argument("--output", "-o", default=None, help="path to output evidence JSON artifact")
+    vf.add_argument("--timeout", type=int, default=30, help="per test run timeout in seconds")
+    vf.add_argument("--reruns", type=int, default=2, help="flakiness reruns on head")
+    vf.add_argument("--json", dest="as_json", action="store_true")
+
     dr = sub.add_parser("doctor", help="check that this environment can run jittest")
     dr.add_argument("--repo", default=".")
 
@@ -358,10 +371,41 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
     return 0 if ok else 1
 
 
+def _cmd_verify(args: argparse.Namespace) -> int:
+    from .verify import verify_test
+    repo = Path(args.repo).resolve()
+    test_path = Path(args.test).resolve()
+
+    out_path = args.output
+    if not out_path and not args.as_json:
+        out_path = repo / f"jittest-evidence-{test_path.stem}.json"
+
+    evidence, exit_code = verify_test(
+        repo_path=repo,
+        base_ref=args.base,
+        head_ref=args.head,
+        test_file_path=test_path,
+        output_path=out_path,
+        timeout_s=args.timeout,
+        reruns=args.reruns,
+    )
+
+    if args.as_json:
+        print(json.dumps(evidence, indent=2))
+    else:
+        print(f"jittest verify: {evidence['verdict']} (disposition: {evidence['disposition']})")
+        if out_path:
+            print(f"Signed evidence written to: {out_path}")
+
+    return exit_code
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "run":
         return _cmd_run(args)
+    if args.command == "verify":
+        return _cmd_verify(args)
     if args.command == "oracles":
         return _cmd_oracles(args)
     if args.command == "stats":
