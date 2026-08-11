@@ -114,14 +114,25 @@ def build_parser() -> argparse.ArgumentParser:
         "verify",
         help="execute test across paired base/head commits and emit signed evidence artifact",
     )
-    vf.add_argument("--repo", default=".", help="path to git repository")
-    vf.add_argument("--base", default=os.getenv("JITTEST_BASE", "origin/main"), help="base commit/ref")
-    vf.add_argument("--head", default=os.getenv("JITTEST_HEAD", "HEAD"), help="head commit/ref")
+    vf.add_argument("--repo", default=".", help="path to git repository or owner/repo")
+    vf.add_argument("--base", default=None, help="base commit/ref")
+    vf.add_argument("--head", default=None, help="head commit/ref")
+    vf.add_argument("--pr", default=None, help="PR number to resolve base and head SHAs automatically")
     vf.add_argument("--test", "-t", required=True, help="path to test file")
+    vf.add_argument("--path", default=".", help="relative directory path within repo (for monorepos)")
     vf.add_argument("--output", "-o", default=None, help="path to output evidence JSON artifact")
-    vf.add_argument("--timeout", type=int, default=30, help="per test run timeout in seconds")
+    vf.add_argument("--no-sandbox", action="store_true", help="disable container/namespace isolation (opt-out)")
+    vf.add_argument("--signing-key", default=None, help="path to Ed25519 private key")
+    vf.add_argument("--timeout", type=int, default=60, help="per test run timeout in seconds")
     vf.add_argument("--reruns", type=int, default=2, help="flakiness reruns on head")
     vf.add_argument("--json", dest="as_json", action="store_true")
+
+    vr = sub.add_parser(
+        "verify-receipt",
+        help="verify Ed25519 signature and hash-chain of an evidence artifact",
+    )
+    vr.add_argument("artifact", help="path to evidence JSON artifact")
+    vr.add_argument("--json", dest="as_json", action="store_true")
 
     dr = sub.add_parser("doctor", help="check that this environment can run jittest")
     dr.add_argument("--repo", default=".")
@@ -373,21 +384,32 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
 
 def _cmd_verify(args: argparse.Namespace) -> int:
     from .verify import verify_test
-    repo = Path(args.repo).resolve()
+    repo = Path(args.repo).resolve() if Path(args.repo).exists() else args.repo
     test_path = Path(args.test).resolve()
 
+    base_ref = args.base
+    head_ref = args.head
+
+    if not base_ref and not head_ref and not args.pr:
+        base_ref = os.getenv("JITTEST_BASE", "origin/main")
+        head_ref = os.getenv("JITTEST_HEAD", "HEAD")
+
     out_path = args.output
-    if not out_path and not args.as_json:
+    if not out_path and not args.as_json and isinstance(repo, Path):
         out_path = repo / f"jittest-evidence-{test_path.stem}.json"
 
     evidence, exit_code = verify_test(
         repo_path=repo,
-        base_ref=args.base,
-        head_ref=args.head,
+        base_ref=base_ref,
+        head_ref=head_ref,
+        pr_number=args.pr,
         test_file_path=test_path,
+        rel_path=args.path,
         output_path=out_path,
         timeout_s=args.timeout,
         reruns=args.reruns,
+        no_sandbox=args.no_sandbox,
+        signing_key_path=args.signing_key,
     )
 
     if args.as_json:
@@ -400,12 +422,28 @@ def _cmd_verify(args: argparse.Namespace) -> int:
     return exit_code
 
 
+def _cmd_verify_receipt(args: argparse.Namespace) -> int:
+    from .receipt import verify_receipt
+    artifact_path = Path(args.artifact).resolve()
+    ok, reason = verify_receipt(artifact_path)
+
+    if args.as_json:
+        print(json.dumps({"valid": ok, "reason": reason, "artifact": str(artifact_path)}, indent=2))
+    else:
+        status_str = "VALID" if ok else "INVALID"
+        print(f"jittest verify-receipt: [{status_str}] {reason}")
+
+    return 0 if ok else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "run":
         return _cmd_run(args)
     if args.command == "verify":
         return _cmd_verify(args)
+    if args.command == "verify-receipt":
+        return _cmd_verify_receipt(args)
     if args.command == "oracles":
         return _cmd_oracles(args)
     if args.command == "stats":

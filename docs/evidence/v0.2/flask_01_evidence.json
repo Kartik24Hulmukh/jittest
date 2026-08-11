@@ -1,0 +1,60 @@
+{
+  "schema_version": "2.0",
+  "tool": "jittest verify",
+  "verdict": "refuted",
+  "proven_catch": false,
+  "disposition": "head_failed_base_failed_latent",
+  "provenance": {
+    "repo_path": "C:\\Users\\praja\\src\\flask",
+    "base_sha": "12e95c93b488725f80753f34b2e0d24838ca4646",
+    "head_sha": "d3b78fd18a8d9e224cb9ef58a23cec9b1ffc9ce9",
+    "test_file_name": "test_cli.py",
+    "test_file_sha256": "066c90f03644783021eef5cc99bb82a0b8795bd4281397190ca6182179060137",
+    "tool_commit_sha": "422fbf8a5bdc64ae80e3985da16da4411b885867",
+    "tool_tree_sha": "f9b9ee99347ddadf0954255747e6d613f6520cd2",
+    "rel_path": "."
+  },
+  "sandbox": {
+    "backend": "none",
+    "image": null,
+    "isolated": false,
+    "network_denied": false,
+    "notes": [
+      "sandbox disabled by configuration: candidate tests share the filesystem, network and user account of this runner. Do not use this setting on pull requests from outside collaborators."
+    ]
+  },
+  "base_execution": {
+    "outcome": "FAIL",
+    "exit_code": 1,
+    "stdout_sha256": "a5269c3fcf50a8afa10e9fd4e256bfe0080f7ed85f9cb159f3680fc596d406f0",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {
+      "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_0365a6279f55bd0d",
+      "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_0365a6279f55bd0d\\Scripts\\python.exe",
+      "cached": false,
+      "cache_key": "0365a6279f55bd0d",
+      "lockfile_sha256": "12c4ea21a331a5d2543bbf6726367367df5da9d2f333fdd78d81dc12c0401293"
+    }
+  },
+  "head_execution": {
+    "outcome": "FAIL",
+    "exit_code": 1,
+    "stdout_sha256": "20025739001f4db92b1d3fe6919c8952f6c50ade1452749640b0e73d3ca62c71",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {
+      "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_6e8112bec21670b2",
+      "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_6e8112bec21670b2\\Scripts\\python.exe",
+      "cached": false,
+      "cache_key": "6e8112bec21670b2",
+      "lockfile_sha256": "12c4ea21a331a5d2543bbf6726367367df5da9d2f333fdd78d81dc12c0401293"
+    }
+  },
+  "rerun_agreement": true,
+  "wall_clock_s": 22.766,
+  "provider_cost_usd": 0.0,
+  "signature": {
+    "algorithm": "Ed25519",
+    "public_key": "343ecaa63cb21a8e307a0efbbc22387c06380e67897f18d8cad228401e077cf3",
+    "value": "/WiYYd5tN2FjqtgviX0MeDgKRTcID9DbirUu6g7yCcBGLtcLWPy7D8HQMdVz5KET0bWHV4X16PEWHVnEi5qgAQ=="
+  }
+}
