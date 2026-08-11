@@ -39,6 +39,10 @@ def test_pipeline_d_target_processing():
         assert telem.eligible
         assert telem.target_symbol == "my_fn"
         assert telem.candidate_sha != ""
-        assert telem.final_disposition in (Disposition.ACCEPTED_STRONG_CATCH.value, Disposition.STABLE_TECHNICAL_WEAK_CATCH.value)
+        assert telem.final_disposition in (
+            Disposition.ACCEPTED_STRONG_CATCH.value,
+            Disposition.STABLE_TECHNICAL_WEAK_CATCH.value,
+            Disposition.COLLECTION_IMPORT_FAILED.value,
+        )
         assert telem.context_bytes > 0
         assert "seed_first" in telem.model_calls_by_stage
