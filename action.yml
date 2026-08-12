@@ -31,7 +31,7 @@ runs:
   using: 'composite'
   steps:
     - name: Set up Python
-      uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
@@ -54,7 +54,7 @@ runs:
         python -m jittest.action
 
     - name: Upload evidence artifacts
-      uses: actions/upload-artifact@4bec3a09dc3790fe1d28f03ae7d213f04501299e # v4.6.1
+      uses: actions/upload-artifact@v4
       with:
         name: jittest-evidence
         path: jittest-evidence/
