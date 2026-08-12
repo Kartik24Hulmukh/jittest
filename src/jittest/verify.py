@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from .diff import git_env
-from .env import provision_environment
+from .env import EnvSetupError, provision_environment
 from .execute import Disposition, Outcome, Worktree, resolve_revision, run_test
 from .github import fetch_pr_base_head
 from .receipt import sign_evidence
@@ -112,19 +112,57 @@ def verify_test(
     tool_tree_sha = _get_git_sha(tool_root, "HEAD^{tree}")
 
     # 1. Provision HEAD environment & run on HEAD worktree
-    with Worktree(repo_path, resolved_head) as head_dir:
-        head_workdir = head_dir / rel_path if rel_path != "." else head_dir
-        head_env_info = provision_environment(head_workdir, resolved_head, repo_path)
-        head_run1 = run_test(head_workdir, test_code, timeout_s=timeout_s, sbx=sbx_plan)
+    try:
+        with Worktree(repo_path, resolved_head) as head_dir:
+            head_workdir = head_dir / rel_path if rel_path != "." else head_dir
+            head_env_info = provision_environment(head_workdir, resolved_head, repo_path)
+            head_python = head_env_info.get("python_path")
+            head_run1 = run_test(head_workdir, test_code, timeout_s=timeout_s, sbx=sbx_plan, python_path=head_python)
+    except EnvSetupError as exc:
+        wall_clock_s = round(time.monotonic() - start_time, 4)
+        evidence_dict = {
+            "schema_version": "2.0",
+            "tool": "jittest verify",
+            "verdict": VerdictClass.INCONCLUSIVE,
+            "proven_catch": False,
+            "disposition": "env_setup_failed",
+            "provenance": {
+                "repo_path": str(repo_path),
+                "base_sha": resolved_base,
+                "head_sha": resolved_head,
+                "test_file_name": test_path.name,
+                "test_file_sha256": test_file_sha256,
+                "tool_commit_sha": tool_commit_sha,
+                "tool_tree_sha": tool_tree_sha,
+                "rel_path": rel_path,
+            },
+            "sandbox": sbx_plan.as_dict(),
+            "error": str(exc),
+            "base_execution": {},
+            "head_execution": {},
+            "rerun_agreement": False,
+            "wall_clock_s": wall_clock_s,
+            "provider_cost_usd": 0.0,
+        }
+        signed_evidence = sign_evidence(evidence_dict, key_path=signing_key_path)
+        if output_path is not None:
+            out_p = Path(output_path).resolve()
+            out_p.parent.mkdir(parents=True, exist_ok=True)
+            out_p.write_text(json.dumps(signed_evidence, indent=2), encoding="utf-8")
+        return signed_evidence, 1
 
     head_runs = [head_run1]
 
     # Rerun on HEAD if failed to check flakiness
     if head_run1.outcome is Outcome.FAIL and reruns > 1:
-        with Worktree(repo_path, resolved_head) as head_dir:
-            head_workdir = head_dir / rel_path if rel_path != "." else head_dir
-            head_run2 = run_test(head_workdir, test_code, timeout_s=timeout_s, sbx=sbx_plan)
-            head_runs.append(head_run2)
+        try:
+            with Worktree(repo_path, resolved_head) as head_dir:
+                head_workdir = head_dir / rel_path if rel_path != "." else head_dir
+                head_python = head_env_info.get("python_path")
+                head_run2 = run_test(head_workdir, test_code, timeout_s=timeout_s, sbx=sbx_plan, python_path=head_python)
+                head_runs.append(head_run2)
+        except EnvSetupError:
+            pass
 
     rerun_agreement = len(head_runs) > 1 and (head_runs[0].outcome == head_runs[1].outcome) if len(head_runs) > 1 else True
 
@@ -143,17 +181,23 @@ def verify_test(
         verdict_class = VerdictClass.INCONCLUSIVE
     elif head_run1.outcome is Outcome.FAIL:
         # 2. Provision BASE environment & run on BASE worktree
-        with Worktree(repo_path, resolved_base) as base_dir:
-            base_workdir = base_dir / rel_path if rel_path != "." else base_dir
-            base_env_info = provision_environment(base_workdir, resolved_base, repo_path)
-            base_run = run_test(base_workdir, test_code, timeout_s=timeout_s, sbx=sbx_plan)
+        try:
+            with Worktree(repo_path, resolved_base) as base_dir:
+                base_workdir = base_dir / rel_path if rel_path != "." else base_dir
+                base_env_info = provision_environment(base_workdir, resolved_base, repo_path)
+                base_python = base_env_info.get("python_path")
+                base_run = run_test(base_workdir, test_code, timeout_s=timeout_s, sbx=sbx_plan, python_path=base_python)
+        except EnvSetupError:
+            disposition = Disposition.BASE_UNCOLLECTABLE
+            verdict_class = VerdictClass.INCONCLUSIVE
+            exit_code = 1
 
-        if base_run.outcome is Outcome.PASS:
+        if base_run and base_run.outcome is Outcome.PASS:
             disposition = Disposition.CATCHING
             verdict_class = VerdictClass.PROVEN_CATCH
             is_proven_catch = True
             exit_code = 0
-        elif base_run.outcome is Outcome.FAIL:
+        elif base_run and base_run.outcome is Outcome.FAIL:
             disposition = Disposition.HEAD_FAILED_BASE_FAILED_LATENT
             verdict_class = VerdictClass.REFUTED
         else:
@@ -162,6 +206,7 @@ def verify_test(
     else:
         disposition = Disposition.HEAD_UNCOLLECTABLE
         verdict_class = VerdictClass.INCONCLUSIVE
+
 
     wall_clock_s = round(time.monotonic() - start_time, 4)
 

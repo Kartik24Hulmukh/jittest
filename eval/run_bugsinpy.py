@@ -697,10 +697,7 @@ def main() -> int:
 
     # Defect 69. Establish the execution environment BEFORE measuring, and
     # print what it is, so the log answers "could these candidates even run?"
-    if setup_env:
-        pytest_status = ensure_pytest()
-    else:
-        pytest_status = "skipped"
+    pytest_status = ensure_pytest() if setup_env else "skipped"
     runner = "pytest" if pytest_status in ("already-present", "installed") \
         else "minirunner-shim"
     print(f"environment: pytest={pytest_status} runner={runner}", file=sys.stderr)

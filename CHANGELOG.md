@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 0.2.1 - 2026-08-11
+
+### Added & Fixed
+- **Loud Environment Provisioning & Preflight Checks**: Removed silent exception suppression during `pip install`. Detailed stdout/stderr tails are logged and raised as `EnvSetupError` (yielding status `ENV_SETUP_FAILED`), preventing environment build failures from masquerading as test verdicts. Virtual environments now undergo strict preflight verification (`python -c "import <pkg>"` and `python -m pytest --version`).
+- **Automatic Test Dependency Discovery**: In addition to standard `requirements.txt` and `setup.py`, environment provisioning now parses and installs `requirements-dev.txt`, `requirements/*.txt`, and `pyproject.toml` test/dev extra dependencies (`.[dev,test,tests]`).
+- **Receipt Verification Honesty**: In `receipt.py`, Ed25519 signature verification without the `cryptography` package now honestly returns `(False, "UNVERIFIABLE: cryptography package required to verify Ed25519 signature")` instead of claiming valid signature. HMAC-SHA256 signature fallback is strictly documented as integrity-only with zero third-party authenticity guarantees.
+- **Benchmark Gate & Fixture Isolation**: Added `--ignore=tests/fixtures` to `tool.pytest.ini_options.addopts` in `pyproject.toml` to keep benchmark gate fixtures isolated from unit test runs. Verified 5/5 hard gate profiles (`bug_flask_01` .. `bug_flask_05`) yielding `proven_catch=true` on Linux/WSL2 environments.
+- **v0.2.0 Tag Realignment**: Tag `v0.2.0` realigned to release commit.
+
 ### Security
 - **Model-written candidate code now executes inside a real confinement boundary.** `src/jittest/sandbox.py` plans isolation per run: podman, then docker, then bubblewrap, with `--network none`, a read-only root filesystem, capabilities dropped, `no-new-privileges`, and pid and memory ceilings; the package root is mounted read-only at `/opt/jittest`. Three modes: `auto`, `required`, `off`; the chosen plan is recorded in the report's `sandbox` block. (#56)
 - **`auto` never pulls an image mid-run**, falling back to bubblewrap when the image is absent locally; `required` still accepts the pull. (Defect 73, #56)

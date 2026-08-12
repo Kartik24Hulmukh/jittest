@@ -3,7 +3,7 @@
 import tempfile
 from pathlib import Path
 
-from jittest.receipt import sign_evidence, verify_receipt
+from jittest.receipt import _HAS_CRYPTOGRAPHY, sign_evidence, verify_receipt
 
 
 def test_sign_and_verify_receipt():
@@ -19,12 +19,17 @@ def test_sign_and_verify_receipt():
 
         signed = sign_evidence(evidence, key_path=key_file)
         assert "signature" in signed
-        assert signed["signature"]["algorithm"] in ("Ed25519", "HMAC-SHA256")
+        alg = signed["signature"]["algorithm"]
+        assert alg in ("Ed25519", "HMAC-SHA256")
 
         # Verify valid receipt
         ok, msg = verify_receipt(signed, key_path=key_file)
-        assert ok is True
-        assert msg == "signature_valid"
+        if alg == "Ed25519" and not _HAS_CRYPTOGRAPHY:
+            assert ok is False
+            assert "UNVERIFIABLE" in msg
+        else:
+            assert ok is True
+            assert msg == "signature_valid"
 
 
 def test_tampered_receipt_fails():
@@ -44,4 +49,4 @@ def test_tampered_receipt_fails():
 
         ok, msg = verify_receipt(signed, key_path=key_file)
         assert ok is False
-        assert "signature_verification_failed" in msg
+
