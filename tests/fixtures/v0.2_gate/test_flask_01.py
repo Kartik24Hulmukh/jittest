@@ -1,6 +1,6 @@
-import pytest
 import flask
 import flask.views
+
 
 def test_provide_automatic_options_config():
     app = flask.Flask(__name__)

@@ -3,7 +3,7 @@
 import tempfile
 from pathlib import Path
 
-from jittest.env import EnvSetupError, _compute_lockfile_hash, get_venv_python
+from jittest.env import _compute_lockfile_hash, get_venv_python
 
 
 def test_lockfile_hash_includes_test_requirements():

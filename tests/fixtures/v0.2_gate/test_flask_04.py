@@ -1,5 +1,5 @@
-import pytest
 import flask
+
 
 def test_host_matching_with_server_name():
     app = flask.Flask(__name__, host_matching=True, static_host="example.test")

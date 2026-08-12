@@ -1,6 +1,6 @@
-import pytest
 from flask import Flask
 from flask.sessions import SecureCookieSessionInterface
+
 
 def test_secret_key_fallbacks_order():
     app = Flask(__name__)

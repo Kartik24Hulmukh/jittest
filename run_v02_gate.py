@@ -6,8 +6,9 @@ using candidate catching tests and publishes 5/5 proven_catch signed evidence ar
 
 import sys
 from pathlib import Path
-from jittest.verify import verify_test, VerdictClass
+
 from jittest.receipt import verify_receipt
+from jittest.verify import verify_test
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 

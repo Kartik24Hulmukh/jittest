@@ -161,7 +161,7 @@ def verify_test(
                 head_python = head_env_info.get("python_path")
                 head_run2 = run_test(head_workdir, test_code, timeout_s=timeout_s, sbx=sbx_plan, python_path=head_python)
                 head_runs.append(head_run2)
-        except EnvSetupError as exc:
+        except EnvSetupError:
             pass
 
     rerun_agreement = len(head_runs) > 1 and (head_runs[0].outcome == head_runs[1].outcome) if len(head_runs) > 1 else True
@@ -187,7 +187,7 @@ def verify_test(
                 base_env_info = provision_environment(base_workdir, resolved_base, repo_path)
                 base_python = base_env_info.get("python_path")
                 base_run = run_test(base_workdir, test_code, timeout_s=timeout_s, sbx=sbx_plan, python_path=base_python)
-        except EnvSetupError as exc:
+        except EnvSetupError:
             disposition = Disposition.BASE_UNCOLLECTABLE
             verdict_class = VerdictClass.INCONCLUSIVE
             exit_code = 1
