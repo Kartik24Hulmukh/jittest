@@ -53,6 +53,36 @@ def _get_git_sha(repo_path: Path, ref: str) -> str:
         return ""
 
 
+def _get_git_branch(repo_path: Path) -> str:
+    try:
+        res = subprocess.run(
+            ["git", "-C", str(repo_path), "rev-parse", "--abbrev-ref", "HEAD"],
+            capture_output=True,
+            text=True,
+            errors="replace",
+            check=True,
+            env=git_env(),
+        )
+        return res.stdout.strip()
+    except Exception:
+        return ""
+
+
+def _get_git_dirty(repo_path: Path) -> bool:
+    try:
+        res = subprocess.run(
+            ["git", "-C", str(repo_path), "status", "--porcelain"],
+            capture_output=True,
+            text=True,
+            errors="replace",
+            check=True,
+            env=git_env(),
+        )
+        return bool(res.stdout.strip())
+    except Exception:
+        return False
+
+
 def _hash_str(text: str) -> str:
     return hashlib.sha256((text or "").encode("utf-8")).hexdigest()
 
@@ -109,6 +139,8 @@ def verify_test(
     # Tool repository provenance
     tool_root = Path(__file__).resolve().parent.parent.parent
     tool_commit_sha = _get_git_sha(tool_root, "HEAD")
+    tool_branch = _get_git_branch(tool_root)
+    tool_dirty = _get_git_dirty(tool_root)
     tool_tree_sha = _get_git_sha(tool_root, "HEAD^{tree}")
 
     # 1. Provision HEAD environment & run on HEAD worktree
@@ -239,6 +271,8 @@ def verify_test(
             "test_file_name": test_path.name,
             "test_file_sha256": test_file_sha256,
             "tool_commit_sha": tool_commit_sha,
+            "tool_branch": tool_branch,
+            "tool_dirty": tool_dirty,
             "tool_tree_sha": tool_tree_sha,
             "rel_path": rel_path,
         },

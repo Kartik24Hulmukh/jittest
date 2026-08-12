@@ -1,15 +1,15 @@
 {
   "schema_version": "2.0",
   "tool": "jittest verify",
-  "verdict": "proven_catch",
-  "proven_catch": true,
-  "disposition": "catching",
+  "verdict": "refuted",
+  "proven_catch": false,
+  "disposition": "head_failed_base_failed_latent",
   "provenance": {
     "repo_path": "/mnt/c/Users/praja/src/flask",
     "base_sha": "12e95c93b488725f80753f34b2e0d24838ca4646",
     "head_sha": "d3b78fd18a8d9e224cb9ef58a23cec9b1ffc9ce9",
-    "test_file_name": "test_flask_01.py",
-    "test_file_sha256": "7ad75224c5a7099720b211bc3d2bee801a254f5edcf5aef5736e7938d924d4be",
+    "test_file_name": "test_refuted.py",
+    "test_file_sha256": "c880ec599f8836f242dded3548efc4c4368d42d794ebf922bf5a22f2ee78ebeb",
     "tool_commit_sha": "8cb798301620e5b36e5f720f8296060d2079c695",
     "tool_branch": "main",
     "tool_dirty": true,
@@ -26,9 +26,9 @@
     ]
   },
   "base_execution": {
-    "outcome": "PASS",
-    "exit_code": 0,
-    "stdout_sha256": "3b4ad3097d7020cd8b172384869bd1db1102ffc4c9316bde31fef1b3bcacf9c6",
+    "outcome": "FAIL",
+    "exit_code": 1,
+    "stdout_sha256": "0bcf0b04fdc41b13649c5d50b81e4fffd16a97a03223054c4392f8d2287f359a",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "environment": {
       "venv_dir": "/root/.jittest/envs/env_d0d8d284ea3c1111",
@@ -41,7 +41,7 @@
   "head_execution": {
     "outcome": "FAIL",
     "exit_code": 1,
-    "stdout_sha256": "2a8d5d4e63e760eb59a4a7d3587da897222d13da86fa46757a1771f77cb7ed1b",
+    "stdout_sha256": "a9ee4cbeb75091ca88954d0f349c87f9061e9f1fe8a74f0d7b5a2fd8d1575daa",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "environment": {
       "venv_dir": "/root/.jittest/envs/env_b6101ccbf219a23a",
@@ -52,11 +52,11 @@
     }
   },
   "rerun_agreement": true,
-  "wall_clock_s": 19.2641,
+  "wall_clock_s": 15.978,
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
     "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
-    "value": "emMfSiMo8eyEKiY2bKr5velwSyYan6ONdVbc3IH8C1nde/RQUM1d1F5EGvKVZE2H65zXnUhtCbfSZdPM6jksBg=="
+    "value": "SfWzdltwoNJQuWUF824VtszJM/FKIm1vbtalX2H73rJMK7zx/33TnGA7IXf1jugAAO9gHACF9CPcqhnJ46ktDw=="
   }
 }

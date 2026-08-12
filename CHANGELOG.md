@@ -1,6 +1,13 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 - 2026-08-12
+
+### Added
+- **`jittest/verify-action` GitHub Action (`action.yml`)**: A composite GitHub Action for continuous integration PR verification. Automatically extracts modified test files from PR diffs, executes paired base/head verification, and upserts a single GitHub PR summary comment with verdict tables.
+- **Fork PR Sandboxing Policy**: PRs from external forks automatically enforce `sandbox_mode=required` (container/docker namespace isolation) to protect CI runners from untrusted code execution.
+- **Four-Quadrant Evidence Artifacts (`docs/evidence/quadrants/`)**: Published 4 signed evidence JSON artifacts covering all verdict states: `proven_catch`, `refuted`, `non_discriminating`, and `inconclusive`.
+- **Public Cryptographic Keys Guide (`docs/KEYS.md`)**: Published official project Ed25519 public key (`74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130`), Python verification script, and offline receipt verification documentation.
+- **Subprocess Provenance Resolution**: Extended `verify.py` tool provenance to capture `tool_commit_sha`, `tool_branch` (`git rev-parse --abbrev-ref HEAD`), `tool_dirty` (`git status --porcelain`), and `tool_tree_sha` via subprocess execution.
 
 ## 0.2.1 - 2026-08-11
 
