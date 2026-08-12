@@ -118,13 +118,19 @@ def run_action(
 
     no_sbx = sbx_mode == "off"
 
-    results: list[dict[str, Any]] = []
-    env_failed_tests: list[str] = []
+    import concurrent.futures
 
-    for test_rel in changed_tests:
+    def _verify_one(test_rel: str) -> dict[str, Any]:
         test_path = repo / test_rel
         if not test_path.exists():
-            continue
+            return {
+                "file": test_rel,
+                "verdict": VerdictClass.INCONCLUSIVE,
+                "disposition": "file_not_found",
+                "proven_catch": False,
+                "wall_clock_s": 0.0,
+                "artifact": "",
+            }
 
         out_artifact = out_dir / f"evidence-{test_path.stem}.json"
         print(f"\n[jittest action] Verifying {test_rel} (base={base_sha[:8]}, head={head_sha[:8]}, sandbox={sbx_mode})...")
@@ -138,27 +144,38 @@ def run_action(
                 output_path=out_artifact,
                 no_sandbox=no_sbx,
             )
-            results.append({
+            return {
                 "file": test_rel,
                 "verdict": evidence["verdict"],
                 "disposition": evidence["disposition"],
                 "proven_catch": evidence.get("proven_catch", False),
                 "wall_clock_s": evidence.get("wall_clock_s", 0.0),
                 "artifact": str(out_artifact),
-            })
-            if evidence["disposition"] in ("base_uncollectable", "head_uncollectable", "ENV_SETUP_FAILED"):
-                env_failed_tests.append(test_rel)
+            }
         except Exception as exc:
             logger.error("Failed verification for %s: %s", test_rel, exc)
-            results.append({
+            return {
                 "file": test_rel,
                 "verdict": VerdictClass.INCONCLUSIVE,
                 "disposition": "ENV_SETUP_FAILED",
                 "proven_catch": False,
                 "wall_clock_s": 0.0,
                 "artifact": "",
-            })
-            env_failed_tests.append(test_rel)
+            }
+
+    results: list[dict[str, Any]] = []
+    env_failed_tests: list[str] = []
+
+    if len(changed_tests) > 1:
+        max_workers = min(4, os.cpu_count() or 4)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            results = list(executor.map(_verify_one, changed_tests))
+    else:
+        results = [_verify_one(t) for t in changed_tests]
+
+    for r in results:
+        if r["disposition"] in ("base_uncollectable", "head_uncollectable", "ENV_SETUP_FAILED"):
+            env_failed_tests.append(r["file"])
 
     # Build Summary Comment Table
     table_lines = [

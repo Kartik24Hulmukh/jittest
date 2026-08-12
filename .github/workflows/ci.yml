@@ -15,17 +15,18 @@ concurrency:
 jobs:
   test:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python: ["3.11", "3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
         with:
           python-version: ${{ matrix.python }}
 
@@ -35,9 +36,6 @@ jobs:
           git config --global user.name "jittest ci"
           git config --global init.defaultBranch main
 
-      # No install step on purpose: jittest has zero runtime dependencies and
-      # the suite runs on the stdlib alone. If this job ever needs `pip install`
-      # for the core tests, a dependency has crept in.
       - name: Test with no dependencies at all
         run: PYTHONPATH=src python -m unittest discover -s . -p 'test_*.py' -t . -v
         shell: bash
@@ -62,9 +60,10 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7.0.1
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
         with:
           python-version: "3.12"
       - run: pip install ruff mypy
@@ -73,27 +72,29 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7.0.1
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
         with:
           python-version: "3.12"
       - run: pip install build twine
       - run: python -m build
       - run: twine check dist/*
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@4bec3a09dc3790fe1d28f03ae7d213f04501299e # v4.6.1
         with:
           name: dist
           path: dist/
 
   dogfood:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: github.event_name == 'pull_request'
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
         with:
           python-version: "3.12"
       - run: pip install -e .
@@ -105,13 +106,11 @@ jobs:
             --head ${{ github.event.pull_request.head.sha }} \
             --dry-run --json
 
-  # Umbrella job that reports a single "ci" check name for branch protection.
-  # dogfood is deliberately excluded from needs: it is informational only and
-  # must not block a merge.
   ci:
     if: always()
     needs: [lint, test, build]
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Check aggregate result
         run: |

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.1 - 2026-08-13
+
+### Production Hardening & Infrastructure
+- **Full Action Security Hardening**: All third-party GitHub Actions across `action.yml` and `.github/workflows/*.yml` are strictly pinned to immutable 40-character commit SHAs. Workflows include `concurrency` cancellation groups and job `timeout-minutes`.
+- **Parallel Test File Verification**: `src/jittest/action.py` executes parallel verification across multiple changed test files using `concurrent.futures.ThreadPoolExecutor`.
+- **Operations & Security Contracts**: Added `.github/CODEOWNERS`, documented Verdict JSON Schema 2.0 stability contract in [`docs/SCHEMA.md`](file:///C:/Users/praja/src/jittest/docs/SCHEMA.md), and added evidence recomputation instructions in [`docs/evidence/README.md`](file:///C:/Users/praja/src/jittest/docs/evidence/README.md).
+- **Usage & Floating Tag Standard**: Standardized usage instructions to `uses: Kartik24Hulmukh/jittest@v0.3.1` (or `@v0`) and configured automatic floating `v0` major tag updates.
+
 ## 0.3.0 - 2026-08-12
 
 ### Added

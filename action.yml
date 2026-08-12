@@ -18,6 +18,10 @@ inputs:
     description: 'Sandbox isolation mode: auto, required, or off'
     required: false
     default: 'auto'
+  budget:
+    description: 'Per-PR cost ceiling in USD'
+    required: false
+    default: '1.00'
   github-token:
     description: 'GitHub token for PR comment upserting'
     required: false
@@ -27,7 +31,7 @@ runs:
   using: 'composite'
   steps:
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
       with:
         python-version: '3.11'
 
@@ -45,12 +49,14 @@ runs:
         JITTEST_REPO_PATH: ${{ inputs.repo-path }}
         JITTEST_PR_NUMBER: ${{ inputs.pr-number }}
         JITTEST_SANDBOX_MODE: ${{ inputs.sandbox-mode }}
+        JITTEST_BUDGET: ${{ inputs.budget }}
       run: |
         python -m jittest.action
 
     - name: Upload evidence artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@4bec3a09dc3790fe1d28f03ae7d213f04501299e # v4.6.1
       with:
         name: jittest-evidence
         path: jittest-evidence/
+        retention-days: 30
         if-no-files-found: ignore
