@@ -137,6 +137,11 @@ def build_parser() -> argparse.ArgumentParser:
     dr = sub.add_parser("doctor", help="check that this environment can run jittest")
     dr.add_argument("--repo", default=".")
 
+    act = sub.add_parser("action", help="run GitHub Action PR verification workflow")
+    act.add_argument("--repo", default=".")
+    act.add_argument("--pr", default=None)
+    act.add_argument("--sandbox", default=None)
+
     sub.add_parser("version", help="print the version")
     return parser
 
@@ -436,6 +441,11 @@ def _cmd_verify_receipt(args: argparse.Namespace) -> int:
     return 0 if ok else 1
 
 
+def _cmd_action(args: argparse.Namespace) -> int:
+    from .action import run_action
+    return run_action(repo_path=args.repo, pr_number=args.pr, sandbox_override=args.sandbox)
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "run":
@@ -444,6 +454,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_verify(args)
     if args.command == "verify-receipt":
         return _cmd_verify_receipt(args)
+    if args.command == "action":
+        return _cmd_action(args)
     if args.command == "oracles":
         return _cmd_oracles(args)
     if args.command == "stats":
