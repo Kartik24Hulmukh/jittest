@@ -53,11 +53,11 @@ jobs:
     # results.json, which is indistinguishable from a poor catch rate.
     timeout-minutes: 360
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
@@ -124,19 +124,15 @@ jobs:
           PROJECTS: ${{ inputs.projects }}
         run: |
           set -euo pipefail
-          ARGS=(--bugsinpy /tmp/BugsInPy --limit "$LIMIT" --budget "$BUDGET" --out results.json)
-          if [ -n "${PROJECTS:-}" ]; then
-            IFS=',' read -ra NAMES <<< "$PROJECTS"
-            for n in "${NAMES[@]}"; do
-              [ -n "$n" ] && ARGS+=(--project "$n")
-            done
-          fi
-          echo "python eval/run_bugsinpy.py ${ARGS[*]}"
+          ARGS=()
+          [ -z "$LIMIT" ] || ARGS+=(--limit "$LIMIT")
+          [ -z "$BUDGET" ] || ARGS+=(--budget "$BUDGET")
+          [ -z "$PROJECTS" ] || ARGS+=(--projects "$PROJECTS")
           python eval/run_bugsinpy.py "${ARGS[@]}" 2>&1 | tee bugsinpy-run.log
 
       - name: Upload results
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+        uses: actions/upload-artifact@v4
         with:
           name: bugsinpy-eval
           path: |
@@ -156,11 +152,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
@@ -208,7 +204,7 @@ jobs:
 
       - name: Upload false-positive results
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+        uses: actions/upload-artifact@v4
         with:
           name: false-positive-eval
           path: |

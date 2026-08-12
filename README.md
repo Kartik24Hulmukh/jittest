@@ -77,17 +77,14 @@ jobs:
   catching-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0            # the oracle needs both commits
-      - uses: Kartik24Hulmukh/jittest@v0
+      - uses: Kartik24Hulmukh/jittest@v0.3.1 # or @v0
         with:
-          base: ${{ github.event.pull_request.base.sha }}
-          head: ${{ github.event.pull_request.head.sha }}
-          budget: "1.00"
-          comment: "true"
+          sandbox-mode: "auto"
         env:
-          JITTEST_API_KEY: ${{ secrets.JITTEST_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 **If jittest proves nothing, it posts nothing.** No "looks good to me", no

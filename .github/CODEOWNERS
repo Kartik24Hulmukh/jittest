@@ -1,0 +1,18 @@
+# Global Codeowners
+* @Kartik24Hulmukh
+
+# Security & Confinement Architecture
+/src/jittest/safety.py @Kartik24Hulmukh
+/src/jittest/sandbox.py @Kartik24Hulmukh
+/SECURITY.md @Kartik24Hulmukh
+
+# Verification Receipts & Cryptographic Engine
+/src/jittest/verify.py @Kartik24Hulmukh
+/src/jittest/receipt.py @Kartik24Hulmukh
+/docs/KEYS.md @Kartik24Hulmukh
+/docs/SCHEMA.md @Kartik24Hulmukh
+
+# GitHub Action Integration
+/action.yml @Kartik24Hulmukh
+/src/jittest/action.py @Kartik24Hulmukh
+/.github/workflows/ @Kartik24Hulmukh

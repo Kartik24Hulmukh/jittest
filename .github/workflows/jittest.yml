@@ -10,13 +10,18 @@ permissions:
   contents: read
   pull-requests: write
 
+concurrency:
+  group: jittest-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   catching-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     # Skip drafts and dependency bumps: cost discipline is a feature.
     if: github.event.pull_request.draft == false && github.actor != 'dependabot[bot]'
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0   # required: we check out both base and head
 
@@ -34,7 +39,7 @@ jobs:
           fi
 
       # Use the local action (./) so each PR is tested by the code in that PR.
-      # External users should reference Kartik24Hulmukh/jittest@v0 instead.
+      # External users should reference Kartik24Hulmukh/jittest@v0.3.1 or @v0 instead.
       # Model and API base come from repository variables (non-secret).
       # API key comes from repository secrets.
       - uses: ./
@@ -55,7 +60,7 @@ jobs:
           mkdir -p jittest-telemetry
           # Export anonymised ledger (no repo names, no PR IDs, no source code)
           jittest export jittest-telemetry/ledger.jsonl || true
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: jittest-telemetry
