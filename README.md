@@ -77,7 +77,7 @@ jobs:
   catching-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0            # the oracle needs both commits
       - uses: Kartik24Hulmukh/jittest@v0.3.1 # or @v0

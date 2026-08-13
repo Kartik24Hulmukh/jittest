@@ -1,0 +1,62 @@
+{
+  "schema_version": "2.0",
+  "tool": "jittest verify",
+  "verdict": "proven_catch",
+  "proven_catch": true,
+  "disposition": "catching",
+  "provenance": {
+    "repo_path": "/mnt/c/Users/praja/src/flask",
+    "base_sha": "c62b03bcfd6e6440f8195e02f4678488e16121ac",
+    "head_sha": "96800fb673cb7b2d75476096798e701e3e6d26bc",
+    "test_file_name": "test_flask_05.py",
+    "test_file_sha256": "e226a91cb5fe8f12e69f36245db2383748471d913ca2e0ad5801e6cbe8636318",
+    "tool_commit_sha": "3a917a3d1a7d5b55a42e6138c7384e4e59c73e90",
+    "tool_branch": "main",
+    "tool_dirty": true,
+    "tool_tree_sha": "f658736dc213f91ea96a97992c5ce591d88a9f08",
+    "rel_path": "."
+  },
+  "sandbox": {
+    "backend": "none",
+    "image": null,
+    "isolated": false,
+    "network_denied": false,
+    "notes": [
+      "sandbox disabled by configuration: candidate tests share the filesystem, network and user account of this runner. Do not use this setting on pull requests from outside collaborators."
+    ]
+  },
+  "base_execution": {
+    "outcome": "PASS",
+    "exit_code": 0,
+    "stdout_sha256": "23419f83e7e0eafebac26fb2998ffbef62482732c196270a856d477cf8844a4a",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {
+      "venv_dir": "/root/.jittest/envs/env_6c118cfd37bf6c65",
+      "python_path": "/root/.jittest/envs/env_6c118cfd37bf6c65/bin/python",
+      "cached": true,
+      "cache_key": "6c118cfd37bf6c65",
+      "lockfile_sha256": "838368c8fb644ee0ca45883c28639ab612aa300b930681184f8a441c5b128bfc"
+    }
+  },
+  "head_execution": {
+    "outcome": "FAIL",
+    "exit_code": 1,
+    "stdout_sha256": "c3d84f3d624d7a5f23cec3212fee20f7c0c3d89430f7dd038c88ee3aa1bd44c1",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {
+      "venv_dir": "/root/.jittest/envs/env_8667eb79153e1afb",
+      "python_path": "/root/.jittest/envs/env_8667eb79153e1afb/bin/python",
+      "cached": true,
+      "cache_key": "8667eb79153e1afb",
+      "lockfile_sha256": "838368c8fb644ee0ca45883c28639ab612aa300b930681184f8a441c5b128bfc"
+    }
+  },
+  "rerun_agreement": true,
+  "wall_clock_s": 17.7703,
+  "provider_cost_usd": 0.0,
+  "signature": {
+    "algorithm": "Ed25519",
+    "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "I5ddq4iUR+GOxOmVhnVgwWh32iEj8nQPDq+FdIRq0cOdS4C2ewUTxeJO3mu8k1xsqYt0rKnq3NIE4O5difGJAA=="
+  }
+}

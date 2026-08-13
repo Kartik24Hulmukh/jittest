@@ -1,0 +1,56 @@
+{
+  "schema_version": "2.0",
+  "tool": "jittest verify",
+  "verdict": "inconclusive",
+  "proven_catch": false,
+  "disposition": "head_uncollectable",
+  "provenance": {
+    "repo_path": "/mnt/c/Users/praja/src/flask",
+    "base_sha": "330123258e8c3dc391cbe55ab1ed94891ca83af3",
+    "head_sha": "c2705ffd9ce1dc8476cb29eaf5ff5d4c719852d9",
+    "test_file_name": "testing.py",
+    "test_file_sha256": "60c60294d716a6102e9993ad8f14930ad421fde322d8d3b54c7be642acbad560",
+    "tool_commit_sha": "3a917a3d1a7d5b55a42e6138c7384e4e59c73e90",
+    "tool_branch": "main",
+    "tool_dirty": true,
+    "tool_tree_sha": "f658736dc213f91ea96a97992c5ce591d88a9f08",
+    "rel_path": "."
+  },
+  "sandbox": {
+    "backend": "none",
+    "image": null,
+    "isolated": false,
+    "network_denied": false,
+    "notes": [
+      "sandbox disabled by configuration: candidate tests share the filesystem, network and user account of this runner. Do not use this setting on pull requests from outside collaborators."
+    ]
+  },
+  "base_execution": {
+    "outcome": "NOTRUN",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {}
+  },
+  "head_execution": {
+    "outcome": "ERROR",
+    "exit_code": 2,
+    "stdout_sha256": "e367fd2929fb6d82dbaac6815691f372d4f6ec09949c1f5386e6cd146d563196",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {
+      "venv_dir": "/root/.jittest/envs/env_13f3baa0c2d0a395",
+      "python_path": "/root/.jittest/envs/env_13f3baa0c2d0a395/bin/python",
+      "cached": true,
+      "cache_key": "13f3baa0c2d0a395",
+      "lockfile_sha256": "7de6dc1df7c63394cf808cb291b30da2413dc856d8563a9e29c3827c3e232473"
+    }
+  },
+  "rerun_agreement": true,
+  "wall_clock_s": 8.0987,
+  "provider_cost_usd": 0.0,
+  "signature": {
+    "algorithm": "Ed25519",
+    "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "Y9nQhmMOLj6SIi6dhEGzhH8U4QDOv0nFCKajVTVBvlmdffv43EwsBbIWOwNshpKXwAsM55nlkdoOMkXmVIO3CA=="
+  }
+}
