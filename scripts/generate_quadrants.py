@@ -44,7 +44,7 @@ def main():
             repo_path=FLASK_REPO,
             base_ref=BASE_SHA,
             head_ref=HEAD_SHA,
-            test_file_path=FIXTURES_DIR / "test_flask_01.py",
+            test_file_path=FIXTURES_DIR / "fixture_flask_01.py",
             output_path=out_pc,
             no_sandbox=True,
         )

@@ -37,7 +37,7 @@ jobs:
           git config --global init.defaultBranch main
 
       - name: Test with no dependencies at all
-        run: PYTHONPATH=src python -m unittest discover -s . -p 'test_*.py' -t . -v
+        run: PYTHONPATH=src python -m unittest discover -s tests -p 'test_*.py' -t . -v
         shell: bash
 
       - name: Test again with pytest present

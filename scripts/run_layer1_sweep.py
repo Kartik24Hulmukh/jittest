@@ -51,10 +51,10 @@ def get_target_test(row: dict[str, Any], repo_dir: Path) -> Path:
     if row_id.startswith("bug_"):
         parts = row_id.split("_")
         if len(parts) >= 3:
-            fix_name = f"test_{parts[1]}_{parts[2]}.py"
-            fix_path = SCRIPT_DIR / "tests" / "fixtures" / "v0.2_gate" / fix_name
-            if fix_path.exists():
-                return fix_path
+            for fix_name in [f"fixture_{parts[1]}_{parts[2]}.py", f"test_{parts[1]}_{parts[2]}.py"]:
+                fix_path = SCRIPT_DIR / "tests" / "fixtures" / "v0.2_gate" / fix_name
+                if fix_path.exists():
+                    return fix_path
 
     # 1. Check trigger command / trigger on buggy
     trig = row.get("trigger_command") or row.get("provenance", {}).get("trigger_command")
