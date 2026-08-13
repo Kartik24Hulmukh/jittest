@@ -1,0 +1,37 @@
+{
+  "schema_version": "2.0",
+  "tool": "jittest verify",
+  "verdict": "inconclusive",
+  "proven_catch": false,
+  "disposition": "env_setup_failed",
+  "provenance": {
+    "repo_path": "/mnt/c/Users/praja/src/requests",
+    "base_sha": "eeafb6ab3a54ab01cbf864d452ea30f5fdb67ce8",
+    "head_sha": "13d892bdbe9a2aa374959a166e8067c35253705d",
+    "test_file_name": "test_utils.py",
+    "test_file_sha256": "00d027432443a1aa9539c00a09550de9439cdd696d2e6acf2dc997de3a416946",
+    "tool_commit_sha": "3a917a3d1a7d5b55a42e6138c7384e4e59c73e90",
+    "tool_tree_sha": "f658736dc213f91ea96a97992c5ce591d88a9f08",
+    "rel_path": "."
+  },
+  "sandbox": {
+    "backend": "none",
+    "image": null,
+    "isolated": false,
+    "network_denied": false,
+    "notes": [
+      "sandbox disabled by configuration: candidate tests share the filesystem, network and user account of this runner. Do not use this setting on pull requests from outside collaborators."
+    ]
+  },
+  "error": "Preflight pytest check failed:\nSTDERR:\n_load_unlocked\n  File \"/root/.jittest/envs/env_9151bc1fda1a1ec4/lib/python3.14/site-packages/_pytest/assertion/rewrite.py\", line 161, in exec_module\n    source_stat, co = _rewrite_test(fn, self.config)\n                      ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/root/.jittest/envs/env_9151bc1fda1a1ec4/lib/python3.14/site-packages/_pytest/assertion/rewrite.py\", line 355, in _rewrite_test\n    rewrite_asserts(tree, source, fn_, config)\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/.jittest/envs/env_9151bc1fda1a1ec4/lib/python3.14/site-packages/_pytest/assertion/rewrite.py\", line 418, in rewrite_asserts\n    AssertionRewriter(module_path, config, source).run(mod)\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^\n  File \"/root/.jittest/envs/env_9151bc1fda1a1ec4/lib/python3.14/site-packages/_pytest/assertion/rewrite.py\", line 689, in run\n    and isinstance(item.value, ast.Str)\n                               ^^^^^^^\nAttributeError: module 'ast' has no attribute 'Str'\n",
+  "base_execution": {},
+  "head_execution": {},
+  "rerun_agreement": false,
+  "wall_clock_s": 5.9231,
+  "provider_cost_usd": 0.0,
+  "signature": {
+    "algorithm": "Ed25519",
+    "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "r1a9hZuFxEdpArv8MjiDEikCA/46UOLc1gihOepAIPFzasirHUoPhMLzSx1OtSEMeFgzQnNX6fxhpCOtg0ChDA=="
+  }
+}

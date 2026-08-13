@@ -1,0 +1,56 @@
+{
+  "schema_version": "2.0",
+  "tool": "jittest verify",
+  "verdict": "inconclusive",
+  "proven_catch": false,
+  "disposition": "head_uncollectable",
+  "provenance": {
+    "repo_path": "/mnt/c/Users/praja/src/youtube-dl",
+    "base_sha": "2bfaf89b6cc6dd07ed6ca32086c72a98b67c20ba",
+    "head_sha": "4f06c1c9fcbfbc74b81b5fa89a616914b5ce5aad",
+    "test_file_name": "test_utils.py",
+    "test_file_sha256": "6c74527100dc8b1d9077e9fdcc6fa6b79c12b4eaf1779420fb097ec22f404d2d",
+    "tool_commit_sha": "3a917a3d1a7d5b55a42e6138c7384e4e59c73e90",
+    "tool_branch": "main",
+    "tool_dirty": true,
+    "tool_tree_sha": "f658736dc213f91ea96a97992c5ce591d88a9f08",
+    "rel_path": "."
+  },
+  "sandbox": {
+    "backend": "none",
+    "image": null,
+    "isolated": false,
+    "network_denied": false,
+    "notes": [
+      "sandbox disabled by configuration: candidate tests share the filesystem, network and user account of this runner. Do not use this setting on pull requests from outside collaborators."
+    ]
+  },
+  "base_execution": {
+    "outcome": "NOTRUN",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {}
+  },
+  "head_execution": {
+    "outcome": "ERROR",
+    "exit_code": 2,
+    "stdout_sha256": "298f4475fe73fefa6d5b5dfadfff1a2fe138a4390d18ee646b5fd7796b2af9bf",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {
+      "venv_dir": "/root/.jittest/envs/env_903df3718c5ff574",
+      "python_path": "/root/.jittest/envs/env_903df3718c5ff574/bin/python",
+      "cached": true,
+      "cache_key": "903df3718c5ff574",
+      "lockfile_sha256": "aca2ec02b51f26716f3b6ed65bcdd3d29f9d64d54047faced52c9e6c001ce6fc"
+    }
+  },
+  "rerun_agreement": true,
+  "wall_clock_s": 7.285,
+  "provider_cost_usd": 0.0,
+  "signature": {
+    "algorithm": "Ed25519",
+    "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "SxoqQ2bQxkcY/p7cLeB+ItyCvcoXuSlUjUgypHIzzslg6wsO4AC0STTK/zOH3aeUjI5GgALjfbLWYkw7M8p/Cg=="
+  }
+}

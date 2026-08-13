@@ -1,0 +1,56 @@
+{
+  "schema_version": "2.0",
+  "tool": "jittest verify",
+  "verdict": "inconclusive",
+  "proven_catch": false,
+  "disposition": "head_uncollectable",
+  "provenance": {
+    "repo_path": "/mnt/c/Users/praja/src/youtube-dl",
+    "base_sha": "eb3f008c9e686f38c50511004d5c9a51b2e8cdd2",
+    "head_sha": "cccd70a2752ad079ed560e42ff085adcabebaac2",
+    "test_file_name": "test_utils.py",
+    "test_file_sha256": "6c74527100dc8b1d9077e9fdcc6fa6b79c12b4eaf1779420fb097ec22f404d2d",
+    "tool_commit_sha": "3a917a3d1a7d5b55a42e6138c7384e4e59c73e90",
+    "tool_branch": "main",
+    "tool_dirty": true,
+    "tool_tree_sha": "f658736dc213f91ea96a97992c5ce591d88a9f08",
+    "rel_path": "."
+  },
+  "sandbox": {
+    "backend": "none",
+    "image": null,
+    "isolated": false,
+    "network_denied": false,
+    "notes": [
+      "sandbox disabled by configuration: candidate tests share the filesystem, network and user account of this runner. Do not use this setting on pull requests from outside collaborators."
+    ]
+  },
+  "base_execution": {
+    "outcome": "NOTRUN",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {}
+  },
+  "head_execution": {
+    "outcome": "ERROR",
+    "exit_code": 2,
+    "stdout_sha256": "41970268853508329d47fdf9f9ff2b7b4a48b07d154b61db2d9ad783cb212412",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {
+      "venv_dir": "/root/.jittest/envs/env_83264cdc3e5d9c7f",
+      "python_path": "/root/.jittest/envs/env_83264cdc3e5d9c7f/bin/python",
+      "cached": true,
+      "cache_key": "83264cdc3e5d9c7f",
+      "lockfile_sha256": "3ad3ff09898b43e471a999de138f666552b031754076232d95febcd98fa71b6c"
+    }
+  },
+  "rerun_agreement": true,
+  "wall_clock_s": 6.9705,
+  "provider_cost_usd": 0.0,
+  "signature": {
+    "algorithm": "Ed25519",
+    "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "dGVsiWduD/utjLZZfArDKfuyVcoZ244DjIOhgnMij1sg4C/QPNJ6NZL62loexMsG5R2rrJoQnPg9Eir1GTAmDA=="
+  }
+}

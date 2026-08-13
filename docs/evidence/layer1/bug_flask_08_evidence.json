@@ -1,0 +1,37 @@
+{
+  "schema_version": "2.0",
+  "tool": "jittest verify",
+  "verdict": "inconclusive",
+  "proven_catch": false,
+  "disposition": "env_setup_failed",
+  "provenance": {
+    "repo_path": "/mnt/c/Users/praja/src/flask",
+    "base_sha": "860a25c390eba8e6c089a818b02800dd9d789864",
+    "head_sha": "273123f6b8fc0d871553f707e515816777c60e24",
+    "test_file_name": "test_reqctx.py",
+    "test_file_sha256": "93d7f891096b037099b4770fb3498019436c4fa16062a0b99ea610af3ce32c5a",
+    "tool_commit_sha": "3a917a3d1a7d5b55a42e6138c7384e4e59c73e90",
+    "tool_tree_sha": "f658736dc213f91ea96a97992c5ce591d88a9f08",
+    "rel_path": "."
+  },
+  "sandbox": {
+    "backend": "none",
+    "image": null,
+    "isolated": false,
+    "network_denied": false,
+    "notes": [
+      "sandbox disabled by configuration: candidate tests share the filesystem, network and user account of this runner. Do not use this setting on pull requests from outside collaborators."
+    ]
+  },
+  "error": "Preflight pytest check failed:\nSTDERR:\n/root/.jittest/envs/env_19d1c8f2675a891d/bin/python: No module named pytest\n",
+  "base_execution": {},
+  "head_execution": {},
+  "rerun_agreement": false,
+  "wall_clock_s": 6.5156,
+  "provider_cost_usd": 0.0,
+  "signature": {
+    "algorithm": "Ed25519",
+    "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "ba7uMjuYi5bIjHzB5sfGsQmnoj4UZjUIYok17aLTOHKA0nbcWDzz0CCGlTHst8dno23yFyb0HKVA5ctBrztqCA=="
+  }
+}

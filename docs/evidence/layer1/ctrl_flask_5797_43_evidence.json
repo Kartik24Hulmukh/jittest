@@ -1,0 +1,56 @@
+{
+  "schema_version": "2.0",
+  "tool": "jittest verify",
+  "verdict": "inconclusive",
+  "proven_catch": false,
+  "disposition": "head_uncollectable",
+  "provenance": {
+    "repo_path": "/mnt/c/Users/praja/src/flask",
+    "base_sha": "5addaf833b2e8c7a616f89dd8ad5a44b07d7c000",
+    "head_sha": "53b8f08218796d95764c5252bccd8a50a173a6fb",
+    "test_file_name": "testing.py",
+    "test_file_sha256": "60c60294d716a6102e9993ad8f14930ad421fde322d8d3b54c7be642acbad560",
+    "tool_commit_sha": "3a917a3d1a7d5b55a42e6138c7384e4e59c73e90",
+    "tool_branch": "main",
+    "tool_dirty": true,
+    "tool_tree_sha": "f658736dc213f91ea96a97992c5ce591d88a9f08",
+    "rel_path": "."
+  },
+  "sandbox": {
+    "backend": "none",
+    "image": null,
+    "isolated": false,
+    "network_denied": false,
+    "notes": [
+      "sandbox disabled by configuration: candidate tests share the filesystem, network and user account of this runner. Do not use this setting on pull requests from outside collaborators."
+    ]
+  },
+  "base_execution": {
+    "outcome": "NOTRUN",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {}
+  },
+  "head_execution": {
+    "outcome": "ERROR",
+    "exit_code": 2,
+    "stdout_sha256": "9ce9863762417307b74c2160b6d42e28f3df0f237c3d16f277fae32c1a1260d7",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {
+      "venv_dir": "/root/.jittest/envs/env_46413f3309d12bf8",
+      "python_path": "/root/.jittest/envs/env_46413f3309d12bf8/bin/python",
+      "cached": true,
+      "cache_key": "46413f3309d12bf8",
+      "lockfile_sha256": "159d45467f5566365948958b86df738eb5ae3a3c2599814cb2fcef6621791314"
+    }
+  },
+  "rerun_agreement": true,
+  "wall_clock_s": 8.8917,
+  "provider_cost_usd": 0.0,
+  "signature": {
+    "algorithm": "Ed25519",
+    "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "PVTfOtuDEMqzm9jZIpwSw304t8cd9Pi2mgaM0KwEMGD+oz/3N4F1O+/izTwl8Qh19CwkEeJnM8orJRNzrKD9Ag=="
+  }
+}
