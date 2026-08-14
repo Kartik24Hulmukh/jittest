@@ -25,7 +25,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      - run: pip install .
+      - run: pip install -v .
 
       - run: cd /tmp && jittest version
 
