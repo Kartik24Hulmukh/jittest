@@ -39,7 +39,7 @@ jobs:
           fi
 
       # Use the local action (./) so each PR is tested by the code in that PR.
-      # External users should reference Kartik24Hulmukh/jittest@v0.3.1 or @v0 instead.
+      # External users should reference Kartik24Hulmukh/jittest@v0.3.2 or @v0 instead.
       # Model and API base come from repository variables (non-secret).
       # API key comes from repository secrets.
       - uses: ./

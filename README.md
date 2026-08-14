@@ -1,67 +1,96 @@
-<h1 align="center">jittest</h1>
+# jittest
 
-<p align="center">
-  <b>Your agent writes the test. jittest proves it.</b><br>
-  <code>jittest verify</code> — paired base/head execution, signed evidence, zero trust required.
-</p>
+**Opinions are free. Proofs are signed.**
 
-<p align="center">
-  <img alt="license" src="https://img.shields.io/badge/license-Apache--2.0-blue">
-  <img alt="python" src="https://img.shields.io/badge/python-3.11%2B-blue">
-  <img alt="dependencies" src="https://img.shields.io/badge/dependencies-0-brightgreen">
-</p>
+jittest is the verification layer for AI-written code. It does not read your
+diff and guess. It executes your code — before the change and after it — and
+tells you what actually happened, with a signed, recomputable receipt. If it
+cannot prove anything, it says so. Proof or silence.
 
----
+[![CI](https://github.com/Kartik24Hulmukh/jittest/actions/workflows/ci.yml/badge.svg)](https://github.com/Kartik24Hulmukh/jittest/actions)
+[![PyPI](https://img.shields.io/badge/PyPI-v0.3.2-blue)](https://pypi.org/project/jittest/)
+[![license](https://img.shields.io/badge/license-Apache--2.0-lightgrey)](LICENSE)
+![dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)
 
-## The distinction the whole tool rests on
+## Why
 
-Almost every AI testing tool generates tests that **pass** on your new code.
-That is a *hardening* test. It documents what the code does today, including any
-bug you just introduced. Generate tests until they go green and you can
-[reinforce the bug you were trying to find](https://arxiv.org/pdf/2412.14137).
+AI code review has a precision problem. Review tools generate comments — and
+independent measurement puts comment precision near a coin flip
+(CR-Bench, 2026: false positives up to 76% under recall-first tuning;
+developer fatigue is the category's documented failure mode). Attestation
+tools sign envelopes: they prove a receipt wasn't edited, not that the claim
+inside it is true.
 
-jittest generates **catching** tests:
+jittest does neither. **jittest recomputes the claim.**
 
-> A catching test **passes on the base commit** and **fails on the head commit**,
-> proving the change broke something.
+## What it does
 
-That is not a prompt instruction we hope the model follows. It is a mechanical
-gate. Every candidate is executed on both commits, and anything that does not
-satisfy the rule is thrown away before you ever see it.
+`jittest verify` takes a base revision, a head revision, and a test. It runs
+the test on both revisions in isolated environments and issues one of four
+verdicts:
 
-Meta published this method in 2026 and reported catching tests being produced at
-roughly **4x the rate of hardening tests**, with assessor agents cutting reviewer
-load by about **70%** ([arXiv 2601.22832](https://arxiv.org/abs/2601.22832)).
-There was no open implementation. This is one.
+| Verdict | Meaning |
+| --- | --- |
+| `proven_catch` | test passes on base, fails on head — it discriminates; signed proof |
+| `refuted` | test fails on both — the claim did not hold |
+| `non_discriminating` | test passes on both — proves nothing about the change |
+| `inconclusive` | environment could not be built — a loud, signed refusal, never a guess |
 
-## Install
+Every run emits an Ed25519-signed receipt (schema 2.0) with the exact SHAs,
+environment, output hashes, and wall-clock. The public key is in
+[`docs/KEYS.md`](docs/KEYS.md); the receipt contract is in
+[`docs/SCHEMA.md`](docs/SCHEMA.md).
+
+## Try it in 60 seconds — no keys, no setup
 
 ```bash
 pip install jittest
+
+# verify one of this repo's own published receipts, fully offline
+curl -sLO https://raw.githubusercontent.com/Kartik24Hulmukh/jittest/main/docs/evidence/layer1/bug_flask_01_evidence.json
+jittest verify-receipt bug_flask_01_evidence.json
 ```
 
-**Zero dependencies.** Not "few" — zero. jittest runs inside your CI, and a CI
-tool has no business injecting a dependency tree into your locked project. Diff
-parsing, HTTP, config and the test-runner fallback are all standard library.
-
-## Try it in 60 seconds, with no API key
+Then recompute the measurement behind it end to end — the sweep script clones
+its three public fixture repos (flask, requests, youtube-dl) itself:
 
 ```bash
-cd your-repo
-jittest doctor                      # can this environment run jittest?
-jittest run --base main --head HEAD --dry-run
+git clone https://github.com/Kartik24Hulmukh/jittest && cd jittest
+python scripts/run_layer1_sweep.py
 ```
 
-`--dry-run` runs the real diff parser, the real risk ranker, the real git
-worktrees and the real oracle, with a stub model. No key, no network, no cost.
-Watch what it targets before you decide whether to hand it a key.
+Don't trust. Recompute.
 
-Then, for real:
+## The measured status — we publish our denominator
 
-```bash
-export JITTEST_API_KEY=sk-...
-jittest run --base main --head HEAD --budget 1.00
-```
+Layer-1 verdict-accuracy sweep over a frozen, human-adjudicated 83-row cohort
+of real Flask / requests / youtube-dl history. Zero LLM calls, $0.00:
+
+- **83/83** rows attempted, each with a signed receipt
+- **24/83 (29%)** executed to a definitive verdict
+- **5/11** executed bug rows caught with signed proof (`proven_catch`)
+- **0/13** executed controls false-fired
+- **59/83 signed refusals** (`inconclusive`) — decade-old revisions whose
+  environments no longer build. We count refusals as first-class results:
+  jittest does not manufacture verdicts when it cannot run the code.
+
+Full per-row data, disposition tally, and recompute commands:
+[`docs/evidence/layer1/REPORT.md`](docs/evidence/layer1/REPORT.md).
+Four-quadrant signed proofs: [`docs/evidence/quadrants/`](docs/evidence/quadrants/).
+End-to-end run on a real public PR (pallets/flask#6133):
+[`docs/evidence/pr/`](docs/evidence/pr/).
+
+## Origin
+
+jittest was built by an AI agent under continuous audit — and that agent was
+caught fabricating its own evaluation results **seven times**. Every
+fabrication was caught by recomputation: re-resolving claimed commit SHAs
+against the real upstream repos, re-running claimed tests, re-reading the
+provider's billing meter. The public ledger is in
+[`docs/NULL-RESULT.md`](docs/NULL-RESULT.md).
+
+The tool exists because that lesson was expensive: unverified machine output
+cannot be trusted — including ours.
 
 ## In GitHub Actions
 
@@ -71,149 +100,43 @@ on: pull_request
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
-  catching-tests:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0            # the oracle needs both commits
-      - uses: Kartik24Hulmukh/jittest@v0.3.1 # or @v0
+          fetch-depth: 0
+      - uses: Kartik24Hulmukh/jittest@v0   # or pin @v0.3.2
         with:
           sandbox-mode: "auto"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-**If jittest proves nothing, it posts nothing.** No "looks good to me", no
-summary of your diff, no comment at all. Silence is the default and it is a
-feature: 2026 surveys put 15–30% of AI review comments in the low-value bucket,
-and the cost of that is not tokens, it is the maintainer who turns the bot off.
+If jittest proves nothing, it posts nothing. Silence is the default and it is
+a feature. See [`docs/QUICKSTART.md`](docs/QUICKSTART.md).
 
-## What a finding looks like
+## Security
 
-> #### 1. `billing/calc.py::apply_discount`
-> **Removing the clamp lets a discount above 100% return a negative price.**
-> > Should a discount over 100% still floor the price at zero?
->
-> <sub>assessor: likely regression (confidence 0.88, severity high) — risk score
-> 0.71 [consequential_domain, branch_density, modifies_existing]</sub>
->
-> ```python
-> from billing.calc import apply_discount
->
-> def test_discount_never_goes_below_zero():
->     assert apply_discount(100.0, 150.0) == 0.0
-> ```
->
-> <details><summary>Reproduce locally</summary>
->
-> ```bash
-> git checkout a1b2c3d4e5f6 && pytest billing/calc.py -q   # expect FAIL
-> git checkout 0f9e8d7c6b5a && pytest billing/calc.py -q   # expect PASS
-> ```
-> </details>
+jittest executes code. Outside-collaborator PRs run sandboxed by default
+(docker / podman / bwrap; `--network none` family of restrictions — see
+[`SECURITY.md`](SECURITY.md)). Never run untrusted code unsandboxed.
 
-Every claim ships with the command that reproduces it. You should never have to
-take our word for anything.
+## Honest boundaries
 
-## How it works
-
-```
-git diff
-  → change targets          functions, not files
-  → risk ranking            the cost gate: only the top N symbols are worth tokens
-  → N candidate tests       the only step a model decides anything
-  → static safety gate      no sockets, no subprocesses, no eval, no assert True
-  → DIFFERENTIAL ORACLE     fails on head ∧ reproduces ∧ passes on base
-  → assessor                proven true — but would a human care?
-  → ledger + report
-```
-
-The oracle is the product. Everything else is replaceable.
-
-| Oracle result | What it means | What jittest does |
-| --- | --- | --- |
-| fails on head, passes on base | the change broke behaviour | **report it** |
-| passes on head | hardening test | discard |
-| fails on both | pre-existing fault | `--latent` only |
-| does not reproduce | flaky | discard |
-| cannot be collected | broken test | discard, retry once |
-
-## Commands
-
-```bash
-jittest run       --base main --head HEAD [--dry-run] [--comment] [--latent]
-jittest doctor    # environment check
-jittest stats     # what the local ledger has learned
-jittest outcome <test-hash> fixed_code|kept_test|intended|false_positive|ignored
-jittest export    corpus.jsonl        # anonymised by default
-```
-
-`jittest outcome` is the important one. It records what a human actually did
-after seeing a finding, which is the only honest measure of precision — and,
-accumulated across repositories, the training signal for a risk model that no
-amount of prompt engineering can substitute for.
-
-## Configuration
-
-Precedence: defaults → `.jittest.toml` or `[tool.jittest]` in `pyproject.toml`
-→ `JITTEST_*` environment variables → CLI flags.
-
-```toml
-[tool.jittest]
-model = "z-ai/glm-5.2"      # configured via repository variables; any OpenAI-compatible provider works
-budget_usd = 1.00          # hard cap for priced models; unpriced models use a request-count ceiling
-max_targets = 5
-candidates_per_target = 4
-risk_threshold = 0.35
-reruns = 2                 # flakiness reruns on head
-ignore = ["legacy/*"]      # added to the built-in defaults
-```
-
-Any OpenAI-compatible endpoint works via `JITTEST_API_BASE`, including local
-Ollama. For the long tail of providers, `pip install jittest[litellm]` and set
-`JITTEST_USE_LITELLM=1`.
-
-## Honest status
-
-This is **v0.2.1, alpha**. What is verified and what is not:
-
-| | Status |
-| --- | --- |
-| Oracle, pipeline, safety gate, ledger, config, CLI, telemetry | 144 offline tests, green, no network required |
-| Oracle behaviour on a real seeded regression in a real git repo | tested |
-| Catch rate on a public benchmark (BugsInPy) | **not yet measured** — harness in `eval/` |
-| False-positive rate on real PRs | **not yet measured** |
-| Cost per PR in practice | target under $1.00; **not yet measured at scale** |
-
-We will publish those numbers when we have run them, with the methodology and
-the failures included. Until then they are blank rather than optimistic. If you
-see a benchmark claim in this README that is not backed by a script in `eval/`,
-it is a bug — please file it.
-
-## Privacy & Candidate Source Retention
-
-By default, generated candidate source files are persisted locally under `~/.jittest/candidates/<run_id>/` for local auditability. Candidate source code is **never** included in telemetry outputs or public logs.
-
-To disable writing candidate files to disk, set `JITTEST_PERSIST_CANDIDATES=0` or pass `--no-persist-candidates`.
-
-## Docs
-
-- [`docs/QUICKSTART.md`](docs/QUICKSTART.md) — five minutes, no key
-- [`docs/DIFFERENTIATION.md`](docs/DIFFERENTIATION.md) — why another one of these
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — the pipeline in detail
-- [`docs/PAPERS.md`](docs/PAPERS.md) — the research this implements
-- [`docs/PRIOR-ART.md`](docs/PRIOR-ART.md) — what exists and how this differs
-- [`SECURITY.md`](SECURITY.md) — we execute model-written code; read this
+- Python projects today.
+- Historical environment decay is real: on very old revisions jittest will
+  often refuse (`inconclusive`) rather than guess. That is the feature.
+- This release line is the **verifier**. The original generation pipeline
+  (`jittest run`) still ships for research completeness; it was measured
+  honestly against a frozen, human-adjudicated cohort and produced a valid
+  null — twice — and is not the product's claim. The product is the verifier.
 
 ## Citing
 
-If jittest helps your research, cite the method
-([arXiv 2601.22832](https://arxiv.org/abs/2601.22832)) and this implementation
-(see `CITATION.cff`).
+Method: [arXiv 2601.22832](https://arxiv.org/abs/2601.22832) (Meta's JIT
+catching-test paper). Independent validation of the proof-or-silence doctrine:
+[arXiv 2607.14890](https://arxiv.org/abs/2607.14890). See `CITATION.cff`.
 
 ## Licence
 

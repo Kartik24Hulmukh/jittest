@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.2 - 2026-08-14
+
+### Documentation & Reproducibility
+- 0.3.2 — documentation and reproducibility patch; no behavior change.
+
 ## 0.3.1 - 2026-08-13
 
 ### Production Hardening & Infrastructure

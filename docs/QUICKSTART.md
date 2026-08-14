@@ -80,7 +80,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
-      - uses: Kartik24Hulmukh/jittest@v0.3.1 # or @v0
+      - uses: Kartik24Hulmukh/jittest@v0.3.2 # or @v0
         with:
           sandbox-mode: "auto"
           budget: "1.00"
