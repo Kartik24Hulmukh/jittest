@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "jittest"
-version = "0.3.1"
-description = "Generate tests that FAIL on your pull request and PASS on main. Open reference implementation of just-in-time catching test generation."
+version = "0.3.2"
+description = "Executable proof on every pull request: differential base/head verification with signed, recomputable receipts. Proof or silence."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
