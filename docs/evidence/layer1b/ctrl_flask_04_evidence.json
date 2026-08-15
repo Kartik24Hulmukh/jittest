@@ -1,0 +1,62 @@
+{
+  "schema_version": "2.0",
+  "tool": "jittest verify",
+  "verdict": "refuted",
+  "proven_catch": false,
+  "disposition": "head_failed_base_failed_latent",
+  "provenance": {
+    "repo_path": "C:\\Users\\praja\\src\\flask",
+    "base_sha": "ac5664d2281533eacafd64f5cc7d5edcdaccab60",
+    "head_sha": "4f79d5b59a56bc4356a97f2e81a35f98cb18d7b3",
+    "test_file_name": "test_basic.py",
+    "test_file_sha256": "02f801a3648fa63d8117111b1d8e3219aa946062f584fd9b252de5db6ac8ec17",
+    "tool_commit_sha": "51e3f0a3327e7ab26d9202a86c433162fb21225e",
+    "tool_branch": "main",
+    "tool_dirty": true,
+    "tool_tree_sha": "35d89881b1e35e8eca5e914f5ceb21e3b348179b",
+    "rel_path": "."
+  },
+  "sandbox": {
+    "backend": "none",
+    "image": null,
+    "isolated": false,
+    "network_denied": false,
+    "notes": [
+      "sandbox disabled by configuration: candidate tests share the filesystem, network and user account of this runner. Do not use this setting on pull requests from outside collaborators."
+    ]
+  },
+  "base_execution": {
+    "outcome": "FAIL",
+    "exit_code": 1,
+    "stdout_sha256": "9fcd83ab0e7c37b497e952d6bf5970bc056b4762392eb417c28404dcf9a5f7ba",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {
+      "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_75dea357ca3036ba",
+      "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_75dea357ca3036ba\\Scripts\\python.exe",
+      "cached": false,
+      "cache_key": "75dea357ca3036ba",
+      "lockfile_sha256": "004f9db625c3de987ea32e38b71aaaa7358713f0be205df64893ec79bdcd4c83"
+    }
+  },
+  "head_execution": {
+    "outcome": "FAIL",
+    "exit_code": 1,
+    "stdout_sha256": "837497bc9a4f4fb23e81b2bd1383e1c4d8e9b64a466602e53dde9eb0939382fd",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {
+      "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_e149cf39d00f5f1b",
+      "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_e149cf39d00f5f1b\\Scripts\\python.exe",
+      "cached": false,
+      "cache_key": "e149cf39d00f5f1b",
+      "lockfile_sha256": "004f9db625c3de987ea32e38b71aaaa7358713f0be205df64893ec79bdcd4c83"
+    }
+  },
+  "rerun_agreement": true,
+  "wall_clock_s": 122.235,
+  "provider_cost_usd": 0.0,
+  "signature": {
+    "algorithm": "Ed25519",
+    "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "jaNOcN/EzniwMbB1HS3/RUsgOeEuZjvLLDu+FRYC7W6dxjzI5dJdcvE8Z930yO9IVihqa7NmdLtXJOw5dxYTBg=="
+  }
+}

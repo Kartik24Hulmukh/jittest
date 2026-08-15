@@ -1,0 +1,56 @@
+{
+  "schema_version": "2.0",
+  "tool": "jittest verify",
+  "verdict": "inconclusive",
+  "proven_catch": false,
+  "disposition": "head_uncollectable",
+  "provenance": {
+    "repo_path": "C:\\Users\\praja\\src\\requests",
+    "base_sha": "ef439eb779c1eba7cbdeeeb302b11e1e061b4b7d",
+    "head_sha": "cbce031327be4f1b4b5fd041ff4dcaa8efa2ce53",
+    "test_file_name": "test_requests.py",
+    "test_file_sha256": "5eacf6341d236e225ce6a37a592f3b410f20e69ec17641f0e2c99b03a79b904d",
+    "tool_commit_sha": "51e3f0a3327e7ab26d9202a86c433162fb21225e",
+    "tool_branch": "main",
+    "tool_dirty": true,
+    "tool_tree_sha": "35d89881b1e35e8eca5e914f5ceb21e3b348179b",
+    "rel_path": "."
+  },
+  "sandbox": {
+    "backend": "none",
+    "image": null,
+    "isolated": false,
+    "network_denied": false,
+    "notes": [
+      "sandbox disabled by configuration: candidate tests share the filesystem, network and user account of this runner. Do not use this setting on pull requests from outside collaborators."
+    ]
+  },
+  "base_execution": {
+    "outcome": "NOTRUN",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {}
+  },
+  "head_execution": {
+    "outcome": "ERROR",
+    "exit_code": 2,
+    "stdout_sha256": "547bc5dc9836c754a425962025c34d45559cf36ae012457d09de9e142ed15661",
+    "stderr_sha256": "16dea3892ef1a910a6814a4502e450d83b83947ac9bea1e58e998dc615fba684",
+    "environment": {
+      "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_595e2288ff8fd549",
+      "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_595e2288ff8fd549\\Scripts\\python.exe",
+      "cached": false,
+      "cache_key": "595e2288ff8fd549",
+      "lockfile_sha256": "67f6300c112d837fe350b2697c13d41a8525e4e347a6e7d272f3eca1cfb76506"
+    }
+  },
+  "rerun_agreement": true,
+  "wall_clock_s": 128.735,
+  "provider_cost_usd": 0.0,
+  "signature": {
+    "algorithm": "Ed25519",
+    "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "hIIMQijGdzWQn3bC63suL+3YkQXhnBhAvWF02vrPTzzeSxLv+2TqN5aHKEs4+ur5ntwL+pbyIkoy16hmkTpdCQ=="
+  }
+}

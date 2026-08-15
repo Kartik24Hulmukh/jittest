@@ -1,0 +1,56 @@
+{
+  "schema_version": "2.0",
+  "tool": "jittest verify",
+  "verdict": "non_discriminating",
+  "proven_catch": false,
+  "disposition": "head_passed",
+  "provenance": {
+    "repo_path": "C:\\Users\\praja\\.cache\\jittest\\fixtures\\click",
+    "base_sha": "7eb57cff7cd292fbd526eaf861c8f945ddeb07a3",
+    "head_sha": "1050d955ea5a219c72467ad832934ea80682b5fb",
+    "test_file_name": "test_stream_lifecycle.py",
+    "test_file_sha256": "a2471fbd9c222213380aef823a537521c8dcc8224709814708149217fc932524",
+    "tool_commit_sha": "51e3f0a3327e7ab26d9202a86c433162fb21225e",
+    "tool_branch": "main",
+    "tool_dirty": true,
+    "tool_tree_sha": "35d89881b1e35e8eca5e914f5ceb21e3b348179b",
+    "rel_path": "."
+  },
+  "sandbox": {
+    "backend": "none",
+    "image": null,
+    "isolated": false,
+    "network_denied": false,
+    "notes": [
+      "sandbox disabled by configuration: candidate tests share the filesystem, network and user account of this runner. Do not use this setting on pull requests from outside collaborators."
+    ]
+  },
+  "base_execution": {
+    "outcome": "NOTRUN",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {}
+  },
+  "head_execution": {
+    "outcome": "PASS",
+    "exit_code": 0,
+    "stdout_sha256": "9c1b94f553824b0707d098a9c8b52a547b2fad8f0bd68db06701da2b1a8b7d41",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {
+      "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_2bc613cbb6c431f8",
+      "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_2bc613cbb6c431f8\\Scripts\\python.exe",
+      "cached": false,
+      "cache_key": "2bc613cbb6c431f8",
+      "lockfile_sha256": "97916b0586a2294c63f2742914f1376efb254a95d8fa901a1e51da3fb11b8ae0"
+    }
+  },
+  "rerun_agreement": true,
+  "wall_clock_s": 55.25,
+  "provider_cost_usd": 0.0,
+  "signature": {
+    "algorithm": "Ed25519",
+    "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "SOMllu5dr2KbPReQ7Fp2vO5qizfjfN/y43PLBFwkmhW4b02xCwbeSxr0tMldtjHYSAh5f7fnMRkZmBWjapwkBQ=="
+  }
+}

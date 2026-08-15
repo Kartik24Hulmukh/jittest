@@ -1,0 +1,56 @@
+{
+  "schema_version": "2.0",
+  "tool": "jittest verify",
+  "verdict": "inconclusive",
+  "proven_catch": false,
+  "disposition": "head_uncollectable",
+  "provenance": {
+    "repo_path": "C:\\Users\\praja\\.cache\\jittest\\fixtures\\pytest",
+    "base_sha": "0d6fbdeffa57c796123f62f81f7dd370d9b7ecdc",
+    "head_sha": "a3a62a0ebd43ec848b979227421e2b7ba93a9dc9",
+    "test_file_name": "test_excinfo.py",
+    "test_file_sha256": "bd2416fc1c6026eec742f482aa449a41dc78fe463713a993d60aeb061ef577ca",
+    "tool_commit_sha": "51e3f0a3327e7ab26d9202a86c433162fb21225e",
+    "tool_branch": "main",
+    "tool_dirty": true,
+    "tool_tree_sha": "35d89881b1e35e8eca5e914f5ceb21e3b348179b",
+    "rel_path": "."
+  },
+  "sandbox": {
+    "backend": "none",
+    "image": null,
+    "isolated": false,
+    "network_denied": false,
+    "notes": [
+      "sandbox disabled by configuration: candidate tests share the filesystem, network and user account of this runner. Do not use this setting on pull requests from outside collaborators."
+    ]
+  },
+  "base_execution": {
+    "outcome": "NOTRUN",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {}
+  },
+  "head_execution": {
+    "outcome": "TIMEOUT",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "a448e032ceaf45c5805d104ee492e3d3f7313f2391c8be7675cee31b770cb747",
+    "environment": {
+      "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_66801a92f3c74c63",
+      "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_66801a92f3c74c63\\Scripts\\python.exe",
+      "cached": false,
+      "cache_key": "66801a92f3c74c63",
+      "lockfile_sha256": "404a2bac28e26d8a1cbab03bdc79b0d6e70c2653d5d8f10f23cc9ddbf7621b8f"
+    }
+  },
+  "rerun_agreement": true,
+  "wall_clock_s": 220.969,
+  "provider_cost_usd": 0.0,
+  "signature": {
+    "algorithm": "Ed25519",
+    "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "XQXpYNsE8vgqfasu4F3RFJabEb46DMvawP4C2SUlKxHohRNPYMSGM2Ul1dIMqFK9lpaWhHY/DgGcKXmTUoh0Dw=="
+  }
+}

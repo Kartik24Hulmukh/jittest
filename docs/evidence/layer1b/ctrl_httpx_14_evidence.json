@@ -1,0 +1,37 @@
+{
+  "schema_version": "2.0",
+  "tool": "jittest verify",
+  "verdict": "inconclusive",
+  "proven_catch": false,
+  "disposition": "env_setup_failed",
+  "provenance": {
+    "repo_path": "C:\\Users\\praja\\.cache\\jittest\\fixtures\\httpx",
+    "base_sha": "def4778d622e8bf49a9fea4dda78cca4cf666d8a",
+    "head_sha": "435e1dac899adeb0c156c00721ecbb1124d75842",
+    "test_file_name": "test_api.py",
+    "test_file_sha256": "785f0650f616312f22a1573fbe383647c68b2282deaa18ad64da650331e1e90f",
+    "tool_commit_sha": "51e3f0a3327e7ab26d9202a86c433162fb21225e",
+    "tool_tree_sha": "35d89881b1e35e8eca5e914f5ceb21e3b348179b",
+    "rel_path": "."
+  },
+  "sandbox": {
+    "backend": "none",
+    "image": null,
+    "isolated": false,
+    "network_denied": false,
+    "notes": [
+      "sandbox disabled by configuration: candidate tests share the filesystem, network and user account of this runner. Do not use this setting on pull requests from outside collaborators."
+    ]
+  },
+  "error": "pip install -r C:\\Users\\praja\\AppData\\Local\\Temp\\jittest-wt-1rnvofc8\\requirements.txt failed loudly:\nWARNING: Skipping page https://pypi.org/simple/mkdocs/ because the GET request got Content-Type: Unknown. The only supported Content-Types are application/vnd.pypi.simple.v1+json, application/vnd.pypi.simple.v1+html, and text/html\nERROR: Could not find a version that satisfies the requirement mkdocs==1.6.1 (from versions: none)\nERROR: No matching distribution found for mkdocs==1.6.1\n\n[notice] A new release of pip is available: 23.2.1 -> 26.2.1\n[notice] To update, run: C:\\Users\\praja\\.jittest\\envs\\env_655d5dc3fca8c3bf\\Scripts\\python.exe -m pip install --upgrade pip\n",
+  "base_execution": {},
+  "head_execution": {},
+  "rerun_agreement": false,
+  "wall_clock_s": 70.344,
+  "provider_cost_usd": 0.0,
+  "signature": {
+    "algorithm": "Ed25519",
+    "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "VfoOeLInrLRG/1WBv34LzBMYiT6YVuUp6Y22BlxiQeHitDjT82ir4apjQeS0ftyuY2mUtIlC/qHovuZdUppICA=="
+  }
+}

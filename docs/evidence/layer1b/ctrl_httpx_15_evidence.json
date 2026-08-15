@@ -1,0 +1,37 @@
+{
+  "schema_version": "2.0",
+  "tool": "jittest verify",
+  "verdict": "inconclusive",
+  "proven_catch": false,
+  "disposition": "env_setup_failed",
+  "provenance": {
+    "repo_path": "C:\\Users\\praja\\.cache\\jittest\\fixtures\\httpx",
+    "base_sha": "4b23574cf83307ce27d3b14b4a425dc58c57d28d",
+    "head_sha": "652f051feaf1ab2828e1812eb0c48f9046a8b5ce",
+    "test_file_name": "test_api.py",
+    "test_file_sha256": "785f0650f616312f22a1573fbe383647c68b2282deaa18ad64da650331e1e90f",
+    "tool_commit_sha": "51e3f0a3327e7ab26d9202a86c433162fb21225e",
+    "tool_tree_sha": "35d89881b1e35e8eca5e914f5ceb21e3b348179b",
+    "rel_path": "."
+  },
+  "sandbox": {
+    "backend": "none",
+    "image": null,
+    "isolated": false,
+    "network_denied": false,
+    "notes": [
+      "sandbox disabled by configuration: candidate tests share the filesystem, network and user account of this runner. Do not use this setting on pull requests from outside collaborators."
+    ]
+  },
+  "error": "pip install exception for target ['-r', 'C:\\\\Users\\\\praja\\\\AppData\\\\Local\\\\Temp\\\\jittest-wt-87sitmzt\\\\requirements.txt']: Command '['C:\\\\Users\\\\praja\\\\.jittest\\\\envs\\\\env_c2492a467dd8251f\\\\Scripts\\\\pip.exe', 'install', '-r', 'C:\\\\Users\\\\praja\\\\AppData\\\\Local\\\\Temp\\\\jittest-wt-87sitmzt\\\\requirements.txt']' timed out after 600 seconds",
+  "base_execution": {},
+  "head_execution": {},
+  "rerun_agreement": false,
+  "wall_clock_s": 645.657,
+  "provider_cost_usd": 0.0,
+  "signature": {
+    "algorithm": "Ed25519",
+    "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "3kMeDfiQlga6AuXdVznwAmlOIhFRhDlWfvwOW59DiLEnGmnUJ/Kxq/PvavFPX7Yly1Hp+XR529mE6ee5ZZdECg=="
+  }
+}
