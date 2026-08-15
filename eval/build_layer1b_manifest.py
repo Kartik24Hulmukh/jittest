@@ -12,45 +12,47 @@ from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
+FIXTURES_BASE = Path.home() / ".cache" / "jittest" / "fixtures"
+
 REPOS = {
     "flask": {
         "url": "https://github.com/pallets/flask",
-        "path": Path(r"C:\Users\praja\src\flask"),
+        "path": FIXTURES_BASE / "flask",
         "default_test": "tests/test_basic.py",
         "bug_target": 5,
         "ctrl_target": 4,
     },
     "requests": {
         "url": "https://github.com/psf/requests",
-        "path": Path(r"C:\Users\praja\src\requests"),
+        "path": FIXTURES_BASE / "requests",
         "default_test": "tests/test_requests.py",
         "bug_target": 5,
         "ctrl_target": 4,
     },
     "click": {
         "url": "https://github.com/pallets/click",
-        "path": Path.home() / ".cache/jittest/fixtures/click",
+        "path": FIXTURES_BASE / "click",
         "default_test": "tests/test_basic.py",
         "bug_target": 5,
         "ctrl_target": 4,
     },
     "httpx": {
         "url": "https://github.com/encode/httpx",
-        "path": Path.home() / ".cache/jittest/fixtures/httpx",
+        "path": FIXTURES_BASE / "httpx",
         "default_test": "tests/test_api.py",
         "bug_target": 5,
         "ctrl_target": 4,
     },
     "rich": {
         "url": "https://github.com/Textualize/rich",
-        "path": Path.home() / ".cache/jittest/fixtures/rich",
+        "path": FIXTURES_BASE / "rich",
         "default_test": "tests/test_text.py",
         "bug_target": 5,
         "ctrl_target": 4,
     },
     "pytest": {
         "url": "https://github.com/pytest-dev/pytest",
-        "path": Path.home() / ".cache/jittest/fixtures/pytest",
+        "path": FIXTURES_BASE / "pytest",
         "default_test": "testing/test_collection.py",
         "bug_target": 5,
         "ctrl_target": 4,

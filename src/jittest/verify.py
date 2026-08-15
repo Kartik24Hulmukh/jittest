@@ -143,102 +143,125 @@ def verify_test(
     tool_dirty = _get_git_dirty(tool_root)
     tool_tree_sha = _get_git_sha(tool_root, "HEAD^{tree}")
 
-    # 1. Provision HEAD environment & run on HEAD worktree
+    rel_test = None
+    try:
+        if test_path.is_relative_to(repo_path):
+            rel_test = test_path.relative_to(repo_path)
+    except (ValueError, AttributeError):
+        pass
+    if rel_test is None:
+        rel_test = Path(test_path.name)
+
+    # 1. ALWAYS provision and execute BASE first (never short-circuit)
+    base_run = None
+    base_env_info = None
+    base_err = None
+    try:
+        with Worktree(repo_path, resolved_base) as base_dir:
+            base_workdir = base_dir / rel_path if rel_path != "." else base_dir
+            base_env_info = provision_environment(base_workdir, resolved_base, repo_path)
+            base_python = base_env_info.get("python_path")
+            base_run = run_test(
+                base_workdir,
+                test_code,
+                timeout_s=timeout_s,
+                sbx=sbx_plan,
+                python_path=base_python,
+                rel_test_path=rel_test,
+            )
+    except EnvSetupError as exc:
+        base_err = exc
+
+    # 2. Provision and execute HEAD second (never short-circuit)
+    head_run1 = None
+    head_env_info = None
+    head_err = None
     try:
         with Worktree(repo_path, resolved_head) as head_dir:
             head_workdir = head_dir / rel_path if rel_path != "." else head_dir
             head_env_info = provision_environment(head_workdir, resolved_head, repo_path)
             head_python = head_env_info.get("python_path")
-            head_run1 = run_test(head_workdir, test_code, timeout_s=timeout_s, sbx=sbx_plan, python_path=head_python)
+            head_run1 = run_test(
+                head_workdir,
+                test_code,
+                timeout_s=timeout_s,
+                sbx=sbx_plan,
+                python_path=head_python,
+                rel_test_path=rel_test,
+            )
     except EnvSetupError as exc:
-        wall_clock_s = round(time.monotonic() - start_time, 4)
-        evidence_dict = {
-            "schema_version": "2.0",
-            "tool": "jittest verify",
-            "verdict": VerdictClass.INCONCLUSIVE,
-            "proven_catch": False,
-            "disposition": "env_setup_failed",
-            "provenance": {
-                "repo_path": str(repo_path),
-                "base_sha": resolved_base,
-                "head_sha": resolved_head,
-                "test_file_name": test_path.name,
-                "test_file_sha256": test_file_sha256,
-                "tool_commit_sha": tool_commit_sha,
-                "tool_tree_sha": tool_tree_sha,
-                "rel_path": rel_path,
-            },
-            "sandbox": sbx_plan.as_dict(),
-            "error": str(exc),
-            "base_execution": {},
-            "head_execution": {},
-            "rerun_agreement": False,
-            "wall_clock_s": wall_clock_s,
-            "provider_cost_usd": 0.0,
-        }
-        signed_evidence = sign_evidence(evidence_dict, key_path=signing_key_path)
-        if output_path is not None:
-            out_p = Path(output_path).resolve()
-            out_p.parent.mkdir(parents=True, exist_ok=True)
-            out_p.write_text(json.dumps(signed_evidence, indent=2), encoding="utf-8")
-        return signed_evidence, 1
+        head_err = exc
 
-    head_runs = [head_run1]
+    head_runs = [head_run1] if head_run1 else []
+    rerun_agreement = True
 
     # Rerun on HEAD if failed to check flakiness
-    if head_run1.outcome is Outcome.FAIL and reruns > 1:
+    if head_run1 and head_run1.outcome is Outcome.FAIL and reruns > 1 and not head_err:
         try:
             with Worktree(repo_path, resolved_head) as head_dir:
                 head_workdir = head_dir / rel_path if rel_path != "." else head_dir
-                head_python = head_env_info.get("python_path")
-                head_run2 = run_test(head_workdir, test_code, timeout_s=timeout_s, sbx=sbx_plan, python_path=head_python)
+                head_python = head_env_info.get("python_path") if head_env_info else None
+                head_run2 = run_test(
+                    head_workdir,
+                    test_code,
+                    timeout_s=timeout_s,
+                    sbx=sbx_plan,
+                    python_path=head_python,
+                    rel_test_path=rel_test,
+                )
                 head_runs.append(head_run2)
         except EnvSetupError:
             pass
+        rerun_agreement = len(head_runs) > 1 and (head_runs[0].outcome == head_runs[1].outcome)
 
-    rerun_agreement = len(head_runs) > 1 and (head_runs[0].outcome == head_runs[1].outcome) if len(head_runs) > 1 else True
-
-    base_run = None
-    base_env_info = None
-    disposition = Disposition.HEAD_PASSED
-    verdict_class = VerdictClass.NON_DISCRIMINATING
+    # Determine disposition and verdict
+    disposition = Disposition.ENV_SETUP_FAILED
+    verdict_class = VerdictClass.INCONCLUSIVE
     is_proven_catch = False
     exit_code = 1
 
-    if head_run1.outcome is Outcome.PASS:
+    if base_err is not None or head_err is not None or base_run is None or head_run1 is None:
+        disposition = Disposition.ENV_SETUP_FAILED
+        verdict_class = VerdictClass.INCONCLUSIVE
+        is_proven_catch = False
+        exit_code = 1
+    elif head_run1.outcome is Outcome.PASS:
         disposition = Disposition.HEAD_PASSED
         verdict_class = VerdictClass.NON_DISCRIMINATING
+        is_proven_catch = False
+        exit_code = 1
     elif not rerun_agreement:
         disposition = Disposition.HEAD_FLAKY
         verdict_class = VerdictClass.INCONCLUSIVE
+        is_proven_catch = False
+        exit_code = 1
     elif head_run1.outcome is Outcome.FAIL:
-        # 2. Provision BASE environment & run on BASE worktree
-        try:
-            with Worktree(repo_path, resolved_base) as base_dir:
-                base_workdir = base_dir / rel_path if rel_path != "." else base_dir
-                base_env_info = provision_environment(base_workdir, resolved_base, repo_path)
-                base_python = base_env_info.get("python_path")
-                base_run = run_test(base_workdir, test_code, timeout_s=timeout_s, sbx=sbx_plan, python_path=base_python)
-        except EnvSetupError:
-            disposition = Disposition.BASE_UNCOLLECTABLE
-            verdict_class = VerdictClass.INCONCLUSIVE
-            exit_code = 1
-
-        if base_run and base_run.outcome is Outcome.PASS:
+        if base_run.outcome is Outcome.PASS:
             disposition = Disposition.CATCHING
             verdict_class = VerdictClass.PROVEN_CATCH
             is_proven_catch = True
             exit_code = 0
-        elif base_run and base_run.outcome is Outcome.FAIL:
+        elif base_run.outcome is Outcome.FAIL:
             disposition = Disposition.HEAD_FAILED_BASE_FAILED_LATENT
             verdict_class = VerdictClass.REFUTED
+            is_proven_catch = False
+            exit_code = 1
         else:
             disposition = Disposition.BASE_UNCOLLECTABLE
             verdict_class = VerdictClass.INCONCLUSIVE
-    else:
-        disposition = Disposition.HEAD_UNCOLLECTABLE
-        verdict_class = VerdictClass.INCONCLUSIVE
-
+            is_proven_catch = False
+            exit_code = 1
+    else:  # head_run1.outcome in (Outcome.ERROR, Outcome.NOTRUN, Outcome.TIMEOUT)
+        if base_run.outcome is Outcome.PASS:
+            disposition = Disposition.HEAD_UNCOLLECTABLE_BASE_PASSED
+            verdict_class = VerdictClass.PROVEN_CATCH
+            is_proven_catch = True
+            exit_code = 0
+        else:
+            disposition = Disposition.HEAD_UNCOLLECTABLE_BASE_BROKEN
+            verdict_class = VerdictClass.INCONCLUSIVE
+            is_proven_catch = False
+            exit_code = 1
 
     wall_clock_s = round(time.monotonic() - start_time, 4)
 
@@ -251,10 +274,10 @@ def verify_test(
     }
 
     head_exec_dict = {
-        "outcome": head_run1.outcome.name,
-        "exit_code": head_run1.returncode,
-        "stdout_sha256": _hash_str(head_run1.stdout),
-        "stderr_sha256": _hash_str(head_run1.stderr),
+        "outcome": head_run1.outcome.name if head_run1 else "NOTRUN",
+        "exit_code": head_run1.returncode if head_run1 else -1,
+        "stdout_sha256": _hash_str(head_run1.stdout) if head_run1 else _hash_str(""),
+        "stderr_sha256": _hash_str(head_run1.stderr) if head_run1 else _hash_str(""),
         "environment": head_env_info or {},
     }
 
@@ -263,7 +286,7 @@ def verify_test(
         "tool": "jittest verify",
         "verdict": verdict_class,
         "proven_catch": is_proven_catch,
-        "disposition": disposition.value,
+        "disposition": disposition.value if hasattr(disposition, "value") else str(disposition),
         "provenance": {
             "repo_path": str(repo_path),
             "base_sha": resolved_base,
@@ -283,6 +306,14 @@ def verify_test(
         "wall_clock_s": wall_clock_s,
         "provider_cost_usd": 0.0,
     }
+
+    if base_err is not None or head_err is not None:
+        err_msgs = []
+        if base_err:
+            err_msgs.append(f"base: {base_err}")
+        if head_err:
+            err_msgs.append(f"head: {head_err}")
+        evidence_dict["error"] = "; ".join(err_msgs)
 
     # Cryptographically sign the evidence dictionary with Ed25519 key
     signed_evidence = sign_evidence(evidence_dict, key_path=signing_key_path)

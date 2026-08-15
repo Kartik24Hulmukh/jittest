@@ -98,7 +98,7 @@ def test_verify_non_discriminating_test():
         assert evidence["verdict"] == VerdictClass.NON_DISCRIMINATING
         assert evidence["proven_catch"] is False
         assert evidence["disposition"] == "head_passed"
-        assert evidence["base_execution"]["outcome"] == "NOTRUN"  # skipped base because head passed
+        assert evidence["base_execution"]["outcome"] == "PASS"  # base executed before head
         assert evidence["head_execution"]["outcome"] == "PASS"
 
         assert out_artifact.exists()

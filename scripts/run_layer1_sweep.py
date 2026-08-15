@@ -1,14 +1,15 @@
 """Layer-1 Verifier Sweep (Parallel Execution).
 
 Measures the differential verification engine (no generation, $0 LLM cost)
-against benchmark cohorts with Ed25519-signed evidence receipts and honest
-denominators.
+against benchmark cohorts with Ed25519-signed evidence receipts, honest
+denominators, and auditable disposition tracking.
 
 Supports:
 - Frozen 83-row historical cohort (default)
 - Layer-1B modern cohort (--manifest eval/layer1b_manifest.json)
-- Self-bootstrapping fixture repositories (auto-cloning public repos if missing)
+- Self-bootstrapping fixture repositories (auto-cloning public repos into ~/.cache/jittest/fixtures if missing)
 - JITTEST_FIXTURE_DIR environment variable
+- ENV-FIDELITY-1 per-row delta tables
 """
 
 import argparse
@@ -62,27 +63,10 @@ def resolve_fixture_repo(repo_url: str) -> Path:
     # 1. Respect JITTEST_FIXTURE_DIR if set
     if "JITTEST_FIXTURE_DIR" in os.environ:
         target = Path(os.environ["JITTEST_FIXTURE_DIR"]) / repo_name
-        if not target.exists() or not (target / ".git").exists():
-            with repo_clone_lock:
-                if not target.exists() or not (target / ".git").exists():
-                    print(f"Cloning fixture repo {repo_url} into {target}...")
-                    target.parent.mkdir(parents=True, exist_ok=True)
-                    subprocess.run(["git", "clone", "--quiet", repo_url, str(target)], check=True)
-        return target
+    else:
+        # Standard cached fixtures path (no machine-specific paths)
+        target = Path.home() / ".cache" / "jittest" / "fixtures" / repo_name
 
-    # 2. Check standard local paths
-    candidate_paths = [
-        Path(r"C:\Users\praja\src") / repo_name,
-        Path("/mnt/c/Users/praja/src") / repo_name,
-        Path.home() / "src" / repo_name,
-        Path.home() / ".cache" / "jittest" / "fixtures" / repo_name,
-    ]
-    for cand in candidate_paths:
-        if cand.exists() and (cand / ".git").exists():
-            return cand
-
-    # 3. Default fallback cache location (auto-clone if missing)
-    target = Path.home() / ".cache" / "jittest" / "fixtures" / repo_name
     if not target.exists() or not (target / ".git").exists():
         with repo_clone_lock:
             if not target.exists() or not (target / ".git").exists():
@@ -168,11 +152,12 @@ def verify_row_task(item: tuple[int, int, dict[str, Any], Path]) -> dict[str, An
             "head_sha": "",
             "test_file": "",
             "verdict": VerdictClass.INCONCLUSIVE,
-            "disposition": "ENV_SETUP_FAILED",
+            "disposition": "env_setup_failed",
             "proven_catch": False,
             "wall_clock_s": 0.0,
             "provider_cost_usd": 0.0,
             "signature_valid": False,
+            "tool_dirty": False,
             "artifact": "",
         }
 
@@ -196,6 +181,7 @@ def verify_row_task(item: tuple[int, int, dict[str, Any], Path]) -> dict[str, An
         disposition = evidence["disposition"]
         is_pc = evidence.get("proven_catch", False)
         cost = evidence.get("provider_cost_usd", 0.0)
+        tool_dirty = evidence.get("provenance", {}).get("tool_dirty", False)
 
         sig_ok, sig_msg = verify_receipt(out_file)
 
@@ -215,6 +201,7 @@ def verify_row_task(item: tuple[int, int, dict[str, Any], Path]) -> dict[str, An
             "wall_clock_s": round(elapsed, 2),
             "provider_cost_usd": cost,
             "signature_valid": sig_ok,
+            "tool_dirty": tool_dirty,
             "artifact": str(out_file.name),
         }
     except Exception as exc:
@@ -229,11 +216,12 @@ def verify_row_task(item: tuple[int, int, dict[str, Any], Path]) -> dict[str, An
             "head_sha": head_sha,
             "test_file": str(test_path.name),
             "verdict": VerdictClass.INCONCLUSIVE,
-            "disposition": "ENV_SETUP_FAILED",
+            "disposition": "env_setup_failed",
             "proven_catch": False,
             "wall_clock_s": round(elapsed, 2),
             "provider_cost_usd": 0.0,
             "signature_valid": False,
+            "tool_dirty": False,
             "artifact": "",
         }
 
@@ -245,6 +233,7 @@ def generate_report_content(
     results: list[dict[str, Any]],
     total_time: float,
     total_cost: float,
+    baseline_summary: dict[str, Any] | None = None,
 ) -> str:
     bugs = [r for r in results if r.get("kind") == "bug" or r.get("row_id", "").startswith("bug_")]
     ctrls = [r for r in results if r.get("kind") == "control" or r.get("row_id", "").startswith("ctrl_")]
@@ -258,6 +247,7 @@ def generate_report_content(
     inconclusive_count = sum(1 for r in results if r.get("verdict") == "inconclusive")
     definitive_count = len(results) - inconclusive_count
     valid_sig_count = sum(1 for r in results if r.get("signature_valid"))
+    any_dirty = any(r.get("tool_dirty", False) for r in results)
 
     dispositions: dict[str, int] = {}
     for r in results:
@@ -269,6 +259,12 @@ def generate_report_content(
     bugs_nd = sum(1 for r in bugs if r.get("verdict") == "non_discriminating")
     ctrls_refuted = sum(1 for r in ctrls if r.get("verdict") == "refuted")
     ctrls_nd = sum(1 for r in ctrls if r.get("verdict") == "non_discriminating")
+
+    dirty_line = (
+        "- **Provenance Dirty State**: Receipts ran with clean working tree (`tool_dirty=false`)."
+        if not any_dirty
+        else f"- **Provenance Dirty State**: Receipts ran with `tool_dirty={any_dirty}`."
+    )
 
     report_md = f"""# Layer-1 Verifier Sweep Report
 
@@ -287,8 +283,8 @@ def generate_report_content(
 
 ## Execution Provenance & Environment Notes
 
-- **Provenance Dirty State**: Receipts ran with `tool_dirty=true` (pre-commit sweep snapshot captured at runtime prior to final commit).
-- **Sandbox Backend**: Ran with sandbox backend `"none"` (benign evaluation cohort; outside PRs default to sandbox mode).
+{dirty_line}
+- **Sandbox Backend**: Ran with sandbox backend `"none"` (--no-sandbox; candidate tests ran unconfined). Outside PRs default to sandbox mode.
 - **Receipt Cryptographic Validity**: {valid_sig_count}/{len(results)} signed Ed25519 receipts valid.
 
 ## Per-Cohort Breakdown
@@ -306,6 +302,31 @@ def generate_report_content(
 """
     for disp, cnt in sorted(dispositions.items()):
         report_md += f"| `{disp}` | {cnt} | {cnt/len(results)*100:.1f}% |\n"
+
+    # Delta table if baseline is provided
+    if baseline_summary and "rows" in baseline_summary:
+        old_map = {r["row_id"]: r for r in baseline_summary["rows"]}
+        report_md += """
+## ENV-FIDELITY-1 Delta Table (Audit of Fix Impact)
+
+| Row ID | Kind | Repo | Baseline Disposition | New Disposition | Baseline Verdict | New Verdict | Delta Status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+"""
+        for r in results:
+            rid = r["row_id"]
+            old_r = old_map.get(rid, {})
+            old_disp = old_r.get("disposition", "n/a")
+            new_disp = r.get("disposition", "n/a")
+            old_verdict = old_r.get("verdict", "n/a")
+            new_verdict = r.get("verdict", "n/a")
+            repo_short = r.get("repository", "").split("/")[-1]
+
+            if old_disp == new_disp and old_verdict == new_verdict:
+                delta_status = "Unchanged"
+            else:
+                delta_status = f"`{old_disp}` → `{new_disp}`"
+
+            report_md += f"| `{rid}` | {r.get('kind')} | {repo_short} | `{old_disp}` | `{new_disp}` | `{old_verdict}` | `{new_verdict}` | {delta_status} |\n"
 
     report_md += f"""
 ## Recompute Command
@@ -359,6 +380,16 @@ def main():
         out_dir = SCRIPT_DIR / "docs" / "evidence" / "layer1"
 
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    # Load baseline summary if exists for delta comparison
+    baseline_summary = None
+    summary_path = out_dir / "sweep_summary.json"
+    if summary_path.exists():
+        try:
+            with open(summary_path, encoding="utf-8") as fh:
+                baseline_summary = json.load(fh)
+        except Exception:
+            pass
 
     with open(manifest_path, encoding="utf-8") as fh:
         manifest_data = json.load(fh)
@@ -446,7 +477,7 @@ def main():
         json.dump(summary_data, fh, indent=2)
 
     report_content = generate_report_content(
-        cohort_name, manifest_rel, out_rel, results, total_time, total_cost
+        cohort_name, manifest_rel, out_rel, results, total_time, total_cost, baseline_summary
     )
     # If layer1b: write REPORT.md directly; if layer1: write REPORT_LATEST.md
     report_filename = "REPORT.md" if is_layer1b else "REPORT_LATEST.md"

@@ -7,13 +7,23 @@ both base and head worktrees, and preflights environment readiness.
 
 from __future__ import annotations
 
+import configparser
 import hashlib
+import logging
+import re
 import subprocess
 import sys
 from pathlib import Path
 from typing import Any
 
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib  # type: ignore
+
 __all__ = ["provision_environment", "get_venv_python", "EnvSetupError"]
+
+logger = logging.getLogger("jittest.env")
 
 
 class EnvSetupError(RuntimeError):
@@ -36,9 +46,12 @@ def _compute_lockfile_hash(worktree_dir: Path) -> str:
         "requirements.txt",
         "requirements-dev.txt",
         "requirements_dev.txt",
+        "dev-requirements.txt",
         "test-requirements.txt",
+        "requirements-test.txt",
         "setup.py",
         "setup.cfg",
+        "tox.ini",
         "Pipfile",
         "poetry.lock",
         "uv.lock",
@@ -49,11 +62,12 @@ def _compute_lockfile_hash(worktree_dir: Path) -> str:
             h.update(filename.encode("utf-8"))
             h.update(_hash_file(p).encode("utf-8"))
 
-    req_dir = worktree_dir / "requirements"
-    if req_dir.is_dir():
-        for req_p in sorted(req_dir.glob("*.txt")):
-            h.update(req_p.name.encode("utf-8"))
-            h.update(_hash_file(req_p).encode("utf-8"))
+    for sub in ["requirements", "tests/requirements"]:
+        req_dir = worktree_dir / sub
+        if req_dir.is_dir():
+            for req_p in sorted(req_dir.glob("*.txt")):
+                h.update(req_p.name.encode("utf-8"))
+                h.update(_hash_file(req_p).encode("utf-8"))
 
     return h.hexdigest()
 
@@ -99,6 +113,149 @@ def _preflight_environment(python_exe: Path, worktree_dir: Path) -> None:
         if isinstance(exc, EnvSetupError):
             raise
         raise EnvSetupError(f"Preflight pytest check exception: {exc}") from exc
+
+
+def _discover_extras_and_requirements(worktree: Path) -> tuple[list[str], list[Path]]:
+    """Discover all test/dev extras, package specs, and requirement files."""
+    packages: set[str] = set()
+    req_files: list[Path] = []
+
+    # 1. pyproject.toml discovery
+    pyproject_path = worktree / "pyproject.toml"
+    if pyproject_path.is_file():
+        try:
+            data = tomllib.loads(pyproject_path.read_text(encoding="utf-8", errors="replace"))
+
+            # [project.optional-dependencies]
+            opt = data.get("project", {}).get("optional-dependencies", {})
+            for k, reqs in opt.items():
+                if isinstance(reqs, list):
+                    for r in reqs:
+                        if isinstance(r, str) and r.strip():
+                            packages.add(r.strip())
+
+            # [dependency-groups] (PEP 735)
+            groups = data.get("dependency-groups", {})
+            for k, reqs in groups.items():
+                if isinstance(reqs, list):
+                    for r in reqs:
+                        if isinstance(r, str) and r.strip():
+                            packages.add(r.strip())
+
+            # Poetry dependencies
+            poetry = data.get("tool", {}).get("poetry", {})
+            for dep_table in [
+                poetry.get("dependencies", {}),
+                poetry.get("dev-dependencies", {}),
+            ]:
+                if isinstance(dep_table, dict):
+                    for pkg, spec in dep_table.items():
+                        if isinstance(pkg, str) and pkg.lower() != "python":
+                            packages.add(pkg.strip())
+            for group_val in poetry.get("group", {}).values():
+                if isinstance(group_val, dict):
+                    for pkg in group_val.get("dependencies", {}).keys():
+                        if isinstance(pkg, str) and pkg.lower() != "python":
+                            packages.add(pkg.strip())
+
+            # Flit metadata
+            flit_meta = data.get("tool", {}).get("flit", {}).get("metadata", {})
+            for r in flit_meta.get("requires", []):
+                if isinstance(r, str) and r.strip():
+                    packages.add(r.strip())
+            for extra_reqs in flit_meta.get("requires-extra", {}).values():
+                if isinstance(extra_reqs, list):
+                    for r in extra_reqs:
+                        if isinstance(r, str) and r.strip():
+                            packages.add(r.strip())
+
+            # PDM dev-dependencies
+            pdm_dev = data.get("tool", {}).get("pdm", {}).get("dev-dependencies", {})
+            if isinstance(pdm_dev, dict):
+                for reqs in pdm_dev.values():
+                    if isinstance(reqs, list):
+                        for r in reqs:
+                            if isinstance(r, str) and r.strip():
+                                packages.add(r.strip())
+
+            # Hatch extra-dependencies
+            hatch_envs = data.get("tool", {}).get("hatch", {}).get("envs", {})
+            for env_spec in hatch_envs.values():
+                if isinstance(env_spec, dict):
+                    for r in env_spec.get("extra-dependencies", []):
+                        if isinstance(r, str) and r.strip():
+                            packages.add(r.strip())
+        except Exception as exc:
+            logger.debug(f"Error parsing pyproject.toml in {worktree}: {exc}")
+
+    # 2. setup.cfg discovery
+    setup_cfg = worktree / "setup.cfg"
+    if setup_cfg.is_file():
+        try:
+            cfg = configparser.ConfigParser()
+            cfg.read_string(setup_cfg.read_text(encoding="utf-8", errors="replace"))
+            if cfg.has_section("options.extras_require"):
+                for _, v in cfg.items("options.extras_require"):
+                    for line in v.splitlines():
+                        line = line.strip()
+                        if line and not line.startswith("#"):
+                            packages.add(line)
+            if cfg.has_section("options") and cfg.has_option("options", "install_requires"):
+                for line in cfg.get("options", "install_requires").splitlines():
+                    line = line.strip()
+                    if line and not line.startswith("#"):
+                        packages.add(line)
+        except Exception as exc:
+            logger.debug(f"Error parsing setup.cfg in {worktree}: {exc}")
+
+    # 3. tox.ini discovery
+    tox_ini = worktree / "tox.ini"
+    if tox_ini.is_file():
+        try:
+            cfg = configparser.ConfigParser()
+            cfg.read_string(tox_ini.read_text(encoding="utf-8", errors="replace"))
+            for sec in cfg.sections():
+                if "testenv" in sec and cfg.has_option(sec, "deps"):
+                    for line in cfg.get(sec, "deps").splitlines():
+                        line = line.strip()
+                        if line and not line.startswith(("#", "-", "{", "[")):
+                            # Filter out tox interpolation strings like {[testenv:x]deps}
+                            packages.add(line)
+        except Exception as exc:
+            logger.debug(f"Error parsing tox.ini in {worktree}: {exc}")
+
+    # 4. Requirements files discovery
+    standard_req_files = [
+        worktree / "requirements.txt",
+        worktree / "requirements-dev.txt",
+        worktree / "requirements_dev.txt",
+        worktree / "dev-requirements.txt",
+        worktree / "requirements-test.txt",
+        worktree / "requirements_test.txt",
+        worktree / "test-requirements.txt",
+        worktree / "tox-requirements.txt",
+    ]
+    for rf in standard_req_files:
+        if rf.is_file():
+            req_files.append(rf)
+
+    for sub in ["requirements", "tests/requirements"]:
+        req_dir = worktree / sub
+        if req_dir.is_dir():
+            for rf in sorted(req_dir.glob("*.txt")):
+                if rf.is_file() and rf not in req_files:
+                    req_files.append(rf)
+
+    # Sanitize package strings
+    clean_packages: set[str] = set()
+    for pkg in packages:
+        # Ignore invalid lines or comments
+        pkg_clean = pkg.strip()
+        if not pkg_clean or pkg_clean.startswith("#") or "{" in pkg_clean:
+            continue
+        clean_packages.add(pkg_clean)
+
+    return sorted(clean_packages), req_files
 
 
 def provision_environment(
@@ -162,62 +319,105 @@ def provision_environment(
     if not pip_exe.exists():
         raise EnvSetupError(f"pip executable not found in created venv: {pip_exe}")
 
-    install_targets = []
-    has_pyproject = (worktree / "pyproject.toml").exists()
-    has_setup = (worktree / "setup.py").exists() or (worktree / "setup.cfg").exists()
+    # 1. Always install pytest first
+    try:
+        res_pt = subprocess.run(
+            [str(pip_exe), "install", "pytest"],
+            cwd=str(worktree),
+            capture_output=True,
+            text=True,
+            errors="replace",
+            timeout=300,
+        )
+        if res_pt.returncode != 0:
+            err_tail = res_pt.stderr[-1000:] or res_pt.stdout[-1000:]
+            raise EnvSetupError(f"pip install pytest failed loudly:\n{err_tail}")
+    except Exception as exc:
+        if isinstance(exc, EnvSetupError):
+            raise
+        raise EnvSetupError(f"pip install pytest exception: {exc}") from exc
 
-    if has_pyproject or has_setup:
-        # Install with dev/test extras if available, fallback to package
-        install_targets.append(["-e", f"{worktree}[dev,test,tests]"])
+    # 2. Discover package requirements and requirements.txt files
+    discovered_pkgs, req_files = _discover_extras_and_requirements(worktree)
 
-    req_candidates = [
-        worktree / "requirements.txt",
-        worktree / "requirements-dev.txt",
-        worktree / "requirements_dev.txt",
-        worktree / "test-requirements.txt",
-    ]
-    req_dir = worktree / "requirements"
-    if req_dir.is_dir():
-        req_candidates.extend(sorted(req_dir.glob("*.txt")))
-
-    for req_file in req_candidates:
-        if req_file.is_file():
-            install_targets.append(["-r", str(req_file)])
-
-    # Ensure pytest is installed
-    install_targets.append(["pytest"])
-
-    for target in install_targets:
+    # 3. Install requirements files
+    for rf in req_files:
         try:
-            res = subprocess.run(
-                [str(pip_exe), "install", *target],
+            subprocess.run(
+                [str(pip_exe), "install", "-r", str(rf)],
                 cwd=str(worktree),
                 capture_output=True,
                 text=True,
                 errors="replace",
-                timeout=600,
+                timeout=300,
             )
-            if res.returncode != 0:
-                # Fallback for editable install with extras if extras syntax failed
-                if target[0] == "-e" and "[dev,test,tests]" in target[1]:
-                    res_fallback = subprocess.run(
-                        [str(pip_exe), "install", "-e", str(worktree)],
+        except Exception:
+            pass
+
+    # 4. Install discovered packages
+    if discovered_pkgs:
+        # Install in reasonable chunks
+        chunk_size = 15
+        for i in range(0, len(discovered_pkgs), chunk_size):
+            chunk = discovered_pkgs[i : i + chunk_size]
+            try:
+                res_chunk = subprocess.run(
+                    [str(pip_exe), "install", *chunk],
+                    cwd=str(worktree),
+                    capture_output=True,
+                    text=True,
+                    errors="replace",
+                    timeout=300,
+                )
+                if res_chunk.returncode != 0:
+                    # Try individual packages from this chunk
+                    for pkg in chunk:
+                        subprocess.run(
+                            [str(pip_exe), "install", pkg],
+                            cwd=str(worktree),
+                            capture_output=True,
+                            text=True,
+                            errors="replace",
+                            timeout=60,
+                        )
+            except Exception:
+                pass
+
+    # 5. Install project in editable mode
+    has_pyproject = (worktree / "pyproject.toml").exists()
+    has_setup = (worktree / "setup.py").exists() or (worktree / "setup.cfg").exists()
+
+    if has_pyproject or has_setup:
+        try:
+            res_e = subprocess.run(
+                [str(pip_exe), "install", "-e", str(worktree)],
+                cwd=str(worktree),
+                capture_output=True,
+                text=True,
+                errors="replace",
+                timeout=300,
+            )
+            if res_e.returncode != 0:
+                # Fallback to --no-build-isolation or --no-deps
+                res_fallback = subprocess.run(
+                    [str(pip_exe), "install", "--no-build-isolation", "-e", str(worktree)],
+                    cwd=str(worktree),
+                    capture_output=True,
+                    text=True,
+                    errors="replace",
+                    timeout=300,
+                )
+                if res_fallback.returncode != 0:
+                    subprocess.run(
+                        [str(pip_exe), "install", "--no-deps", "-e", str(worktree)],
                         cwd=str(worktree),
                         capture_output=True,
                         text=True,
                         errors="replace",
-                        timeout=600,
+                        timeout=300,
                     )
-                    if res_fallback.returncode != 0:
-                        err_tail = res_fallback.stderr[-1000:] or res_fallback.stdout[-1000:]
-                        raise EnvSetupError(f"pip install -e {worktree} failed loudly:\n{err_tail}")
-                else:
-                    err_tail = res.stderr[-1000:] or res.stdout[-1000:]
-                    raise EnvSetupError(f"pip install {' '.join(target)} failed loudly:\n{err_tail}")
-        except Exception as exc:
-            if isinstance(exc, EnvSetupError):
-                raise
-            raise EnvSetupError(f"pip install exception for target {target}: {exc}") from exc
+        except Exception:
+            pass
 
     # Preflight check after installation
     _preflight_environment(python_exe, worktree)
@@ -229,4 +429,3 @@ def provision_environment(
         "cache_key": cache_key,
         "lockfile_sha256": lockfile_hash,
     }
-
