@@ -21,7 +21,7 @@ try:
 except ImportError:
     import tomli as tomllib  # type: ignore
 
-__all__ = ["provision_environment", "get_venv_python", "EnvSetupError"]
+__all__ = ["provision_environment", "get_venv_python", "ensure_worktree_fixes", "EnvSetupError"]
 
 logger = logging.getLogger("jittest.env")
 
@@ -80,8 +80,21 @@ def get_venv_python(venv_dir: Path) -> Path:
     return py
 
 
+def ensure_worktree_fixes(worktree: Path) -> None:
+    """Ensure worktree has required dynamic files for repos like pytest."""
+    pytest_mod_dir = worktree / "src" / "_pytest"
+    if pytest_mod_dir.is_dir():
+        v_file = pytest_mod_dir / "_version.py"
+        if not v_file.exists():
+            try:
+                v_file.write_text('version = "9.2.0.dev"\nversion_tuple = (9, 2, 0, "dev")\n', encoding="utf-8")
+            except OSError:
+                pass
+
+
 def _preflight_environment(python_exe: Path, worktree_dir: Path) -> None:
     """Preflight check: verify python can import sys and pytest works."""
+    ensure_worktree_fixes(worktree_dir)
     try:
         res = subprocess.run(
             [str(python_exe), "-c", "import sys; import pytest"],
@@ -286,15 +299,7 @@ def provision_environment(
     worktree = Path(worktree_dir).resolve()
     repo = Path(repo_path).resolve()
 
-    # Ensure generated files for special repos (e.g. pytest _version.py) exist in worktree
-    pytest_mod_dir = worktree / "src" / "_pytest"
-    if pytest_mod_dir.is_dir():
-        v_file = pytest_mod_dir / "_version.py"
-        if not v_file.exists():
-            try:
-                v_file.write_text('version = "9.2.0.dev"\nversion_tuple = (9, 2, 0, "dev")\n', encoding="utf-8")
-            except OSError:
-                pass
+    ensure_worktree_fixes(worktree)
 
     lockfile_hash = _compute_lockfile_hash(worktree)
     cache_key_raw = f"{repo}:{commit_sha}:{lockfile_hash}"

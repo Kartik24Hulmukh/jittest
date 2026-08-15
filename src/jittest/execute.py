@@ -324,6 +324,8 @@ class Worktree:
         if added.returncode == 0:
             self._added = True
             verify_workdir(self.path, self.expected_sha, self.rev)
+            from .env import ensure_worktree_fixes
+            ensure_worktree_fixes(self.path)
             return self.path
 
         # Worktrees can be refused (already checked out, older git, odd CI
@@ -341,6 +343,8 @@ class Worktree:
             capture_output=True, text=True, errors="replace", check=True, env=git_env(),
         )
         verify_workdir(self.path, self.expected_sha, self.rev)
+        from .env import ensure_worktree_fixes
+        ensure_worktree_fixes(self.path)
         return self.path
 
     def __exit__(self, *exc: object) -> None:
