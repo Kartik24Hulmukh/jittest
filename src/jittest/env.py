@@ -81,10 +81,10 @@ def get_venv_python(venv_dir: Path) -> Path:
 
 
 def _preflight_environment(python_exe: Path, worktree_dir: Path) -> None:
-    """Preflight check: verify python can import sys and pytest/unittest works."""
+    """Preflight check: verify python can import sys and pytest works."""
     try:
         res = subprocess.run(
-            [str(python_exe), "-c", "import sys"],
+            [str(python_exe), "-c", "import sys; import pytest"],
             cwd=str(worktree_dir),
             capture_output=True,
             text=True,
@@ -92,7 +92,10 @@ def _preflight_environment(python_exe: Path, worktree_dir: Path) -> None:
             timeout=30,
         )
         if res.returncode != 0:
-            raise EnvSetupError(f"Preflight python import check failed:\nSTDERR:\n{res.stderr[-1000:]}")
+            err_msg = res.stderr.strip() or res.stdout.strip()
+            raise EnvSetupError(f"Preflight python & pytest import check failed:\nSTDERR:\n{err_msg[-1000:]}")
+    except subprocess.TimeoutExpired as exc:
+        raise EnvSetupError(f"env_build_timeout: preflight python import check timed out after 30s: {exc}") from exc
     except Exception as exc:
         if isinstance(exc, EnvSetupError):
             raise
@@ -108,7 +111,10 @@ def _preflight_environment(python_exe: Path, worktree_dir: Path) -> None:
             timeout=30,
         )
         if res_pytest.returncode != 0:
-            raise EnvSetupError(f"Preflight pytest check failed:\nSTDERR:\n{res_pytest.stderr[-1000:]}")
+            err_msg = res_pytest.stderr.strip() or res_pytest.stdout.strip()
+            raise EnvSetupError(f"Preflight pytest --version check failed:\nSTDERR:\n{err_msg[-1000:]}")
+    except subprocess.TimeoutExpired as exc:
+        raise EnvSetupError(f"env_build_timeout: preflight pytest --version check timed out after 30s: {exc}") from exc
     except Exception as exc:
         if isinstance(exc, EnvSetupError):
             raise
@@ -249,7 +255,6 @@ def _discover_extras_and_requirements(worktree: Path) -> tuple[list[str], list[P
     # Sanitize package strings
     clean_packages: set[str] = set()
     for pkg in packages:
-        # Ignore invalid lines or comments
         pkg_clean = pkg.strip()
         if not pkg_clean or pkg_clean.startswith("#") or "{" in pkg_clean:
             continue
@@ -280,6 +285,16 @@ def provision_environment(
     """
     worktree = Path(worktree_dir).resolve()
     repo = Path(repo_path).resolve()
+
+    # Ensure generated files for special repos (e.g. pytest _version.py) exist in worktree
+    pytest_mod_dir = worktree / "src" / "_pytest"
+    if pytest_mod_dir.is_dir():
+        v_file = pytest_mod_dir / "_version.py"
+        if not v_file.exists():
+            try:
+                v_file.write_text('version = "9.2.0.dev"\nversion_tuple = (9, 2, 0, "dev")\n', encoding="utf-8")
+            except OSError:
+                pass
 
     lockfile_hash = _compute_lockfile_hash(worktree)
     cache_key_raw = f"{repo}:{commit_sha}:{lockfile_hash}"
@@ -312,6 +327,8 @@ def provision_environment(
             errors="replace",
             timeout=120,
         )
+    except subprocess.TimeoutExpired as exc:
+        raise EnvSetupError(f"env_build_timeout: venv creation timed out at {venv_dir}: {exc}") from exc
     except Exception as exc:
         raise EnvSetupError(f"Failed to create venv at {venv_dir}: {exc}") from exc
 
@@ -319,28 +336,60 @@ def provision_environment(
     if not pip_exe.exists():
         raise EnvSetupError(f"pip executable not found in created venv: {pip_exe}")
 
-    # 1. Always install pytest first
+    # 1. Install core test & build infrastructure into venv
+    core_pkgs = ["pytest", "setuptools-scm", "wheel", "packaging", "pluggy", "iniconfig", "exceptiongroup"]
     try:
         res_pt = subprocess.run(
-            [str(pip_exe), "install", "pytest"],
+            [str(pip_exe), "install", *core_pkgs],
             cwd=str(worktree),
             capture_output=True,
             text=True,
             errors="replace",
-            timeout=300,
+            timeout=120,
         )
         if res_pt.returncode != 0:
             err_tail = res_pt.stderr[-1000:] or res_pt.stdout[-1000:]
-            raise EnvSetupError(f"pip install pytest failed loudly:\n{err_tail}")
+            raise EnvSetupError(f"pip install core test packages failed:\n{err_tail}")
+    except subprocess.TimeoutExpired as exc:
+        raise EnvSetupError(f"env_build_timeout: pip install core test packages timed out: {exc}") from exc
     except Exception as exc:
         if isinstance(exc, EnvSetupError):
             raise
-        raise EnvSetupError(f"pip install pytest exception: {exc}") from exc
+        raise EnvSetupError(f"pip install core packages exception: {exc}") from exc
 
-    # 2. Discover package requirements and requirements.txt files
+    # 2. Install project in editable mode (--no-deps first to avoid long backtracking hangs)
+    has_pyproject = (worktree / "pyproject.toml").exists()
+    has_setup = (worktree / "setup.py").exists() or (worktree / "setup.cfg").exists()
+
+    if has_pyproject or has_setup:
+        try:
+            res_e = subprocess.run(
+                [str(pip_exe), "install", "--no-deps", "-e", str(worktree)],
+                cwd=str(worktree),
+                capture_output=True,
+                text=True,
+                errors="replace",
+                timeout=60,
+            )
+            if res_e.returncode != 0:
+                # Fallback to --no-build-isolation -e
+                subprocess.run(
+                    [str(pip_exe), "install", "--no-build-isolation", "--no-deps", "-e", str(worktree)],
+                    cwd=str(worktree),
+                    capture_output=True,
+                    text=True,
+                    errors="replace",
+                    timeout=60,
+                )
+        except subprocess.TimeoutExpired as exc:
+            raise EnvSetupError(f"env_build_timeout: pip install --no-deps -e {worktree} timed out: {exc}") from exc
+        except Exception:
+            pass
+
+    # 3. Discover package requirements and requirements.txt files
     discovered_pkgs, req_files = _discover_extras_and_requirements(worktree)
 
-    # 3. Install requirements files
+    # 4. Install requirements files
     for rf in req_files:
         try:
             subprocess.run(
@@ -349,14 +398,15 @@ def provision_environment(
                 capture_output=True,
                 text=True,
                 errors="replace",
-                timeout=300,
+                timeout=90,
             )
+        except subprocess.TimeoutExpired as exc:
+            raise EnvSetupError(f"env_build_timeout: pip install -r {rf.name} timed out: {exc}") from exc
         except Exception:
             pass
 
-    # 4. Install discovered packages
+    # 5. Install discovered packages
     if discovered_pkgs:
-        # Install in reasonable chunks
         chunk_size = 15
         for i in range(0, len(discovered_pkgs), chunk_size):
             chunk = discovered_pkgs[i : i + chunk_size]
@@ -367,10 +417,9 @@ def provision_environment(
                     capture_output=True,
                     text=True,
                     errors="replace",
-                    timeout=300,
+                    timeout=90,
                 )
                 if res_chunk.returncode != 0:
-                    # Try individual packages from this chunk
                     for pkg in chunk:
                         subprocess.run(
                             [str(pip_exe), "install", pkg],
@@ -378,46 +427,12 @@ def provision_environment(
                             capture_output=True,
                             text=True,
                             errors="replace",
-                            timeout=60,
+                            timeout=30,
                         )
+            except subprocess.TimeoutExpired as exc:
+                raise EnvSetupError(f"env_build_timeout: pip install packages chunk timed out: {exc}") from exc
             except Exception:
                 pass
-
-    # 5. Install project in editable mode
-    has_pyproject = (worktree / "pyproject.toml").exists()
-    has_setup = (worktree / "setup.py").exists() or (worktree / "setup.cfg").exists()
-
-    if has_pyproject or has_setup:
-        try:
-            res_e = subprocess.run(
-                [str(pip_exe), "install", "-e", str(worktree)],
-                cwd=str(worktree),
-                capture_output=True,
-                text=True,
-                errors="replace",
-                timeout=300,
-            )
-            if res_e.returncode != 0:
-                # Fallback to --no-build-isolation or --no-deps
-                res_fallback = subprocess.run(
-                    [str(pip_exe), "install", "--no-build-isolation", "-e", str(worktree)],
-                    cwd=str(worktree),
-                    capture_output=True,
-                    text=True,
-                    errors="replace",
-                    timeout=300,
-                )
-                if res_fallback.returncode != 0:
-                    subprocess.run(
-                        [str(pip_exe), "install", "--no-deps", "-e", str(worktree)],
-                        cwd=str(worktree),
-                        capture_output=True,
-                        text=True,
-                        errors="replace",
-                        timeout=300,
-                    )
-        except Exception:
-            pass
 
     # Preflight check after installation
     _preflight_environment(python_exe, worktree)

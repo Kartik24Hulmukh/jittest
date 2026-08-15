@@ -123,6 +123,7 @@ class Disposition(StrEnum):
     PROVENANCE_FAILED = "provenance_failed"
     CATCHING = "catching"
     ENV_SETUP_FAILED = "env_setup_failed"
+    ENV_BUILD_TIMEOUT = "env_build_timeout"
 
 
 class FailureKind(StrEnum):

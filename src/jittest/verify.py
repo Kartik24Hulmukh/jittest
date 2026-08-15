@@ -7,6 +7,16 @@ Usage:
 Executes test files across paired base and head commits using isolated git
 worktrees, provisioned per-commit virtualenvs, container/namespace sandboxing,
 and Ed25519-signed evidence JSON artifacts.
+
+Evidence Receipt Schema Notes:
+    - provenance.tool_dirty: A boolean indicating whether the tool source tree
+      has uncommitted modifications at the time of execution. Scoped specifically
+      to tool source files (["src", "eval", "tests", "scripts", "pyproject.toml"]),
+      ignoring runtime receipts in docs/evidence/, caches, and virtual environments.
+    - verdict: One of 'proven_catch' (behavioral catch: head fail + base pass),
+      'collection_catch' (collection catch: head uncollectable + base pass),
+      'refuted' (head fail + base fail / latent), 'non_discriminating' (head pass),
+      or 'inconclusive' (environment error, timeout, or base uncollectable).
 """
 
 from __future__ import annotations
@@ -33,6 +43,7 @@ logger = logging.getLogger("jittest.verify")
 
 class VerdictClass:
     PROVEN_CATCH = "proven_catch"
+    COLLECTION_CATCH = "collection_catch"
     REFUTED = "refuted"
     NON_DISCRIMINATING = "non_discriminating"
     INCONCLUSIVE = "inconclusive"
@@ -69,6 +80,7 @@ def _get_git_branch(repo_path: Path) -> str:
 
 
 def _get_git_dirty(repo_path: Path) -> bool:
+    """Check if the tool's source code tree is dirty (ignoring test artifacts/evidence/cache)."""
     try:
         res = subprocess.run(
             [
@@ -107,7 +119,7 @@ def verify_test(
     pr_number: int | str | None = None,
     rel_path: str = ".",
     output_path: Path | str | None = None,
-    timeout_s: int = 60,
+    timeout_s: int = 120,
     reruns: int = 2,
     no_sandbox: bool = False,
     signing_key_path: Path | str | None = None,
@@ -116,7 +128,7 @@ def verify_test(
 
     Returns:
         (evidence_dict, exit_code)
-        exit_code is 0 if verdict == 'proven_catch', 1 otherwise.
+        exit_code is 0 if verdict in ('proven_catch', 'collection_catch'), 1 otherwise.
     """
     start_time = time.monotonic()
     repo_path = Path(repo_path).resolve()
@@ -148,7 +160,7 @@ def verify_test(
 
     sbx_plan = plan_sandbox(mode=sandbox_mode, probe=True)
 
-    # Tool repository provenance
+    # Tool repository provenance (scoped strictly to tool source tree)
     tool_root = Path(__file__).resolve().parent.parent.parent
     tool_commit_sha = _get_git_sha(tool_root, "HEAD")
     tool_branch = _get_git_branch(tool_root)
@@ -233,7 +245,11 @@ def verify_test(
     exit_code = 1
 
     if base_err is not None or head_err is not None or base_run is None or head_run1 is None:
-        disposition = Disposition.ENV_SETUP_FAILED
+        err_text = str(base_err or head_err or "")
+        if "env_build_timeout" in err_text:
+            disposition = Disposition.ENV_BUILD_TIMEOUT
+        else:
+            disposition = Disposition.ENV_SETUP_FAILED
         verdict_class = VerdictClass.INCONCLUSIVE
         is_proven_catch = False
         exit_code = 1
@@ -266,8 +282,8 @@ def verify_test(
     else:  # head_run1.outcome in (Outcome.ERROR, Outcome.NOTRUN, Outcome.TIMEOUT)
         if base_run.outcome is Outcome.PASS:
             disposition = Disposition.HEAD_UNCOLLECTABLE_BASE_PASSED
-            verdict_class = VerdictClass.PROVEN_CATCH
-            is_proven_catch = True
+            verdict_class = VerdictClass.COLLECTION_CATCH  # Split collection catch from behavioral catch
+            is_proven_catch = False  # NEVER count collection breakage as a behavioral catch
             exit_code = 0
         else:
             disposition = Disposition.HEAD_UNCOLLECTABLE_BASE_BROKEN

@@ -1,0 +1,63 @@
+name: Layer-1 Verifier Sweep
+
+on:
+  workflow_dispatch:
+    inputs:
+      manifest:
+        description: 'Manifest path to evaluate'
+        required: true
+        default: 'eval/layer1b_manifest.json'
+      prev_sha:
+        description: 'Baseline commit SHA for machine-diffed delta table'
+        required: false
+        default: '9c6320df'
+
+jobs:
+  layer1_sweep:
+    name: Layer-1 Verifier Sweep
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Run Layer-1 Verifier Sweep
+        run: |
+          python scripts/run_layer1_sweep.py \
+            --manifest "${{ github.event.inputs.manifest || 'eval/layer1b_manifest.json' }}" \
+            --prev-sha "${{ github.event.inputs.prev_sha || '9c6320df' }}"
+
+      - name: Verify Signed Receipts
+        run: |
+          python -c "
+          from pathlib import Path
+          from jittest.receipt import verify_receipt
+          evidence_dir = Path('docs/evidence/layer1b')
+          files = list(evidence_dir.glob('*_evidence.json'))
+          print(f'Verifying {len(files)} signed receipts...')
+          assert len(files) == 54, f'Expected 54 receipts, found {len(files)}'
+          for f in files:
+              ok, msg = verify_receipt(f)
+              assert ok, f'Receipt verification failed for {f}: {msg}'
+          print('All receipts cryptographically valid!')
+          "
+
+      - name: Upload Evidence Receipts and Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: layer1b-evidence-run3
+          path: |
+            docs/evidence/layer1b/*_evidence.json
+            docs/evidence/layer1b/REPORT.md
+            docs/evidence/layer1b/sweep_summary.json

@@ -9,8 +9,12 @@ Supports:
 - Layer-1B modern cohort (--manifest eval/layer1b_manifest.json)
 - Self-bootstrapping fixture repositories (auto-cloning public repos into ~/.cache/jittest/fixtures if missing)
 - JITTEST_FIXTURE_DIR environment variable
-- ENV-FIDELITY-1 per-row delta tables
+- Machine-diffed delta tables against baseline commit SHA (ENV-FIDELITY-2)
+- Distinct wall time, summed row time, and worker count reporting
+- Separate behavioral proven_catch and collection_catch signals
 """
+
+from __future__ import annotations
 
 import argparse
 import concurrent.futures
@@ -133,8 +137,8 @@ def get_target_test(row: dict[str, Any], repo_dir: Path) -> Path:
     return repo_dir / rel_def
 
 
-def verify_row_task(item: tuple[int, int, dict[str, Any], Path]) -> dict[str, Any]:
-    idx, total, row, out_dir = item
+def verify_row_task(item: tuple[int, int, dict[str, Any], Path, int]) -> dict[str, Any]:
+    idx, total, row, out_dir, timeout_s = item
     row_id = row["row_id"]
     kind = row.get("kind", "bug")
     repo_url = row["repository"]
@@ -174,6 +178,7 @@ def verify_row_task(item: tuple[int, int, dict[str, Any], Path]) -> dict[str, An
             head_ref=head_sha,
             test_file_path=test_path,
             output_path=out_file,
+            timeout_s=timeout_s,
             no_sandbox=True,
         )
         elapsed = time.time() - t0
@@ -226,23 +231,43 @@ def verify_row_task(item: tuple[int, int, dict[str, Any], Path]) -> dict[str, An
         }
 
 
+def load_baseline_summary(prev_sha: str, summary_file_rel: str) -> dict[str, Any] | None:
+    """Load baseline sweep summary from git history at specified SHA."""
+    try:
+        raw = subprocess.check_output(
+            ["git", "show", f"{prev_sha}:{summary_file_rel}"],
+            cwd=str(SCRIPT_DIR),
+            text=True,
+            errors="replace",
+        )
+        return json.loads(raw)
+    except Exception:
+        return None
+
+
 def generate_report_content(
     cohort_name: str,
     manifest_rel: str,
     out_rel_dir: str,
     results: list[dict[str, Any]],
     total_time: float,
+    summed_row_time: float,
+    worker_count: int,
     total_cost: float,
+    current_sha: str,
+    prev_sha: str | None = None,
     baseline_summary: dict[str, Any] | None = None,
+    ci_run_url: str | None = None,
 ) -> str:
     bugs = [r for r in results if r.get("kind") == "bug" or r.get("row_id", "").startswith("bug_")]
     ctrls = [r for r in results if r.get("kind") == "control" or r.get("row_id", "").startswith("ctrl_")]
 
     bugs_exec = [r for r in bugs if r.get("verdict") != "inconclusive"]
-    bugs_pc = [r for r in bugs if r.get("proven_catch")]
+    bugs_pc = [r for r in bugs if r.get("verdict") == "proven_catch"]
+    bugs_cc = [r for r in bugs if r.get("verdict") == "collection_catch"]
 
     ctrls_exec = [r for r in ctrls if r.get("verdict") != "inconclusive"]
-    ctrls_pc = [r for r in ctrls if r.get("proven_catch")]
+    ctrls_pc = [r for r in ctrls if r.get("verdict") in ("proven_catch", "collection_catch")]
 
     inconclusive_count = sum(1 for r in results if r.get("verdict") == "inconclusive")
     definitive_count = len(results) - inconclusive_count
@@ -254,7 +279,6 @@ def generate_report_content(
         disp = r.get("disposition", "UNKNOWN")
         dispositions[disp] = dispositions.get(disp, 0) + 1
 
-    # Classifications for bugs and controls
     bugs_refuted = sum(1 for r in bugs if r.get("verdict") == "refuted")
     bugs_nd = sum(1 for r in bugs if r.get("verdict") == "non_discriminating")
     ctrls_refuted = sum(1 for r in ctrls if r.get("verdict") == "refuted")
@@ -266,17 +290,20 @@ def generate_report_content(
         else f"- **Provenance Dirty State**: Receipts ran with `tool_dirty={any_dirty}`."
     )
 
+    ci_line = f"- **Public CI Run URL**: [{ci_run_url}]({ci_run_url})" if ci_run_url else ""
+
     report_md = f"""# Layer-1 Verifier Sweep Report
 
 - **Target Cohort**: {cohort_name} (`{manifest_rel}`)
 - **Evaluation Mode**: Layer-1 Differential Execution Verification (Zero LLM Generation)
 - **LLM Provider Cost**: **${total_cost:.2f}**
-- **Total Wall-Clock Time**: {total_time:.1f}s
+- **Total Wall-Clock Time**: {total_time:.1f}s (Summed Row Time: {summed_row_time:.1f}s across {worker_count} parallel workers)
+{ci_line}
 
 ## Headline Metrics
 
 - **Controls executed**: {len(ctrls_exec)}/{len(ctrls)} — false proofs: {len(ctrls_pc)}/{len(ctrls_exec)} ({len(ctrls) - len(ctrls_exec)} controls inconclusive)
-- **Bug rows executed**: {len(bugs_exec)}/{len(bugs)} — proven_catch: {len(bugs_pc)}/{len(bugs_exec)} ({len(bugs_pc)}/{len(bugs)} of full cohort)
+- **Bug rows executed**: {len(bugs_exec)}/{len(bugs)} — proven_catch: {len(bugs_pc)}/{len(bugs_exec)} (behavioral), collection_catch: {len(bugs_cc)}/{len(bugs_exec)} (collection)
 - **Coverage**: {len(results)}/{len(results)} rows attempted with signed receipts; {definitive_count}/{len(results)} ({definitive_count/len(results)*100:.1f}%) executed to definitive verdicts; {inconclusive_count}/{len(results)} refused loudly (inconclusive)
 
 {inconclusive_count} signed refusals are the trust story: jittest does not manufacture verdicts when environments cannot be built.
@@ -284,6 +311,7 @@ def generate_report_content(
 ## Execution Provenance & Environment Notes
 
 {dirty_line}
+- **Tool Commit SHA**: `{current_sha}`
 - **Sandbox Backend**: Ran with sandbox backend `"none"` (--no-sandbox; candidate tests ran unconfined). Outside PRs default to sandbox mode.
 - **Receipt Cryptographic Validity**: {valid_sig_count}/{len(results)} signed Ed25519 receipts valid.
 
@@ -291,9 +319,9 @@ def generate_report_content(
 
 | Cohort | Total Rows | Executed to Definitive Verdict | Inconclusive (Refused) | Detailed Results |
 | :--- | :--- | :--- | :--- | :--- |
-| **Bug Rows** | {len(bugs)} | {len(bugs_exec)} ({len(bugs_exec)/len(bugs)*100:.1f}%) | {len(bugs)-len(bugs_exec)} ({(len(bugs)-len(bugs_exec))/len(bugs)*100:.1f}%) | {len(bugs_pc)} `proven_catch`, {bugs_refuted} `refuted`, {bugs_nd} `non_discriminating` |
+| **Bug Rows** | {len(bugs)} | {len(bugs_exec)} ({len(bugs_exec)/len(bugs)*100:.1f}%) | {len(bugs)-len(bugs_exec)} ({(len(bugs)-len(bugs_exec))/len(bugs)*100:.1f}%) | {len(bugs_pc)} `proven_catch` (behavioral), {len(bugs_cc)} `collection_catch`, {bugs_refuted} `refuted`, {bugs_nd} `non_discriminating` |
 | **Control Rows** | {len(ctrls)} | {len(ctrls_exec)} ({len(ctrls_exec)/len(ctrls)*100:.1f}%) | {len(ctrls)-len(ctrls_exec)} ({(len(ctrls)-len(ctrls_exec))/len(ctrls)*100:.1f}%) | {len(ctrls_pc)} false proofs, {ctrls_refuted} `refuted`, {ctrls_nd} `non_discriminating` |
-| **Total Cohort** | **{len(results)}** | **{definitive_count} ({definitive_count/len(results)*100:.1f}%)** | **{inconclusive_count} ({inconclusive_count/len(results)*100:.1f}%)** | **{len(bugs_pc)} proven catches, {len(ctrls_pc)} false proofs, {inconclusive_count} signed refusals** |
+| **Total Cohort** | **{len(results)}** | **{definitive_count} ({definitive_count/len(results)*100:.1f}%)** | **{inconclusive_count} ({inconclusive_count/len(results)*100:.1f}%)** | **{len(bugs_pc)} proven catches, {len(bugs_cc)} collection catches, {len(ctrls_pc)} false proofs, {inconclusive_count} signed refusals** |
 
 ## Full Disposition Breakdown
 
@@ -303,13 +331,15 @@ def generate_report_content(
     for disp, cnt in sorted(dispositions.items()):
         report_md += f"| `{disp}` | {cnt} | {cnt/len(results)*100:.1f}% |\n"
 
-    # Delta table if baseline is provided
+    # Machine-diffed delta table if baseline is provided
     if baseline_summary and "rows" in baseline_summary:
         old_map = {r["row_id"]: r for r in baseline_summary["rows"]}
-        report_md += """
-## ENV-FIDELITY-1 Delta Table (Audit of Fix Impact)
+        prev_sha_label = prev_sha[:8] if prev_sha else "baseline"
+        curr_sha_label = current_sha[:8] if current_sha else "new"
+        report_md += f"""
+## Machine-Diffed Delta Table (Baseline @{prev_sha_label} vs Current @{curr_sha_label})
 
-| Row ID | Kind | Repo | Baseline Disposition | New Disposition | Baseline Verdict | New Verdict | Delta Status |
+| Row ID | Kind | Repo | Baseline Disp (`@{prev_sha_label}`) | New Disp (`@{curr_sha_label}`) | Baseline Verdict (`@{prev_sha_label}`) | New Verdict (`@{curr_sha_label}`) | Delta Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 """
         for r in results:
@@ -338,7 +368,7 @@ jittest verify-receipt {out_rel_dir}/<row_id>_evidence.json
 
 Or re-run the full sweep:
 ```bash
-python scripts/run_layer1_sweep.py --manifest {manifest_rel}
+python scripts/run_layer1_sweep.py --manifest {manifest_rel} --prev-sha {prev_sha or '9c6320df'}
 ```
 """
     return report_md
@@ -364,6 +394,24 @@ def main():
         default=min(8, os.cpu_count() or 4),
         help="Number of parallel execution workers",
     )
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=120,
+        help="Per-test timeout in seconds",
+    )
+    parser.add_argument(
+        "--prev-sha",
+        type=str,
+        default=None,
+        help="Baseline commit SHA to machine-diff against (defaults to 9c6320df for layer1b)",
+    )
+    parser.add_argument(
+        "--ci-run-url",
+        type=str,
+        default=None,
+        help="Public URL of the GitHub Actions CI run",
+    )
     args = parser.parse_args()
 
     manifest_path = Path(args.manifest).resolve()
@@ -381,12 +429,28 @@ def main():
 
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Load baseline summary if exists for delta comparison
+    prev_sha = args.prev_sha or ("9c6320df" if is_layer1b else None)
+
+    # Resolve tool git commit SHA
+    try:
+        current_sha = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            cwd=str(SCRIPT_DIR),
+            text=True,
+        ).strip()
+    except Exception:
+        current_sha = "unknown"
+
+    # Load baseline summary via git show at prev_sha
+    summary_rel = str(out_dir.relative_to(SCRIPT_DIR) / "sweep_summary.json").replace("\\", "/")
     baseline_summary = None
-    summary_path = out_dir / "sweep_summary.json"
-    if summary_path.exists():
+    if prev_sha:
+        baseline_summary = load_baseline_summary(prev_sha, summary_rel)
+
+    # Fallback to local sweep_summary.json if git show failed
+    if baseline_summary is None and (out_dir / "sweep_summary.json").exists():
         try:
-            with open(summary_path, encoding="utf-8") as fh:
+            with open(out_dir / "sweep_summary.json", encoding="utf-8") as fh:
                 baseline_summary = json.load(fh)
         except Exception:
             pass
@@ -404,28 +468,31 @@ def main():
 
     print(f"=== LAYER-1 VERIFIER SWEEP ON {len(rows)} ROWS ({cohort_name}) ===")
     print(f"Manifest: {manifest_rel}")
-    print(f"Artifacts output directory: {out_rel}\n")
+    print(f"Artifacts output directory: {out_rel}")
+    print(f"Baseline SHA for diff: {prev_sha or 'None'}\n")
 
-    items = [(i + 1, len(rows), r, out_dir) for i, r in enumerate(rows)]
+    items = [(i + 1, len(rows), r, out_dir, args.timeout) for i, r in enumerate(rows)]
     start_all = time.time()
 
     workers = args.workers
-    print(f"Launching ThreadPoolExecutor with {workers} workers...")
+    print(f"Launching ThreadPoolExecutor with {workers} workers (timeout={args.timeout}s)...")
 
     results: list[dict[str, Any]] = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         results = list(executor.map(verify_row_task, items))
 
     total_time = time.time() - start_all
+    summed_row_time = sum(r.get("wall_clock_s", 0.0) for r in results)
 
     bugs = [r for r in results if r.get("kind") == "bug" or r.get("row_id", "").startswith("bug_")]
     ctrls = [r for r in results if r.get("kind") == "control" or r.get("row_id", "").startswith("ctrl_")]
 
     bugs_exec = [r for r in bugs if r.get("verdict") != "inconclusive"]
-    bugs_pc = [r for r in bugs if r.get("proven_catch")]
+    bugs_pc = [r for r in bugs if r.get("verdict") == "proven_catch"]
+    bugs_cc = [r for r in bugs if r.get("verdict") == "collection_catch"]
 
     ctrls_exec = [r for r in ctrls if r.get("verdict") != "inconclusive"]
-    ctrls_pc = [r for r in ctrls if r.get("proven_catch")]
+    ctrls_pc = [r for r in ctrls if r.get("verdict") in ("proven_catch", "collection_catch")]
 
     inconclusive_count = sum(1 for r in results if r.get("verdict") == "inconclusive")
     definitive_count = len(results) - inconclusive_count
@@ -446,11 +513,11 @@ def main():
     print("=== LAYER-1 VERIFIER SWEEP SUMMARY (HONEST DENOMINATORS) ===")
     print("=" * 60)
     print(f"Controls executed: {len(ctrls_exec)}/{len(ctrls)} — false proofs: {len(ctrls_pc)}/{len(ctrls_exec)} ({len(ctrls) - len(ctrls_exec)} controls inconclusive)")
-    print(f"Bug rows executed: {len(bugs_exec)}/{len(bugs)} — proven_catch: {len(bugs_pc)}/{len(bugs_exec)} ({len(bugs_pc)}/{len(bugs)} of full cohort)")
+    print(f"Bug rows executed: {len(bugs_exec)}/{len(bugs)} — proven_catch: {len(bugs_pc)}/{len(bugs_exec)} (behavioral), collection_catch: {len(bugs_cc)}/{len(bugs_exec)} (collection)")
     print(f"Coverage: {len(results)}/{len(results)} rows attempted with signed receipts; {definitive_count}/{len(results)} ({definitive_count/len(results)*100:.1f}%) executed to definitive verdicts; {inconclusive_count}/{len(results)} refused loudly (inconclusive)")
     print(f"{inconclusive_count} signed refusals are the trust story: jittest does not manufacture verdicts when environments cannot be built.")
     print(f"Total LLM Cost: ${total_cost:.4f}")
-    print(f"Total Wall-Clock Execution Time: {total_time:.1f}s")
+    print(f"Total Wall-Clock Execution Time: {total_time:.1f}s (Summed: {summed_row_time:.1f}s across {workers} workers)")
     print(f"\nReceipts remain cryptographically verifiable without fixture clones via:\n  jittest verify-receipt {out_rel}/<row_id>_evidence.json")
     print("\nDispositions Tally:")
     for disp, cnt in sorted(dispositions.items()):
@@ -459,16 +526,22 @@ def main():
     for v, cnt in sorted(verdicts.items()):
         print(f"  {v}: {cnt}")
 
-    # Write summary JSON
+    # Write summary JSON with updated schema
     summary_data = {
         "sweep_timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "manifest": manifest_rel,
+        "sweep_summary_prev_sha": prev_sha,
+        "tool_commit_sha": current_sha,
+        "ci_run_url": args.ci_run_url,
         "total_rows": len(results),
         "completion_rate": len(results) / len(rows),
         "catch_proof_rate": (len(bugs_pc) / len(bugs)) if bugs else 0.0,
+        "collection_catch_rate": (len(bugs_cc) / len(bugs)) if bugs else 0.0,
         "false_proof_rate": (len(ctrls_pc) / len(ctrls_exec)) if ctrls_exec else 0.0,
         "total_cost_usd": total_cost,
         "total_wall_clock_s": round(total_time, 2),
+        "summed_row_time_s": round(summed_row_time, 2),
+        "worker_count": workers,
         "dispositions": dispositions,
         "verdicts": verdicts,
         "rows": results,
@@ -477,9 +550,19 @@ def main():
         json.dump(summary_data, fh, indent=2)
 
     report_content = generate_report_content(
-        cohort_name, manifest_rel, out_rel, results, total_time, total_cost, baseline_summary
+        cohort_name,
+        manifest_rel,
+        out_rel,
+        results,
+        total_time,
+        summed_row_time,
+        workers,
+        total_cost,
+        current_sha,
+        prev_sha,
+        baseline_summary,
+        args.ci_run_url,
     )
-    # If layer1b: write REPORT.md directly; if layer1: write REPORT_LATEST.md
     report_filename = "REPORT.md" if is_layer1b else "REPORT_LATEST.md"
     with open(out_dir / report_filename, "w", encoding="utf-8") as fh:
         fh.write(report_content)
