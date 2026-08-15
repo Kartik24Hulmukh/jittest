@@ -3,17 +3,17 @@
   "tool": "jittest verify",
   "verdict": "inconclusive",
   "proven_catch": false,
-  "disposition": "head_uncollectable_base_broken",
+  "disposition": "env_setup_failed",
   "provenance": {
     "repo_path": "C:\\Users\\praja\\.cache\\jittest\\fixtures\\pytest",
     "base_sha": "4692b4b9f1098cb53f884dfc9da1fe581c58910c",
     "head_sha": "15b58a224ccbce113ac1b350bb1738dd345175f2",
     "test_file_name": "test_mark.py",
     "test_file_sha256": "ae758b97df5ecd17bb23b5838ac5153590cde6904f18d33980a90809ed358cd7",
-    "tool_commit_sha": "e9b495f48d1851d8bb1a6fdbb480e368beb6359c",
+    "tool_commit_sha": "2523d889e61893b93cbd8bfd399c6b998b898d6e",
     "tool_branch": "eval/layer1b-modern-cohort",
-    "tool_dirty": true,
-    "tool_tree_sha": "434592b0041ceadb64c690ebb97d177a15a6eec0",
+    "tool_dirty": false,
+    "tool_tree_sha": "05ce123cc71548a273b844ad6e8dcc3b7850ec98",
     "rel_path": "."
   },
   "sandbox": {
@@ -26,37 +26,26 @@
     ]
   },
   "base_execution": {
-    "outcome": "ERROR",
-    "exit_code": 2,
-    "stdout_sha256": "7c601c9436d43fff0249e1e8641a0972a47800c3416eb72712f20585ab1aaddb",
+    "outcome": "NOTRUN",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "environment": {
-      "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_eab34512fdeb8974",
-      "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_eab34512fdeb8974\\Scripts\\python.exe",
-      "cached": false,
-      "cache_key": "eab34512fdeb8974",
-      "lockfile_sha256": "3b42e41996071efff6771a65bfff49aa0ff5ea1c3caac33ee262fdfefa4b54eb"
-    }
+    "environment": {}
   },
   "head_execution": {
-    "outcome": "ERROR",
-    "exit_code": 2,
-    "stdout_sha256": "333304057f7e07b397dcaff68bda3dad6fc5b6de4dcdba85b4f08b9b6f9817e2",
+    "outcome": "NOTRUN",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "environment": {
-      "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_0b797774c4dfdebf",
-      "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_0b797774c4dfdebf\\Scripts\\python.exe",
-      "cached": false,
-      "cache_key": "0b797774c4dfdebf",
-      "lockfile_sha256": "3b42e41996071efff6771a65bfff49aa0ff5ea1c3caac33ee262fdfefa4b54eb"
-    }
+    "environment": {}
   },
   "rerun_agreement": true,
-  "wall_clock_s": 618.218,
+  "wall_clock_s": 3.031,
   "provider_cost_usd": 0.0,
+  "error": "base: Preflight pytest check failed:\nSTDERR:\nC:\\Users\\praja\\.jittest\\envs\\env_eab34512fdeb8974\\Scripts\\python.exe: No module named pytest\n; head: Preflight pytest check failed:\nSTDERR:\nC:\\Users\\praja\\.jittest\\envs\\env_0b797774c4dfdebf\\Scripts\\python.exe: No module named pytest\n",
   "signature": {
     "algorithm": "Ed25519",
     "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
-    "value": "lCuILOMtLtfNxyNVqXlR+IZjJRxiA6rKf9CiZD3uYH8gazD0eO1SmoKAY80HSTUKP/k8BHYmBN7Mkj/EnNxgCQ=="
+    "value": "m05cOrjC464JSLeQX53am4fTChz33WYLDYOFfhdqPexvrO8wJkDvtldHGG6Qszv8PnUbZjSNZc/cftK38i2OAg=="
   }
 }

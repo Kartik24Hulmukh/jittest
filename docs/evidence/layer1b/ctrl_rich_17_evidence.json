@@ -10,10 +10,10 @@
     "head_sha": "46cebbb032f920eb096efbaf23cdc6fe9dd541f7",
     "test_file_name": "test_text.py",
     "test_file_sha256": "fbe2dda0532c9857c3369b535d3b5bc0f8ab794d7dce378993f29517100e4028",
-    "tool_commit_sha": "e9b495f48d1851d8bb1a6fdbb480e368beb6359c",
+    "tool_commit_sha": "2523d889e61893b93cbd8bfd399c6b998b898d6e",
     "tool_branch": "eval/layer1b-modern-cohort",
-    "tool_dirty": true,
-    "tool_tree_sha": "434592b0041ceadb64c690ebb97d177a15a6eec0",
+    "tool_dirty": false,
+    "tool_tree_sha": "05ce123cc71548a273b844ad6e8dcc3b7850ec98",
     "rel_path": "."
   },
   "sandbox": {
@@ -28,12 +28,12 @@
   "base_execution": {
     "outcome": "PASS",
     "exit_code": 0,
-    "stdout_sha256": "9d77413c8f845e4b3c9901820592ff27c9f44874302d34ea3347c393057d92bd",
+    "stdout_sha256": "e97f77737378d6fe99cc2469111a988dcd59ff6e3d6a1412bc60fba3aa728f18",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "environment": {
       "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_1cf88987bbb9daad",
       "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_1cf88987bbb9daad\\Scripts\\python.exe",
-      "cached": false,
+      "cached": true,
       "cache_key": "1cf88987bbb9daad",
       "lockfile_sha256": "db6ec39bb788b3c3784a28ae474a9efca2ec802ab42f1b9f6cb7b9aeb2ab895e"
     }
@@ -41,7 +41,7 @@
   "head_execution": {
     "outcome": "PASS",
     "exit_code": 0,
-    "stdout_sha256": "2775b87e57b52e1ced0503843f191b09ba718394b8a3b07249a3ab1798d1e3ee",
+    "stdout_sha256": "8234d555f2a3d124971174c1dfac580b28b3cac53c89465149a6c546d6e729ca",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "environment": {
       "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_d58309bf56da0d96",
@@ -52,11 +52,11 @@
     }
   },
   "rerun_agreement": true,
-  "wall_clock_s": 165.031,
+  "wall_clock_s": 14.438,
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
     "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
-    "value": "+4sJ6dwyImJZqKdcOe1NbYMCPbM+tJ38KvmlxtXqPSJKQ8i52sSDAnhBiBZRQMkHShJRMij44fM9yWsrPhZ7BQ=="
+    "value": "pRay/LwLgcZGwyL4mNSmWDyIv1a9w7ql5q7Yw7+TRUIzJ/mfbVTXLHJf33xLXF4XRgNT2ESpmkqtTWJctJM2CA=="
   }
 }

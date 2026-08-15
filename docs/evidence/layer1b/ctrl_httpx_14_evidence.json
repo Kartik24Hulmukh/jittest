@@ -10,10 +10,10 @@
     "head_sha": "435e1dac899adeb0c156c00721ecbb1124d75842",
     "test_file_name": "test_api.py",
     "test_file_sha256": "785f0650f616312f22a1573fbe383647c68b2282deaa18ad64da650331e1e90f",
-    "tool_commit_sha": "e9b495f48d1851d8bb1a6fdbb480e368beb6359c",
+    "tool_commit_sha": "2523d889e61893b93cbd8bfd399c6b998b898d6e",
     "tool_branch": "eval/layer1b-modern-cohort",
-    "tool_dirty": true,
-    "tool_tree_sha": "434592b0041ceadb64c690ebb97d177a15a6eec0",
+    "tool_dirty": false,
+    "tool_tree_sha": "05ce123cc71548a273b844ad6e8dcc3b7850ec98",
     "rel_path": "."
   },
   "sandbox": {
@@ -40,12 +40,12 @@
     "environment": {}
   },
   "rerun_agreement": true,
-  "wall_clock_s": 9.141,
+  "wall_clock_s": 2.734,
   "provider_cost_usd": 0.0,
   "error": "base: Preflight pytest check failed:\nSTDERR:\nERROR: while parsing the following warning configuration:\n\n  ignore: trio.MultiError is deprecated since Trio 0.22.0:trio.TrioDeprecationWarning\n\nThis error occurred:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\praja\\.jittest\\envs\\env_f8e329a02dd6e7e7\\Lib\\site-packages\\_pytest\\config\\__init__.py\", line 1967, in parse_warning_filter\n    category: type[Warning] = _resolve_warning_category(category_)\n                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\praja\\.jittest\\envs\\env_f8e329a02dd6e7e7\\Lib\\site-packages\\_pytest\\config\\__init__.py\", line 2012, in _resolve_warning_category\n    m = __import__(module, None, None, [klass])\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nModuleNotFoundError: No module named 'trio'\n\n\n; head: Preflight pytest check failed:\nSTDERR:\nC:\\Users\\praja\\.jittest\\envs\\env_655d5dc3fca8c3bf\\Scripts\\python.exe: No module named pytest\n",
   "signature": {
     "algorithm": "Ed25519",
     "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
-    "value": "J1Uwso5mVo4YoRzaV1uozsQFrVYOGNEoxQA7s6pqi9FQNvZN63ebmu8mG+8neyZ6jQ8IS/+AO7m3/92oARyyCQ=="
+    "value": "pGqlTnJZm4AuhAhYq1tLQXfA3UK8Bf7yDn45rntN0w/CfTr/2ZEOPgfDxt9JgB3ufYtgKpOh5lGmZ6PcnxlJDA=="
   }
 }

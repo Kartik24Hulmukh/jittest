@@ -10,10 +10,10 @@
     "head_sha": "cbce031327be4f1b4b5fd041ff4dcaa8efa2ce53",
     "test_file_name": "test_requests.py",
     "test_file_sha256": "5eacf6341d236e225ce6a37a592f3b410f20e69ec17641f0e2c99b03a79b904d",
-    "tool_commit_sha": "e9b495f48d1851d8bb1a6fdbb480e368beb6359c",
+    "tool_commit_sha": "2523d889e61893b93cbd8bfd399c6b998b898d6e",
     "tool_branch": "eval/layer1b-modern-cohort",
-    "tool_dirty": true,
-    "tool_tree_sha": "434592b0041ceadb64c690ebb97d177a15a6eec0",
+    "tool_dirty": false,
+    "tool_tree_sha": "05ce123cc71548a273b844ad6e8dcc3b7850ec98",
     "rel_path": "."
   },
   "sandbox": {
@@ -33,7 +33,7 @@
     "environment": {
       "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_4c2304061d1a2cd4",
       "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_4c2304061d1a2cd4\\Scripts\\python.exe",
-      "cached": false,
+      "cached": true,
       "cache_key": "4c2304061d1a2cd4",
       "lockfile_sha256": "9026703b410e4338adf6bd1c504790df1f6b5fdbbcff8d6af19e706b1bbaa11d"
     }
@@ -46,17 +46,17 @@
     "environment": {
       "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_c94f038aa4a7c0f9",
       "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_c94f038aa4a7c0f9\\Scripts\\python.exe",
-      "cached": false,
+      "cached": true,
       "cache_key": "c94f038aa4a7c0f9",
       "lockfile_sha256": "9026703b410e4338adf6bd1c504790df1f6b5fdbbcff8d6af19e706b1bbaa11d"
     }
   },
   "rerun_agreement": true,
-  "wall_clock_s": 377.969,
+  "wall_clock_s": 127.032,
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
     "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
-    "value": "/SMx3ch+1zzzLDHfmPr7dCoXGRFjhAA6HsuDi9o2gRyW+NZwORRVhqVcmpsjGsNUkBsF/T8j65miZCcdam52Bg=="
+    "value": "v9IKbg+JqqCKGXzqDsPEXc8k5VJ8dci+L5eUIkqXJ1CH2cdFW/ZvaeuL9Hs+jM1KCC1wF9df6KlwxuLf9hAzBA=="
   }
 }

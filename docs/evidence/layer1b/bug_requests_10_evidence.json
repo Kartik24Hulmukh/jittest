@@ -10,10 +10,10 @@
     "head_sha": "bc7dd0fc4d56e808bcdd85ac2d797b3107c89259",
     "test_file_name": "test_utils.py",
     "test_file_sha256": "00d027432443a1aa9539c00a09550de9439cdd696d2e6acf2dc997de3a416946",
-    "tool_commit_sha": "e9b495f48d1851d8bb1a6fdbb480e368beb6359c",
+    "tool_commit_sha": "2523d889e61893b93cbd8bfd399c6b998b898d6e",
     "tool_branch": "eval/layer1b-modern-cohort",
-    "tool_dirty": true,
-    "tool_tree_sha": "434592b0041ceadb64c690ebb97d177a15a6eec0",
+    "tool_dirty": false,
+    "tool_tree_sha": "05ce123cc71548a273b844ad6e8dcc3b7850ec98",
     "rel_path": "."
   },
   "sandbox": {
@@ -28,12 +28,12 @@
   "base_execution": {
     "outcome": "FAIL",
     "exit_code": 1,
-    "stdout_sha256": "5cc7686ef8ae1acc5ac20f16c6cf7a01e6589293d5d3385341ed236ba60c2f02",
-    "stderr_sha256": "bb2ef091d7ffce5ba7b9aa8a7276381b3806c8f8454d15c91b7c09152c2f5b3f",
+    "stdout_sha256": "4c8af3dad5de1189d6ec8aa3af668817676d96984d5c55e5f90a800e34a3c44b",
+    "stderr_sha256": "e8c1d87415780e55e8d44942fd2683fc2195cd0cf2a9752b6e2767a9b4ea2826",
     "environment": {
       "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_b17807130938ec75",
       "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_b17807130938ec75\\Scripts\\python.exe",
-      "cached": false,
+      "cached": true,
       "cache_key": "b17807130938ec75",
       "lockfile_sha256": "9026703b410e4338adf6bd1c504790df1f6b5fdbbcff8d6af19e706b1bbaa11d"
     }
@@ -41,22 +41,22 @@
   "head_execution": {
     "outcome": "FAIL",
     "exit_code": 1,
-    "stdout_sha256": "8c1392ce3176a08cafdcccf305c1133988417f878cd496cae23d763163419e9d",
-    "stderr_sha256": "08a2c8c9d1fffa67c91429d0146c6a09e00fa80f78a83e6eccfe100bc916bfd7",
+    "stdout_sha256": "891f88ef24dee3286dab7e0c687991bbb594c22e6ec6f0bbe2b7371de76ed06a",
+    "stderr_sha256": "1aa73785aeda606e8adfb006d3e3bfb5b5b2d17e8a218ed54ec39de7f658e335",
     "environment": {
       "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_4d71db0e00629d7a",
       "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_4d71db0e00629d7a\\Scripts\\python.exe",
-      "cached": false,
+      "cached": true,
       "cache_key": "4d71db0e00629d7a",
       "lockfile_sha256": "9026703b410e4338adf6bd1c504790df1f6b5fdbbcff8d6af19e706b1bbaa11d"
     }
   },
   "rerun_agreement": true,
-  "wall_clock_s": 247.938,
+  "wall_clock_s": 18.219,
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
     "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
-    "value": "VjB5sM3tzza828JXVlWTN9IaLizBL776hRiI3NHtUIrJc+CUCKb8zPhvPbtJqJtSW006D2CG5AoeBSoMfc05BA=="
+    "value": "7jyhKjFPywEVeRplz72uzB/YXgCht9SHhwCAe7/i2sJAsMSvfCf/arV7g/BCJ3YRwafc+50xTaTRN2kDFp9VAw=="
   }
 }

@@ -10,10 +10,10 @@
     "head_sha": "cd90742ed94d901759e26766197d0ce7c7bd9c8e",
     "test_file_name": "test_requests.py",
     "test_file_sha256": "5eacf6341d236e225ce6a37a592f3b410f20e69ec17641f0e2c99b03a79b904d",
-    "tool_commit_sha": "e9b495f48d1851d8bb1a6fdbb480e368beb6359c",
+    "tool_commit_sha": "2523d889e61893b93cbd8bfd399c6b998b898d6e",
     "tool_branch": "eval/layer1b-modern-cohort",
-    "tool_dirty": true,
-    "tool_tree_sha": "434592b0041ceadb64c690ebb97d177a15a6eec0",
+    "tool_dirty": false,
+    "tool_tree_sha": "05ce123cc71548a273b844ad6e8dcc3b7850ec98",
     "rel_path": "."
   },
   "sandbox": {
@@ -33,7 +33,7 @@
     "environment": {
       "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_5291f035a854a8ff",
       "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_5291f035a854a8ff\\Scripts\\python.exe",
-      "cached": false,
+      "cached": true,
       "cache_key": "5291f035a854a8ff",
       "lockfile_sha256": "ab7fee9a3c4e07efe9e51f61d20e44ab976a71bb7b1afe1427f7669204611182"
     }
@@ -46,17 +46,17 @@
     "environment": {
       "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_6db0c16ad5fca324",
       "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_6db0c16ad5fca324\\Scripts\\python.exe",
-      "cached": false,
+      "cached": true,
       "cache_key": "6db0c16ad5fca324",
       "lockfile_sha256": "ab7fee9a3c4e07efe9e51f61d20e44ab976a71bb7b1afe1427f7669204611182"
     }
   },
   "rerun_agreement": true,
-  "wall_clock_s": 337.187,
+  "wall_clock_s": 130.782,
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
     "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
-    "value": "Mh/5uaJXfK01ShmDGtm6JgPq8j+HenaMneD29L1Hc7lMqZgsZAL7zkya57Np1qIgEJzc16ioiuM3ldgrJtvTDg=="
+    "value": "t317YJfXuCwQ2teUXgq4zIDVSxzoS4DiJ1acBDvSf/QyYea77d5Jm+PxCkh84eBgbaU40GvR28tVisuX1xJnBQ=="
   }
 }

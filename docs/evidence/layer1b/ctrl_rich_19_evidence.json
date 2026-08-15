@@ -10,10 +10,10 @@
     "head_sha": "458a9109c8b7da81c17b2270ea8a88f3e8c0465a",
     "test_file_name": "test_text.py",
     "test_file_sha256": "fbe2dda0532c9857c3369b535d3b5bc0f8ab794d7dce378993f29517100e4028",
-    "tool_commit_sha": "e9b495f48d1851d8bb1a6fdbb480e368beb6359c",
+    "tool_commit_sha": "2523d889e61893b93cbd8bfd399c6b998b898d6e",
     "tool_branch": "eval/layer1b-modern-cohort",
-    "tool_dirty": true,
-    "tool_tree_sha": "434592b0041ceadb64c690ebb97d177a15a6eec0",
+    "tool_dirty": false,
+    "tool_tree_sha": "05ce123cc71548a273b844ad6e8dcc3b7850ec98",
     "rel_path": "."
   },
   "sandbox": {
@@ -28,12 +28,12 @@
   "base_execution": {
     "outcome": "PASS",
     "exit_code": 0,
-    "stdout_sha256": "33c6770ce82ed166049ac640f443ba022559a4f2eada0e3cf2ca2da14622a507",
+    "stdout_sha256": "fa90609043ae006c3dfe0b7d6ea0d3066462c82509192cc645b29193ce494690",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "environment": {
       "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_724e5991cd0dac9e",
       "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_724e5991cd0dac9e\\Scripts\\python.exe",
-      "cached": false,
+      "cached": true,
       "cache_key": "724e5991cd0dac9e",
       "lockfile_sha256": "db6ec39bb788b3c3784a28ae474a9efca2ec802ab42f1b9f6cb7b9aeb2ab895e"
     }
@@ -41,22 +41,22 @@
   "head_execution": {
     "outcome": "PASS",
     "exit_code": 0,
-    "stdout_sha256": "e97f77737378d6fe99cc2469111a988dcd59ff6e3d6a1412bc60fba3aa728f18",
+    "stdout_sha256": "3b38cef89c688324b2c74c307e9428ebc856b86805d4f7dd29f06abb7aff871e",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "environment": {
       "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_0f05c570447cda69",
       "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_0f05c570447cda69\\Scripts\\python.exe",
-      "cached": false,
+      "cached": true,
       "cache_key": "0f05c570447cda69",
       "lockfile_sha256": "db6ec39bb788b3c3784a28ae474a9efca2ec802ab42f1b9f6cb7b9aeb2ab895e"
     }
   },
   "rerun_agreement": true,
-  "wall_clock_s": 274.109,
+  "wall_clock_s": 14.36,
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
     "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
-    "value": "tdLW/bt7licYogcGdFZNUL26/mDBle/b25INVMqHJjnymuCrkjUEphzls5LZVV2DSoykF/vy08R4qLY2pCn3DA=="
+    "value": "8PqpaXAW3JfRjD1wnbHYoXckLUC3PubfuWtRt5CoJfKHVSDDC+WVj+WbkQIZEaoWEYk12uonauu00OWds5bPBg=="
   }
 }

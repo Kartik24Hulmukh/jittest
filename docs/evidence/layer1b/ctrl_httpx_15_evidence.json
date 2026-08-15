@@ -1,19 +1,19 @@
 {
   "schema_version": "2.0",
   "tool": "jittest verify",
-  "verdict": "non_discriminating",
+  "verdict": "inconclusive",
   "proven_catch": false,
-  "disposition": "head_passed",
+  "disposition": "head_uncollectable_base_broken",
   "provenance": {
     "repo_path": "C:\\Users\\praja\\.cache\\jittest\\fixtures\\httpx",
     "base_sha": "4b23574cf83307ce27d3b14b4a425dc58c57d28d",
     "head_sha": "652f051feaf1ab2828e1812eb0c48f9046a8b5ce",
     "test_file_name": "test_api.py",
     "test_file_sha256": "785f0650f616312f22a1573fbe383647c68b2282deaa18ad64da650331e1e90f",
-    "tool_commit_sha": "e9b495f48d1851d8bb1a6fdbb480e368beb6359c",
+    "tool_commit_sha": "2523d889e61893b93cbd8bfd399c6b998b898d6e",
     "tool_branch": "eval/layer1b-modern-cohort",
-    "tool_dirty": true,
-    "tool_tree_sha": "434592b0041ceadb64c690ebb97d177a15a6eec0",
+    "tool_dirty": false,
+    "tool_tree_sha": "05ce123cc71548a273b844ad6e8dcc3b7850ec98",
     "rel_path": "."
   },
   "sandbox": {
@@ -33,16 +33,16 @@
     "environment": {
       "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_fa42a54073ec6d28",
       "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_fa42a54073ec6d28\\Scripts\\python.exe",
-      "cached": false,
+      "cached": true,
       "cache_key": "fa42a54073ec6d28",
       "lockfile_sha256": "2d61d6a2f7f21d2986401228247e8f92e78c1aa38719d4cca09df396bd7394c1"
     }
   },
   "head_execution": {
-    "outcome": "PASS",
-    "exit_code": 0,
-    "stdout_sha256": "1e29f4b4dfd49ad80c258906220a93eedacfab311f369b32ce0625383f2faeaf",
-    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "outcome": "TIMEOUT",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "a448e032ceaf45c5805d104ee492e3d3f7313f2391c8be7675cee31b770cb747",
     "environment": {
       "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_c2492a467dd8251f",
       "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_c2492a467dd8251f\\Scripts\\python.exe",
@@ -52,11 +52,11 @@
     }
   },
   "rerun_agreement": true,
-  "wall_clock_s": 129.781,
+  "wall_clock_s": 72.063,
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
     "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
-    "value": "OOkQ/JeXLKG6UsHA8eFetV3GzsWftppb/t0N4wXVAGE21QhQKzrZloIog0oTAS6+MSARVilj4ySafEPfKM57DQ=="
+    "value": "N0yOSqV80nUnqA0CEkaTjabS+yaJcoLKzFeyVUTtu7IVZB0fkYw4zgeMA1iGPfJ6uBdj8bkcupVm+9nHrzrnCQ=="
   }
 }

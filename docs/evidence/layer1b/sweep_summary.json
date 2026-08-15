@@ -1,25 +1,24 @@
 {
-  "sweep_timestamp": "2026-08-15T20:31:52Z",
+  "sweep_timestamp": "2026-08-15T20:49:25Z",
   "manifest": "eval/layer1b_manifest.json",
   "total_rows": 54,
   "completion_rate": 1.0,
   "catch_proof_rate": 0.13333333333333333,
-  "false_proof_rate": 0.1111111111111111,
+  "false_proof_rate": 0.0,
   "total_cost_usd": 0.0,
-  "total_wall_clock_s": 2470.91,
+  "total_wall_clock_s": 276.32,
   "dispositions": {
     "head_failed_base_failed_latent": 21,
-    "head_uncollectable_base_broken": 13,
-    "catching": 6,
-    "head_passed": 9,
-    "head_flaky": 3,
-    "env_setup_failed": 2
+    "head_uncollectable_base_broken": 12,
+    "catching": 4,
+    "head_passed": 6,
+    "env_setup_failed": 11
   },
   "verdicts": {
     "refuted": 21,
-    "inconclusive": 18,
-    "proven_catch": 6,
-    "non_discriminating": 9
+    "inconclusive": 23,
+    "proven_catch": 4,
+    "non_discriminating": 6
   },
   "rows": [
     {
@@ -32,7 +31,7 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 718.74,
+      "wall_clock_s": 14.93,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
       "tool_dirty": false,
@@ -48,7 +47,7 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 720.15,
+      "wall_clock_s": 18.77,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
       "tool_dirty": false,
@@ -64,7 +63,7 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 694.89,
+      "wall_clock_s": 14.67,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
       "tool_dirty": false,
@@ -80,7 +79,7 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 665.98,
+      "wall_clock_s": 15.21,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
       "tool_dirty": false,
@@ -96,7 +95,7 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 668.55,
+      "wall_clock_s": 18.75,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
       "tool_dirty": false,
@@ -112,7 +111,7 @@
       "verdict": "inconclusive",
       "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 586.45,
+      "wall_clock_s": 127.72,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
       "tool_dirty": false,
@@ -128,7 +127,7 @@
       "verdict": "inconclusive",
       "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 559.51,
+      "wall_clock_s": 127.87,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
       "tool_dirty": false,
@@ -144,7 +143,7 @@
       "verdict": "inconclusive",
       "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 482.61,
+      "wall_clock_s": 127.78,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
       "tool_dirty": false,
@@ -160,10 +159,10 @@
       "verdict": "inconclusive",
       "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 377.97,
+      "wall_clock_s": 127.04,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_requests_09_evidence.json"
     },
     {
@@ -176,10 +175,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 247.95,
+      "wall_clock_s": 18.22,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_requests_10_evidence.json"
     },
     {
@@ -192,10 +191,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 22.33,
+      "wall_clock_s": 9.38,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_click_11_evidence.json"
     },
     {
@@ -208,10 +207,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 17.76,
+      "wall_clock_s": 12.24,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_click_12_evidence.json"
     },
     {
@@ -224,10 +223,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 12.03,
+      "wall_clock_s": 12.18,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_click_13_evidence.json"
     },
     {
@@ -240,10 +239,10 @@
       "verdict": "proven_catch",
       "disposition": "catching",
       "proven_catch": true,
-      "wall_clock_s": 17.07,
+      "wall_clock_s": 12.93,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_click_14_evidence.json"
     },
     {
@@ -256,10 +255,10 @@
       "verdict": "non_discriminating",
       "disposition": "head_passed",
       "proven_catch": false,
-      "wall_clock_s": 188.76,
+      "wall_clock_s": 13.28,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_click_15_evidence.json"
     },
     {
@@ -272,10 +271,10 @@
       "verdict": "proven_catch",
       "disposition": "catching",
       "proven_catch": true,
-      "wall_clock_s": 20.07,
+      "wall_clock_s": 15.8,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_httpx_16_evidence.json"
     },
     {
@@ -288,10 +287,10 @@
       "verdict": "proven_catch",
       "disposition": "catching",
       "proven_catch": true,
-      "wall_clock_s": 26.71,
+      "wall_clock_s": 19.69,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_httpx_17_evidence.json"
     },
     {
@@ -304,10 +303,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 25.53,
+      "wall_clock_s": 19.0,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_httpx_18_evidence.json"
     },
     {
@@ -320,10 +319,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 33.29,
+      "wall_clock_s": 27.65,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_httpx_19_evidence.json"
     },
     {
@@ -336,10 +335,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 67.87,
+      "wall_clock_s": 51.0,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_httpx_20_evidence.json"
     },
     {
@@ -352,10 +351,10 @@
       "verdict": "proven_catch",
       "disposition": "catching",
       "proven_catch": true,
-      "wall_clock_s": 448.48,
+      "wall_clock_s": 22.77,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_rich_21_evidence.json"
     },
     {
@@ -368,10 +367,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 445.22,
+      "wall_clock_s": 23.44,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_rich_22_evidence.json"
     },
     {
@@ -384,10 +383,10 @@
       "verdict": "inconclusive",
       "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 616.37,
+      "wall_clock_s": 126.61,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_rich_23_evidence.json"
     },
     {
@@ -400,10 +399,10 @@
       "verdict": "inconclusive",
       "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 610.89,
+      "wall_clock_s": 128.58,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_rich_24_evidence.json"
     },
     {
@@ -416,10 +415,10 @@
       "verdict": "inconclusive",
       "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 573.14,
+      "wall_clock_s": 136.05,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_rich_25_evidence.json"
     },
     {
@@ -430,12 +429,12 @@
       "head_sha": "a3a62a0ebd43ec848b979227421e2b7ba93a9dc9",
       "test_file": "testing\\code\\test_excinfo.py",
       "verdict": "inconclusive",
-      "disposition": "head_flaky",
+      "disposition": "env_setup_failed",
       "proven_catch": false,
-      "wall_clock_s": 565.52,
+      "wall_clock_s": 3.52,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_pytest_26_evidence.json"
     },
     {
@@ -446,12 +445,12 @@
       "head_sha": "4b5048b7a4ecb58fee453fa3a65dac3f173e3ff0",
       "test_file": "testing\\test_mark.py",
       "verdict": "inconclusive",
-      "disposition": "head_uncollectable_base_broken",
+      "disposition": "env_setup_failed",
       "proven_catch": false,
-      "wall_clock_s": 587.95,
+      "wall_clock_s": 3.31,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_pytest_27_evidence.json"
     },
     {
@@ -462,12 +461,12 @@
       "head_sha": "7052ad24fbbf78d2f67ff6e1a57d1caf0893cdeb",
       "test_file": "testing\\test_config.py",
       "verdict": "inconclusive",
-      "disposition": "head_flaky",
+      "disposition": "env_setup_failed",
       "proven_catch": false,
-      "wall_clock_s": 608.05,
+      "wall_clock_s": 3.01,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_pytest_28_evidence.json"
     },
     {
@@ -478,12 +477,12 @@
       "head_sha": "15b58a224ccbce113ac1b350bb1738dd345175f2",
       "test_file": "testing\\test_mark.py",
       "verdict": "inconclusive",
-      "disposition": "head_uncollectable_base_broken",
+      "disposition": "env_setup_failed",
       "proven_catch": false,
-      "wall_clock_s": 618.22,
+      "wall_clock_s": 3.02,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_pytest_29_evidence.json"
     },
     {
@@ -494,12 +493,12 @@
       "head_sha": "1d5c40392ea42db38582b096f639eb762a5527c8",
       "test_file": "testing\\python\\approx.py",
       "verdict": "inconclusive",
-      "disposition": "head_flaky",
+      "disposition": "env_setup_failed",
       "proven_catch": false,
-      "wall_clock_s": 617.34,
+      "wall_clock_s": 2.69,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "bug_pytest_30_evidence.json"
     },
     {
@@ -512,10 +511,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 220.74,
+      "wall_clock_s": 15.82,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_flask_01_evidence.json"
     },
     {
@@ -528,10 +527,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 386.92,
+      "wall_clock_s": 19.4,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_flask_02_evidence.json"
     },
     {
@@ -544,10 +543,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 412.23,
+      "wall_clock_s": 19.51,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_flask_03_evidence.json"
     },
     {
@@ -560,10 +559,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 362.4,
+      "wall_clock_s": 19.43,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_flask_04_evidence.json"
     },
     {
@@ -576,10 +575,10 @@
       "verdict": "inconclusive",
       "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 357.8,
+      "wall_clock_s": 125.23,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_requests_05_evidence.json"
     },
     {
@@ -592,10 +591,10 @@
       "verdict": "inconclusive",
       "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 337.19,
+      "wall_clock_s": 130.8,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_requests_06_evidence.json"
     },
     {
@@ -608,10 +607,10 @@
       "verdict": "inconclusive",
       "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 346.93,
+      "wall_clock_s": 129.16,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_requests_07_evidence.json"
     },
     {
@@ -624,10 +623,10 @@
       "verdict": "inconclusive",
       "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 306.13,
+      "wall_clock_s": 128.72,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_requests_08_evidence.json"
     },
     {
@@ -640,10 +639,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 11.94,
+      "wall_clock_s": 14.82,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_click_09_evidence.json"
     },
     {
@@ -656,10 +655,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 9.46,
+      "wall_clock_s": 8.79,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_click_10_evidence.json"
     },
     {
@@ -672,10 +671,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 10.01,
+      "wall_clock_s": 10.6,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_click_11_evidence.json"
     },
     {
@@ -688,10 +687,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 10.26,
+      "wall_clock_s": 9.88,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_click_12_evidence.json"
     },
     {
@@ -704,10 +703,10 @@
       "verdict": "inconclusive",
       "disposition": "env_setup_failed",
       "proven_catch": false,
-      "wall_clock_s": 211.73,
+      "wall_clock_s": 13.8,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_httpx_13_evidence.json"
     },
     {
@@ -720,10 +719,10 @@
       "verdict": "inconclusive",
       "disposition": "env_setup_failed",
       "proven_catch": false,
-      "wall_clock_s": 9.14,
+      "wall_clock_s": 2.74,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_httpx_14_evidence.json"
     },
     {
@@ -733,13 +732,13 @@
       "base_sha": "4b23574cf83307ce27d3b14b4a425dc58c57d28d",
       "head_sha": "652f051feaf1ab2828e1812eb0c48f9046a8b5ce",
       "test_file": "tests\\test_api.py",
-      "verdict": "non_discriminating",
-      "disposition": "head_passed",
+      "verdict": "inconclusive",
+      "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 129.78,
+      "wall_clock_s": 72.06,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_httpx_15_evidence.json"
     },
     {
@@ -752,10 +751,10 @@
       "verdict": "non_discriminating",
       "disposition": "head_passed",
       "proven_catch": false,
-      "wall_clock_s": 19.73,
+      "wall_clock_s": 27.68,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_httpx_16_evidence.json"
     },
     {
@@ -768,10 +767,10 @@
       "verdict": "non_discriminating",
       "disposition": "head_passed",
       "proven_catch": false,
-      "wall_clock_s": 165.03,
+      "wall_clock_s": 14.44,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_rich_17_evidence.json"
     },
     {
@@ -784,10 +783,10 @@
       "verdict": "non_discriminating",
       "disposition": "head_passed",
       "proven_catch": false,
-      "wall_clock_s": 339.59,
+      "wall_clock_s": 10.79,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_rich_18_evidence.json"
     },
     {
@@ -800,10 +799,10 @@
       "verdict": "non_discriminating",
       "disposition": "head_passed",
       "proven_catch": false,
-      "wall_clock_s": 274.14,
+      "wall_clock_s": 14.38,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_rich_19_evidence.json"
     },
     {
@@ -816,10 +815,10 @@
       "verdict": "non_discriminating",
       "disposition": "head_passed",
       "proven_catch": false,
-      "wall_clock_s": 266.6,
+      "wall_clock_s": 18.44,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_rich_20_evidence.json"
     },
     {
@@ -829,13 +828,13 @@
       "base_sha": "006884bac1cff49d2e2908c20fbbb0f0bc8e671b",
       "head_sha": "28e86a6c2ae0173831e4925a4af89b02a2936d09",
       "test_file": "testing\\test_collection.py",
-      "verdict": "non_discriminating",
-      "disposition": "head_passed",
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
       "proven_catch": false,
-      "wall_clock_s": 545.75,
+      "wall_clock_s": 10.81,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_pytest_21_evidence.json"
     },
     {
@@ -845,13 +844,13 @@
       "base_sha": "ccb438889487213bbf04e58cdd6f1de2abae214a",
       "head_sha": "325893ff1f89a5f6c8d45921c9dcd8ce193537e4",
       "test_file": "testing\\test_collection.py",
-      "verdict": "proven_catch",
-      "disposition": "catching",
-      "proven_catch": true,
-      "wall_clock_s": 298.1,
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
+      "proven_catch": false,
+      "wall_clock_s": 9.34,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_pytest_22_evidence.json"
     },
     {
@@ -861,13 +860,13 @@
       "base_sha": "325893ff1f89a5f6c8d45921c9dcd8ce193537e4",
       "head_sha": "28e86a6c2ae0173831e4925a4af89b02a2936d09",
       "test_file": "testing\\test_collection.py",
-      "verdict": "proven_catch",
-      "disposition": "catching",
-      "proven_catch": true,
-      "wall_clock_s": 301.4,
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
+      "proven_catch": false,
+      "wall_clock_s": 2.94,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_pytest_23_evidence.json"
     },
     {
@@ -877,13 +876,13 @@
       "base_sha": "9072c4b7bb0832f6d752520a762469babe7a0c44",
       "head_sha": "d27774fa6ce0f7e966fadcbac1330862b02292d2",
       "test_file": "testing\\test_collection.py",
-      "verdict": "non_discriminating",
-      "disposition": "head_passed",
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
       "proven_catch": false,
-      "wall_clock_s": 497.78,
+      "wall_clock_s": 3.06,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
-      "tool_dirty": true,
+      "tool_dirty": false,
       "artifact": "ctrl_pytest_24_evidence.json"
     }
   ]
