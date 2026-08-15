@@ -71,7 +71,19 @@ def _get_git_branch(repo_path: Path) -> str:
 def _get_git_dirty(repo_path: Path) -> bool:
     try:
         res = subprocess.run(
-            ["git", "-C", str(repo_path), "status", "--porcelain"],
+            [
+                "git",
+                "-C",
+                str(repo_path),
+                "status",
+                "--porcelain",
+                "--",
+                "src",
+                "eval",
+                "tests",
+                "scripts",
+                "pyproject.toml",
+            ],
             capture_output=True,
             text=True,
             errors="replace",

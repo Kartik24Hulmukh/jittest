@@ -10,8 +10,10 @@
     "head_sha": "435e1dac899adeb0c156c00721ecbb1124d75842",
     "test_file_name": "test_api.py",
     "test_file_sha256": "785f0650f616312f22a1573fbe383647c68b2282deaa18ad64da650331e1e90f",
-    "tool_commit_sha": "51e3f0a3327e7ab26d9202a86c433162fb21225e",
-    "tool_tree_sha": "35d89881b1e35e8eca5e914f5ceb21e3b348179b",
+    "tool_commit_sha": "e9b495f48d1851d8bb1a6fdbb480e368beb6359c",
+    "tool_branch": "eval/layer1b-modern-cohort",
+    "tool_dirty": true,
+    "tool_tree_sha": "434592b0041ceadb64c690ebb97d177a15a6eec0",
     "rel_path": "."
   },
   "sandbox": {
@@ -23,15 +25,27 @@
       "sandbox disabled by configuration: candidate tests share the filesystem, network and user account of this runner. Do not use this setting on pull requests from outside collaborators."
     ]
   },
-  "error": "pip install -r C:\\Users\\praja\\AppData\\Local\\Temp\\jittest-wt-1rnvofc8\\requirements.txt failed loudly:\nWARNING: Skipping page https://pypi.org/simple/mkdocs/ because the GET request got Content-Type: Unknown. The only supported Content-Types are application/vnd.pypi.simple.v1+json, application/vnd.pypi.simple.v1+html, and text/html\nERROR: Could not find a version that satisfies the requirement mkdocs==1.6.1 (from versions: none)\nERROR: No matching distribution found for mkdocs==1.6.1\n\n[notice] A new release of pip is available: 23.2.1 -> 26.2.1\n[notice] To update, run: C:\\Users\\praja\\.jittest\\envs\\env_655d5dc3fca8c3bf\\Scripts\\python.exe -m pip install --upgrade pip\n",
-  "base_execution": {},
-  "head_execution": {},
-  "rerun_agreement": false,
-  "wall_clock_s": 70.344,
+  "base_execution": {
+    "outcome": "NOTRUN",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {}
+  },
+  "head_execution": {
+    "outcome": "NOTRUN",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {}
+  },
+  "rerun_agreement": true,
+  "wall_clock_s": 9.141,
   "provider_cost_usd": 0.0,
+  "error": "base: Preflight pytest check failed:\nSTDERR:\nERROR: while parsing the following warning configuration:\n\n  ignore: trio.MultiError is deprecated since Trio 0.22.0:trio.TrioDeprecationWarning\n\nThis error occurred:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\praja\\.jittest\\envs\\env_f8e329a02dd6e7e7\\Lib\\site-packages\\_pytest\\config\\__init__.py\", line 1967, in parse_warning_filter\n    category: type[Warning] = _resolve_warning_category(category_)\n                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\praja\\.jittest\\envs\\env_f8e329a02dd6e7e7\\Lib\\site-packages\\_pytest\\config\\__init__.py\", line 2012, in _resolve_warning_category\n    m = __import__(module, None, None, [klass])\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nModuleNotFoundError: No module named 'trio'\n\n\n; head: Preflight pytest check failed:\nSTDERR:\nC:\\Users\\praja\\.jittest\\envs\\env_655d5dc3fca8c3bf\\Scripts\\python.exe: No module named pytest\n",
   "signature": {
     "algorithm": "Ed25519",
     "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
-    "value": "VfoOeLInrLRG/1WBv34LzBMYiT6YVuUp6Y22BlxiQeHitDjT82ir4apjQeS0ftyuY2mUtIlC/qHovuZdUppICA=="
+    "value": "J1Uwso5mVo4YoRzaV1uozsQFrVYOGNEoxQA7s6pqi9FQNvZN63ebmu8mG+8neyZ6jQ8IS/+AO7m3/92oARyyCQ=="
   }
 }

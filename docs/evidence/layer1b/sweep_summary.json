@@ -1,25 +1,25 @@
 {
-  "sweep_timestamp": "2026-08-15T08:39:21Z",
+  "sweep_timestamp": "2026-08-15T20:31:52Z",
   "manifest": "eval/layer1b_manifest.json",
   "total_rows": 54,
   "completion_rate": 1.0,
-  "catch_proof_rate": 0.1,
-  "false_proof_rate": 0.0,
+  "catch_proof_rate": 0.13333333333333333,
+  "false_proof_rate": 0.1111111111111111,
   "total_cost_usd": 0.0,
-  "total_wall_clock_s": 1629.32,
+  "total_wall_clock_s": 2470.91,
   "dispositions": {
-    "head_failed_base_failed_latent": 20,
-    "env_setup_failed": 6,
-    "head_uncollectable": 19,
-    "head_passed": 5,
-    "catching": 3,
-    "head_flaky": 1
+    "head_failed_base_failed_latent": 21,
+    "head_uncollectable_base_broken": 13,
+    "catching": 6,
+    "head_passed": 9,
+    "head_flaky": 3,
+    "env_setup_failed": 2
   },
   "verdicts": {
-    "refuted": 20,
-    "inconclusive": 26,
-    "non_discriminating": 5,
-    "proven_catch": 3
+    "refuted": 21,
+    "inconclusive": 18,
+    "proven_catch": 6,
+    "non_discriminating": 9
   },
   "rows": [
     {
@@ -32,9 +32,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 123.37,
+      "wall_clock_s": 718.74,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": false,
       "artifact": "bug_flask_01_evidence.json"
     },
     {
@@ -44,12 +45,13 @@
       "base_sha": "e82db2ca3a22c9614c1987392c9cfaa8c6ce99ad",
       "head_sha": "d3b78fd18a8d9e224cb9ef58a23cec9b1ffc9ce9",
       "test_file": "tests\\test_basic.py",
-      "verdict": "inconclusive",
-      "disposition": "env_setup_failed",
+      "verdict": "refuted",
+      "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 2.85,
+      "wall_clock_s": 720.15,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": false,
       "artifact": "bug_flask_02_evidence.json"
     },
     {
@@ -62,9 +64,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 123.39,
+      "wall_clock_s": 694.89,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": false,
       "artifact": "bug_flask_03_evidence.json"
     },
     {
@@ -77,9 +80,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 130.82,
+      "wall_clock_s": 665.98,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": false,
       "artifact": "bug_flask_04_evidence.json"
     },
     {
@@ -89,12 +93,13 @@
       "base_sha": "fb54159861708558b5f5658ebdc14709d984361c",
       "head_sha": "941efd4a36ed0f27e13758874f95e3aa1d3ee163",
       "test_file": "tests\\test_basic.py",
-      "verdict": "inconclusive",
-      "disposition": "env_setup_failed",
+      "verdict": "refuted",
+      "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 2.85,
+      "wall_clock_s": 668.55,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": false,
       "artifact": "bug_flask_05_evidence.json"
     },
     {
@@ -105,11 +110,12 @@
       "head_sha": "661970d171d9c3e12e4c789c4768db647d8c4da0",
       "test_file": "tests\\test_requests.py",
       "verdict": "inconclusive",
-      "disposition": "head_uncollectable",
+      "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 130.52,
+      "wall_clock_s": 586.45,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": false,
       "artifact": "bug_requests_06_evidence.json"
     },
     {
@@ -120,11 +126,12 @@
       "head_sha": "0b401c76b6e80a4eecf3c690085b2553f6e261ca",
       "test_file": "tests\\test_requests.py",
       "verdict": "inconclusive",
-      "disposition": "head_uncollectable",
+      "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 130.52,
+      "wall_clock_s": 559.51,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": false,
       "artifact": "bug_requests_07_evidence.json"
     },
     {
@@ -135,11 +142,12 @@
       "head_sha": "6ec76b4a36fba4a32fb72f5f9ba04e632635e477",
       "test_file": "tests\\test_requests.py",
       "verdict": "inconclusive",
-      "disposition": "head_uncollectable",
+      "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 130.61,
+      "wall_clock_s": 482.61,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": false,
       "artifact": "bug_requests_08_evidence.json"
     },
     {
@@ -150,11 +158,12 @@
       "head_sha": "cbce031327be4f1b4b5fd041ff4dcaa8efa2ce53",
       "test_file": "tests\\test_requests.py",
       "verdict": "inconclusive",
-      "disposition": "head_uncollectable",
+      "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 128.75,
+      "wall_clock_s": 377.97,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_requests_09_evidence.json"
     },
     {
@@ -164,12 +173,13 @@
       "base_sha": "f0198e6dfc431a2293dc16e1b1e8fcddc910a7f3",
       "head_sha": "bc7dd0fc4d56e808bcdd85ac2d797b3107c89259",
       "test_file": "tests\\test_utils.py",
-      "verdict": "inconclusive",
-      "disposition": "head_uncollectable",
+      "verdict": "refuted",
+      "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 127.09,
+      "wall_clock_s": 247.95,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_requests_10_evidence.json"
     },
     {
@@ -182,9 +192,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 104.28,
+      "wall_clock_s": 22.33,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_click_11_evidence.json"
     },
     {
@@ -197,9 +208,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 104.16,
+      "wall_clock_s": 17.76,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_click_12_evidence.json"
     },
     {
@@ -212,9 +224,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 106.99,
+      "wall_clock_s": 12.03,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_click_13_evidence.json"
     },
     {
@@ -224,12 +237,13 @@
       "base_sha": "051bb0f30b545cf7426deef819811815297c2798",
       "head_sha": "cd9bdd96a9dcc8e4ecabd45b5c244dbc70034484",
       "test_file": "tests\\test_termui.py",
-      "verdict": "refuted",
-      "disposition": "head_failed_base_failed_latent",
-      "proven_catch": false,
-      "wall_clock_s": 109.35,
+      "verdict": "proven_catch",
+      "disposition": "catching",
+      "proven_catch": true,
+      "wall_clock_s": 17.07,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_click_14_evidence.json"
     },
     {
@@ -242,9 +256,10 @@
       "verdict": "non_discriminating",
       "disposition": "head_passed",
       "proven_catch": false,
-      "wall_clock_s": 55.25,
+      "wall_clock_s": 188.76,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_click_15_evidence.json"
     },
     {
@@ -257,9 +272,10 @@
       "verdict": "proven_catch",
       "disposition": "catching",
       "proven_catch": true,
-      "wall_clock_s": 664.04,
+      "wall_clock_s": 20.07,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_httpx_16_evidence.json"
     },
     {
@@ -272,9 +288,10 @@
       "verdict": "proven_catch",
       "disposition": "catching",
       "proven_catch": true,
-      "wall_clock_s": 681.39,
+      "wall_clock_s": 26.71,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_httpx_17_evidence.json"
     },
     {
@@ -287,9 +304,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 664.47,
+      "wall_clock_s": 25.53,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_httpx_18_evidence.json"
     },
     {
@@ -302,9 +320,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 639.32,
+      "wall_clock_s": 33.29,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_httpx_19_evidence.json"
     },
     {
@@ -317,9 +336,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 611.24,
+      "wall_clock_s": 67.87,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_httpx_20_evidence.json"
     },
     {
@@ -332,9 +352,10 @@
       "verdict": "proven_catch",
       "disposition": "catching",
       "proven_catch": true,
-      "wall_clock_s": 161.63,
+      "wall_clock_s": 448.48,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_rich_21_evidence.json"
     },
     {
@@ -347,9 +368,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 152.55,
+      "wall_clock_s": 445.22,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_rich_22_evidence.json"
     },
     {
@@ -360,11 +382,12 @@
       "head_sha": "27701029082052c6541031b6f139097230253900",
       "test_file": "tests\\test_cells.py",
       "verdict": "inconclusive",
-      "disposition": "head_uncollectable",
+      "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 128.17,
+      "wall_clock_s": 616.37,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_rich_23_evidence.json"
     },
     {
@@ -375,11 +398,12 @@
       "head_sha": "454fcfc92c66556f9538d420b5bd3ba95b1f57b7",
       "test_file": "tests\\test_cells.py",
       "verdict": "inconclusive",
-      "disposition": "head_uncollectable",
+      "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 130.3,
+      "wall_clock_s": 610.89,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_rich_24_evidence.json"
     },
     {
@@ -390,11 +414,12 @@
       "head_sha": "1d402e0c59f8765e420a5a4440eb2fca7465d1ae",
       "test_file": "tests\\test_cells.py",
       "verdict": "inconclusive",
-      "disposition": "head_uncollectable",
+      "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 127.28,
+      "wall_clock_s": 573.14,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_rich_25_evidence.json"
     },
     {
@@ -405,11 +430,12 @@
       "head_sha": "a3a62a0ebd43ec848b979227421e2b7ba93a9dc9",
       "test_file": "testing\\code\\test_excinfo.py",
       "verdict": "inconclusive",
-      "disposition": "head_uncollectable",
+      "disposition": "head_flaky",
       "proven_catch": false,
-      "wall_clock_s": 221.0,
+      "wall_clock_s": 565.52,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_pytest_26_evidence.json"
     },
     {
@@ -420,11 +446,12 @@
       "head_sha": "4b5048b7a4ecb58fee453fa3a65dac3f173e3ff0",
       "test_file": "testing\\test_mark.py",
       "verdict": "inconclusive",
-      "disposition": "head_uncollectable",
+      "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 138.63,
+      "wall_clock_s": 587.95,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_pytest_27_evidence.json"
     },
     {
@@ -435,11 +462,12 @@
       "head_sha": "7052ad24fbbf78d2f67ff6e1a57d1caf0893cdeb",
       "test_file": "testing\\test_config.py",
       "verdict": "inconclusive",
-      "disposition": "head_uncollectable",
+      "disposition": "head_flaky",
       "proven_catch": false,
-      "wall_clock_s": 190.85,
+      "wall_clock_s": 608.05,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_pytest_28_evidence.json"
     },
     {
@@ -450,11 +478,12 @@
       "head_sha": "15b58a224ccbce113ac1b350bb1738dd345175f2",
       "test_file": "testing\\test_mark.py",
       "verdict": "inconclusive",
-      "disposition": "head_uncollectable",
+      "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 136.41,
+      "wall_clock_s": 618.22,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_pytest_29_evidence.json"
     },
     {
@@ -467,9 +496,10 @@
       "verdict": "inconclusive",
       "disposition": "head_flaky",
       "proven_catch": false,
-      "wall_clock_s": 157.92,
+      "wall_clock_s": 617.34,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "bug_pytest_30_evidence.json"
     },
     {
@@ -482,9 +512,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 138.01,
+      "wall_clock_s": 220.74,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_flask_01_evidence.json"
     },
     {
@@ -497,9 +528,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 123.36,
+      "wall_clock_s": 386.92,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_flask_02_evidence.json"
     },
     {
@@ -512,9 +544,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 74.0,
+      "wall_clock_s": 412.23,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_flask_03_evidence.json"
     },
     {
@@ -527,9 +560,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 122.25,
+      "wall_clock_s": 362.4,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_flask_04_evidence.json"
     },
     {
@@ -540,11 +574,12 @@
       "head_sha": "4c800e9aea2059660b8306b0fc8f9e9a4232cb3e",
       "test_file": "tests\\test_requests.py",
       "verdict": "inconclusive",
-      "disposition": "head_uncollectable",
+      "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 108.34,
+      "wall_clock_s": 357.8,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_requests_05_evidence.json"
     },
     {
@@ -555,11 +590,12 @@
       "head_sha": "cd90742ed94d901759e26766197d0ce7c7bd9c8e",
       "test_file": "tests\\test_requests.py",
       "verdict": "inconclusive",
-      "disposition": "head_uncollectable",
+      "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 103.99,
+      "wall_clock_s": 337.19,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_requests_06_evidence.json"
     },
     {
@@ -570,11 +606,12 @@
       "head_sha": "eb173bc819c72580deed2d54190d340cc769e529",
       "test_file": "tests\\test_requests.py",
       "verdict": "inconclusive",
-      "disposition": "head_uncollectable",
+      "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 111.33,
+      "wall_clock_s": 346.93,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_requests_07_evidence.json"
     },
     {
@@ -585,11 +622,12 @@
       "head_sha": "f64a0d782b2a9310340aba929f44bb887d2f27e0",
       "test_file": "tests\\test_requests.py",
       "verdict": "inconclusive",
-      "disposition": "head_uncollectable",
+      "disposition": "head_uncollectable_base_broken",
       "proven_catch": false,
-      "wall_clock_s": 109.69,
+      "wall_clock_s": 306.13,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_requests_08_evidence.json"
     },
     {
@@ -602,9 +640,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 103.72,
+      "wall_clock_s": 11.94,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_click_09_evidence.json"
     },
     {
@@ -617,9 +656,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 105.07,
+      "wall_clock_s": 9.46,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_click_10_evidence.json"
     },
     {
@@ -632,9 +672,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 111.78,
+      "wall_clock_s": 10.01,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_click_11_evidence.json"
     },
     {
@@ -647,9 +688,10 @@
       "verdict": "refuted",
       "disposition": "head_failed_base_failed_latent",
       "proven_catch": false,
-      "wall_clock_s": 61.44,
+      "wall_clock_s": 10.26,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_click_12_evidence.json"
     },
     {
@@ -662,9 +704,10 @@
       "verdict": "inconclusive",
       "disposition": "env_setup_failed",
       "proven_catch": false,
-      "wall_clock_s": 647.73,
+      "wall_clock_s": 211.73,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_httpx_13_evidence.json"
     },
     {
@@ -677,9 +720,10 @@
       "verdict": "inconclusive",
       "disposition": "env_setup_failed",
       "proven_catch": false,
-      "wall_clock_s": 70.34,
+      "wall_clock_s": 9.14,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_httpx_14_evidence.json"
     },
     {
@@ -689,12 +733,13 @@
       "base_sha": "4b23574cf83307ce27d3b14b4a425dc58c57d28d",
       "head_sha": "652f051feaf1ab2828e1812eb0c48f9046a8b5ce",
       "test_file": "tests\\test_api.py",
-      "verdict": "inconclusive",
-      "disposition": "env_setup_failed",
+      "verdict": "non_discriminating",
+      "disposition": "head_passed",
       "proven_catch": false,
-      "wall_clock_s": 645.7,
+      "wall_clock_s": 129.78,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_httpx_15_evidence.json"
     },
     {
@@ -704,12 +749,13 @@
       "base_sha": "652f051feaf1ab2828e1812eb0c48f9046a8b5ce",
       "head_sha": "3fee27838e9fd0cb528861e41f3ff98164081a4b",
       "test_file": "tests\\test_api.py",
-      "verdict": "refuted",
-      "disposition": "head_failed_base_failed_latent",
+      "verdict": "non_discriminating",
+      "disposition": "head_passed",
       "proven_catch": false,
-      "wall_clock_s": 680.79,
+      "wall_clock_s": 19.73,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_httpx_16_evidence.json"
     },
     {
@@ -722,9 +768,10 @@
       "verdict": "non_discriminating",
       "disposition": "head_passed",
       "proven_catch": false,
-      "wall_clock_s": 70.64,
+      "wall_clock_s": 165.03,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_rich_17_evidence.json"
     },
     {
@@ -737,9 +784,10 @@
       "verdict": "non_discriminating",
       "disposition": "head_passed",
       "proven_catch": false,
-      "wall_clock_s": 81.14,
+      "wall_clock_s": 339.59,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_rich_18_evidence.json"
     },
     {
@@ -752,9 +800,10 @@
       "verdict": "non_discriminating",
       "disposition": "head_passed",
       "proven_catch": false,
-      "wall_clock_s": 76.28,
+      "wall_clock_s": 274.14,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_rich_19_evidence.json"
     },
     {
@@ -767,9 +816,10 @@
       "verdict": "non_discriminating",
       "disposition": "head_passed",
       "proven_catch": false,
-      "wall_clock_s": 71.32,
+      "wall_clock_s": 266.6,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_rich_20_evidence.json"
     },
     {
@@ -779,12 +829,13 @@
       "base_sha": "006884bac1cff49d2e2908c20fbbb0f0bc8e671b",
       "head_sha": "28e86a6c2ae0173831e4925a4af89b02a2936d09",
       "test_file": "testing\\test_collection.py",
-      "verdict": "inconclusive",
-      "disposition": "head_uncollectable",
+      "verdict": "non_discriminating",
+      "disposition": "head_passed",
       "proven_catch": false,
-      "wall_clock_s": 199.57,
+      "wall_clock_s": 545.75,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_pytest_21_evidence.json"
     },
     {
@@ -794,12 +845,13 @@
       "base_sha": "ccb438889487213bbf04e58cdd6f1de2abae214a",
       "head_sha": "325893ff1f89a5f6c8d45921c9dcd8ce193537e4",
       "test_file": "testing\\test_collection.py",
-      "verdict": "inconclusive",
-      "disposition": "head_uncollectable",
-      "proven_catch": false,
-      "wall_clock_s": 209.47,
+      "verdict": "proven_catch",
+      "disposition": "catching",
+      "proven_catch": true,
+      "wall_clock_s": 298.1,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_pytest_22_evidence.json"
     },
     {
@@ -809,12 +861,13 @@
       "base_sha": "325893ff1f89a5f6c8d45921c9dcd8ce193537e4",
       "head_sha": "28e86a6c2ae0173831e4925a4af89b02a2936d09",
       "test_file": "testing\\test_collection.py",
-      "verdict": "inconclusive",
-      "disposition": "env_setup_failed",
-      "proven_catch": false,
-      "wall_clock_s": 3.89,
+      "verdict": "proven_catch",
+      "disposition": "catching",
+      "proven_catch": true,
+      "wall_clock_s": 301.4,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_pytest_23_evidence.json"
     },
     {
@@ -824,12 +877,13 @@
       "base_sha": "9072c4b7bb0832f6d752520a762469babe7a0c44",
       "head_sha": "d27774fa6ce0f7e966fadcbac1330862b02292d2",
       "test_file": "testing\\test_collection.py",
-      "verdict": "inconclusive",
-      "disposition": "head_uncollectable",
+      "verdict": "non_discriminating",
+      "disposition": "head_passed",
       "proven_catch": false,
-      "wall_clock_s": 219.55,
+      "wall_clock_s": 497.78,
       "provider_cost_usd": 0.0,
       "signature_valid": true,
+      "tool_dirty": true,
       "artifact": "ctrl_pytest_24_evidence.json"
     }
   ]

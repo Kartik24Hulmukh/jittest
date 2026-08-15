@@ -1,17 +1,19 @@
 {
   "schema_version": "2.0",
   "tool": "jittest verify",
-  "verdict": "inconclusive",
-  "proven_catch": false,
-  "disposition": "env_setup_failed",
+  "verdict": "proven_catch",
+  "proven_catch": true,
+  "disposition": "catching",
   "provenance": {
     "repo_path": "C:\\Users\\praja\\.cache\\jittest\\fixtures\\pytest",
     "base_sha": "325893ff1f89a5f6c8d45921c9dcd8ce193537e4",
     "head_sha": "28e86a6c2ae0173831e4925a4af89b02a2936d09",
     "test_file_name": "test_collection.py",
     "test_file_sha256": "7306513db075c7fa4f98558c8eb1cd669e55b0b6c537a6f41e8acb4fcba5ba8a",
-    "tool_commit_sha": "51e3f0a3327e7ab26d9202a86c433162fb21225e",
-    "tool_tree_sha": "35d89881b1e35e8eca5e914f5ceb21e3b348179b",
+    "tool_commit_sha": "e9b495f48d1851d8bb1a6fdbb480e368beb6359c",
+    "tool_branch": "eval/layer1b-modern-cohort",
+    "tool_dirty": true,
+    "tool_tree_sha": "434592b0041ceadb64c690ebb97d177a15a6eec0",
     "rel_path": "."
   },
   "sandbox": {
@@ -23,15 +25,38 @@
       "sandbox disabled by configuration: candidate tests share the filesystem, network and user account of this runner. Do not use this setting on pull requests from outside collaborators."
     ]
   },
-  "error": "Preflight pytest check failed:\nSTDERR:\nC:\\Users\\praja\\.jittest\\envs\\env_5dfc0a8c95bc492e\\Scripts\\python.exe: No module named pytest\n",
-  "base_execution": {},
-  "head_execution": {},
-  "rerun_agreement": false,
-  "wall_clock_s": 3.875,
+  "base_execution": {
+    "outcome": "PASS",
+    "exit_code": 0,
+    "stdout_sha256": "69797c4d9baf9a7299e329441b8129133f561c1cd5fb13543634ea76185fb851",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {
+      "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_79c907dcb4188e84",
+      "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_79c907dcb4188e84\\Scripts\\python.exe",
+      "cached": false,
+      "cache_key": "79c907dcb4188e84",
+      "lockfile_sha256": "3b42e41996071efff6771a65bfff49aa0ff5ea1c3caac33ee262fdfefa4b54eb"
+    }
+  },
+  "head_execution": {
+    "outcome": "FAIL",
+    "exit_code": 1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "9aed5c07708eae9481ed7d2cc17b0be793eb2f99448a9aef85eaf2d6a36f0676",
+    "environment": {
+      "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_c3fe64f7d2be1b9e",
+      "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_c3fe64f7d2be1b9e\\Scripts\\python.exe",
+      "cached": true,
+      "cache_key": "c3fe64f7d2be1b9e",
+      "lockfile_sha256": "3b42e41996071efff6771a65bfff49aa0ff5ea1c3caac33ee262fdfefa4b54eb"
+    }
+  },
+  "rerun_agreement": true,
+  "wall_clock_s": 301.313,
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
     "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
-    "value": "RQWkz9khcPkVcrtbPS56Bish3Cf0L0TOtvzZLOL3Ei1d74yqgX4dJJn0ok3b8Ifor0MbVlGYSFCSFYl84TUvDQ=="
+    "value": "tXkjAbIbh4pmM817O2EsI2Bym/+kXoK11FKdBC6EN2aVcQLKMWDAD3x2lSYohoc2Ll/9BTyLAHeNF/oZC1AtDA=="
   }
 }
