@@ -1,0 +1,51 @@
+{
+  "schema_version": "2.0",
+  "tool": "jittest verify",
+  "verdict": "inconclusive",
+  "proven_catch": false,
+  "disposition": "env_setup_failed",
+  "provenance": {
+    "repo_path": "C:\\Users\\praja\\.cache\\jittest\\fixtures\\pytest",
+    "base_sha": "224e9ef86758841a716c43a2bc711e1f56934528",
+    "head_sha": "1d5c40392ea42db38582b096f639eb762a5527c8",
+    "test_file_name": "approx.py",
+    "test_file_sha256": "1f93c646f22479667856b806b45c483a9036c1ee333acccc86730b95adbdc397",
+    "tool_commit_sha": "2523d889e61893b93cbd8bfd399c6b998b898d6e",
+    "tool_branch": "eval/layer1b-modern-cohort",
+    "tool_dirty": false,
+    "tool_tree_sha": "05ce123cc71548a273b844ad6e8dcc3b7850ec98",
+    "rel_path": "."
+  },
+  "sandbox": {
+    "backend": "none",
+    "image": null,
+    "isolated": false,
+    "network_denied": false,
+    "notes": [
+      "sandbox disabled by configuration: candidate tests share the filesystem, network and user account of this runner. Do not use this setting on pull requests from outside collaborators."
+    ]
+  },
+  "base_execution": {
+    "outcome": "NOTRUN",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {}
+  },
+  "head_execution": {
+    "outcome": "NOTRUN",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {}
+  },
+  "rerun_agreement": true,
+  "wall_clock_s": 2.687,
+  "provider_cost_usd": 0.0,
+  "error": "base: Preflight pytest check failed:\nSTDERR:\nC:\\Users\\praja\\.jittest\\envs\\env_bdd31f7616b5adfe\\Scripts\\python.exe: No module named pytest\n; head: Preflight pytest check failed:\nSTDERR:\nC:\\Users\\praja\\.jittest\\envs\\env_094368d2789bc2d2\\Scripts\\python.exe: No module named pytest\n",
+  "signature": {
+    "algorithm": "Ed25519",
+    "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "fBMRgidkvAMYl5NYoPbM19N4tq4HWvKswNvhzvBCaxjKq2wtGFE6rB4/9LWjK1G0oVIwff49lRK7nY0lCc8UAA=="
+  }
+}

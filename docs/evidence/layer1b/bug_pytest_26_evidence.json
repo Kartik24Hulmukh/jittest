@@ -1,0 +1,51 @@
+{
+  "schema_version": "2.0",
+  "tool": "jittest verify",
+  "verdict": "inconclusive",
+  "proven_catch": false,
+  "disposition": "env_setup_failed",
+  "provenance": {
+    "repo_path": "C:\\Users\\praja\\.cache\\jittest\\fixtures\\pytest",
+    "base_sha": "0d6fbdeffa57c796123f62f81f7dd370d9b7ecdc",
+    "head_sha": "a3a62a0ebd43ec848b979227421e2b7ba93a9dc9",
+    "test_file_name": "test_excinfo.py",
+    "test_file_sha256": "bd2416fc1c6026eec742f482aa449a41dc78fe463713a993d60aeb061ef577ca",
+    "tool_commit_sha": "2523d889e61893b93cbd8bfd399c6b998b898d6e",
+    "tool_branch": "eval/layer1b-modern-cohort",
+    "tool_dirty": false,
+    "tool_tree_sha": "05ce123cc71548a273b844ad6e8dcc3b7850ec98",
+    "rel_path": "."
+  },
+  "sandbox": {
+    "backend": "none",
+    "image": null,
+    "isolated": false,
+    "network_denied": false,
+    "notes": [
+      "sandbox disabled by configuration: candidate tests share the filesystem, network and user account of this runner. Do not use this setting on pull requests from outside collaborators."
+    ]
+  },
+  "base_execution": {
+    "outcome": "NOTRUN",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {}
+  },
+  "head_execution": {
+    "outcome": "NOTRUN",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {}
+  },
+  "rerun_agreement": true,
+  "wall_clock_s": 3.515,
+  "provider_cost_usd": 0.0,
+  "error": "base: Preflight pytest check failed:\nSTDERR:\nC:\\Users\\praja\\.jittest\\envs\\env_d50be74deaa2e722\\Scripts\\python.exe: No module named pytest\n; head: Preflight pytest check failed:\nSTDERR:\nC:\\Users\\praja\\.jittest\\envs\\env_ef0e9a0274f0e7e6\\Scripts\\python.exe: No module named pytest\n",
+  "signature": {
+    "algorithm": "Ed25519",
+    "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "5UtjTr4fczbGzPB8MCOIHg2kndqI4T/4zsvoL6sXE+TKYTTbOyugH9fbMxElgT3Bt7qhyoEzOZywscSxV1PiCg=="
+  }
+}

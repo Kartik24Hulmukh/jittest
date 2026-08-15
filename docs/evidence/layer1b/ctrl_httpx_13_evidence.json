@@ -1,0 +1,57 @@
+{
+  "schema_version": "2.0",
+  "tool": "jittest verify",
+  "verdict": "inconclusive",
+  "proven_catch": false,
+  "disposition": "env_setup_failed",
+  "provenance": {
+    "repo_path": "C:\\Users\\praja\\.cache\\jittest\\fixtures\\httpx",
+    "base_sha": "ca097c96f97d8d2a5da09b8ca736c7e78a2467f6",
+    "head_sha": "def4778d622e8bf49a9fea4dda78cca4cf666d8a",
+    "test_file_name": "test_api.py",
+    "test_file_sha256": "785f0650f616312f22a1573fbe383647c68b2282deaa18ad64da650331e1e90f",
+    "tool_commit_sha": "2523d889e61893b93cbd8bfd399c6b998b898d6e",
+    "tool_branch": "eval/layer1b-modern-cohort",
+    "tool_dirty": false,
+    "tool_tree_sha": "05ce123cc71548a273b844ad6e8dcc3b7850ec98",
+    "rel_path": "."
+  },
+  "sandbox": {
+    "backend": "none",
+    "image": null,
+    "isolated": false,
+    "network_denied": false,
+    "notes": [
+      "sandbox disabled by configuration: candidate tests share the filesystem, network and user account of this runner. Do not use this setting on pull requests from outside collaborators."
+    ]
+  },
+  "base_execution": {
+    "outcome": "PASS",
+    "exit_code": 0,
+    "stdout_sha256": "b97ff11bf3915dca0f61ffc6edd04adcf3af8ef3665320ddf983283669b88f50",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {
+      "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_6d7070232845eb4e",
+      "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_6d7070232845eb4e\\Scripts\\python.exe",
+      "cached": true,
+      "cache_key": "6d7070232845eb4e",
+      "lockfile_sha256": "2d61d6a2f7f21d2986401228247e8f92e78c1aa38719d4cca09df396bd7394c1"
+    }
+  },
+  "head_execution": {
+    "outcome": "NOTRUN",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {}
+  },
+  "rerun_agreement": true,
+  "wall_clock_s": 13.735,
+  "provider_cost_usd": 0.0,
+  "error": "head: Preflight pytest check failed:\nSTDERR:\nERROR: while parsing the following warning configuration:\n\n  ignore: trio.MultiError is deprecated since Trio 0.22.0:trio.TrioDeprecationWarning\n\nThis error occurred:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\praja\\.jittest\\envs\\env_f8e329a02dd6e7e7\\Lib\\site-packages\\_pytest\\config\\__init__.py\", line 1967, in parse_warning_filter\n    category: type[Warning] = _resolve_warning_category(category_)\n                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\praja\\.jittest\\envs\\env_f8e329a02dd6e7e7\\Lib\\site-packages\\_pytest\\config\\__init__.py\", line 2012, in _resolve_warning_category\n    m = __import__(module, None, None, [klass])\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nModuleNotFoundError: No module named 'trio'\n\n\n",
+  "signature": {
+    "algorithm": "Ed25519",
+    "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "z884gXJq3Iikg6doo+3+yyJYj5/0tBUgcBRuYZ2itSORL2JL247Ypo0vRdoQlG/yHwpy/Tu1TI57qXhtUvDkBQ=="
+  }
+}

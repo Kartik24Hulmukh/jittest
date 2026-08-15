@@ -111,6 +111,8 @@ class Disposition(StrEnum):
     directly, and the reason string goes back to being for humans only.
     """
     HEAD_UNCOLLECTABLE = "head_uncollectable"
+    HEAD_UNCOLLECTABLE_BASE_PASSED = "head_uncollectable_base_passed"
+    HEAD_UNCOLLECTABLE_BASE_BROKEN = "head_uncollectable_base_broken"
     HEAD_TIMEOUT = "head_timeout"
     HEAD_NOTRUN = "head_notrun"
     HEAD_PASSED = "head_passed"
@@ -120,6 +122,7 @@ class Disposition(StrEnum):
     BASE_UNCOLLECTABLE = "base_uncollectable"
     PROVENANCE_FAILED = "provenance_failed"
     CATCHING = "catching"
+    ENV_SETUP_FAILED = "env_setup_failed"
 
 
 class FailureKind(StrEnum):
@@ -373,8 +376,18 @@ def _env_for(workdir: Path) -> dict:
             env[name] = value
     # Set, never inherited: the host's PYTHONPATH is deliberately dropped so
     # host packages cannot shadow the repo under test and change a verdict.
+    pythonpath_entries = [
+        str(workdir),
+        str(workdir / "src"),
+        str(workdir / "tests"),
+        str(workdir / "testing"),
+        str(workdir / "test"),
+        str(workdir / "lib"),
+        _PACKAGE_ROOT,
+    ]
     env["PYTHONPATH"] = os.pathsep.join(
-        [str(workdir), str(workdir / "src"), _PACKAGE_ROOT])
+        [p for p in pythonpath_entries if p]
+    )
     env["PYTHONDONTWRITEBYTECODE"] = "1"
     env["PYTHONHASHSEED"] = "0"          # kill one source of ordering flakiness
     env["JITTEST_CHILD"] = "1"
@@ -484,7 +497,8 @@ def _kill_tree(proc: subprocess.Popen) -> None:
 
 def run_test(workdir: Path, test_code: str, timeout_s: int = 120,
              sbx: SandboxPlan | None = None,
-             python_path: Path | str | None = None) -> RunResult:
+             python_path: Path | str | None = None,
+             rel_test_path: Path | str | None = None) -> RunResult:
     """Write the candidate into the checkout, run it, then remove it.
 
     ``sbx`` selects the isolation backend. ``None`` means unconfined, which is
@@ -494,7 +508,12 @@ def run_test(workdir: Path, test_code: str, timeout_s: int = 120,
     """
     workdir = Path(workdir)
     token = uuid.uuid4().hex[:8]
-    candidate = workdir / f"{CANDIDATE_PREFIX}{token}.py"
+    if rel_test_path:
+        target_dir = (workdir / rel_test_path).parent
+        target_dir.mkdir(parents=True, exist_ok=True)
+        candidate = target_dir / f"{CANDIDATE_PREFIX}{token}.py"
+    else:
+        candidate = workdir / f"{CANDIDATE_PREFIX}{token}.py"
     candidate.write_text(test_code, encoding="utf-8")
     runner = detect_runner(python_path)
     uses_pytest = "pytest" in runner
