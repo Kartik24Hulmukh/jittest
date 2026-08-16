@@ -8,6 +8,7 @@ both base and head worktrees, and preflights environment readiness.
 from __future__ import annotations
 
 import configparser
+import contextlib
 import hashlib
 import logging
 import re
@@ -86,10 +87,8 @@ def ensure_worktree_fixes(worktree: Path) -> None:
     if pytest_mod_dir.is_dir():
         v_file = pytest_mod_dir / "_version.py"
         if not v_file.exists():
-            try:
+            with contextlib.suppress(OSError):
                 v_file.write_text('version = "9.2.0.dev"\nversion_tuple = (9, 2, 0, "dev")\n', encoding="utf-8")
-            except OSError:
-                pass
 
 
 def _preflight_environment(python_exe: Path, worktree_dir: Path) -> None:
@@ -164,7 +163,7 @@ def _discover_extras_and_requirements(worktree: Path) -> tuple[list[str], list[P
 
             # [project.optional-dependencies]
             opt = data.get("project", {}).get("optional-dependencies", {})
-            for k, reqs in opt.items():
+            for _k, reqs in opt.items():
                 if isinstance(reqs, list):
                     for r in reqs:
                         if isinstance(r, str) and r.strip():
@@ -172,7 +171,7 @@ def _discover_extras_and_requirements(worktree: Path) -> tuple[list[str], list[P
 
             # [dependency-groups] (PEP 735)
             groups = data.get("dependency-groups", {})
-            for k, reqs in groups.items():
+            for _k, reqs in groups.items():
                 if isinstance(reqs, list):
                     for r in reqs:
                         if isinstance(r, str) and r.strip():
@@ -185,12 +184,12 @@ def _discover_extras_and_requirements(worktree: Path) -> tuple[list[str], list[P
                 poetry.get("dev-dependencies", {}),
             ]:
                 if isinstance(dep_table, dict):
-                    for pkg, spec in dep_table.items():
+                    for pkg, _spec in dep_table.items():
                         if isinstance(pkg, str) and pkg.lower() != "python":
                             packages.add(pkg.strip())
             for group_val in poetry.get("group", {}).values():
                 if isinstance(group_val, dict):
-                    for pkg in group_val.get("dependencies", {}).keys():
+                    for pkg in group_val.get("dependencies", {}):
                         if isinstance(pkg, str) and pkg.lower() != "python":
                             packages.add(pkg.strip())
 
@@ -468,10 +467,8 @@ def provision_environment(
     # Create virtualenv with uv (or fallback to python -m venv)
     venv_created = False
     if uv_exe:
-        try:
+        with contextlib.suppress(Exception):
             subprocess.run([uv_exe, "python", "install", target_py], capture_output=True, timeout=120)
-        except Exception:
-            pass
 
         try:
             res_uv_venv = subprocess.run(
