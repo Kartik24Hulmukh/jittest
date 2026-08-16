@@ -293,13 +293,108 @@ def _discover_extras_and_requirements(worktree: Path) -> tuple[list[str], list[P
     return sorted(clean_packages), req_files
 
 
+def get_commit_cutoff(repo_path: Path, commit_sha: str) -> str:
+    """Extract ISO-8601 commit timestamp for uv --exclude-newer."""
+    if not commit_sha:
+        return ""
+    try:
+        res = subprocess.run(
+            ["git", "-C", str(repo_path), "show", "-s", "--date=format:%Y-%m-%dT%H:%M:%SZ", "--format=%cd", commit_sha],
+            capture_output=True,
+            text=True,
+            errors="replace",
+            check=True,
+        )
+        return res.stdout.strip()
+    except Exception:
+        return ""
+
+
+def detect_python_requires(worktree: Path) -> str:
+    """Detect python_requires from pyproject.toml, setup.cfg, or setup.py."""
+    pyproject = worktree / "pyproject.toml"
+    if pyproject.is_file():
+        try:
+            data = tomllib.loads(pyproject.read_text(encoding="utf-8", errors="replace"))
+            req = data.get("project", {}).get("requires-python")
+            if req:
+                return str(req).strip()
+        except Exception:
+            pass
+
+    setup_cfg = worktree / "setup.cfg"
+    if setup_cfg.is_file():
+        try:
+            cfg = configparser.ConfigParser()
+            cfg.read_string(setup_cfg.read_text(encoding="utf-8", errors="replace"))
+            if cfg.has_section("options") and cfg.has_option("options", "python_requires"):
+                return cfg.get("options", "python_requires").strip()
+        except Exception:
+            pass
+
+    setup_py = worktree / "setup.py"
+    if setup_py.is_file():
+        try:
+            content = setup_py.read_text(encoding="utf-8", errors="replace")
+            m = re.search(r"python_requires\s*=\s*['\"]([^'\"]+)['\"]", content)
+            if m:
+                return m.group(1).strip()
+        except Exception:
+            pass
+
+    return ""
+
+
+def resolve_target_python_version(python_requires: str) -> str:
+    """Map python_requires constraint to a concrete Python version."""
+    if not python_requires:
+        return f"{sys.version_info.major}.{sys.version_info.minor}"
+
+    if "<3.11" in python_requires or "<=3.10" in python_requires:
+        return "3.10"
+    if "<3.12" in python_requires or "<=3.11" in python_requires:
+        return "3.11"
+    if "<3.13" in python_requires or "<=3.12" in python_requires:
+        return "3.12"
+
+    if ">=3.12" in python_requires:
+        return "3.12"
+    if ">=3.11" in python_requires:
+        return "3.11"
+    if ">=3.10" in python_requires:
+        return "3.10"
+    if ">=3.9" in python_requires:
+        return "3.9"
+    if ">=3.8" in python_requires:
+        return "3.10"
+
+    return f"{sys.version_info.major}.{sys.version_info.minor}"
+
+
+def find_uv() -> str | None:
+    """Find uv executable on PATH or standard install locations."""
+    import shutil
+    uv_path = shutil.which("uv")
+    if uv_path:
+        return uv_path
+
+    candidates = [
+        Path.home() / ".local" / "bin" / ("uv.exe" if sys.platform == "win32" else "uv"),
+        Path.home() / ".cargo" / "bin" / ("uv.exe" if sys.platform == "win32" else "uv"),
+    ]
+    for c in candidates:
+        if c.exists():
+            return str(c)
+    return None
+
+
 def provision_environment(
     worktree_dir: Path | str,
     commit_sha: str,
     repo_path: Path | str,
     cache_root: Path | str | None = None,
 ) -> dict[str, Any]:
-    """Provision an isolated virtual environment for a worktree.
+    """Provision an isolated virtual environment for a worktree using uv era-correct resolution.
 
     Returns:
         {
@@ -308,6 +403,9 @@ def provision_environment(
             "cached": bool,
             "cache_key": str,
             "lockfile_sha256": str,
+            "exclude_newer_cutoff": str,
+            "interpreter_version": str,
+            "resolved_versions": list[str],
         }
 
     Raises:
@@ -318,8 +416,13 @@ def provision_environment(
 
     ensure_worktree_fixes(worktree)
 
+    cutoff = get_commit_cutoff(repo, commit_sha)
+    py_req = detect_python_requires(worktree)
+    target_py = resolve_target_python_version(py_req)
+    uv_exe = find_uv()
+
     lockfile_hash = _compute_lockfile_hash(worktree)
-    cache_key_raw = f"{repo}:{commit_sha}:{lockfile_hash}"
+    cache_key_raw = f"{repo}:{commit_sha}:{target_py}:{cutoff}:{lockfile_hash}"
     cache_key = hashlib.sha256(cache_key_raw.encode("utf-8")).hexdigest()[:16]
 
     cache_root = Path.home() / ".jittest" / "envs" if cache_root is None else Path(cache_root)
@@ -330,12 +433,31 @@ def provision_environment(
     if python_exe.exists():
         try:
             _preflight_environment(python_exe, worktree)
+            resolved_versions: list[str] = []
+            py_version_str = ""
+            try:
+                if uv_exe:
+                    res_fr = subprocess.run([uv_exe, "pip", "freeze", "--python", str(python_exe)], capture_output=True, text=True, errors="replace", timeout=30)
+                    resolved_versions = res_fr.stdout.splitlines()
+                else:
+                    pip_exe = venv_dir / ("Scripts" if sys.platform == "win32" else "bin") / ("pip.exe" if sys.platform == "win32" else "pip")
+                    if pip_exe.exists():
+                        res_fr = subprocess.run([str(pip_exe), "freeze"], capture_output=True, text=True, errors="replace", timeout=30)
+                        resolved_versions = res_fr.stdout.splitlines()
+                res_v = subprocess.run([str(python_exe), "-V"], capture_output=True, text=True, errors="replace", timeout=10)
+                py_version_str = res_v.stdout.strip() or res_v.stderr.strip()
+            except Exception:
+                pass
+
             return {
                 "venv_dir": str(venv_dir),
                 "python_path": str(python_exe),
                 "cached": True,
                 "cache_key": cache_key,
                 "lockfile_sha256": lockfile_hash,
+                "exclude_newer_cutoff": cutoff,
+                "interpreter_version": py_version_str,
+                "resolved_versions": resolved_versions,
             }
         except EnvSetupError:
             import shutil
@@ -343,110 +465,108 @@ def provision_environment(
 
     venv_dir.parent.mkdir(parents=True, exist_ok=True)
 
-    # Create virtualenv
-    try:
-        subprocess.run(
-            [sys.executable, "-m", "venv", str(venv_dir)],
-            check=True,
-            capture_output=True,
-            text=True,
-            errors="replace",
-            timeout=120,
-        )
-    except subprocess.TimeoutExpired as exc:
-        raise EnvSetupError(f"env_build_timeout: venv creation timed out at {venv_dir}: {exc}") from exc
-    except Exception as exc:
-        raise EnvSetupError(f"Failed to create venv at {venv_dir}: {exc}") from exc
-
-    pip_exe = venv_dir / ("Scripts" if sys.platform == "win32" else "bin") / ("pip.exe" if sys.platform == "win32" else "pip")
-    if not pip_exe.exists():
-        raise EnvSetupError(f"pip executable not found in created venv: {pip_exe}")
-
-    # 1. Install core test & build infrastructure into venv
-    core_pkgs = ["pytest", "setuptools-scm", "wheel", "packaging", "pluggy", "iniconfig", "exceptiongroup"]
-    try:
-        res_pt = subprocess.run(
-            [str(pip_exe), "install", *core_pkgs],
-            cwd=str(worktree),
-            capture_output=True,
-            text=True,
-            errors="replace",
-            timeout=120,
-        )
-        if res_pt.returncode != 0:
-            err_tail = res_pt.stderr[-1000:] or res_pt.stdout[-1000:]
-            raise EnvSetupError(f"pip install core test packages failed:\n{err_tail}")
-    except subprocess.TimeoutExpired as exc:
-        raise EnvSetupError(f"env_build_timeout: pip install core test packages timed out: {exc}") from exc
-    except Exception as exc:
-        if isinstance(exc, EnvSetupError):
-            raise
-        raise EnvSetupError(f"pip install core packages exception: {exc}") from exc
-
-    # 2. Discover package requirements and requirements.txt files first
-    discovered_pkgs, req_files = _discover_extras_and_requirements(worktree)
-
-    # 3. Install requirements files (under bounded timeouts)
-    for rf in req_files:
+    # Create virtualenv with uv (or fallback to python -m venv)
+    venv_created = False
+    if uv_exe:
         try:
-            subprocess.run(
-                [str(pip_exe), "install", "-r", str(rf)],
-                cwd=str(worktree),
-                capture_output=True,
-                text=True,
-                errors="replace",
-                timeout=60,
-            )
-        except subprocess.TimeoutExpired as exc:
-            raise EnvSetupError(f"env_build_timeout: pip install -r {rf.name} timed out after 60s: {exc}") from exc
+            subprocess.run([uv_exe, "python", "install", target_py], capture_output=True, timeout=120)
         except Exception:
             pass
 
-    # 4. Install discovered packages
+        try:
+            res_uv_venv = subprocess.run(
+                [uv_exe, "venv", "--python", target_py, str(venv_dir)],
+                capture_output=True,
+                text=True,
+                errors="replace",
+                timeout=120,
+            )
+            if res_uv_venv.returncode == 0:
+                venv_created = True
+        except subprocess.TimeoutExpired as exc:
+            raise EnvSetupError(f"env_build_timeout: uv venv creation timed out at {venv_dir}: {exc}") from exc
+        except Exception:
+            pass
+
+    if not venv_created:
+        try:
+            subprocess.run(
+                [sys.executable, "-m", "venv", str(venv_dir)],
+                check=True,
+                capture_output=True,
+                text=True,
+                errors="replace",
+                timeout=120,
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise EnvSetupError(f"env_build_timeout: venv creation timed out at {venv_dir}: {exc}") from exc
+        except Exception as exc:
+            raise EnvSetupError(f"Failed to create venv at {venv_dir}: {exc}") from exc
+
+    python_exe = get_venv_python(venv_dir)
+    pip_exe = venv_dir / ("Scripts" if sys.platform == "win32" else "bin") / ("pip.exe" if sys.platform == "win32" else "pip")
+
+    def run_installer(args_list: list[str], timeout: int = 60) -> subprocess.CompletedProcess[str]:
+        if uv_exe:
+            cmd = [uv_exe, "pip", "install", "--python", str(python_exe)]
+            if cutoff:
+                cmd.extend(["--exclude-newer", cutoff])
+            cmd.extend(args_list)
+        else:
+            cmd = [str(pip_exe), "install"] + args_list
+        return subprocess.run(cmd, cwd=str(worktree), capture_output=True, text=True, errors="replace", timeout=timeout)
+
+    # 1. Discover requirements files and extras
+    discovered_pkgs, req_files = _discover_extras_and_requirements(worktree)
+
+    # 2. Install requirements files FIRST, unmodified
+    for rf in req_files:
+        try:
+            res_rf = run_installer(["-r", str(rf)], timeout=90)
+            if res_rf.returncode != 0:
+                logger.debug(f"Installer -r {rf.name} failed: {res_rf.stderr[-500:]}")
+        except subprocess.TimeoutExpired as exc:
+            raise EnvSetupError(f"env_build_timeout: install -r {rf.name} timed out after 90s: {exc}") from exc
+        except Exception:
+            pass
+
+    # 3. Install core test & build infrastructure
+    core_pkgs = ["pytest", "setuptools-scm", "wheel", "packaging", "pluggy", "iniconfig", "exceptiongroup"]
+    try:
+        res_pt = run_installer(core_pkgs, timeout=90)
+        if res_pt.returncode != 0 and not uv_exe:
+            err_tail = res_pt.stderr[-1000:] or res_pt.stdout[-1000:]
+            raise EnvSetupError(f"pip install core test packages failed:\n{err_tail}")
+    except subprocess.TimeoutExpired as exc:
+        raise EnvSetupError(f"env_build_timeout: install core test packages timed out: {exc}") from exc
+    except Exception as exc:
+        if isinstance(exc, EnvSetupError):
+            raise
+        raise EnvSetupError(f"install core packages exception: {exc}") from exc
+
+    # 4. Install discovered package extras
     if discovered_pkgs:
         chunk_size = 15
         for i in range(0, len(discovered_pkgs), chunk_size):
             chunk = discovered_pkgs[i : i + chunk_size]
             try:
-                subprocess.run(
-                    [str(pip_exe), "install", *chunk],
-                    cwd=str(worktree),
-                    capture_output=True,
-                    text=True,
-                    errors="replace",
-                    timeout=60,
-                )
+                run_installer(chunk, timeout=60)
             except subprocess.TimeoutExpired as exc:
-                raise EnvSetupError(f"env_build_timeout: pip install package chunk timed out after 60s: {exc}") from exc
+                raise EnvSetupError(f"env_build_timeout: install package chunk timed out: {exc}") from exc
             except Exception:
                 pass
 
-    # 5. Install project in editable mode (with real dependencies under bounded resolver timeout)
+    # 5. Install project in editable mode
     has_pyproject = (worktree / "pyproject.toml").exists()
     has_setup = (worktree / "setup.py").exists() or (worktree / "setup.cfg").exists()
 
     if has_pyproject or has_setup:
         try:
-            res_e = subprocess.run(
-                [str(pip_exe), "install", "-e", str(worktree)],
-                cwd=str(worktree),
-                capture_output=True,
-                text=True,
-                errors="replace",
-                timeout=60,
-            )
+            res_e = run_installer(["-e", str(worktree)], timeout=60)
             if res_e.returncode != 0:
-                # Fallback to --no-build-isolation -e
-                subprocess.run(
-                    [str(pip_exe), "install", "--no-build-isolation", "-e", str(worktree)],
-                    cwd=str(worktree),
-                    capture_output=True,
-                    text=True,
-                    errors="replace",
-                    timeout=60,
-                )
+                run_installer(["--no-build-isolation", "-e", str(worktree)], timeout=60)
         except subprocess.TimeoutExpired as exc:
-            raise EnvSetupError(f"env_build_timeout: pip install -e {worktree} timed out after 60s: {exc}") from exc
+            raise EnvSetupError(f"env_build_timeout: install -e {worktree} timed out: {exc}") from exc
         except Exception:
             pass
 
@@ -469,10 +589,29 @@ def provision_environment(
     # Preflight check after installation
     _preflight_environment(python_exe, worktree)
 
+    # 7. Capture resolved versions (freeze output) and interpreter version
+    resolved_versions: list[str] = []
+    py_version_str = ""
+    try:
+        if uv_exe:
+            res_fr = subprocess.run([uv_exe, "pip", "freeze", "--python", str(python_exe)], capture_output=True, text=True, errors="replace", timeout=30)
+            resolved_versions = res_fr.stdout.splitlines()
+        else:
+            if pip_exe.exists():
+                res_fr = subprocess.run([str(pip_exe), "freeze"], capture_output=True, text=True, errors="replace", timeout=30)
+                resolved_versions = res_fr.stdout.splitlines()
+        res_v = subprocess.run([str(python_exe), "-V"], capture_output=True, text=True, errors="replace", timeout=10)
+        py_version_str = res_v.stdout.strip() or res_v.stderr.strip()
+    except Exception:
+        pass
+
     return {
         "venv_dir": str(venv_dir),
         "python_path": str(python_exe),
         "cached": False,
         "cache_key": cache_key,
         "lockfile_sha256": lockfile_hash,
+        "exclude_newer_cutoff": cutoff,
+        "interpreter_version": py_version_str,
+        "resolved_versions": resolved_versions,
     }

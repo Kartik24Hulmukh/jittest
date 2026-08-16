@@ -256,8 +256,9 @@ def verify_test(
         verdict_class = VerdictClass.INCONCLUSIVE
         is_proven_catch = False
         exit_code = 1
-    elif not base_reproduced and kind == "bug":
-        # A bug row with base_execution.outcome != PASS is INCONCLUSIVE. It may never be scored refuted.
+    elif not base_reproduced:
+        # If base_reproduced is false, verdict MUST be "inconclusive" and disposition "base_reproduction_failed"
+        # for both bug and control rows. No row may be scored refuted or proven_catch if base reproduction failed.
         disposition = Disposition.BASE_REPRODUCTION_FAILED
         verdict_class = VerdictClass.INCONCLUSIVE
         is_proven_catch = False
@@ -334,6 +335,9 @@ def verify_test(
         "proven_catch": is_proven_catch,
         "base_reproduced": base_reproduced,
         "disposition": disposition.value if hasattr(disposition, "value") else str(disposition),
+        "exclude_newer_cutoff": base_env_info.get("exclude_newer_cutoff") if base_env_info else None,
+        "interpreter_version": base_env_info.get("interpreter_version") if base_env_info else None,
+        "resolved_versions": base_env_info.get("resolved_versions") if base_env_info else None,
         "provenance": {
             "repo_path": str(repo_path).replace("\\", "/"),
             "base_sha": resolved_base,

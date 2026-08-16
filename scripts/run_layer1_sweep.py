@@ -274,6 +274,8 @@ def generate_report_content(
 
     ctrls_exec = [r for r in ctrls if r.get("verdict") != "inconclusive"]
     ctrls_pc = [r for r in ctrls if r.get("verdict") in ("proven_catch", "collection_catch")]
+    ctrls_base_passed = sum(1 for r in ctrls if r.get("base_reproduced", False))
+    false_proof_denom = ctrls_base_passed
 
     inconclusive_count = sum(1 for r in results if r.get("verdict") == "inconclusive")
     definitive_count = len(results) - inconclusive_count
@@ -316,7 +318,7 @@ def generate_report_content(
 
 ## Headline Metrics
 
-- **Controls executed**: {len(ctrls_exec)}/{len(ctrls)} — false proofs: {len(ctrls_pc)}/{len(ctrls_exec)} ({len(ctrls) - len(ctrls_exec)} controls inconclusive)
+- **Controls executed**: {len(ctrls_exec)}/{len(ctrls)} — false proofs: {len(ctrls_pc)}/{false_proof_denom} ({len(ctrls) - len(ctrls_exec)} controls inconclusive)
 - **Bug rows executed**: {len(bugs_exec)}/{len(bugs)} — proven_catch: {len(bugs_pc)}/{len(bugs_exec)} (behavioral), collection_catch: {len(bugs_cc)}/{len(bugs_exec)} (collection)
 - **Base Reproduction Rate**: {bugs_base_passed}/{len(bugs)} ({base_repro_rate*100:.1f}%) of bug rows reproduced expected passing behavior on base commit
 - **Coverage**: {definitive_count}/{len(results)} ({definitive_count/len(results)*100:.1f}%) executed to definitive verdicts; {inconclusive_count}/{len(results)} refused loudly (inconclusive)
@@ -517,6 +519,9 @@ def main():
 
     ctrls_exec = [r for r in ctrls if r.get("verdict") != "inconclusive"]
     ctrls_pc = [r for r in ctrls if r.get("verdict") in ("proven_catch", "collection_catch")]
+    ctrls_base_passed = sum(1 for r in ctrls if r.get("base_reproduced", False))
+    false_proof_denom = ctrls_base_passed
+    false_proof_rate = (len(ctrls_pc) / false_proof_denom) if false_proof_denom > 0 else 0.0
 
     inconclusive_count = sum(1 for r in results if r.get("verdict") == "inconclusive")
     definitive_count = len(results) - inconclusive_count
@@ -538,7 +543,7 @@ def main():
     print("\n" + "=" * 60)
     print("=== LAYER-1 VERIFIER SWEEP SUMMARY (HONEST DENOMINATORS) ===")
     print("=" * 60)
-    print(f"Controls executed: {len(ctrls_exec)}/{len(ctrls)} — false proofs: {len(ctrls_pc)}/{len(ctrls_exec)} ({len(ctrls) - len(ctrls_exec)} controls inconclusive)")
+    print(f"Controls executed: {len(ctrls_exec)}/{len(ctrls)} — false proofs: {len(ctrls_pc)}/{false_proof_denom} ({len(ctrls) - len(ctrls_exec)} controls inconclusive)")
     print(f"Bug rows executed: {len(bugs_exec)}/{len(bugs)} — proven_catch: {len(bugs_pc)}/{len(bugs_exec)} (behavioral), collection_catch: {len(bugs_cc)}/{len(bugs_exec)} (collection)")
     print(f"Base Reproduction Rate: {bugs_base_passed}/{len(bugs)} ({base_repro_rate*100:.1f}%) of bug rows reproduced passing behavior on base commit")
     print(f"Coverage: {len(results)}/{len(results)} rows attempted with signed receipts; {definitive_count}/{len(results)} ({definitive_count/len(results)*100:.1f}%) executed to definitive verdicts; {inconclusive_count}/{len(results)} refused loudly (inconclusive)")
@@ -566,10 +571,12 @@ def main():
         "attempt_rate": len(results) / len(rows),
         "coverage_rate": definitive_count / len(rows),
         "base_reproduction_rate": base_repro_rate,
+        "base_reproduced_controls": ctrls_base_passed,
+        "false_proof_denominator": false_proof_denom,
         "timeout_count": timeout_count,
         "catch_proof_rate": (len(bugs_pc) / len(bugs)) if bugs else 0.0,
         "collection_catch_rate": (len(bugs_cc) / len(bugs)) if bugs else 0.0,
-        "false_proof_rate": (len(ctrls_pc) / len(ctrls_exec)) if ctrls_exec else 0.0,
+        "false_proof_rate": false_proof_rate,
         "total_cost_usd": total_cost,
         "total_wall_clock_s": round(total_time, 2),
         "summed_row_time_s": round(summed_row_time, 2),
