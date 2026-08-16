@@ -383,14 +383,52 @@ def provision_environment(
             raise
         raise EnvSetupError(f"pip install core packages exception: {exc}") from exc
 
-    # 2. Install project in editable mode (--no-deps first to avoid long backtracking hangs)
+    # 2. Discover package requirements and requirements.txt files first
+    discovered_pkgs, req_files = _discover_extras_and_requirements(worktree)
+
+    # 3. Install requirements files (under bounded timeouts)
+    for rf in req_files:
+        try:
+            subprocess.run(
+                [str(pip_exe), "install", "-r", str(rf)],
+                cwd=str(worktree),
+                capture_output=True,
+                text=True,
+                errors="replace",
+                timeout=60,
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise EnvSetupError(f"env_build_timeout: pip install -r {rf.name} timed out after 60s: {exc}") from exc
+        except Exception:
+            pass
+
+    # 4. Install discovered packages
+    if discovered_pkgs:
+        chunk_size = 15
+        for i in range(0, len(discovered_pkgs), chunk_size):
+            chunk = discovered_pkgs[i : i + chunk_size]
+            try:
+                subprocess.run(
+                    [str(pip_exe), "install", *chunk],
+                    cwd=str(worktree),
+                    capture_output=True,
+                    text=True,
+                    errors="replace",
+                    timeout=60,
+                )
+            except subprocess.TimeoutExpired as exc:
+                raise EnvSetupError(f"env_build_timeout: pip install package chunk timed out after 60s: {exc}") from exc
+            except Exception:
+                pass
+
+    # 5. Install project in editable mode (with real dependencies under bounded resolver timeout)
     has_pyproject = (worktree / "pyproject.toml").exists()
     has_setup = (worktree / "setup.py").exists() or (worktree / "setup.cfg").exists()
 
     if has_pyproject or has_setup:
         try:
             res_e = subprocess.run(
-                [str(pip_exe), "install", "--no-deps", "-e", str(worktree)],
+                [str(pip_exe), "install", "-e", str(worktree)],
                 cwd=str(worktree),
                 capture_output=True,
                 text=True,
@@ -400,7 +438,7 @@ def provision_environment(
             if res_e.returncode != 0:
                 # Fallback to --no-build-isolation -e
                 subprocess.run(
-                    [str(pip_exe), "install", "--no-build-isolation", "--no-deps", "-e", str(worktree)],
+                    [str(pip_exe), "install", "--no-build-isolation", "-e", str(worktree)],
                     cwd=str(worktree),
                     capture_output=True,
                     text=True,
@@ -408,69 +446,25 @@ def provision_environment(
                     timeout=60,
                 )
         except subprocess.TimeoutExpired as exc:
-            raise EnvSetupError(f"env_build_timeout: pip install --no-deps -e {worktree} timed out: {exc}") from exc
+            raise EnvSetupError(f"env_build_timeout: pip install -e {worktree} timed out after 60s: {exc}") from exc
         except Exception:
             pass
 
-    # 3. Discover package requirements and requirements.txt files
-    discovered_pkgs, req_files = _discover_extras_and_requirements(worktree)
-
-    # 4. Install requirements files
-    for rf in req_files:
-        try:
-            subprocess.run(
-                [str(pip_exe), "install", "-r", str(rf)],
-                cwd=str(worktree),
-                capture_output=True,
-                text=True,
-                errors="replace",
-                timeout=90,
-            )
-        except subprocess.TimeoutExpired as exc:
-            raise EnvSetupError(f"env_build_timeout: pip install -r {rf.name} timed out: {exc}") from exc
-        except Exception:
-            pass
-
-    # 5. Install discovered packages
-    if discovered_pkgs:
-        chunk_size = 15
-        for i in range(0, len(discovered_pkgs), chunk_size):
-            chunk = discovered_pkgs[i : i + chunk_size]
-            try:
-                res_chunk = subprocess.run(
-                    [str(pip_exe), "install", *chunk],
-                    cwd=str(worktree),
-                    capture_output=True,
-                    text=True,
-                    errors="replace",
-                    timeout=60,
-                )
-                if res_chunk.returncode != 0:
-                    for pkg in chunk:
-                        subprocess.run(
-                            [str(pip_exe), "install", pkg],
-                            cwd=str(worktree),
-                            capture_output=True,
-                            text=True,
-                            errors="replace",
-                            timeout=20,
-                        )
-            except subprocess.TimeoutExpired:
-                # If a chunk timed out, try essential packages with short timeout
-                for pkg in chunk:
-                    try:
-                        subprocess.run(
-                            [str(pip_exe), "install", pkg],
-                            cwd=str(worktree),
-                            capture_output=True,
-                            text=True,
-                            errors="replace",
-                            timeout=15,
-                        )
-                    except Exception:
-                        pass
-            except Exception:
-                pass
+    # 6. Apply pytest monkeypatch backward-compatibility fix if needed
+    try:
+        sp_dirs = [
+            venv_dir / "Lib" / "site-packages",
+            venv_dir / "lib" / f"python{sys.version_info.major}.{sys.version_info.minor}" / "site-packages",
+            venv_dir / "lib" / "site-packages",
+        ]
+        for sp in sp_dirs:
+            if sp.exists():
+                for mp_p in sp.glob("**/_pytest/monkeypatch.py"):
+                    mp_text = mp_p.read_text(encoding="utf-8", errors="replace")
+                    if "notset = NOTSET" not in mp_text and "from _pytest.compat import NOTSET" not in mp_text:
+                        mp_p.write_text(mp_text + "\nfrom _pytest.compat import NOTSET\nnotset = NOTSET\n", encoding="utf-8")
+    except Exception as exc:
+        logger.debug(f"Error applying pytest monkeypatch fix in {venv_dir}: {exc}")
 
     # Preflight check after installation
     _preflight_environment(python_exe, worktree)

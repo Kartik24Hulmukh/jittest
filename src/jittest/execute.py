@@ -124,6 +124,7 @@ class Disposition(StrEnum):
     CATCHING = "catching"
     ENV_SETUP_FAILED = "env_setup_failed"
     ENV_BUILD_TIMEOUT = "env_build_timeout"
+    BASE_REPRODUCTION_FAILED = "base_reproduction_failed"
 
 
 class FailureKind(StrEnum):
@@ -218,7 +219,20 @@ def detect_runner(python_exe: str | Path | None = None, workdir: Path | None = N
         [exe, "-c", "import pytest"], env=env, cwd=str(workdir) if workdir else None, capture_output=True, text=True, errors="replace",
     )
     if probe.returncode == 0:
-        return [exe, "-m", "pytest", "-q", "-p", "no:cacheprovider"]
+        return [
+            exe,
+            "-m",
+            "pytest",
+            "-q",
+            "-p",
+            "no:cacheprovider",
+            "-W",
+            "ignore::pytest.PytestRemovedIn10Warning",
+            "-W",
+            "ignore::pytest.PytestDeprecationWarning",
+            "-W",
+            "ignore::DeprecationWarning",
+        ]
     return [exe, "-m", "jittest._minirunner"]
 
 

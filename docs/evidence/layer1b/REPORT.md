@@ -4,7 +4,6 @@
 - **Evaluation Mode**: Layer-1 Differential Execution Verification (Zero LLM Generation)
 - **LLM Provider Cost**: **$0.00**
 - **Total Wall-Clock Time**: 496.2s (Summed Row Time: 3768.9s across 8 parallel workers)
-- **Public CI Run URL**: [https://github.com/Kartik24Hulmukh/jittest/actions/runs/31936309719](https://github.com/Kartik24Hulmukh/jittest/actions/runs/31936309719)
 
 ## Headline Metrics
 

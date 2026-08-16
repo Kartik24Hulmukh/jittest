@@ -3,7 +3,7 @@
   "manifest": "eval/layer1b_manifest.json",
   "sweep_summary_prev_sha": "9c6320df",
   "tool_commit_sha": "06354da20ba0d4f25334a0a4c490a46d33632760",
-  "ci_run_url": "https://github.com/Kartik24Hulmukh/jittest/actions/runs/31936309719",
+  "ci_run_url": null,
   "total_rows": 54,
   "completion_rate": 1.0,
   "catch_proof_rate": 0.2,

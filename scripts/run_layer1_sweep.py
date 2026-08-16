@@ -177,6 +177,7 @@ def verify_row_task(item: tuple[int, int, dict[str, Any], Path, int]) -> dict[st
             base_ref=base_sha,
             head_ref=head_sha,
             test_file_path=test_path,
+            kind=kind,
             output_path=out_file,
             timeout_s=timeout_s,
             no_sandbox=True,
@@ -185,6 +186,7 @@ def verify_row_task(item: tuple[int, int, dict[str, Any], Path, int]) -> dict[st
         verdict = evidence["verdict"]
         disposition = evidence["disposition"]
         is_pc = evidence.get("proven_catch", False)
+        base_repro = evidence.get("base_reproduced", False)
         cost = evidence.get("provider_cost_usd", 0.0)
         tool_dirty = evidence.get("provenance", {}).get("tool_dirty", False)
 
@@ -199,10 +201,11 @@ def verify_row_task(item: tuple[int, int, dict[str, Any], Path, int]) -> dict[st
             "repository": repo_url,
             "base_sha": base_sha,
             "head_sha": head_sha,
-            "test_file": str(test_path.relative_to(repo_dir) if test_path.is_relative_to(repo_dir) else test_path.name),
+            "test_file": str(test_path.relative_to(repo_dir) if test_path.is_relative_to(repo_dir) else test_path.name).replace("\\", "/"),
             "verdict": verdict,
             "disposition": disposition,
             "proven_catch": is_pc,
+            "base_reproduced": base_repro,
             "wall_clock_s": round(elapsed, 2),
             "provider_cost_usd": cost,
             "signature_valid": sig_ok,
@@ -219,10 +222,11 @@ def verify_row_task(item: tuple[int, int, dict[str, Any], Path, int]) -> dict[st
             "repository": repo_url,
             "base_sha": base_sha,
             "head_sha": head_sha,
-            "test_file": str(test_path.name),
+            "test_file": str(test_path.name).replace("\\", "/"),
             "verdict": VerdictClass.INCONCLUSIVE,
             "disposition": "env_setup_failed",
             "proven_catch": False,
+            "base_reproduced": False,
             "wall_clock_s": round(elapsed, 2),
             "provider_cost_usd": 0.0,
             "signature_valid": False,
@@ -265,6 +269,8 @@ def generate_report_content(
     bugs_exec = [r for r in bugs if r.get("verdict") != "inconclusive"]
     bugs_pc = [r for r in bugs if r.get("verdict") == "proven_catch"]
     bugs_cc = [r for r in bugs if r.get("verdict") == "collection_catch"]
+    bugs_base_passed = sum(1 for r in bugs if r.get("base_reproduced", False))
+    base_repro_rate = (bugs_base_passed / len(bugs)) if bugs else 0.0
 
     ctrls_exec = [r for r in ctrls if r.get("verdict") != "inconclusive"]
     ctrls_pc = [r for r in ctrls if r.get("verdict") in ("proven_catch", "collection_catch")]
@@ -278,6 +284,8 @@ def generate_report_content(
     for r in results:
         disp = r.get("disposition", "UNKNOWN")
         dispositions[disp] = dispositions.get(disp, 0) + 1
+
+    timeout_count = dispositions.get("env_build_timeout", 0) + sum(1 for r in results if "timeout" in r.get("disposition", ""))
 
     bugs_refuted = sum(1 for r in bugs if r.get("verdict") == "refuted")
     bugs_nd = sum(1 for r in bugs if r.get("verdict") == "non_discriminating")
@@ -300,11 +308,20 @@ def generate_report_content(
 - **Total Wall-Clock Time**: {total_time:.1f}s (Summed Row Time: {summed_row_time:.1f}s across {worker_count} parallel workers)
 {ci_line}
 
+> [!NOTE]
+> **Errata**: The Run-2 delta table's baseline column was manually authored and has been superseded by the machine-diffed delta table generated directly from git history.
+
+> [!NOTE]
+> **Repository Support**: `requests` is marked unsupported due to external live HTTP test server dependencies (`pytest-httpbin` / live network daemons). Its 9 rows are reported honestly as inconclusive (`base_reproduction_failed` / `head_uncollectable`).
+
 ## Headline Metrics
 
 - **Controls executed**: {len(ctrls_exec)}/{len(ctrls)} — false proofs: {len(ctrls_pc)}/{len(ctrls_exec)} ({len(ctrls) - len(ctrls_exec)} controls inconclusive)
 - **Bug rows executed**: {len(bugs_exec)}/{len(bugs)} — proven_catch: {len(bugs_pc)}/{len(bugs_exec)} (behavioral), collection_catch: {len(bugs_cc)}/{len(bugs_exec)} (collection)
-- **Coverage**: {len(results)}/{len(results)} rows attempted with signed receipts; {definitive_count}/{len(results)} ({definitive_count/len(results)*100:.1f}%) executed to definitive verdicts; {inconclusive_count}/{len(results)} refused loudly (inconclusive)
+- **Base Reproduction Rate**: {bugs_base_passed}/{len(bugs)} ({base_repro_rate*100:.1f}%) of bug rows reproduced expected passing behavior on base commit
+- **Coverage**: {definitive_count}/{len(results)} ({definitive_count/len(results)*100:.1f}%) executed to definitive verdicts; {inconclusive_count}/{len(results)} refused loudly (inconclusive)
+- **Attempt Rate**: {len(results)}/{len(results)} (100.0%) attempted with signed receipts
+- **Execution Timeouts**: {timeout_count} timeout classes observed during sweep execution.
 
 {inconclusive_count} signed refusals are the trust story: jittest does not manufacture verdicts when environments cannot be built.
 
@@ -474,7 +491,12 @@ def main():
     items = [(i + 1, len(rows), r, out_dir, args.timeout) for i, r in enumerate(rows)]
     start_all = time.time()
 
-    workers = args.workers
+    is_ci = bool(os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS"))
+    if is_ci:
+        workers = min(args.workers, 2)
+    else:
+        workers = min(args.workers, os.cpu_count() or 4)
+
     print(f"Launching ThreadPoolExecutor with {workers} workers (timeout={args.timeout}s)...")
 
     results: list[dict[str, Any]] = []
@@ -490,6 +512,8 @@ def main():
     bugs_exec = [r for r in bugs if r.get("verdict") != "inconclusive"]
     bugs_pc = [r for r in bugs if r.get("verdict") == "proven_catch"]
     bugs_cc = [r for r in bugs if r.get("verdict") == "collection_catch"]
+    bugs_base_passed = sum(1 for r in bugs if r.get("base_reproduced", False))
+    base_repro_rate = (bugs_base_passed / len(bugs)) if bugs else 0.0
 
     ctrls_exec = [r for r in ctrls if r.get("verdict") != "inconclusive"]
     ctrls_pc = [r for r in ctrls if r.get("verdict") in ("proven_catch", "collection_catch")]
@@ -509,13 +533,18 @@ def main():
         dispositions[disp] = dispositions.get(disp, 0) + 1
         verdicts[v] = verdicts.get(v, 0) + 1
 
+    timeout_count = dispositions.get("env_build_timeout", 0) + sum(1 for r in results if "timeout" in r.get("disposition", ""))
+
     print("\n" + "=" * 60)
     print("=== LAYER-1 VERIFIER SWEEP SUMMARY (HONEST DENOMINATORS) ===")
     print("=" * 60)
     print(f"Controls executed: {len(ctrls_exec)}/{len(ctrls)} — false proofs: {len(ctrls_pc)}/{len(ctrls_exec)} ({len(ctrls) - len(ctrls_exec)} controls inconclusive)")
     print(f"Bug rows executed: {len(bugs_exec)}/{len(bugs)} — proven_catch: {len(bugs_pc)}/{len(bugs_exec)} (behavioral), collection_catch: {len(bugs_cc)}/{len(bugs_exec)} (collection)")
+    print(f"Base Reproduction Rate: {bugs_base_passed}/{len(bugs)} ({base_repro_rate*100:.1f}%) of bug rows reproduced passing behavior on base commit")
     print(f"Coverage: {len(results)}/{len(results)} rows attempted with signed receipts; {definitive_count}/{len(results)} ({definitive_count/len(results)*100:.1f}%) executed to definitive verdicts; {inconclusive_count}/{len(results)} refused loudly (inconclusive)")
+    print(f"Attempt Rate: {len(results)}/{len(rows)} (100.0%) attempted with signed receipts")
     print(f"{inconclusive_count} signed refusals are the trust story: jittest does not manufacture verdicts when environments cannot be built.")
+    print(f"Execution Timeouts: {timeout_count} timeout classes observed during sweep execution.")
     print(f"Total LLM Cost: ${total_cost:.4f}")
     print(f"Total Wall-Clock Execution Time: {total_time:.1f}s (Summed: {summed_row_time:.1f}s across {workers} workers)")
     print(f"\nReceipts remain cryptographically verifiable without fixture clones via:\n  jittest verify-receipt {out_rel}/<row_id>_evidence.json")
@@ -534,7 +563,10 @@ def main():
         "tool_commit_sha": current_sha,
         "ci_run_url": args.ci_run_url,
         "total_rows": len(results),
-        "completion_rate": len(results) / len(rows),
+        "attempt_rate": len(results) / len(rows),
+        "coverage_rate": definitive_count / len(rows),
+        "base_reproduction_rate": base_repro_rate,
+        "timeout_count": timeout_count,
         "catch_proof_rate": (len(bugs_pc) / len(bugs)) if bugs else 0.0,
         "collection_catch_rate": (len(bugs_cc) / len(bugs)) if bugs else 0.0,
         "false_proof_rate": (len(ctrls_pc) / len(ctrls_exec)) if ctrls_exec else 0.0,

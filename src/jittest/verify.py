@@ -118,6 +118,7 @@ def verify_test(
     test_file_path: Path | str | None = None,
     pr_number: int | str | None = None,
     rel_path: str = ".",
+    kind: str = "bug",
     output_path: Path | str | None = None,
     timeout_s: int = 120,
     reruns: int = 2,
@@ -238,6 +239,8 @@ def verify_test(
             pass
         rerun_agreement = len(head_runs) > 1 and (head_runs[0].outcome == head_runs[1].outcome)
 
+    base_reproduced = bool(base_run is not None and base_run.outcome is Outcome.PASS)
+
     # Determine disposition and verdict
     disposition = Disposition.ENV_SETUP_FAILED
     verdict_class = VerdictClass.INCONCLUSIVE
@@ -250,6 +253,12 @@ def verify_test(
             disposition = Disposition.ENV_BUILD_TIMEOUT
         else:
             disposition = Disposition.ENV_SETUP_FAILED
+        verdict_class = VerdictClass.INCONCLUSIVE
+        is_proven_catch = False
+        exit_code = 1
+    elif not base_reproduced and kind == "bug":
+        # A bug row with base_execution.outcome != PASS is INCONCLUSIVE. It may never be scored refuted.
+        disposition = Disposition.BASE_REPRODUCTION_FAILED
         verdict_class = VerdictClass.INCONCLUSIVE
         is_proven_catch = False
         exit_code = 1
@@ -293,12 +302,21 @@ def verify_test(
 
     wall_clock_s = round(time.monotonic() - start_time, 4)
 
+    base_env_dict = {
+        k: str(v).replace("\\", "/") if isinstance(v, (str, Path)) else v
+        for k, v in (base_env_info or {}).items()
+    }
+    head_env_dict = {
+        k: str(v).replace("\\", "/") if isinstance(v, (str, Path)) else v
+        for k, v in (head_env_info or {}).items()
+    }
+
     base_exec_dict = {
         "outcome": base_run.outcome.name if base_run else "NOTRUN",
         "exit_code": base_run.returncode if base_run else -1,
         "stdout_sha256": _hash_str(base_run.stdout) if base_run else _hash_str(""),
         "stderr_sha256": _hash_str(base_run.stderr) if base_run else _hash_str(""),
-        "environment": base_env_info or {},
+        "environment": base_env_dict,
     }
 
     head_exec_dict = {
@@ -306,7 +324,7 @@ def verify_test(
         "exit_code": head_run1.returncode if head_run1 else -1,
         "stdout_sha256": _hash_str(head_run1.stdout) if head_run1 else _hash_str(""),
         "stderr_sha256": _hash_str(head_run1.stderr) if head_run1 else _hash_str(""),
-        "environment": head_env_info or {},
+        "environment": head_env_dict,
     }
 
     evidence_dict: dict[str, Any] = {
@@ -314,9 +332,10 @@ def verify_test(
         "tool": "jittest verify",
         "verdict": verdict_class,
         "proven_catch": is_proven_catch,
+        "base_reproduced": base_reproduced,
         "disposition": disposition.value if hasattr(disposition, "value") else str(disposition),
         "provenance": {
-            "repo_path": str(repo_path),
+            "repo_path": str(repo_path).replace("\\", "/"),
             "base_sha": resolved_base,
             "head_sha": resolved_head,
             "test_file_name": test_path.name,
@@ -325,7 +344,7 @@ def verify_test(
             "tool_branch": tool_branch,
             "tool_dirty": tool_dirty,
             "tool_tree_sha": tool_tree_sha,
-            "rel_path": rel_path,
+            "rel_path": str(rel_path).replace("\\", "/"),
         },
         "sandbox": sbx_plan.as_dict(),
         "base_execution": base_exec_dict,

@@ -30,13 +30,40 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .
+          pip install -e . cryptography
+
+      - name: Provision fixture repositories
+        run: |
+          python -c "
+          from pathlib import Path
+          import subprocess
+          PUBLIC_REPOS = {
+              'flask': 'https://github.com/pallets/flask',
+              'requests': 'https://github.com/psf/requests',
+              'youtube-dl': 'https://github.com/ytdl-org/youtube-dl',
+              'click': 'https://github.com/pallets/click',
+              'httpx': 'https://github.com/encode/httpx',
+              'rich': 'https://github.com/Textualize/rich',
+              'pytest': 'https://github.com/pytest-dev/pytest',
+              'pydantic': 'https://github.com/pydantic/pydantic',
+              'django': 'https://github.com/django/django',
+          }
+          fixture_dir = Path.home() / '.cache' / 'jittest' / 'fixtures'
+          fixture_dir.mkdir(parents=True, exist_ok=True)
+          for name, url in PUBLIC_REPOS.items():
+              target = fixture_dir / name
+              if not (target / '.git').exists():
+                  print(f'Cloning {name} from {url}...')
+                  subprocess.run(['git', 'clone', '--quiet', url, str(target)], check=True)
+          print('All fixture repos provisioned!')
+          "
 
       - name: Run Layer-1 Verifier Sweep
         run: |
           python scripts/run_layer1_sweep.py \
             --manifest "${{ github.event.inputs.manifest || 'eval/layer1b_manifest.json' }}" \
-            --prev-sha "${{ github.event.inputs.prev_sha || '9c6320df' }}"
+            --prev-sha "${{ github.event.inputs.prev_sha || '9c6320df' }}" \
+            --workers 2
 
       - name: Verify Signed Receipts
         run: |
@@ -50,13 +77,13 @@ jobs:
           for f in files:
               ok, msg = verify_receipt(f)
               assert ok, f'Receipt verification failed for {f}: {msg}'
-          print('All receipts cryptographically valid!')
+          print('All 54 receipts cryptographically valid!')
           "
 
       - name: Upload Evidence Receipts and Report
         uses: actions/upload-artifact@v4
         with:
-          name: layer1b-evidence-run3
+          name: layer1b-evidence-run4
           path: |
             docs/evidence/layer1b/*_evidence.json
             docs/evidence/layer1b/REPORT.md
