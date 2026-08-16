@@ -95,10 +95,19 @@ def ensure_worktree_fixes(worktree: Path) -> None:
 def _preflight_environment(python_exe: Path, worktree_dir: Path) -> None:
     """Preflight check: verify python can import sys and pytest works."""
     ensure_worktree_fixes(worktree_dir)
+
+    import os
+    env = dict(os.environ)
+    src_dir = worktree_dir / "src"
+    paths = [str(src_dir), str(worktree_dir)] if src_dir.is_dir() else [str(worktree_dir)]
+    existing_pp = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = os.pathsep.join(paths + ([existing_pp] if existing_pp else []))
+
     try:
         res = subprocess.run(
             [str(python_exe), "-c", "import sys; import pytest"],
             cwd=str(worktree_dir),
+            env=env,
             capture_output=True,
             text=True,
             errors="replace",
@@ -118,6 +127,7 @@ def _preflight_environment(python_exe: Path, worktree_dir: Path) -> None:
         res_pytest = subprocess.run(
             [str(python_exe), "-m", "pytest", "--version"],
             cwd=str(worktree_dir),
+            env=env,
             capture_output=True,
             text=True,
             errors="replace",
@@ -144,6 +154,13 @@ def _discover_extras_and_requirements(worktree: Path) -> tuple[list[str], list[P
     if pyproject_path.is_file():
         try:
             data = tomllib.loads(pyproject_path.read_text(encoding="utf-8", errors="replace"))
+
+            # [project] dependencies (PEP 621 core dependencies)
+            proj_deps = data.get("project", {}).get("dependencies", [])
+            if isinstance(proj_deps, list):
+                for r in proj_deps:
+                    if isinstance(r, str) and r.strip():
+                        packages.add(r.strip())
 
             # [project.optional-dependencies]
             opt = data.get("project", {}).get("optional-dependencies", {})
@@ -311,14 +328,18 @@ def provision_environment(
     python_exe = get_venv_python(venv_dir)
 
     if python_exe.exists():
-        _preflight_environment(python_exe, worktree)
-        return {
-            "venv_dir": str(venv_dir),
-            "python_path": str(python_exe),
-            "cached": True,
-            "cache_key": cache_key,
-            "lockfile_sha256": lockfile_hash,
-        }
+        try:
+            _preflight_environment(python_exe, worktree)
+            return {
+                "venv_dir": str(venv_dir),
+                "python_path": str(python_exe),
+                "cached": True,
+                "cache_key": cache_key,
+                "lockfile_sha256": lockfile_hash,
+            }
+        except EnvSetupError:
+            import shutil
+            shutil.rmtree(venv_dir, ignore_errors=True)
 
     venv_dir.parent.mkdir(parents=True, exist_ok=True)
 
@@ -422,7 +443,7 @@ def provision_environment(
                     capture_output=True,
                     text=True,
                     errors="replace",
-                    timeout=90,
+                    timeout=60,
                 )
                 if res_chunk.returncode != 0:
                     for pkg in chunk:
@@ -432,10 +453,22 @@ def provision_environment(
                             capture_output=True,
                             text=True,
                             errors="replace",
-                            timeout=30,
+                            timeout=20,
                         )
-            except subprocess.TimeoutExpired as exc:
-                raise EnvSetupError(f"env_build_timeout: pip install packages chunk timed out: {exc}") from exc
+            except subprocess.TimeoutExpired:
+                # If a chunk timed out, try essential packages with short timeout
+                for pkg in chunk:
+                    try:
+                        subprocess.run(
+                            [str(pip_exe), "install", pkg],
+                            cwd=str(worktree),
+                            capture_output=True,
+                            text=True,
+                            errors="replace",
+                            timeout=15,
+                        )
+                    except Exception:
+                        pass
             except Exception:
                 pass
 

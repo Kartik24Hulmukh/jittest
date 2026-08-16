@@ -208,13 +208,14 @@ class Verdict:
         return len(set(self.head_runs)) <= 1
 
 
-def detect_runner(python_exe: str | Path | None = None) -> list[str]:
+def detect_runner(python_exe: str | Path | None = None, workdir: Path | None = None) -> list[str]:
     """Prefer the project's own pytest. Fall back to the bundled mini-runner."""
     exe = str(python_exe) if python_exe else sys.executable
     if os.getenv("JITTEST_FORCE_MINIRUNNER") == "1":
         return [exe, "-m", "jittest._minirunner"]
+    env = _env_for(workdir) if workdir else None
     probe = subprocess.run(
-        [exe, "-c", "import pytest"], capture_output=True, text=True, errors="replace",
+        [exe, "-c", "import pytest"], env=env, cwd=str(workdir) if workdir else None, capture_output=True, text=True, errors="replace",
     )
     if probe.returncode == 0:
         return [exe, "-m", "pytest", "-q", "-p", "no:cacheprovider"]
@@ -520,7 +521,7 @@ def run_test(workdir: Path, test_code: str, timeout_s: int = 120,
     else:
         candidate = workdir / f"{CANDIDATE_PREFIX}{token}.py"
     candidate.write_text(test_code, encoding="utf-8")
-    runner = detect_runner(python_path)
+    runner = detect_runner(python_path, workdir=workdir)
     uses_pytest = "pytest" in runner
     report = workdir / f".jittest-junit-{token}.xml"
     command = [*runner, str(candidate)]
