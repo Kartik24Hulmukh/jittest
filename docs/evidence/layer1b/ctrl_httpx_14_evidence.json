@@ -3,17 +3,18 @@
   "tool": "jittest verify",
   "verdict": "inconclusive",
   "proven_catch": false,
-  "disposition": "env_setup_failed",
+  "base_reproduced": false,
+  "disposition": "head_uncollectable_base_broken",
   "provenance": {
-    "repo_path": "C:\\Users\\praja\\.cache\\jittest\\fixtures\\httpx",
+    "repo_path": "/home/runner/.cache/jittest/fixtures/httpx",
     "base_sha": "def4778d622e8bf49a9fea4dda78cca4cf666d8a",
     "head_sha": "435e1dac899adeb0c156c00721ecbb1124d75842",
     "test_file_name": "test_api.py",
     "test_file_sha256": "785f0650f616312f22a1573fbe383647c68b2282deaa18ad64da650331e1e90f",
-    "tool_commit_sha": "06354da20ba0d4f25334a0a4c490a46d33632760",
+    "tool_commit_sha": "c6a44ecca73c37a9b208680f2ed316ef27ea2199",
     "tool_branch": "main",
     "tool_dirty": false,
-    "tool_tree_sha": "c65e60083dec340bd2e071a10b06554d6573bc8d",
+    "tool_tree_sha": "ec2ebd85a1807bedef5996131b085e22fd6dc13f",
     "rel_path": "."
   },
   "sandbox": {
@@ -26,26 +27,37 @@
     ]
   },
   "base_execution": {
-    "outcome": "NOTRUN",
-    "exit_code": -1,
+    "outcome": "FAIL",
+    "exit_code": 1,
     "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "environment": {}
+    "stderr_sha256": "172bf85833f07aafcc535ef9bca2221e4415b3688c4522ce3cc2b71c4c083209",
+    "environment": {
+      "venv_dir": "/home/runner/.jittest/envs/env_aba4d6debc929a0f",
+      "python_path": "/home/runner/.jittest/envs/env_aba4d6debc929a0f/bin/python",
+      "cached": true,
+      "cache_key": "aba4d6debc929a0f",
+      "lockfile_sha256": "7ae10a023ecb44ca91aa70c4c0ca4979e28f23d581c0e714d5f38e21a53e36d1"
+    }
   },
   "head_execution": {
-    "outcome": "NOTRUN",
-    "exit_code": -1,
+    "outcome": "ERROR",
+    "exit_code": 4,
     "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "environment": {}
+    "stderr_sha256": "92e6a40f7e702b3ea8d32068e197e0c58f94616c1a5e448643e14156422146ef",
+    "environment": {
+      "venv_dir": "/home/runner/.jittest/envs/env_0cd3bd651575aa15",
+      "python_path": "/home/runner/.jittest/envs/env_0cd3bd651575aa15/bin/python",
+      "cached": false,
+      "cache_key": "0cd3bd651575aa15",
+      "lockfile_sha256": "7ae10a023ecb44ca91aa70c4c0ca4979e28f23d581c0e714d5f38e21a53e36d1"
+    }
   },
   "rerun_agreement": true,
-  "wall_clock_s": 148.672,
+  "wall_clock_s": 25.4651,
   "provider_cost_usd": 0.0,
-  "error": "base: Failed to create venv at C:\\Users\\praja\\.jittest\\envs\\env_f8e329a02dd6e7e7: Command '['C:\\\\Program Files\\\\Python312\\\\python.exe', '-m', 'venv', 'C:\\\\Users\\\\praja\\\\.jittest\\\\envs\\\\env_f8e329a02dd6e7e7']' returned non-zero exit status 1.; head: env_build_timeout: pip install -r requirements.txt timed out: Command '['C:\\\\Users\\\\praja\\\\.jittest\\\\envs\\\\env_655d5dc3fca8c3bf\\\\Scripts\\\\pip.exe', 'install', '-r', 'C:\\\\Users\\\\praja\\\\AppData\\\\Local\\\\Temp\\\\jittest-wt-zsxddca1\\\\requirements.txt']' timed out after 90 seconds",
   "signature": {
     "algorithm": "Ed25519",
-    "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
-    "value": "5/lcsJt9lYzjFrkyyGpD4cIKfpKnh20Q46sC30aNkmKbzbDO4zPjAYuORhT8grMngPX9jMaur1VEcsdi4Z5hAw=="
+    "public_key": "cfd3e147e28089db19d687fff24337b7f73bbfacefa5c55fe588f25f1b5d4973",
+    "value": "QBJB/62SBpdF8i7zbjrNfIFffxACKxXy5jBCb+AbvEwmK0Qw/IXYguJqYcOQo396iGE9dGwomQedQ8tfnNXoCQ=="
   }
 }
