@@ -10,10 +10,10 @@
     "head_sha": "454fcfc92c66556f9538d420b5bd3ba95b1f57b7",
     "test_file_name": "test_cells.py",
     "test_file_sha256": "589998bb3b3d9bed83b00b1b446dc28aeb8508b988664fcc2254da5d0007a6ff",
-    "tool_commit_sha": "2523d889e61893b93cbd8bfd399c6b998b898d6e",
-    "tool_branch": "eval/layer1b-modern-cohort",
+    "tool_commit_sha": "06354da20ba0d4f25334a0a4c490a46d33632760",
+    "tool_branch": "main",
     "tool_dirty": false,
-    "tool_tree_sha": "05ce123cc71548a273b844ad6e8dcc3b7850ec98",
+    "tool_tree_sha": "c65e60083dec340bd2e071a10b06554d6573bc8d",
     "rel_path": "."
   },
   "sandbox": {
@@ -29,7 +29,7 @@
     "outcome": "TIMEOUT",
     "exit_code": -1,
     "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "stderr_sha256": "a448e032ceaf45c5805d104ee492e3d3f7313f2391c8be7675cee31b770cb747",
+    "stderr_sha256": "dbe88ab76b37b6595f019e46091cf6cdf812055a495e5c5a43780ddc5f8c3835",
     "environment": {
       "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_775852f4a430abd6",
       "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_775852f4a430abd6\\Scripts\\python.exe",
@@ -42,7 +42,7 @@
     "outcome": "TIMEOUT",
     "exit_code": -1,
     "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "stderr_sha256": "a448e032ceaf45c5805d104ee492e3d3f7313f2391c8be7675cee31b770cb747",
+    "stderr_sha256": "dbe88ab76b37b6595f019e46091cf6cdf812055a495e5c5a43780ddc5f8c3835",
     "environment": {
       "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_32193c53b34a5299",
       "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_32193c53b34a5299\\Scripts\\python.exe",
@@ -52,11 +52,11 @@
     }
   },
   "rerun_agreement": true,
-  "wall_clock_s": 128.578,
+  "wall_clock_s": 245.015,
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
     "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
-    "value": "9/uGngQ7MqHRkD7Ppjro0hEscFAuorOptG3H4YO12fHENNyHlFFoQFIxV/dgHvCr81b1li7MerFnoybJAWC8CA=="
+    "value": "uI1i+h4SeMmia5mnKijJ3n2QukYSXRt+xKl5bTONL8FpCFSOQtBDI1EKhpHrZ87ghRunCD0sfUVBWGU2VJ3RAQ=="
   }
 }

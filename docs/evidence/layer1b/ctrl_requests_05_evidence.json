@@ -1,19 +1,19 @@
 {
   "schema_version": "2.0",
   "tool": "jittest verify",
-  "verdict": "inconclusive",
+  "verdict": "refuted",
   "proven_catch": false,
-  "disposition": "head_uncollectable_base_broken",
+  "disposition": "head_failed_base_failed_latent",
   "provenance": {
     "repo_path": "C:\\Users\\praja\\.cache\\jittest\\fixtures\\requests",
     "base_sha": "d38495c90653496c3c81f31e8f9bef162b400b44",
     "head_sha": "4c800e9aea2059660b8306b0fc8f9e9a4232cb3e",
     "test_file_name": "test_requests.py",
     "test_file_sha256": "5eacf6341d236e225ce6a37a592f3b410f20e69ec17641f0e2c99b03a79b904d",
-    "tool_commit_sha": "2523d889e61893b93cbd8bfd399c6b998b898d6e",
-    "tool_branch": "eval/layer1b-modern-cohort",
+    "tool_commit_sha": "06354da20ba0d4f25334a0a4c490a46d33632760",
+    "tool_branch": "main",
     "tool_dirty": false,
-    "tool_tree_sha": "05ce123cc71548a273b844ad6e8dcc3b7850ec98",
+    "tool_tree_sha": "c65e60083dec340bd2e071a10b06554d6573bc8d",
     "rel_path": "."
   },
   "sandbox": {
@@ -26,10 +26,10 @@
     ]
   },
   "base_execution": {
-    "outcome": "TIMEOUT",
-    "exit_code": -1,
-    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "stderr_sha256": "a448e032ceaf45c5805d104ee492e3d3f7313f2391c8be7675cee31b770cb747",
+    "outcome": "FAIL",
+    "exit_code": 1,
+    "stdout_sha256": "6b7d81861d2c9f3f0ec42bc463cba06c93fac01e7f6a3b0d515bfb2bf1dbc5a4",
+    "stderr_sha256": "96783f23ba727949647b6a21086ac67432bd54c3faab5254edcb28db71a5c835",
     "environment": {
       "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_be03e4aa65c39a76",
       "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_be03e4aa65c39a76\\Scripts\\python.exe",
@@ -39,10 +39,10 @@
     }
   },
   "head_execution": {
-    "outcome": "TIMEOUT",
-    "exit_code": -1,
-    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "stderr_sha256": "a448e032ceaf45c5805d104ee492e3d3f7313f2391c8be7675cee31b770cb747",
+    "outcome": "FAIL",
+    "exit_code": 1,
+    "stdout_sha256": "14c4c1d3d572d16742138db9783e8209c0dc032506f19ccc89f72ad5088c1067",
+    "stderr_sha256": "1933b58e3b125c7b321bbb176c97f6c1a7c0a0ebf18014367f416287e7fd1406",
     "environment": {
       "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_cc272cfb22e1fecd",
       "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_cc272cfb22e1fecd\\Scripts\\python.exe",
@@ -52,11 +52,11 @@
     }
   },
   "rerun_agreement": true,
-  "wall_clock_s": 125.235,
+  "wall_clock_s": 244.016,
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
     "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
-    "value": "MUVg+DfmcrCg+EzzrkiQReKPQj0WzACwbI0Iv5ixDVprzKXVQTEJ89+Xy1A9gvtY7Bs54KpRss/lQXavJpciBw=="
+    "value": "C+d6KQOwFQZUlnj8wU/P7lqoriNKWiS/SdXofqgxlT0R2GzHm3FebZ311gzjk5plebjm/6nRxwz83rjb3HIUCQ=="
   }
 }

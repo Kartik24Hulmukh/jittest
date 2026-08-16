@@ -10,10 +10,10 @@
     "head_sha": "1050d955ea5a219c72467ad832934ea80682b5fb",
     "test_file_name": "test_stream_lifecycle.py",
     "test_file_sha256": "a2471fbd9c222213380aef823a537521c8dcc8224709814708149217fc932524",
-    "tool_commit_sha": "2523d889e61893b93cbd8bfd399c6b998b898d6e",
-    "tool_branch": "eval/layer1b-modern-cohort",
+    "tool_commit_sha": "06354da20ba0d4f25334a0a4c490a46d33632760",
+    "tool_branch": "main",
     "tool_dirty": false,
-    "tool_tree_sha": "05ce123cc71548a273b844ad6e8dcc3b7850ec98",
+    "tool_tree_sha": "c65e60083dec340bd2e071a10b06554d6573bc8d",
     "rel_path": "."
   },
   "sandbox": {
@@ -28,7 +28,7 @@
   "base_execution": {
     "outcome": "PASS",
     "exit_code": 0,
-    "stdout_sha256": "f3a881dd39bb6d5c55a82867ff43993f4060bc17faabda7aa3d4c1546c4461d2",
+    "stdout_sha256": "24229dbda828325d59d5d3a6114ee00e2a2d8aab7a6b3ec799cc01f046dcfb36",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "environment": {
       "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_55e6f165f4ba2d4f",
@@ -41,7 +41,7 @@
   "head_execution": {
     "outcome": "PASS",
     "exit_code": 0,
-    "stdout_sha256": "028b89ccde3ecbe96e3a97836884abcff43e665d0b54773ca1a110f8d9bf3417",
+    "stdout_sha256": "87b2fc71675cfde99487594b6b592767712f7a63aac22a260989e1078741c92a",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "environment": {
       "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_2bc613cbb6c431f8",
@@ -52,11 +52,11 @@
     }
   },
   "rerun_agreement": true,
-  "wall_clock_s": 13.281,
+  "wall_clock_s": 11.875,
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
     "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
-    "value": "zPR1PNDegHwe2whd60GUDCs2SsA7xvKrxeOWU/6if0OKx1ZlcoNzl17vzLSIrCS4Cx6H1u28Cc/iSguVYhvoAg=="
+    "value": "ogDZKSttzOSpbquex7Lzg8O40NybSxP2ZYAGADXpbtBVYOAtA/kujb3BT+Ps6X7FNtLJqm+bQX3tuXAt+PRmBw=="
   }
 }

@@ -10,10 +10,10 @@
     "head_sha": "bc7dd0fc4d56e808bcdd85ac2d797b3107c89259",
     "test_file_name": "test_utils.py",
     "test_file_sha256": "00d027432443a1aa9539c00a09550de9439cdd696d2e6acf2dc997de3a416946",
-    "tool_commit_sha": "2523d889e61893b93cbd8bfd399c6b998b898d6e",
-    "tool_branch": "eval/layer1b-modern-cohort",
+    "tool_commit_sha": "06354da20ba0d4f25334a0a4c490a46d33632760",
+    "tool_branch": "main",
     "tool_dirty": false,
-    "tool_tree_sha": "05ce123cc71548a273b844ad6e8dcc3b7850ec98",
+    "tool_tree_sha": "c65e60083dec340bd2e071a10b06554d6573bc8d",
     "rel_path": "."
   },
   "sandbox": {
@@ -28,8 +28,8 @@
   "base_execution": {
     "outcome": "FAIL",
     "exit_code": 1,
-    "stdout_sha256": "4c8af3dad5de1189d6ec8aa3af668817676d96984d5c55e5f90a800e34a3c44b",
-    "stderr_sha256": "e8c1d87415780e55e8d44942fd2683fc2195cd0cf2a9752b6e2767a9b4ea2826",
+    "stdout_sha256": "f5e8d69a8f2f00f768dfdeb2a0867bb1221e642e63e6d652c3cfd15f6e2d03b5",
+    "stderr_sha256": "27cea30ecd524cb8081342b784e052a36f192a8ddb2153e6b1aa812b4a99852c",
     "environment": {
       "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_b17807130938ec75",
       "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_b17807130938ec75\\Scripts\\python.exe",
@@ -41,8 +41,8 @@
   "head_execution": {
     "outcome": "FAIL",
     "exit_code": 1,
-    "stdout_sha256": "891f88ef24dee3286dab7e0c687991bbb594c22e6ec6f0bbe2b7371de76ed06a",
-    "stderr_sha256": "1aa73785aeda606e8adfb006d3e3bfb5b5b2d17e8a218ed54ec39de7f658e335",
+    "stdout_sha256": "38890b78ab4e8d1d8f37724669f920f312e9effa017485c8062e7fad32968513",
+    "stderr_sha256": "392faf115503fe2d6926d577650e512296a5947b376ec2be013ab9bc74752ba7",
     "environment": {
       "venv_dir": "C:\\Users\\praja\\.jittest\\envs\\env_4d71db0e00629d7a",
       "python_path": "C:\\Users\\praja\\.jittest\\envs\\env_4d71db0e00629d7a\\Scripts\\python.exe",
@@ -52,11 +52,11 @@
     }
   },
   "rerun_agreement": true,
-  "wall_clock_s": 18.219,
+  "wall_clock_s": 13.078,
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
     "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
-    "value": "7jyhKjFPywEVeRplz72uzB/YXgCht9SHhwCAe7/i2sJAsMSvfCf/arV7g/BCJ3YRwafc+50xTaTRN2kDFp9VAw=="
+    "value": "eLsIgzZ0dcVHH9VhRplwcT2Qruyp0P2ERALi1HYUkRRj/AIMg8a8yleTm6+6f1Lj4y6blMSKh17UMEH2sKrpAA=="
   }
 }
