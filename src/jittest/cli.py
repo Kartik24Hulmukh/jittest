@@ -122,14 +122,20 @@ def build_parser() -> argparse.ArgumentParser:
     vf.add_argument("--path", default=".", help="relative directory path within repo (for monorepos)")
     vf.add_argument("--output", "-o", default=None, help="path to output evidence JSON artifact")
     vf.add_argument("--no-sandbox", action="store_true", help="disable container/namespace isolation (opt-out)")
-    vf.add_argument("--signing-key", default=None, help="path to Ed25519 private key")
+    vf.add_argument(
+        "--signing-key",
+        default=None,
+        help="path to an Ed25519 private key (PKCS#8 PEM or raw 32-byte seed). "
+             "Created if absent; an unusable key is an error, never a silent fallback.",
+    )
     vf.add_argument("--timeout", type=int, default=60, help="per test run timeout in seconds")
     vf.add_argument("--reruns", type=int, default=2, help="flakiness reruns on head")
     vf.add_argument("--json", dest="as_json", action="store_true")
 
     vr = sub.add_parser(
         "verify-receipt",
-        help="verify Ed25519 signature and hash-chain of an evidence artifact",
+        help="verify the Ed25519 signature of an evidence artifact, offline, "
+             "using the public key carried inside it",
     )
     vr.add_argument("artifact", help="path to evidence JSON artifact")
     vr.add_argument("--json", dest="as_json", action="store_true")
@@ -403,19 +409,28 @@ def _cmd_verify(args: argparse.Namespace) -> int:
     if not out_path and not args.as_json and isinstance(repo, Path):
         out_path = repo / f"jittest-evidence-{test_path.stem}.json"
 
-    evidence, exit_code = verify_test(
-        repo_path=repo,
-        base_ref=base_ref,
-        head_ref=head_ref,
-        pr_number=args.pr,
-        test_file_path=test_path,
-        rel_path=args.path,
-        output_path=out_path,
-        timeout_s=args.timeout,
-        reruns=args.reruns,
-        no_sandbox=args.no_sandbox,
-        signing_key_path=args.signing_key,
-    )
+    from .receipt import SigningKeyError
+
+    try:
+        evidence, exit_code = verify_test(
+            repo_path=repo,
+            base_ref=base_ref,
+            head_ref=head_ref,
+            pr_number=args.pr,
+            test_file_path=test_path,
+            rel_path=args.path,
+            output_path=out_path,
+            timeout_s=args.timeout,
+            reruns=args.reruns,
+            no_sandbox=args.no_sandbox,
+            signing_key_path=args.signing_key,
+        )
+    except SigningKeyError as exc:
+        # An unusable signing key is a refusal, not a fallback: a receipt signed by
+        # some other key would silently misattribute authorship. No artifact is
+        # written, and the reason is stated in one line rather than a traceback.
+        print(f"jittest verify: cannot sign evidence - {exc}", file=sys.stderr)
+        return 2
 
     if args.as_json:
         print(json.dumps(evidence, indent=2))

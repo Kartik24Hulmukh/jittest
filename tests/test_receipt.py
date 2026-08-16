@@ -1,9 +1,14 @@
-"""Tests for Ed25519 signed evidence receipts and offline verification."""
+"""Tests for Ed25519 signed evidence receipts and offline verification.
+
+Updated when symmetric signing was removed. The previous version asserted that a
+zero-dependency install CANNOT verify an Ed25519 receipt ("UNVERIFIABLE"), which
+encoded the 0.3.2 defect as expected behaviour. Every install can now verify.
+"""
 
 import tempfile
 from pathlib import Path
 
-from jittest.receipt import _HAS_CRYPTOGRAPHY, sign_evidence, verify_receipt
+from jittest.receipt import sign_evidence, verify_receipt
 
 
 def test_sign_and_verify_receipt():
@@ -19,17 +24,13 @@ def test_sign_and_verify_receipt():
 
         signed = sign_evidence(evidence, key_path=key_file)
         assert "signature" in signed
-        alg = signed["signature"]["algorithm"]
-        assert alg in ("Ed25519", "HMAC-SHA256")
+        assert signed["signature"]["algorithm"] == "Ed25519"
+        assert "verifying_key" in signed["signature"]
 
-        # Verify valid receipt
+        # Verifiable in every install, with or without `cryptography`.
         ok, msg = verify_receipt(signed, key_path=key_file)
-        if alg == "Ed25519" and not _HAS_CRYPTOGRAPHY:
-            assert ok is False
-            assert "UNVERIFIABLE" in msg
-        else:
-            assert ok is True
-            assert msg == "signature_valid"
+        assert ok is True
+        assert msg == "signature_valid"
 
 
 def test_tampered_receipt_fails():
@@ -49,4 +50,3 @@ def test_tampered_receipt_fails():
 
         ok, msg = verify_receipt(signed, key_path=key_file)
         assert ok is False
-

@@ -1,124 +1,198 @@
-"""Cryptographic Ed25519 & HMAC Signed Receipts & Ledger Verification.
+"""Ed25519-signed evidence receipts, verifiable in every install.
 
-Signs evidence JSON artifacts with Ed25519 (when cryptography is installed) or
-stdlib HMAC-SHA256 (when cryptography is absent), guaranteeing zero third-party
-runtime dependency requirements while providing Ed25519 signed receipts in supported
-environments.
+Every receipt jittest emits is signed with Ed25519. Verification uses the public key
+carried *in the receipt*, so a stranger can check a receipt they did not produce, on a
+machine that shares nothing with ours.
 
-NOTE: The stdlib HMAC-SHA256 fallback provides integrity verification (tamper detection)
-only, offering zero third-party authenticity. True cryptographic non-repudiation
-requires Ed25519 signing via the `cryptography` package.
+Two interchangeable backends produce byte-identical signatures, because Ed25519 is
+deterministic:
+
+* ``vendored``      - :mod:`jittest._ed25519`, pure Python, always available.
+* ``cryptography``  - used automatically when that package is importable, purely as a
+                      speed optimisation. It is never a correctness precondition.
+
+History, recorded so the mistake is not repeated. Through 0.3.2 a zero-dependency
+install fell back to HMAC-SHA256 whose key was ``sha256(str(key_path) +
+b"jittest_fallback_seed")``. That key is derivable from published source, so any third
+party could mint a receipt asserting ``proven_catch``; verification also compared
+against the *verifier's* local key rather than the receipt's, so receipts did not
+survive crossing a machine boundary. Separately, a zero-dependency install could not
+verify Ed25519 at all, which meant it could not check jittest's own published evidence.
+Symmetric signing is therefore removed rather than repaired: an evidence tool must not
+emit an artifact whose authorship it cannot establish.
+
+Receipts written before this change name the public key ``public_key``; that spelling is
+still accepted when verifying. New receipts use ``verifying_key``.
 """
 
 from __future__ import annotations
 
 import base64
-import hashlib
-import hmac
+import contextlib
 import json
+import os
 from pathlib import Path
 from typing import Any
+
+from . import _ed25519
 
 try:
     from cryptography.hazmat.primitives import serialization
     from cryptography.hazmat.primitives.asymmetric import ed25519
-    _HAS_CRYPTOGRAPHY = True
+
+    HAS_CRYPTOGRAPHY = True
 except ImportError:
-    _HAS_CRYPTOGRAPHY = False
+    HAS_CRYPTOGRAPHY = False
 
-__all__ = ["get_or_create_signing_key", "sign_evidence", "verify_receipt"]
+# Retained for backwards compatibility with existing imports.
+_HAS_CRYPTOGRAPHY = HAS_CRYPTOGRAPHY
+
+__all__ = [
+    "SigningKeyError",
+    "get_or_create_signing_key",
+    "sign_evidence",
+    "verify_receipt",
+    "HAS_CRYPTOGRAPHY",
+]
+
+VENDORED = "vendored"
+CRYPTOGRAPHY = "cryptography"
+
+# DER prefix of a PKCS#8 Ed25519 private key. The remaining 32 bytes are the seed.
+_PKCS8_ED25519_PREFIX = bytes.fromhex("302e020100300506032b657004220420")
+
+_DEFAULT_KEY_PATH = Path.home() / ".jittest" / "verify_ed25519.pem"
 
 
-def get_or_create_signing_key(
-    key_path: Path | str | None = None,
-) -> tuple[Any, Any]:
-    if key_path is None:
-        key_path = Path.home() / ".jittest" / "verify_ed25519.pem"
+class SigningKeyError(Exception):
+    """Raised when a signing key was requested but cannot be used.
+
+    Never swallowed. A key the user named and we silently ignored is how 0.3.2
+    produced receipts that failed their own verifier.
+    """
+
+
+def _seed_to_pem(seed: bytes) -> bytes:
+    if len(seed) != _ed25519.SEED_SIZE:
+        raise SigningKeyError(f"ed25519 seed must be {_ed25519.SEED_SIZE} bytes")
+    der = _PKCS8_ED25519_PREFIX + seed
+    body = base64.encodebytes(der).decode("ascii").strip()
+    return f"-----BEGIN PRIVATE KEY-----\n{body}\n-----END PRIVATE KEY-----\n".encode()
+
+
+def _seed_from_pem(data: bytes) -> bytes:
+    """Extract the 32-byte seed from PKCS#8 PEM, PKCS#8 DER, or a raw 32-byte key."""
+    if len(data) == _ed25519.SEED_SIZE and b"-----" not in data:
+        return data
+
+    text = data.decode("ascii", errors="ignore")
+    if "-----BEGIN" in text:
+        lines = [
+            ln.strip()
+            for ln in text.splitlines()
+            if ln.strip() and not ln.strip().startswith("-----")
+        ]
+        try:
+            der = base64.b64decode("".join(lines))
+        except Exception as exc:
+            raise SigningKeyError(f"key is not valid base64 PEM: {exc}") from exc
     else:
-        key_path = Path(key_path)
+        der = data
 
+    if der.startswith(_PKCS8_ED25519_PREFIX) and len(der) == len(_PKCS8_ED25519_PREFIX) + 32:
+        return der[-32:]
+    raise SigningKeyError(
+        "key is not a PKCS#8 Ed25519 private key (expected a 48-byte DER structure "
+        "or a raw 32-byte seed)"
+    )
+
+
+def get_or_create_signing_key(key_path: Path | str | None = None) -> bytes:
+    """Return the 32-byte Ed25519 seed at ``key_path``, creating it when absent.
+
+    Raises:
+        SigningKeyError: the file exists but is not a usable Ed25519 key. The caller
+            asked for a specific key; falling back to a different one would silently
+            change who signed the receipt.
+    """
+    key_path = Path(key_path) if key_path is not None else _DEFAULT_KEY_PATH
     key_path.parent.mkdir(parents=True, exist_ok=True)
 
-    if _HAS_CRYPTOGRAPHY:
-        if key_path.exists():
-            try:
-                pem_data = key_path.read_bytes()
-                priv_key = serialization.load_pem_private_key(pem_data, password=None)
-                if isinstance(priv_key, ed25519.Ed25519PrivateKey):
-                    return priv_key, priv_key.public_key()
-            except Exception:
-                pass
+    if key_path.exists():
+        try:
+            data = key_path.read_bytes()
+        except OSError as exc:
+            raise SigningKeyError(f"cannot read signing key {key_path}: {exc}") from exc
+        return _seed_from_pem(data)
 
-        # Generate new Ed25519 key pair
-        priv_key = ed25519.Ed25519PrivateKey.generate()
-        pub_key = priv_key.public_key()
-
-        pem_bytes = priv_key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption(),
-        )
-        key_path.write_bytes(pem_bytes)
-        return priv_key, pub_key
-    else:
-        # Fallback to stdlib key file (integrity-only, zero third-party authenticity)
-        secret_key_path = key_path.with_suffix(".key")
-        if secret_key_path.exists():
-            try:
-                secret_key = secret_key_path.read_bytes()
-                if len(secret_key) >= 32:
-                    return secret_key, secret_key
-            except Exception:
-                pass
-        secret_key = hashlib.sha256(str(key_path).encode("utf-8") + b"jittest_fallback_seed").digest()
-        secret_key_path.write_bytes(secret_key)
-        return secret_key, secret_key
+    seed = os.urandom(_ed25519.SEED_SIZE)
+    key_path.write_bytes(_seed_to_pem(seed))
+    # Windows and some mounted filesystems do not support POSIX modes. The key is
+    # still written; permissions simply follow the platform default.
+    with contextlib.suppress(OSError):
+        key_path.chmod(0o600)
+    return seed
 
 
 def _canonical_bytes(evidence_dict: dict[str, Any]) -> bytes:
-    # Copy dict and strip signature block
     d = {k: v for k, v in evidence_dict.items() if k != "signature"}
-    canonical_json = json.dumps(d, sort_keys=True, separators=(",", ":"))
-    return canonical_json.encode("utf-8")
+    return json.dumps(d, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
+def _select_backend(backend: str | None) -> str:
+    if backend in (VENDORED, CRYPTOGRAPHY):
+        if backend == CRYPTOGRAPHY and not HAS_CRYPTOGRAPHY:
+            raise SigningKeyError("cryptography backend requested but not installed")
+        return backend
+    if backend is not None:
+        raise SigningKeyError(f"unknown backend: {backend}")
+    return CRYPTOGRAPHY if HAS_CRYPTOGRAPHY else VENDORED
 
 
 def sign_evidence(
     evidence_dict: dict[str, Any],
     key_path: Path | str | None = None,
+    backend: str | None = None,
 ) -> dict[str, Any]:
-    priv_key, pub_key = get_or_create_signing_key(key_path)
+    """Return ``evidence_dict`` with an Ed25519 ``signature`` block attached."""
+    seed = get_or_create_signing_key(key_path)
     data = _canonical_bytes(evidence_dict)
+    chosen = _select_backend(backend)
 
-    result = dict(evidence_dict)
-
-    if _HAS_CRYPTOGRAPHY and isinstance(priv_key, ed25519.Ed25519PrivateKey):
-        sig_bytes = priv_key.sign(data)
-        pub_bytes = pub_key.public_bytes(
+    if chosen == CRYPTOGRAPHY:
+        priv = ed25519.Ed25519PrivateKey.from_private_bytes(seed)
+        sig_bytes = priv.sign(data)
+        pub_bytes = priv.public_key().public_bytes(
             encoding=serialization.Encoding.Raw,
             format=serialization.PublicFormat.Raw,
         )
-        result["signature"] = {
-            "algorithm": "Ed25519",
-            "public_key": pub_bytes.hex(),
-            "value": base64.b64encode(sig_bytes).decode("utf-8"),
-        }
     else:
-        # stdlib HMAC-SHA256 signature fallback (integrity-only)
-        hmac_sig = hmac.new(priv_key, data, hashlib.sha256).digest()
-        pub_hex = hashlib.sha256(pub_key).hexdigest()
-        result["signature"] = {
-            "algorithm": "HMAC-SHA256",
-            "public_key": pub_hex,
-            "value": base64.b64encode(hmac_sig).decode("utf-8"),
-        }
+        sig_bytes = _ed25519.sign(seed, data)
+        pub_bytes = _ed25519.secret_to_public(seed)
 
+    result = dict(evidence_dict)
+    result["signature"] = {
+        "algorithm": "Ed25519",
+        "verifying_key": pub_bytes.hex(),
+        "value": base64.b64encode(sig_bytes).decode("utf-8"),
+    }
     return result
 
 
 def verify_receipt(
     evidence_input: Path | str | dict[str, Any],
     key_path: Path | str | None = None,
+    backend: str | None = None,
 ) -> tuple[bool, str]:
+    """Verify a receipt using the public key carried inside it.
+
+    ``key_path`` is accepted for call-compatibility and deliberately unused: a receipt
+    that can only be checked against the verifier's own key is not evidence.
+
+    Returns:
+        ``(valid, reason)``. Never raises on malformed or unrecognised input; an
+        unverifiable receipt is a result, not a crash.
+    """
     if isinstance(evidence_input, (str, Path)):
         p = Path(evidence_input)
         if not p.exists():
@@ -134,36 +208,45 @@ def verify_receipt(
     if not isinstance(sig_block, dict):
         return False, "missing_signature_block"
 
-    pub_hex = sig_block.get("public_key")
-    sig_b64 = sig_block.get("value")
     alg = sig_block.get("algorithm", "Ed25519")
+    sig_b64 = sig_block.get("value")
+    # `public_key` is the pre-0.4 spelling and is still honoured.
+    key_hex = sig_block.get("verifying_key") or sig_block.get("public_key")
 
-    if not pub_hex or not sig_b64:
+    if alg in ("HMAC-SHA256", "HMAC"):
+        return False, (
+            "legacy_hmac_receipt_not_independently_verifiable: produced by jittest "
+            "<= 0.3.2 without cryptography installed. Its key is derivable from "
+            "published source, so this artifact cannot establish authorship. Re-run "
+            "`jittest verify` to obtain an Ed25519 receipt."
+        )
+
+    if alg != "Ed25519":
+        return False, f"unsupported_algorithm: {alg}"
+
+    if not key_hex or not sig_b64:
         return False, "incomplete_signature_block"
+
+    try:
+        pub_bytes = bytes.fromhex(key_hex)
+        sig_bytes = base64.b64decode(sig_b64)
+    except Exception as exc:
+        return False, f"malformed_signature_block: {exc}"
 
     data = _canonical_bytes(evidence_dict)
 
-    if alg == "Ed25519":
-        if not _HAS_CRYPTOGRAPHY:
-            return False, "UNVERIFIABLE: cryptography package required to verify Ed25519 signature"
+    try:
+        chosen = _select_backend(backend)
+    except SigningKeyError as exc:
+        return False, f"backend_unavailable: {exc}"
+
+    if chosen == CRYPTOGRAPHY:
         try:
-            pub_bytes = bytes.fromhex(pub_hex)
-            sig_bytes = base64.b64decode(sig_b64)
-            pub_key = ed25519.Ed25519PublicKey.from_public_bytes(pub_bytes)
-            pub_key.verify(sig_bytes, data)
+            ed25519.Ed25519PublicKey.from_public_bytes(pub_bytes).verify(sig_bytes, data)
             return True, "signature_valid"
         except Exception as exc:
             return False, f"signature_verification_failed: {exc}"
-    elif alg == "HMAC-SHA256":
-        try:
-            sig_bytes = base64.b64decode(sig_b64)
-            key, _ = get_or_create_signing_key(key_path)
-            expected_sig = hmac.new(key, data, hashlib.sha256).digest()
-            if hmac.compare_digest(sig_bytes, expected_sig):
-                return True, "signature_valid"
-            return False, "signature_verification_failed: HMAC mismatch"
-        except Exception as exc:
-            return False, f"signature_verification_failed: {exc}"
 
-    return False, f"unsupported_algorithm: {alg}"
-
+    if _ed25519.verify(pub_bytes, data, sig_bytes):
+        return True, "signature_valid"
+    return False, "signature_verification_failed: Ed25519 signature does not match payload"

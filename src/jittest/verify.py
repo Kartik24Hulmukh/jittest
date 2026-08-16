@@ -161,6 +161,13 @@ def verify_test(
 
     sbx_plan = plan_sandbox(mode=sandbox_mode, probe=True)
 
+    # A silently degraded sandbox is more dangerous than an explicitly disabled one:
+    # nobody chose it, so nobody knows to compensate. The artifact already records
+    # this in sandbox.notes; say it out loud too.
+    if not no_sandbox and getattr(sbx_plan, "backend", None) == "none":
+        for note in getattr(sbx_plan, "notes", []) or []:
+            logger.warning("WARNING: sandbox isolation unavailable - %s", note)
+
     # Tool repository provenance (scoped strictly to tool source tree)
     tool_root = Path(__file__).resolve().parent.parent.parent
     tool_commit_sha = _get_git_sha(tool_root, "HEAD")
