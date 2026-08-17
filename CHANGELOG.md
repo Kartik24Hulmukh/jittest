@@ -1,5 +1,62 @@
 # Changelog
 
+## 0.3.3 - 2026-08-17
+
+### Security — receipts were forgeable in the default install
+
+A default `pip install jittest` has no third-party packages, because jittest declares
+zero dependencies. In that configuration 0.3.2 and earlier signed evidence with
+HMAC-SHA256 using a key derived as
+`sha256(str(key_path) + b"jittest_fallback_seed")`. That value is computable from
+published source plus a documented default path, so **any third party could mint a
+receipt asserting `proven_catch`**. Verification also recomputed the key locally
+instead of using the key carried in the receipt.
+
+Three consequences, each reproduced against the published 0.3.2 wheel:
+
+- **Forgeable receipts.** An honest `non_discriminating` receipt was rewritten to
+  `proven_catch: true`, re-signed with the derived key, and `jittest verify-receipt`
+  reported `[VALID] signature_valid`.
+- **Receipts did not cross machines.** A receipt produced without `cryptography`
+  failed on a machine that had it, with a `TypeError` rather than an honest invalid.
+- **Published evidence was unverifiable by normal installs.** `jittest verify-receipt`
+  on jittest's own committed Ed25519 evidence returned
+  `UNVERIFIABLE: cryptography package required`.
+
+If you have receipts produced by 0.3.2 or earlier in a zero-dependency environment,
+treat them as unsigned and regenerate them with 0.3.3.
+
+### Fixed
+
+- Vendored the RFC 8032 reference Ed25519 implementation as `jittest._ed25519`.
+  Ed25519 is now the only signing mode, in every install. `dependencies` stays empty.
+- `cryptography`, when present, is a speed optimisation only, and produces
+  byte-identical signatures (Ed25519 is deterministic).
+- `signature.public_key` renamed to `signature.verifying_key`. A symmetric secret must
+  never be labelled a public key. The old field name is still accepted when verifying,
+  so previously published receipts continue to verify.
+- `verify-receipt` reports the algorithm it checked, never raises on an unrecognised
+  algorithm, and rejects legacy HMAC receipts with a stated reason.
+- `--signing-key` is honoured, written with `0600` permissions, or refused with a
+  stated reason and a non-zero exit. It was previously ignored in the default install,
+  and the resulting receipt failed jittest's own verifier.
+- A sandbox that silently degrades to no isolation now warns on stderr, not only inside
+  the artifact.
+- `verify-receipt --help` no longer claims a hash-chain that default artifacts do not
+  carry.
+- Six `ruff` findings in `src/jittest/env.py`, which had kept the `ci` workflow red on
+  `main`. Behaviour preserving.
+
+### Added
+
+- `tests/test_cross_env_receipt_verification.py` — 16 tests asserting the product
+  promise as an executable oracle: a receipt produced in an environment without
+  `cryptography` must verify in an environment with it, and vice versa. Includes
+  RFC 8032 test vectors 1 and 2, byte-equality between both signing backends,
+  forgery rejection, tamper detection, and legacy field compatibility.
+
+Test suite: 712 passing.
+
 ## 0.3.2 - 2026-08-14
 
 ### Documentation & Reproducibility
@@ -8,9 +65,9 @@
 ## 0.3.1 - 2026-08-13
 
 ### Production Hardening & Infrastructure
-- **Full Action Security Hardening**: All third-party GitHub Actions across `action.yml` and `.github/workflows/*.yml` are strictly pinned to immutable 40-character commit SHAs. Workflows include `concurrency` cancellation groups and job `timeout-minutes`.
+- **Action Security Hardening**: Workflow actions were reviewed and hardened. (Correction, 0.3.3: the original wording claimed every third-party action was pinned to a 40-character commit SHA. That was not accurate at the time of writing — `softprops/action-gh-release@v2` and the `actions/*` set remained tag-pinned. SHA pinning is tracked as follow-up work.) Workflows include `concurrency` cancellation groups and job `timeout-minutes`.
 - **Parallel Test File Verification**: `src/jittest/action.py` executes parallel verification across multiple changed test files using `concurrent.futures.ThreadPoolExecutor`.
-- **Operations & Security Contracts**: Added `.github/CODEOWNERS`, documented Verdict JSON Schema 2.0 stability contract in [`docs/SCHEMA.md`](file:///C:/Users/praja/src/jittest/docs/SCHEMA.md), and added evidence recomputation instructions in [`docs/evidence/README.md`](file:///C:/Users/praja/src/jittest/docs/evidence/README.md).
+- **Operations & Security Contracts**: Added `.github/CODEOWNERS`, documented Verdict JSON Schema 2.0 stability contract in [`docs/SCHEMA.md`](docs/SCHEMA.md), and added evidence recomputation instructions in [`docs/evidence/README.md`](docs/evidence/README.md).
 - **Usage & Floating Tag Standard**: Standardized usage instructions to `uses: Kartik24Hulmukh/jittest@v0.3.1` (or `@v0`) and configured automatic floating `v0` major tag updates.
 
 ## 0.3.0 - 2026-08-12
