@@ -278,7 +278,14 @@ def main():
     pr = os.getenv("JITTEST_PR_NUMBER")
     sbx = os.getenv("JITTEST_SANDBOX_MODE")
     policy = os.getenv("JITTEST_POLICY")
-    code = run_action(repo_path=repo, pr_number=pr, sandbox_override=sbx, policy=policy)
+    out_dir = os.getenv("JITTEST_OUTPUT_DIR") or "jittest-evidence"
+    code = run_action(
+        repo_path=repo,
+        pr_number=pr,
+        sandbox_override=sbx,
+        policy=policy,
+        output_dir=out_dir,
+    )
     sys.exit(code)
 
 

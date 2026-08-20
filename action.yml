@@ -26,6 +26,10 @@ inputs:
     description: 'Per-PR cost ceiling in USD'
     required: false
     default: '1.00'
+  output-dir:
+    description: 'Output directory for evidence JSON artifacts'
+    required: false
+    default: 'jittest-evidence'
   github-token:
     description: 'GitHub token for PR comment upserting'
     required: false
@@ -62,6 +66,7 @@ runs:
         JITTEST_SANDBOX_MODE: ${{ inputs.sandbox-mode }}
         JITTEST_POLICY: ${{ inputs.policy }}
         JITTEST_BUDGET: ${{ inputs.budget }}
+        JITTEST_OUTPUT_DIR: ${{ inputs.output-dir }}
       run: |
         if [ -f "${RUNNER_TEMP}/jittest-action-venv/bin/python" ]; then
           "${RUNNER_TEMP}/jittest-action-venv/bin/python" -m jittest.action
