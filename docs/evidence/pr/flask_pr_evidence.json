@@ -1,19 +1,24 @@
 {
   "schema_version": "2.0",
   "tool": "jittest verify",
-  "verdict": "refuted",
+  "verdict": "inconclusive",
   "proven_catch": false,
-  "disposition": "head_failed_base_failed_latent",
+  "base_reproduced": false,
+  "base_failure_kind": "error",
+  "disposition": "env_build_timeout",
+  "exclude_newer_cutoff": null,
+  "interpreter_version": null,
+  "resolved_versions": null,
   "provenance": {
-    "repo_path": "/mnt/c/Users/praja/src/flask",
+    "repo_path": "C:/Users/praja/src/flask",
     "base_sha": "3596b1ab61cea85edb8970e83ff61daa073facf8",
     "head_sha": "89992954ec71b594b1b911f98977cdc8ad46a057",
     "test_file_name": "test_basic.py",
     "test_file_sha256": "02f801a3648fa63d8117111b1d8e3219aa946062f584fd9b252de5db6ac8ec17",
-    "tool_commit_sha": "8cb798301620e5b36e5f720f8296060d2079c695",
+    "tool_commit_sha": "cdc9c73478ff7ec3a34d85ea0909577007a691c5",
     "tool_branch": "main",
     "tool_dirty": true,
-    "tool_tree_sha": "1d3b79d5ff1f3669b9ba6bd4ebfaf517b0a7dab8",
+    "tool_tree_sha": "a053ed58ba67fba886a43fc53139211560b9bc3c",
     "rel_path": "."
   },
   "sandbox": {
@@ -26,37 +31,26 @@
     ]
   },
   "base_execution": {
-    "outcome": "FAIL",
-    "exit_code": 1,
-    "stdout_sha256": "692542eedf26a7aa481d6cc590a3aa25c0383a90f67b632b6523a1d80eb74f51",
+    "outcome": "NOTRUN",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "environment": {
-      "venv_dir": "/root/.jittest/envs/env_43c91660dea8015c",
-      "python_path": "/root/.jittest/envs/env_43c91660dea8015c/bin/python",
-      "cached": false,
-      "cache_key": "43c91660dea8015c",
-      "lockfile_sha256": "f00a581b0de3f58d494cca38c65883f68297f13abada2cccac908ada5e7e6ecb"
-    }
+    "environment": {}
   },
   "head_execution": {
-    "outcome": "FAIL",
-    "exit_code": 1,
-    "stdout_sha256": "930f577e9e0c0f81c377611a955dd7d45732713fe5e6b165e4c22038ea118ea6",
+    "outcome": "NOTRUN",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "environment": {
-      "venv_dir": "/root/.jittest/envs/env_b984685dd85f793a",
-      "python_path": "/root/.jittest/envs/env_b984685dd85f793a/bin/python",
-      "cached": false,
-      "cache_key": "b984685dd85f793a",
-      "lockfile_sha256": "f00a581b0de3f58d494cca38c65883f68297f13abada2cccac908ada5e7e6ecb"
-    }
+    "environment": {}
   },
   "rerun_agreement": true,
-  "wall_clock_s": 40.7819,
+  "wall_clock_s": 153.469,
   "provider_cost_usd": 0.0,
+  "error": "base: env_build_timeout: install package chunk timed out: Command '['C:\\\\Users\\\\praja\\\\.local\\\\bin\\\\uv.EXE', 'pip', 'install', '--python', 'C:\\\\Users\\\\praja\\\\.jittest\\\\envs\\\\env_cb5b06a051f37c6b\\\\Scripts\\\\python.exe', '--exclude-newer', '2026-08-11T12:56:09Z', 'asgiref', 'asgiref>=3.2', 'blinker>=1.9.0', 'click>=8.1.3', 'cryptography', \"gha-update ; python_full_version >= '3.12'\", 'itsdangerous>=2.2.0', 'jinja2>=3.1.2', 'markupsafe>=2.1.1', 'mypy', 'pallets-sphinx-themes', 'pre-commit', 'pre-commit-uv', 'pyright', 'pytest']' timed out after 60 seconds; head: env_build_timeout: install package chunk timed out: Command '['C:\\\\Users\\\\praja\\\\.local\\\\bin\\\\uv.EXE', 'pip', 'install', '--python', 'C:\\\\Users\\\\praja\\\\.jittest\\\\envs\\\\env_9cd3adc13e925d90\\\\Scripts\\\\python.exe', '--exclude-newer', '2026-08-11T13:15:18Z', 'asgiref', 'asgiref>=3.2', 'blinker>=1.9.0', 'click>=8.1.3', 'cryptography', \"gha-update ; python_full_version >= '3.12'\", 'itsdangerous>=2.2.0', 'jinja2>=3.1.2', 'markupsafe>=2.1.1', 'mypy', 'pallets-sphinx-themes', 'pre-commit', 'pre-commit-uv', 'pyright', 'pytest']' timed out after 60 seconds",
   "signature": {
     "algorithm": "Ed25519",
-    "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
-    "value": "VtoTSfAgxwP+SQ4WQtsXGXqNcit9p30LyNoZeT2wCc/6XvGeEMbLxqB01iwCQ0EY8OsBYyWxdoNYak/v8e0kAg=="
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "6yWtrX+njy/WJiakODleTLLgbWsoHB86O4hdKkOnuAte+5iRvIWOtILtMbRZt6sBeuFORQRmPK1oDL13vPZwAQ=="
   }
 }

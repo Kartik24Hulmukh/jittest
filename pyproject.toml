@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "jittest"
-version = "0.3.4"
+version = "0.3.5"
 description = "Differential test-execution gate for agent-authored pull requests with Ed25519-signed receipts."
 readme = "README.md"
 requires-python = ">=3.11"

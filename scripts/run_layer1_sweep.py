@@ -513,12 +513,13 @@ def main():
 
     bugs_exec = [r for r in bugs if r.get("verdict") != "inconclusive"]
     bugs_pc = [r for r in bugs if r.get("verdict") == "proven_catch"]
+    bugs_rc = [r for r in bugs if r.get("verdict") == "reproduction_catch"]
     bugs_cc = [r for r in bugs if r.get("verdict") == "collection_catch"]
     bugs_base_passed = sum(1 for r in bugs if r.get("base_reproduced", False))
     base_repro_rate = (bugs_base_passed / len(bugs)) if bugs else 0.0
 
     ctrls_exec = [r for r in ctrls if r.get("verdict") != "inconclusive"]
-    ctrls_pc = [r for r in ctrls if r.get("verdict") in ("proven_catch", "collection_catch")]
+    ctrls_pc = [r for r in ctrls if r.get("verdict") in ("proven_catch", "reproduction_catch", "collection_catch")]
     ctrls_base_passed = sum(1 for r in ctrls if r.get("base_reproduced", False))
     false_proof_denom = ctrls_base_passed
     false_proof_rate = (len(ctrls_pc) / false_proof_denom) if false_proof_denom > 0 else 0.0
@@ -544,7 +545,7 @@ def main():
     print("=== LAYER-1 VERIFIER SWEEP SUMMARY (HONEST DENOMINATORS) ===")
     print("=" * 60)
     print(f"Controls executed: {len(ctrls_exec)}/{len(ctrls)} — false proofs: {len(ctrls_pc)}/{false_proof_denom} ({len(ctrls) - len(ctrls_exec)} controls inconclusive)")
-    print(f"Bug rows executed: {len(bugs_exec)}/{len(bugs)} — proven_catch: {len(bugs_pc)}/{len(bugs_exec)} (behavioral), collection_catch: {len(bugs_cc)}/{len(bugs_exec)} (collection)")
+    print(f"Bug rows executed: {len(bugs_exec)}/{len(bugs)} — proven_catch: {len(bugs_pc)}/{len(bugs_exec)} (regression), reproduction_catch: {len(bugs_rc)}/{len(bugs_exec)} (reproduction), collection_catch: {len(bugs_cc)}/{len(bugs_exec)} (collection)")
     print(f"Base Reproduction Rate: {bugs_base_passed}/{len(bugs)} ({base_repro_rate*100:.1f}%) of bug rows reproduced passing behavior on base commit")
     print(f"Coverage: {len(results)}/{len(results)} rows attempted with signed receipts; {definitive_count}/{len(results)} ({definitive_count/len(results)*100:.1f}%) executed to definitive verdicts; {inconclusive_count}/{len(results)} refused loudly (inconclusive)")
     print(f"Attempt Rate: {len(results)}/{len(rows)} (100.0%) attempted with signed receipts")

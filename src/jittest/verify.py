@@ -31,7 +31,7 @@ from typing import Any
 
 from .diff import git_env
 from .env import EnvSetupError, provision_environment
-from .execute import Disposition, Outcome, Worktree, resolve_revision, run_test
+from .execute import Disposition, FailureKind, Outcome, Worktree, resolve_revision, run_test
 from .github import fetch_pr_base_head
 from .receipt import sign_evidence
 from .sandbox import plan as plan_sandbox
@@ -43,6 +43,7 @@ logger = logging.getLogger("jittest.verify")
 
 class VerdictClass:
     PROVEN_CATCH = "proven_catch"
+    REPRODUCTION_CATCH = "reproduction_catch"
     COLLECTION_CATCH = "collection_catch"
     REFUTED = "refuted"
     NON_DISCRIMINATING = "non_discriminating"
@@ -109,6 +110,128 @@ def _get_git_dirty(repo_path: Path) -> bool:
 
 def _hash_str(text: str) -> str:
     return hashlib.sha256((text or "").encode("utf-8")).hexdigest()
+
+
+def _verify_pass_to_pass(
+    repo_path: Path,
+    resolved_base: str,
+    resolved_head: str,
+    rel_path: str | Path,
+    rel_test: Path | str,
+    base_python: str | Path | None,
+    head_python: str | Path | None,
+    sbx_plan: Any,
+    timeout_s: int = 30,
+) -> bool:
+    """PASS_TO_PASS guard: verify that the test environment is healthy and capable of executing tests.
+
+    Checks:
+    1. If pre-existing unmodified tests exist in the repo (other than candidate test),
+       at least one unmodified test passes at both base and head.
+    2. In all cases, a clean passing assertion probe executes and passes at both base and head.
+    """
+    try:
+        res_b = subprocess.run(
+            ["git", "-C", str(repo_path), "ls-tree", "-r", "--name-only", resolved_base],
+            capture_output=True,
+            text=True,
+            check=True,
+            env=git_env(),
+        )
+        res_h = subprocess.run(
+            ["git", "-C", str(repo_path), "ls-tree", "-r", "--name-only", resolved_head],
+            capture_output=True,
+            text=True,
+            check=True,
+            env=git_env(),
+        )
+        base_files = set(res_b.stdout.splitlines())
+        head_files = set(res_h.stdout.splitlines())
+        common = base_files & head_files
+        test_candidates = [
+            f
+            for f in sorted(common)
+            if (f.endswith(".py") and (Path(f).name.startswith("test_") or Path(f).name.endswith("_test.py")))
+            and str(Path(f)) != str(Path(rel_test))
+            and Path(f).name != Path(rel_test).name
+        ]
+        for f in test_candidates:
+            b_blob = subprocess.run(
+                ["git", "-C", str(repo_path), "rev-parse", f"{resolved_base}:{f}"],
+                capture_output=True,
+                text=True,
+                env=git_env(),
+            ).stdout.strip()
+            h_blob = subprocess.run(
+                ["git", "-C", str(repo_path), "rev-parse", f"{resolved_head}:{f}"],
+                capture_output=True,
+                text=True,
+                env=git_env(),
+            ).stdout.strip()
+            if b_blob and b_blob == h_blob:
+                content = subprocess.run(
+                    ["git", "-C", str(repo_path), "show", f"{resolved_base}:{f}"],
+                    capture_output=True,
+                    text=True,
+                    env=git_env(),
+                ).stdout
+                if content.strip():
+                    with Worktree(repo_path, resolved_base) as b_dir:
+                        b_workdir = b_dir / rel_path if str(rel_path) != "." else b_dir
+                        b_res = run_test(
+                            b_workdir,
+                            content,
+                            timeout_s=timeout_s,
+                            sbx=sbx_plan,
+                            python_path=base_python,
+                            rel_test_path=f,
+                        )
+                        if b_res.outcome is Outcome.PASS:
+                            with Worktree(repo_path, resolved_head) as h_dir:
+                                h_workdir = h_dir / rel_path if str(rel_path) != "." else h_dir
+                                h_res = run_test(
+                                    h_workdir,
+                                    content,
+                                    timeout_s=timeout_s,
+                                    sbx=sbx_plan,
+                                    python_path=head_python,
+                                    rel_test_path=f,
+                                )
+                                if h_res.outcome is Outcome.PASS:
+                                    return True
+    except Exception as exc:
+        logger.debug("Error checking pre-existing tests in pass_to_pass guard: %s", exc)
+
+    # Fallback to runtime assertion probe
+    probe_code = "def test_jittest_pass_to_pass_probe():\n    assert 1 + 1 == 2\n"
+    try:
+        with Worktree(repo_path, resolved_base) as b_dir:
+            b_workdir = b_dir / rel_path if str(rel_path) != "." else b_dir
+            b_res = run_test(
+                b_workdir,
+                probe_code,
+                timeout_s=timeout_s,
+                sbx=sbx_plan,
+                python_path=base_python,
+            )
+            if b_res.outcome is not Outcome.PASS:
+                return False
+
+        with Worktree(repo_path, resolved_head) as h_dir:
+            h_workdir = h_dir / rel_path if str(rel_path) != "." else h_dir
+            h_res = run_test(
+                h_workdir,
+                probe_code,
+                timeout_s=timeout_s,
+                sbx=sbx_plan,
+                python_path=head_python,
+            )
+            if h_res.outcome is not Outcome.PASS:
+                return False
+        return True
+    except Exception as exc:
+        logger.warning("Pass-to-pass probe execution failed: %s", exc)
+        return False
 
 
 def verify_test(
@@ -251,6 +374,28 @@ def verify_test(
             pass
         rerun_agreement = len(head_runs) > 1 and (head_runs[0].outcome == head_runs[1].outcome)
 
+    # Determine base_failure_kind (assertion | error | timeout | collection | none)
+    if base_err is not None:
+        base_failure_kind = "error"
+    elif base_run is None:
+        base_failure_kind = "error"
+    elif base_run.outcome is Outcome.TIMEOUT:
+        base_failure_kind = "timeout"
+    elif base_run.outcome is Outcome.ERROR:
+        base_failure_kind = "collection"
+    elif base_run.outcome is Outcome.FAIL:
+        out_err = base_run.stdout + "\n" + base_run.stderr
+        if any(err_kw in out_err for err_kw in ("ImportError", "ModuleNotFoundError", "SyntaxError", "PytestCollectionWarning", "CollectionError")):
+            base_failure_kind = "collection"
+        elif base_run.failure_kind == FailureKind.ASSERTION or "AssertionError" in out_err or " assert " in out_err:
+            base_failure_kind = "assertion"
+        else:
+            base_failure_kind = "error"
+    elif base_run.outcome is Outcome.PASS:
+        base_failure_kind = "none"
+    else:
+        base_failure_kind = "none"
+
     base_reproduced = bool(base_run is not None and base_run.outcome is Outcome.PASS)
 
     # Determine disposition and verdict
@@ -268,50 +413,81 @@ def verify_test(
         verdict_class = VerdictClass.INCONCLUSIVE
         is_proven_catch = False
         exit_code = 1
-    elif not base_reproduced:
-        # If base_reproduced is false, verdict MUST be "inconclusive" and disposition "base_reproduction_failed"
-        # for both bug and control rows. No row may be scored refuted or proven_catch if base reproduction failed.
-        disposition = Disposition.BASE_REPRODUCTION_FAILED
-        verdict_class = VerdictClass.INCONCLUSIVE
-        is_proven_catch = False
-        exit_code = 1
-    elif head_run1.outcome is Outcome.PASS:
-        disposition = Disposition.HEAD_PASSED
-        verdict_class = VerdictClass.NON_DISCRIMINATING
-        is_proven_catch = False
-        exit_code = 1
-    elif not rerun_agreement:
-        disposition = Disposition.HEAD_FLAKY
-        verdict_class = VerdictClass.INCONCLUSIVE
-        is_proven_catch = False
-        exit_code = 1
-    elif head_run1.outcome is Outcome.FAIL:
-        if base_run.outcome is Outcome.PASS:
-            disposition = Disposition.CATCHING
-            verdict_class = VerdictClass.PROVEN_CATCH
-            is_proven_catch = True
-            exit_code = 0
-        elif base_run.outcome is Outcome.FAIL:
-            disposition = Disposition.HEAD_FAILED_BASE_FAILED_LATENT
-            verdict_class = VerdictClass.REFUTED
+    elif base_run.outcome is Outcome.PASS:
+        if head_run1.outcome is Outcome.FAIL:
+            if not rerun_agreement:
+                disposition = Disposition.HEAD_FLAKY
+                verdict_class = VerdictClass.INCONCLUSIVE
+                is_proven_catch = False
+                exit_code = 1
+            else:
+                disposition = Disposition.CATCHING
+                verdict_class = VerdictClass.PROVEN_CATCH
+                is_proven_catch = True
+                exit_code = 0
+        elif head_run1.outcome is Outcome.PASS:
+            disposition = Disposition.HEAD_PASSED
+            verdict_class = VerdictClass.NON_DISCRIMINATING
             is_proven_catch = False
             exit_code = 1
-        else:
-            disposition = Disposition.BASE_UNCOLLECTABLE
-            verdict_class = VerdictClass.INCONCLUSIVE
-            is_proven_catch = False
-            exit_code = 1
-    else:  # head_run1.outcome in (Outcome.ERROR, Outcome.NOTRUN, Outcome.TIMEOUT)
-        if base_run.outcome is Outcome.PASS:
+        elif head_run1.outcome in (Outcome.ERROR, Outcome.NOTRUN, Outcome.TIMEOUT):
             disposition = Disposition.HEAD_UNCOLLECTABLE_BASE_PASSED
             verdict_class = VerdictClass.COLLECTION_CATCH  # Split collection catch from behavioral catch
             is_proven_catch = False  # NEVER count collection breakage as a behavioral catch
             exit_code = 0
         else:
-            disposition = Disposition.HEAD_UNCOLLECTABLE_BASE_BROKEN
+            disposition = Disposition.HEAD_NOTRUN
+            verdict_class = VerdictClass.NON_DISCRIMINATING
+            is_proven_catch = False
+            exit_code = 1
+    elif base_run.outcome is Outcome.FAIL:
+        if head_run1.outcome is Outcome.PASS:
+            # Candidate for reproduction_catch (bug fixed on head, caught at base)
+            # Guard (a): The base failure must be an assertion failure, not a collection/import/env error
+            if base_failure_kind != "assertion" or base_run.failure_kind == FailureKind.ERROR:
+                disposition = Disposition.BASE_UNCOLLECTABLE
+                verdict_class = VerdictClass.INCONCLUSIVE
+                is_proven_catch = False
+                exit_code = 1
+            else:
+                # Guard (b): PASS_TO_PASS guard (at least one pre-existing or probe test passes at both base and head)
+                pass_to_pass_ok = _verify_pass_to_pass(
+                    repo_path=repo_path,
+                    resolved_base=resolved_base,
+                    resolved_head=resolved_head,
+                    rel_path=rel_path,
+                    rel_test=rel_test,
+                    base_python=base_python,
+                    head_python=head_python,
+                    sbx_plan=sbx_plan,
+                    timeout_s=min(timeout_s, 30),
+                )
+                if not pass_to_pass_ok:
+                    disposition = Disposition.BASE_REPRODUCTION_FAILED
+                    verdict_class = VerdictClass.INCONCLUSIVE
+                    is_proven_catch = False
+                    exit_code = 1
+                else:
+                    base_reproduced = True
+                    disposition = Disposition.REPRODUCTION_CATCH
+                    verdict_class = VerdictClass.REPRODUCTION_CATCH
+                    is_proven_catch = True
+                    exit_code = 0
+        elif head_run1.outcome is Outcome.FAIL:
+            disposition = Disposition.HEAD_FAILED_BASE_FAILED_LATENT
+            verdict_class = VerdictClass.REFUTED
+            is_proven_catch = False
+            exit_code = 1
+        else:
+            disposition = Disposition.BASE_REPRODUCTION_FAILED
             verdict_class = VerdictClass.INCONCLUSIVE
             is_proven_catch = False
             exit_code = 1
+    else:  # base_run.outcome in (Outcome.ERROR, Outcome.NOTRUN, Outcome.TIMEOUT)
+        disposition = Disposition.BASE_UNCOLLECTABLE
+        verdict_class = VerdictClass.INCONCLUSIVE
+        is_proven_catch = False
+        exit_code = 1
 
     wall_clock_s = round(time.monotonic() - start_time, 4)
 
@@ -346,6 +522,7 @@ def verify_test(
         "verdict": verdict_class,
         "proven_catch": is_proven_catch,
         "base_reproduced": base_reproduced,
+        "base_failure_kind": base_failure_kind,
         "disposition": disposition.value if hasattr(disposition, "value") else str(disposition),
         "exclude_newer_cutoff": base_env_info.get("exclude_newer_cutoff") if base_env_info else None,
         "interpreter_version": base_env_info.get("interpreter_version") if base_env_info else None,

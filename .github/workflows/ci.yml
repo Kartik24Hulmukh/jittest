@@ -152,7 +152,7 @@ jobs:
           git config --global user.name "jittest ci"
           git config --global init.defaultBranch main
 
-      - name: Create external consumer fixture repo with intentional bug
+      - name: Create external consumer fixture repo with both regression and reproduction cases
         shell: bash
         run: |
           mkdir -p "${RUNNER_TEMP}/consumer-repo"
@@ -161,30 +161,40 @@ jobs:
           git config user.name "consumer"
           git config user.email "consumer@example.com"
           
-          # Base commit: valid calculator
-          echo "def add(a, b): return a + b" > calc.py
+          # Base commit: valid calculator, buggy multiplier
+          cat << 'EOF' > calc.py
+          def add(a, b): return a + b
+          def mul(a, b): return a + b  # bug on base
+          EOF
           mkdir -p tests
           cat << 'EOF' > tests/test_calc.py
           from calc import add
-
           def test_add():
               assert add(2, 3) == 5
           EOF
           git add .
-          git commit -m "base: valid calculator"
+          git commit -m "base: valid add, buggy mul"
           BASE_SHA=$(git rev-parse HEAD)
 
-          # Head commit: regression bug in calc.py, test modified/touched
-          echo "def add(a, b): return a - b  # intentional regression" > calc.py
+          # Head commit: regression in add, fixed mul + new test for mul
+          cat << 'EOF' > calc.py
+          def add(a, b): return a - b  # regression on head
+          def mul(a, b): return a * b  # fixed mul on head
+          EOF
           cat << 'EOF' > tests/test_calc.py
           from calc import add
-
           def test_add():
-              # Test catching regression
+              # Modified regression test
               assert add(2, 3) == 5
           EOF
-          git add calc.py tests/test_calc.py
-          git commit -m "head: regression bug in calc.py"
+          cat << 'EOF' > tests/test_mul.py
+          from calc import mul
+          def test_mul():
+              # New reproduction test
+              assert mul(2, 3) == 6
+          EOF
+          git add calc.py tests/test_calc.py tests/test_mul.py
+          git commit -m "head: regression in add, fixed mul + new test"
           HEAD_SHA=$(git rev-parse HEAD)
 
           echo "JITTEST_BASE=$BASE_SHA" >> $GITHUB_ENV
@@ -218,7 +228,8 @@ jobs:
               "base_reproduction_failed"
           }
 
-          proven_catches = 0
+          regression_catches = 0
+          reproduction_catches = 0
           for f in files:
               data = json.load(open(f, encoding="utf-8"))
               verdict = data.get("verdict")
@@ -229,13 +240,18 @@ jobs:
               if disposition in disallowed_dispositions:
                   sys.exit(f"FAIL: Disallowed disposition found: {disposition}")
 
-              if proven is True or verdict == "proven_catch":
-                  proven_catches += 1
+              if verdict == "proven_catch":
+                  regression_catches += 1
+              elif verdict == "reproduction_catch":
+                  reproduction_catches += 1
 
-          if proven_catches == 0:
-              sys.exit("FAIL: Zero proven catches found in consumer action run!")
+          print(f"Regression catches: {regression_catches}, Reproduction catches: {reproduction_catches}")
+          if regression_catches == 0:
+              sys.exit("FAIL: Zero regression catches found in consumer action run!")
+          if reproduction_catches == 0:
+              sys.exit("FAIL: Zero reproduction catches found in consumer action run!")
 
-          print(f"SUCCESS: consumer-action-e2e verified {proven_catches} proven catch(es) with clean disposition.")
+          print("SUCCESS: consumer-action-e2e verified both regression and reproduction catches.")
           PY
 
   ci:

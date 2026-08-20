@@ -125,6 +125,7 @@ class Disposition(StrEnum):
     ENV_SETUP_FAILED = "env_setup_failed"
     ENV_BUILD_TIMEOUT = "env_build_timeout"
     BASE_REPRODUCTION_FAILED = "base_reproduction_failed"
+    REPRODUCTION_CATCH = "reproduction_catch"
 
 
 class FailureKind(StrEnum):

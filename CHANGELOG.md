@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.5 - 2026-08-21
+
+### Verification State Machine — Reproduction Direction
+
+- **Reproduction Direction Support (`jittest.verify`, `jittest.execute`)**:
+  - Split the base-failure arm in verification state machine to recognize bugfix and TDD reproduction tests.
+  - `base FAIL + head PASS` -> `VerdictClass.REPRODUCTION_CATCH` / `Disposition.REPRODUCTION_CATCH` (`proven_catch = True`, exit `0`).
+  - `base FAIL + head FAIL` -> Remains `BASE_REPRODUCTION_FAILED` / `INCONCLUSIVE` (or `REFUTED` latent failure), exit `1`.
+- **Anti-Fabrication Guards for Reproduction Catches**:
+  - **Guard (a)**: Requires `base_failure_kind == "assertion"`. Import, collection, and syntax errors remain `base_uncollectable` (verdict: `inconclusive`, exit `1`).
+  - **Guard (b)**: `PASS_TO_PASS` guard verifies that unmodified existing tests (or test runner assertion probes) execute and pass on both base and head commits to rule out broken test environments.
+  - **Guard (c)**: Auditable payload explicitly records `base_failure_kind` (`assertion` | `error` | `timeout` | `collection` | `none`).
+- **Comprehensive Fixture Test Suite (`tests/test_seven_fixtures.py`)**:
+  - Committed all 7 core verification fixtures and native C-extension dependency provisioning tests to CI matrix.
+
 ## 0.3.4 - 2026-08-20
 
 ### Security & Trust Boundaries
