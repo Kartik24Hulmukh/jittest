@@ -135,6 +135,7 @@ def _verify_pass_to_pass(
             ["git", "-C", str(repo_path), "ls-tree", "-r", "--name-only", resolved_base],
             capture_output=True,
             text=True,
+            errors="replace",
             check=True,
             env=git_env(),
         )
@@ -142,6 +143,7 @@ def _verify_pass_to_pass(
             ["git", "-C", str(repo_path), "ls-tree", "-r", "--name-only", resolved_head],
             capture_output=True,
             text=True,
+            errors="replace",
             check=True,
             env=git_env(),
         )
@@ -160,12 +162,14 @@ def _verify_pass_to_pass(
                 ["git", "-C", str(repo_path), "rev-parse", f"{resolved_base}:{f}"],
                 capture_output=True,
                 text=True,
+                errors="replace",
                 env=git_env(),
             ).stdout.strip()
             h_blob = subprocess.run(
                 ["git", "-C", str(repo_path), "rev-parse", f"{resolved_head}:{f}"],
                 capture_output=True,
                 text=True,
+                errors="replace",
                 env=git_env(),
             ).stdout.strip()
             if b_blob and b_blob == h_blob:
@@ -173,6 +177,7 @@ def _verify_pass_to_pass(
                     ["git", "-C", str(repo_path), "show", f"{resolved_base}:{f}"],
                     capture_output=True,
                     text=True,
+                    errors="replace",
                     env=git_env(),
                 ).stdout
                 if content.strip():
