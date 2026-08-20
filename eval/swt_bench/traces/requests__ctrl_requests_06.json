@@ -1,0 +1,15 @@
+{
+  "instance_id": "requests__ctrl_requests_06",
+  "row_id": "ctrl_requests_06",
+  "kind": "control",
+  "execution_mode": "differential_verification",
+  "base_sha": "c4367f231b5dc54f23f2983828562ce3a7555a8a",
+  "head_sha": "cd90742ed94d901759e26766197d0ce7c7bd9c8e",
+  "test_file": "tests/test_requests.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  }
+}

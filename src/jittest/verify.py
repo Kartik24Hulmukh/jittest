@@ -380,9 +380,7 @@ def verify_test(
         rerun_agreement = len(head_runs) > 1 and (head_runs[0].outcome == head_runs[1].outcome)
 
     # Determine base_failure_kind (assertion | error | timeout | collection | none)
-    if base_err is not None:
-        base_failure_kind = "error"
-    elif base_run is None:
+    if base_err is not None or base_run is None:
         base_failure_kind = "error"
     elif base_run.outcome is Outcome.TIMEOUT:
         base_failure_kind = "timeout"
@@ -533,7 +531,7 @@ def verify_test(
         "interpreter_version": base_env_info.get("interpreter_version") if base_env_info else None,
         "resolved_versions": base_env_info.get("resolved_versions") if base_env_info else None,
         "provenance": {
-            "repo_path": str(repo_path).replace("\\", "/"),
+            "repo_path": re.sub(r"^[a-zA-Z]:/[Uu]sers/[^/]+", "<USER_DIR>", str(repo_path).replace("\\", "/")),
             "base_sha": resolved_base,
             "head_sha": resolved_head,
             "test_file_name": test_path.name,

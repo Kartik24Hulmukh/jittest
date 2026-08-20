@@ -1,0 +1,15 @@
+{
+  "instance_id": "flask__ctrl_flask_04",
+  "row_id": "ctrl_flask_04",
+  "kind": "control",
+  "execution_mode": "differential_verification",
+  "base_sha": "ac5664d2281533eacafd64f5cc7d5edcdaccab60",
+  "head_sha": "4f79d5b59a56bc4356a97f2e81a35f98cb18d7b3",
+  "test_file": "tests/test_basic.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  }
+}

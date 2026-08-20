@@ -1,0 +1,15 @@
+{
+  "instance_id": "httpx__ctrl_httpx_14",
+  "row_id": "ctrl_httpx_14",
+  "kind": "control",
+  "execution_mode": "differential_verification",
+  "base_sha": "def4778d622e8bf49a9fea4dda78cca4cf666d8a",
+  "head_sha": "435e1dac899adeb0c156c00721ecbb1124d75842",
+  "test_file": "tests/test_api.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  }
+}

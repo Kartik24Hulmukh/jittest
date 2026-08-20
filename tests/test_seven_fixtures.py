@@ -1,13 +1,13 @@
 import os
-import tempfile
-import subprocess
 import shutil
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
-from jittest.verify import verify_test, VerdictClass
-from jittest.execute import Disposition
+
 from jittest.action import run_action
-from jittest.sandbox import SandboxUnavailable
+from jittest.execute import Disposition
+from jittest.verify import VerdictClass, verify_test
 
 
 class SevenFixturesTest(unittest.TestCase):
@@ -21,7 +21,8 @@ class SevenFixturesTest(unittest.TestCase):
 
     def tearDown(self):
         def _onerror(func, path, exc_info):
-            import os, stat
+            import os
+            import stat
             os.chmod(path, stat.S_IWRITE)
             func(path)
         shutil.rmtree(self.tmp, onerror=_onerror)

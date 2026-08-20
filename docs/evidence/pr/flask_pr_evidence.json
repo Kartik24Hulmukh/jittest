@@ -10,7 +10,7 @@
   "interpreter_version": null,
   "resolved_versions": null,
   "provenance": {
-    "repo_path": "C:/Users/praja/src/flask",
+    "repo_path": "<USER_DIR>/src/flask",
     "base_sha": "3596b1ab61cea85edb8970e83ff61daa073facf8",
     "head_sha": "89992954ec71b594b1b911f98977cdc8ad46a057",
     "test_file_name": "test_basic.py",
@@ -51,6 +51,6 @@
   "signature": {
     "algorithm": "Ed25519",
     "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
-    "value": "6yWtrX+njy/WJiakODleTLLgbWsoHB86O4hdKkOnuAte+5iRvIWOtILtMbRZt6sBeuFORQRmPK1oDL13vPZwAQ=="
+    "value": "G/l3DlVtOmA3gNm53GkZn6eK3VgwG3VGBkQCmugDDOINFqVTtc7Ss465Fu+qhB4NM61Oxc5cL0GAnLLxe/aUDA=="
   }
 }

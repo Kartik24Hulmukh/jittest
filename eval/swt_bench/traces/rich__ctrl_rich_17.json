@@ -1,0 +1,15 @@
+{
+  "instance_id": "rich__ctrl_rich_17",
+  "row_id": "ctrl_rich_17",
+  "kind": "control",
+  "execution_mode": "differential_verification",
+  "base_sha": "ce51a2f8bf326878a94a382cb7102c85824f7e04",
+  "head_sha": "46cebbb032f920eb096efbaf23cdc6fe9dd541f7",
+  "test_file": "tests/test_text.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  }
+}

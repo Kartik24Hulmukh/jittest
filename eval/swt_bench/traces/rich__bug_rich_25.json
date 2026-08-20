@@ -1,0 +1,15 @@
+{
+  "instance_id": "rich__bug_rich_25",
+  "row_id": "bug_rich_25",
+  "kind": "bug",
+  "execution_mode": "differential_verification",
+  "base_sha": "13f87a4007f629c00b491286034751d53ae9d63c",
+  "head_sha": "1d402e0c59f8765e420a5a4440eb2fca7465d1ae",
+  "test_file": "tests/test_cells.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  }
+}

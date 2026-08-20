@@ -40,4 +40,4 @@ or run the offline Python verification snippet documented in [`docs/KEYS.md`](..
 ## Layer 1 Historical Evaluation Sweep (`docs/evidence/layer1b/`)
 
 > [!NOTE]
-> `docs/evidence/layer1b/` contains frozen historical evaluation receipts. Their cryptographic payload signatures cover the exact original runner environment paths (`/home/runner/...`). They are intentionally preserved as immutable evaluation records and are explicitly exempted from repository path linters so their signatures remain valid.
+> `docs/evidence/layer1b/` contains frozen historical evaluation receipts. Their cryptographic payload signatures cover the exact original CI runner environment paths. They are intentionally preserved as immutable evaluation records and are explicitly exempted from repository path linters so their signatures remain valid.

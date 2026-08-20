@@ -1,0 +1,15 @@
+{
+  "instance_id": "click__ctrl_click_12",
+  "row_id": "ctrl_click_12",
+  "kind": "control",
+  "execution_mode": "differential_verification",
+  "base_sha": "a0232a8ffc75269dd10af67881538b12bdf95a9c",
+  "head_sha": "832ca2231174bff71e0af600a52c1b18612573a2",
+  "test_file": "tests/test_basic.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  }
+}

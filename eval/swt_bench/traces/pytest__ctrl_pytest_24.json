@@ -1,0 +1,15 @@
+{
+  "instance_id": "pytest__ctrl_pytest_24",
+  "row_id": "ctrl_pytest_24",
+  "kind": "control",
+  "execution_mode": "differential_verification",
+  "base_sha": "9072c4b7bb0832f6d752520a762469babe7a0c44",
+  "head_sha": "d27774fa6ce0f7e966fadcbac1330862b02292d2",
+  "test_file": "testing/test_collection.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  }
+}

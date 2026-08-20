@@ -1,0 +1,15 @@
+{
+  "instance_id": "flask__bug_flask_04",
+  "row_id": "bug_flask_04",
+  "kind": "bug",
+  "execution_mode": "differential_verification",
+  "base_sha": "53b8f08218796d95764c5252bccd8a50a173a6fb",
+  "head_sha": "5addaf833b2e8c7a616f89dd8ad5a44b07d7c000",
+  "test_file": "tests/test_testing.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  }
+}
