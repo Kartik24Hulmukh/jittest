@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from jittest.action import run_action
+from jittest.diff import git_env
 from jittest.execute import Disposition
 from jittest.verify import VerdictClass, verify_test
 
@@ -15,9 +16,10 @@ class SevenFixturesTest(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp(prefix="jt_fix7_"))
         self.repo = self.tmp / "repo"
         self.repo.mkdir()
-        subprocess.run(["git", "init", "-b", "main"], cwd=self.repo, check=True, capture_output=True)
-        subprocess.run(["git", "config", "user.name", "test"], cwd=self.repo, check=True)
-        subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=self.repo, check=True)
+        subprocess.run(["git", "init", "-b", "main"], cwd=self.repo, check=True, capture_output=True, env=git_env())
+        subprocess.run(["git", "config", "user.name", "test"], cwd=self.repo, check=True, env=git_env())
+        subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=self.repo, check=True, env=git_env())
+        subprocess.run(["git", "config", "commit.gpgsign", "false"], cwd=self.repo, check=True, env=git_env())
 
     def tearDown(self):
         def _onerror(func, path, exc_info):
@@ -32,9 +34,9 @@ class SevenFixturesTest(unittest.TestCase):
             full_p = self.repo / rel_p
             full_p.parent.mkdir(parents=True, exist_ok=True)
             full_p.write_text(content, encoding="utf-8")
-        subprocess.run(["git", "add", "."], cwd=self.repo, check=True)
-        subprocess.run(["git", "commit", "--allow-empty", "-m", msg], cwd=self.repo, check=True, capture_output=True)
-        return subprocess.run(["git", "rev-parse", "HEAD"], cwd=self.repo, capture_output=True, text=True, check=True).stdout.strip()
+        subprocess.run(["git", "add", "."], cwd=self.repo, check=True, env=git_env())
+        subprocess.run(["git", "commit", "--allow-empty", "-m", msg], cwd=self.repo, check=True, capture_output=True, env=git_env())
+        return subprocess.run(["git", "rev-parse", "HEAD"], cwd=self.repo, capture_output=True, text=True, errors="replace", check=True, env=git_env()).stdout.strip()
 
     def test_fixture_1_regression_catch(self):
         """1. base PASS -> head FAIL, test unchanged => proven_catch (regression)"""
