@@ -134,7 +134,7 @@ jobs:
             --head ${{ github.event.pull_request.head.sha }} \
             --dry-run --json
 
-  consumer-action-e2e:
+  consumer_action_e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -240,15 +240,15 @@ EOF
 
   ci:
     if: always()
-    needs: [lint, test, build, consumer-action-e2e]
+    needs: [lint, test, build, consumer_action_e2e]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Check aggregate result
         run: |
-          echo "lint=${{ needs.lint.result }} test=${{ needs.test.result }} build=${{ needs.build.result }} consumer=${{ needs.consumer-action-e2e.result }}"
+          echo "lint=${{ needs.lint.result }} test=${{ needs.test.result }} build=${{ needs.build.result }} consumer=${{ needs.consumer_action_e2e.result }}"
           [ "${{ needs.lint.result }}" = "success" ] || exit 1
           [ "${{ needs.test.result }}" = "success" ] || exit 1
           [ "${{ needs.build.result }}" = "success" ] || exit 1
-          [ "${{ needs.consumer-action-e2e.result }}" = "success" ] || exit 1
+          [ "${{ needs.consumer_action_e2e.result }}" = "success" ] || exit 1
 
