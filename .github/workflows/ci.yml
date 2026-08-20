@@ -165,11 +165,11 @@ jobs:
           echo "def add(a, b): return a + b" > calc.py
           mkdir -p tests
           cat << 'EOF' > tests/test_calc.py
-from calc import add
+          from calc import add
 
-def test_add():
-    assert add(2, 3) == 5
-EOF
+          def test_add():
+              assert add(2, 3) == 5
+          EOF
           git add .
           git commit -m "base: valid calculator"
           BASE_SHA=$(git rev-parse HEAD)
@@ -177,12 +177,12 @@ EOF
           # Head commit: regression bug in calc.py, test modified/touched
           echo "def add(a, b): return a - b  # intentional regression" > calc.py
           cat << 'EOF' > tests/test_calc.py
-from calc import add
+          from calc import add
 
-def test_add():
-    # Test catching regression
-    assert add(2, 3) == 5
-EOF
+          def test_add():
+              # Test catching regression
+              assert add(2, 3) == 5
+          EOF
           git add calc.py tests/test_calc.py
           git commit -m "head: regression bug in calc.py"
           HEAD_SHA=$(git rev-parse HEAD)
