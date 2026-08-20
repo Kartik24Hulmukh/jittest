@@ -30,7 +30,18 @@ def test_sign_and_verify_receipt():
         # Verifiable in every install, with or without `cryptography`.
         ok, msg = verify_receipt(signed, key_path=key_file)
         assert ok is True
-        assert msg == "signature_valid"
+        assert "SIGNER_UNVERIFIED" in msg
+
+        # With matching expected signer
+        pub_hex = signed["signature"]["verifying_key"]
+        ok, msg = verify_receipt(signed, key_path=key_file, expected_signer=pub_hex)
+        assert ok is True
+        assert "SIGNER_TRUSTED" in msg
+
+        # With mismatched expected signer
+        ok, msg = verify_receipt(signed, key_path=key_file, expected_signer="00" * 32)
+        assert ok is True
+        assert "SIGNER_UNTRUSTED" in msg
 
 
 def test_tampered_receipt_fails():

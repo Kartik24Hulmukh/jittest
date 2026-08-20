@@ -240,5 +240,73 @@ class TestLegacyFieldCompatibility(unittest.TestCase):
             self.assertTrue(ok, f"legacy field name broke verification: {reason}")
 
 
+class TestExpectedSignerVerification(unittest.TestCase):
+    """WO-12 R1: Expected-signer verification and trust boundary checks."""
+
+    def test_no_expected_signer_reports_unverified(self):
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as d:
+            signed = receipt.sign_evidence(_evidence(), key_path=Path(d) / "k.pem")
+            ok, reason = receipt.verify_receipt(signed)
+            self.assertTrue(ok)
+            self.assertIn("SIGNER_UNVERIFIED", reason)
+
+    def test_expected_signer_match_reports_trusted(self):
+        import hashlib
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as d:
+            signed = receipt.sign_evidence(_evidence(), key_path=Path(d) / "k.pem")
+            pub_hex = signed["signature"]["verifying_key"]
+            fingerprint = hashlib.sha256(bytes.fromhex(pub_hex)).hexdigest()[:16]
+
+            # Matching by full hex
+            ok, reason = receipt.verify_receipt(signed, expected_signer=pub_hex)
+            self.assertTrue(ok)
+            self.assertIn("SIGNER_TRUSTED", reason)
+
+            # Matching by fingerprint
+            ok, reason = receipt.verify_receipt(signed, expected_signer=fingerprint)
+            self.assertTrue(ok)
+            self.assertIn("SIGNER_TRUSTED", reason)
+
+    def test_expected_signer_allowlist_file(self):
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as d:
+            signed = receipt.sign_evidence(_evidence(), key_path=Path(d) / "k.pem")
+            pub_hex = signed["signature"]["verifying_key"]
+
+            allowlist_path = Path(d) / "allowlist.txt"
+            allowlist_path.write_text(f"# Trusted keys\n{pub_hex}\n", encoding="utf-8")
+
+            ok, reason = receipt.verify_receipt(signed, expected_signer=str(allowlist_path))
+            self.assertTrue(ok)
+            self.assertIn("SIGNER_TRUSTED", reason)
+
+            # Mismatched allowlist
+            bad_allowlist = Path(d) / "bad_allowlist.txt"
+            bad_allowlist.write_text("# Other keys\n00112233445566778899aabbccddeeff\n", encoding="utf-8")
+
+            ok, reason = receipt.verify_receipt(signed, expected_signer=str(bad_allowlist))
+            self.assertTrue(ok)
+            self.assertIn("SIGNER_UNTRUSTED", reason)
+
+    def test_expected_signer_mismatch_reports_untrusted(self):
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as d:
+            signed = receipt.sign_evidence(_evidence(), key_path=Path(d) / "k.pem")
+            attacker_expected = "deadbeef" * 8
+            ok, reason = receipt.verify_receipt(signed, expected_signer=attacker_expected)
+            self.assertTrue(ok)
+            self.assertIn("SIGNER_UNTRUSTED", reason)
+
+
 if __name__ == "__main__":
     unittest.main()

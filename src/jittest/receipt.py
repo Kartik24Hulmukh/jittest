@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import base64
 import contextlib
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -179,15 +180,48 @@ def sign_evidence(
     return result
 
 
+def _matches_signer(expected: str, key_hex: str, fingerprint: str) -> bool:
+    target = expected.strip().lower()
+    k_hex = key_hex.lower()
+    f_hex = fingerprint.lower()
+    if not target:
+        return False
+    target_path = Path(expected)
+    if target_path.is_file():
+        try:
+            content = target_path.read_text(encoding="utf-8")
+            for line in content.splitlines():
+                entry = line.split("#")[0].strip().lower()
+                if entry and (
+                    entry in (k_hex, f_hex)
+                    or k_hex.startswith(entry)
+                    or f_hex.startswith(entry)
+                ):
+                    return True
+            return False
+        except OSError:
+            pass
+
+    return (
+        target in (k_hex, f_hex)
+        or k_hex.startswith(target)
+        or f_hex.startswith(target)
+    )
+
+
 def verify_receipt(
     evidence_input: Path | str | dict[str, Any],
     key_path: Path | str | None = None,
     backend: str | None = None,
+    expected_signer: str | Path | None = None,
 ) -> tuple[bool, str]:
     """Verify a receipt using the public key carried inside it.
 
-    ``key_path`` is accepted for call-compatibility and deliberately unused: a receipt
-    that can only be checked against the verifier's own key is not evidence.
+    Args:
+        evidence_input: Path to receipt JSON or parsed evidence dictionary.
+        key_path: Accepted for backward compatibility.
+        backend: Optional backend selection ('vendored' or 'cryptography').
+        expected_signer: Verifying key hex, fingerprint prefix, or path to allowlist file.
 
     Returns:
         ``(valid, reason)``. Never raises on malformed or unrecognised input; an
@@ -240,13 +274,29 @@ def verify_receipt(
     except SigningKeyError as exc:
         return False, f"backend_unavailable: {exc}"
 
+    valid_sig = False
     if chosen == CRYPTOGRAPHY:
         try:
             ed25519.Ed25519PublicKey.from_public_bytes(pub_bytes).verify(sig_bytes, data)
-            return True, "signature_valid"
+            valid_sig = True
         except Exception as exc:
             return False, f"signature_verification_failed: {exc}"
+    else:
+        if _ed25519.verify(pub_bytes, data, sig_bytes):
+            valid_sig = True
+        else:
+            return False, "signature_verification_failed: Ed25519 signature does not match payload"
 
-    if _ed25519.verify(pub_bytes, data, sig_bytes):
-        return True, "signature_valid"
-    return False, "signature_verification_failed: Ed25519 signature does not match payload"
+    if not valid_sig:
+        return False, "signature_verification_failed: Ed25519 signature does not match payload"
+
+    fingerprint = hashlib.sha256(pub_bytes).hexdigest()[:16]
+
+    if not expected_signer:
+        return True, "SIGNATURE_VALID · SIGNER_UNVERIFIED — integrity only, not authenticity"
+
+    if _matches_signer(str(expected_signer), key_hex, fingerprint):
+        return True, f"SIGNATURE_VALID · SIGNER_TRUSTED (fingerprint: {fingerprint})"
+    else:
+        return True, f"SIGNATURE_VALID · SIGNER_UNTRUSTED: signer fingerprint {fingerprint} does not match expected {expected_signer}"
+

@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "jittest"
-version = "0.3.3"
-description = "Executable proof on every pull request: differential base/head verification with signed, recomputable receipts. Proof or silence."
+version = "0.3.4"
+description = "Differential test-execution gate for agent-authored pull requests with Ed25519-signed receipts."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }

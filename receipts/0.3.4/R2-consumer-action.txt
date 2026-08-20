@@ -1,0 +1,5 @@
+CONSUMER REPO: C:\Users\praja\AppData\Local\Temp\tmpwh3ekeb7\external_consumer
+BASE: f2acc8d36816d6c1b2d8a116579c84fc773cb115
+HEAD: 81bc8424599e6053fc111dfcd93b04a3bb3fd6b7
+EXIT_CODE: 0
+RECEIPTS_GENERATED: ['evidence-test_lib.json']

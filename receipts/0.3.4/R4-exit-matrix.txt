@@ -1,0 +1,15 @@
+# Exit Policy Verification Matrix (Gate G4)
+
+| Scenario / Outcome | Advisory Policy | Strict Policy | Block-on-Refusal Policy |
+| :--- | :---: | :---: | :---: |
+| proven_catch (behavioral catch) | exit 0 | exit 0 | exit 0 |
+| collection_catch | exit 0 | exit 0 | exit 0 |
+| refuted / non_discriminating (clean run, no catch) | exit 0 | exit 1 | exit 0 |
+| zero_tests (no test files changed) | exit 0 | exit 0 | exit 0 |
+| env_setup_failed (refusal) | exit 0 | exit 1 | exit 1 |
+| sandbox_unavailable (refusal) | exit 0 | exit 1 | exit 1 |
+
+### Policy Rules Enforced:
+1. **advisory** (default): Always exits 0, surfaces non-blocking annotations (::warning::) on refusals.
+2. **strict**: Exits 0 only when at least 1 proven catch is found OR zero test files were touched. Exits 1 otherwise.
+3. **block-on-refusal**: Exits 1 on any environment setup, sandbox, or collection refusal. Exits 0 when tests execute cleanly.

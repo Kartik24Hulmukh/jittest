@@ -128,6 +128,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="path to an Ed25519 private key (PKCS#8 PEM or raw 32-byte seed). "
              "Created if absent; an unusable key is an error, never a silent fallback.",
     )
+    vf.add_argument(
+        "--sandbox-mode",
+        choices=["auto", "required", "off"],
+        default=None,
+        help="sandbox isolation mode: auto, required, or off",
+    )
     vf.add_argument("--timeout", type=int, default=60, help="per test run timeout in seconds")
     vf.add_argument("--reruns", type=int, default=2, help="flakiness reruns on head")
     vf.add_argument("--json", dest="as_json", action="store_true")
@@ -138,6 +144,11 @@ def build_parser() -> argparse.ArgumentParser:
              "using the public key carried inside it",
     )
     vr.add_argument("artifact", help="path to evidence JSON artifact")
+    vr.add_argument(
+        "--expected-signer",
+        default=None,
+        help="verifying key hex, fingerprint prefix, or path to allowlist file",
+    )
     vr.add_argument("--json", dest="as_json", action="store_true")
 
     dr = sub.add_parser("doctor", help="check that this environment can run jittest")
@@ -423,6 +434,7 @@ def _cmd_verify(args: argparse.Namespace) -> int:
             timeout_s=args.timeout,
             reruns=args.reruns,
             no_sandbox=args.no_sandbox,
+            sandbox_mode=getattr(args, "sandbox_mode", None),
             signing_key_path=args.signing_key,
         )
     except SigningKeyError as exc:
@@ -445,15 +457,26 @@ def _cmd_verify(args: argparse.Namespace) -> int:
 def _cmd_verify_receipt(args: argparse.Namespace) -> int:
     from .receipt import verify_receipt
     artifact_path = Path(args.artifact).resolve()
-    ok, reason = verify_receipt(artifact_path)
+    expected_signer = getattr(args, "expected_signer", None)
+    ok, reason = verify_receipt(artifact_path, expected_signer=expected_signer)
 
     if args.as_json:
-        print(json.dumps({"valid": ok, "reason": reason, "artifact": str(artifact_path)}, indent=2))
+        print(json.dumps({
+            "valid": ok,
+            "reason": reason,
+            "artifact": str(artifact_path),
+            "expected_signer": expected_signer,
+        }, indent=2))
     else:
-        status_str = "VALID" if ok else "INVALID"
-        print(f"jittest verify-receipt: [{status_str}] {reason}")
+        print(f"jittest verify-receipt: {reason}")
 
-    return 0 if ok else 1
+    if not ok:
+        return 2
+    if "SIGNER_TRUSTED" in reason:
+        return 0
+    if "SIGNER_UNTRUSTED" in reason or "SIGNER_UNVERIFIED" in reason:
+        return 3
+    return 0
 
 
 def _cmd_action(args: argparse.Namespace) -> int:

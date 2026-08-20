@@ -15,9 +15,13 @@ inputs:
     required: false
     default: ''
   sandbox-mode:
-    description: 'Sandbox isolation mode: auto, required, or off'
+    description: 'Sandbox isolation mode: auto, required, or off (leave empty for automatic fork isolation)'
     required: false
-    default: 'auto'
+    default: ''
+  policy:
+    description: 'Exit policy: advisory (default), strict, or block-on-refusal'
+    required: false
+    default: 'advisory'
   budget:
     description: 'Per-PR cost ceiling in USD'
     required: false
@@ -35,12 +39,19 @@ runs:
       with:
         python-version: '3.11'
 
-    - name: Install dependencies
+    - name: Install jittest in isolated venv
       shell: bash
       run: |
-        python -m pip install --upgrade pip
-        pip install cryptography pytest
-        pip install -e ${{ inputs.repo-path }}
+        python -m venv "${RUNNER_TEMP}/jittest-action-venv"
+        if [ -f "${RUNNER_TEMP}/jittest-action-venv/bin/python" ]; then
+          PY_BIN="${RUNNER_TEMP}/jittest-action-venv/bin/python"
+          PIP_BIN="${RUNNER_TEMP}/jittest-action-venv/bin/pip"
+        else
+          PY_BIN="${RUNNER_TEMP}/jittest-action-venv/Scripts/python.exe"
+          PIP_BIN="${RUNNER_TEMP}/jittest-action-venv/Scripts/pip.exe"
+        fi
+        "$PIP_BIN" install --upgrade pip
+        "$PIP_BIN" install "${{ github.action_path }}"
 
     - name: Run jittest verify action
       shell: bash
@@ -49,9 +60,14 @@ runs:
         JITTEST_REPO_PATH: ${{ inputs.repo-path }}
         JITTEST_PR_NUMBER: ${{ inputs.pr-number }}
         JITTEST_SANDBOX_MODE: ${{ inputs.sandbox-mode }}
+        JITTEST_POLICY: ${{ inputs.policy }}
         JITTEST_BUDGET: ${{ inputs.budget }}
       run: |
-        python -m jittest.action
+        if [ -f "${RUNNER_TEMP}/jittest-action-venv/bin/python" ]; then
+          "${RUNNER_TEMP}/jittest-action-venv/bin/python" -m jittest.action
+        else
+          "${RUNNER_TEMP}/jittest-action-venv/Scripts/python.exe" -m jittest.action
+        fi
 
     - name: Upload evidence artifacts
       uses: actions/upload-artifact@v4

@@ -106,15 +106,65 @@ jobs:
             --head ${{ github.event.pull_request.head.sha }} \
             --dry-run --json
 
+  consumer-action-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Configure git
+        run: |
+          git config --global user.email "ci@jittest.dev"
+          git config --global user.name "jittest ci"
+          git config --global init.defaultBranch main
+
+      - name: Create external consumer fixture repo
+        shell: bash
+        run: |
+          mkdir -p "${RUNNER_TEMP}/consumer-repo"
+          cd "${RUNNER_TEMP}/consumer-repo"
+          git init
+          git config user.name "consumer"
+          git config user.email "consumer@example.com"
+          echo "def add(a, b): return a + b" > calc.py
+          mkdir -p tests
+          echo "def test_calc(): assert True" > tests/test_calc.py
+          git add .
+          git commit -m "base commit"
+          BASE_SHA=$(git rev-parse HEAD)
+
+          echo "def test_calc(): assert 1 + 1 == 2" > tests/test_calc.py
+          git add tests/test_calc.py
+          git commit -m "head commit"
+          HEAD_SHA=$(git rev-parse HEAD)
+
+          echo "JITTEST_BASE=$BASE_SHA" >> $GITHUB_ENV
+          echo "JITTEST_HEAD=$HEAD_SHA" >> $GITHUB_ENV
+
+      - name: Run composite action against consumer repo
+        uses: ./
+        with:
+          repo-path: ${{ runner.temp }}/consumer-repo
+          sandbox-mode: 'off'
+          policy: 'advisory'
+
   ci:
     if: always()
-    needs: [lint, test, build]
+    needs: [lint, test, build, consumer-action-e2e]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Check aggregate result
         run: |
-          echo "lint=${{ needs.lint.result }} test=${{ needs.test.result }} build=${{ needs.build.result }}"
+          echo "lint=${{ needs.lint.result }} test=${{ needs.test.result }} build=${{ needs.build.result }} consumer=${{ needs.consumer-action-e2e.result }}"
           [ "${{ needs.lint.result }}" = "success" ] || exit 1
           [ "${{ needs.test.result }}" = "success" ] || exit 1
           [ "${{ needs.build.result }}" = "success" ] || exit 1
+          [ "${{ needs.consumer-action-e2e.result }}" = "success" ] || exit 1
+

@@ -123,6 +123,7 @@ def verify_test(
     timeout_s: int = 120,
     reruns: int = 2,
     no_sandbox: bool = False,
+    sandbox_mode: str | None = None,
     signing_key_path: Path | str | None = None,
 ) -> tuple[dict[str, Any], int]:
     """Run paired base/head verification and generate Ed25519 signed evidence artifact.
@@ -155,16 +156,20 @@ def verify_test(
     resolved_head = resolve_revision(repo_path, head_ref)
 
     # Sandbox plan setup
-    sandbox_mode = "off" if no_sandbox else "auto"
-    if no_sandbox:
-        logger.warning("WARNING: Sandbox disabled by user flag (--no-sandbox). Candidate tests will run unconfined.")
+    if sandbox_mode is not None:
+        effective_sandbox_mode = sandbox_mode.strip().lower()
+    else:
+        effective_sandbox_mode = "off" if no_sandbox else "auto"
 
-    sbx_plan = plan_sandbox(mode=sandbox_mode, probe=True)
+    if effective_sandbox_mode == "off":
+        logger.warning("WARNING: Sandbox disabled. Candidate tests will run unconfined.")
+
+    sbx_plan = plan_sandbox(mode=effective_sandbox_mode, probe=True)
 
     # A silently degraded sandbox is more dangerous than an explicitly disabled one:
     # nobody chose it, so nobody knows to compensate. The artifact already records
     # this in sandbox.notes; say it out loud too.
-    if not no_sandbox and getattr(sbx_plan, "backend", None) == "none":
+    if effective_sandbox_mode != "off" and getattr(sbx_plan, "backend", None) == "none":
         for note in getattr(sbx_plan, "notes", []) or []:
             logger.warning("WARNING: sandbox isolation unavailable - %s", note)
 

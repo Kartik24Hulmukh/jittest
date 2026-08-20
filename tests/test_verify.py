@@ -126,5 +126,10 @@ def test_verify_signed_receipt():
         from jittest.receipt import verify_receipt
         ok, msg = verify_receipt(out_artifact)
         assert ok is True
-        assert msg == "signature_valid"
+        assert "SIGNER_UNVERIFIED" in msg
+
+        pub_key = evidence["signature"]["verifying_key"]
+        ok, msg = verify_receipt(out_artifact, expected_signer=pub_key)
+        assert ok is True
+        assert "SIGNER_TRUSTED" in msg
 
