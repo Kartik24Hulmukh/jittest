@@ -1,0 +1,10 @@
+RECEIPT_ID: R2-consumer-action
+VERDICT: proven_catch
+DISPOSITION: catching
+PROVEN_CATCH: True
+POLICY: strict
+EXIT_CODE: 0
+CONSUMER_REPO: <TMPDIR>/consumer-repo
+BASE_SHA: 0755a3dd7af46c38a87047af1bda3098c6f0c019
+HEAD_SHA: cad756f0e9a0772901ec9185980822f2fda45a9e
+ARTIFACT: <TMPDIR>/evidence/evidence-test_calc.json

@@ -1,0 +1,14 @@
+RECEIPT_ID: R3-sandbox-honest
+VERDICT: inconclusive
+DISPOSITION: SANDBOX_UNAVAILABLE
+PROVEN_CATCH: False
+POLICY: strict
+EXIT_CODE: 1
+
+=== PROBE 1: Parameter Differentiation in verify_test ===
+auto invocation plan_sandbox call: call(mode='auto', probe=True)
+required invocation plan_sandbox call: call(mode='required', probe=True)
+RESULT: auto and required produce DIFFERENT plan_sandbox calls.
+
+=== PROBE 2: Required Mode Fail-Closed ===
+PASS: plan(mode=required) raised SandboxUnavailable: sandbox.mode is 'required' but no isolation backend is available. Install podman, docker or bubblewrap on this runner, or set sandbox.mode to 'auto' and accept that candidates run unconfined.

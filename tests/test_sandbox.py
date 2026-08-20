@@ -115,7 +115,7 @@ class Wrapping(unittest.TestCase):
         """Host paths leaking into a container argv produce a file-not-found
         that looks exactly like a collection error, which the oracle records
         as NOTRUN on head - quietly discarding a possibly real candidate."""
-        wd = Path("/home/runner/work/repo")
+        wd = Path("/var/work/repo")
         argv = ["/usr/bin/python", str(wd / "test_c.py"),
                 f"--junitxml={wd / 'r.xml'}"]
         out = S._container_paths(argv, wd)

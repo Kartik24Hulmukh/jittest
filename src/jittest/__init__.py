@@ -9,5 +9,5 @@ That distinction is the whole product.
 """
 from __future__ import annotations
 
-__version__ = "0.3.3"
+__version__ = "0.3.4"
 __all__ = ["__version__"]

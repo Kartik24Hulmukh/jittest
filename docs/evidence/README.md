@@ -35,4 +35,4 @@ To independently verify the authenticity and integrity of any receipt:
 ```bash
 jittest verify-receipt docs/evidence/quadrants/proven_catch_evidence.json
 ```
-or run the offline Python verification snippet documented in [`docs/KEYS.md`](file:///C:/Users/praja/src/jittest/docs/KEYS.md).
+or run the offline Python verification snippet documented in [`docs/KEYS.md`](../KEYS.md).

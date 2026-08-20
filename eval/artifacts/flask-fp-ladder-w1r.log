@@ -1,7 +1,7 @@
 python :   warning: pricing is unknown for model 'gemini-3.6-flash'. A request-count ceiling will be enforced instead 
 of a dollar cap.
 At line:1 char:334
-+ ... RVAL = "7"; python -m eval.fp_ladder --repo C:\Users\praja\src\flask  ...
++ ... RVAL = "7"; python -m eval.fp_ladder --repo <TMPDIR>/flask  ...
 +                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (  warning: pric...f a dollar cap.:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError

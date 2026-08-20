@@ -69,6 +69,34 @@ jobs:
       - run: pip install ruff mypy
       - run: ruff check src tests
       - run: mypy src/jittest --ignore-missing-imports || true
+      - name: Assert no absolute local user paths in tracked files
+        run: |
+          python - <<'PY'
+          import subprocess, sys
+          res = subprocess.run(['git', 'ls-files'], capture_output=True, text=True, check=True)
+          files = [f.strip() for f in res.stdout.splitlines() if f.strip()]
+          forbidden = ['c:\\users', 'c:/users', '/home/runner/', '/home/user']
+          violations = []
+          for f in files:
+              # skip historical/recorded logs in test fixtures if any, but check all docs, src, receipts, changelog, workflows
+              if f.startswith('docs/evidence/layer1') or f == '.github/workflows/ci.yml':
+                  continue
+              try:
+                  with open(f, 'r', encoding='utf-8', errors='ignore') as fh:
+                      for i, line in enumerate(fh, 1):
+                          line_l = line.lower()
+                          for pat in forbidden:
+                              if pat in line_l:
+                                  violations.append(f"{f}:{i}: {line.strip()}")
+              except Exception:
+                  pass
+          if violations:
+              print(f"Found {len(violations)} absolute local path violations:")
+              for v in violations:
+                  print(f"  {v}")
+              sys.exit(1)
+          print("ok: zero absolute local paths found")
+          PY
 
   build:
     runs-on: ubuntu-latest
@@ -106,15 +134,121 @@ jobs:
             --head ${{ github.event.pull_request.head.sha }} \
             --dry-run --json
 
+  consumer_action_e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Configure git
+        run: |
+          git config --global user.email "ci@jittest.dev"
+          git config --global user.name "jittest ci"
+          git config --global init.defaultBranch main
+
+      - name: Create external consumer fixture repo with intentional bug
+        shell: bash
+        run: |
+          mkdir -p "${RUNNER_TEMP}/consumer-repo"
+          cd "${RUNNER_TEMP}/consumer-repo"
+          git init
+          git config user.name "consumer"
+          git config user.email "consumer@example.com"
+          
+          # Base commit: valid calculator
+          echo "def add(a, b): return a + b" > calc.py
+          mkdir -p tests
+          cat << 'EOF' > tests/test_calc.py
+          from calc import add
+
+          def test_add():
+              assert add(2, 3) == 5
+          EOF
+          git add .
+          git commit -m "base: valid calculator"
+          BASE_SHA=$(git rev-parse HEAD)
+
+          # Head commit: regression bug in calc.py, test modified/touched
+          echo "def add(a, b): return a - b  # intentional regression" > calc.py
+          cat << 'EOF' > tests/test_calc.py
+          from calc import add
+
+          def test_add():
+              # Test catching regression
+              assert add(2, 3) == 5
+          EOF
+          git add calc.py tests/test_calc.py
+          git commit -m "head: regression bug in calc.py"
+          HEAD_SHA=$(git rev-parse HEAD)
+
+          echo "JITTEST_BASE=$BASE_SHA" >> $GITHUB_ENV
+          echo "JITTEST_HEAD=$HEAD_SHA" >> $GITHUB_ENV
+
+      - name: Run composite action against consumer repo in strict policy mode
+        uses: ./
+        with:
+          repo-path: ${{ runner.temp }}/consumer-repo
+          sandbox-mode: 'off'
+          policy: 'strict'
+          output-dir: ${{ runner.temp }}/consumer-evidence
+
+      - name: Assert consumer action results and evidence contract
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, glob, sys, os
+          evidence_dir = os.environ.get("RUNNER_TEMP", "/tmp") + "/consumer-evidence"
+          files = glob.glob(evidence_dir + "/*.json")
+          if not files:
+              sys.exit(f"FAIL: No evidence JSON generated in {evidence_dir}")
+
+          disallowed_dispositions = {
+              "base_uncollectable",
+              "head_uncollectable",
+              "ENV_SETUP_FAILED",
+              "SANDBOX_UNAVAILABLE",
+              "TIMEOUT",
+              "file_not_found",
+              "base_reproduction_failed"
+          }
+
+          proven_catches = 0
+          for f in files:
+              data = json.load(open(f, encoding="utf-8"))
+              verdict = data.get("verdict")
+              disposition = data.get("disposition")
+              proven = data.get("proven_catch")
+              print(f"Evidence file {f}: verdict={verdict}, disposition={disposition}, proven_catch={proven}")
+
+              if disposition in disallowed_dispositions:
+                  sys.exit(f"FAIL: Disallowed disposition found: {disposition}")
+
+              if proven is True or verdict == "proven_catch":
+                  proven_catches += 1
+
+          if proven_catches == 0:
+              sys.exit("FAIL: Zero proven catches found in consumer action run!")
+
+          print(f"SUCCESS: consumer-action-e2e verified {proven_catches} proven catch(es) with clean disposition.")
+          PY
+
   ci:
     if: always()
-    needs: [lint, test, build]
+    needs: [lint, test, build, consumer_action_e2e]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Check aggregate result
         run: |
-          echo "lint=${{ needs.lint.result }} test=${{ needs.test.result }} build=${{ needs.build.result }}"
+          echo "lint=${{ needs.lint.result }} test=${{ needs.test.result }} build=${{ needs.build.result }} consumer=${{ needs.consumer_action_e2e.result }}"
           [ "${{ needs.lint.result }}" = "success" ] || exit 1
           [ "${{ needs.test.result }}" = "success" ] || exit 1
           [ "${{ needs.build.result }}" = "success" ] || exit 1
+          [ "${{ needs.consumer_action_e2e.result }}" = "success" ] || exit 1
+

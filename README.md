@@ -2,13 +2,13 @@
 
 **Opinions are free. Proofs are signed.**
 
-jittest is the verification layer for AI-written code. It does not read your
+jittest is a differential test-execution gate for agent-authored pull requests. It does not read your
 diff and guess. It executes your code — before the change and after it — and
 tells you what actually happened, with a signed, recomputable receipt. If it
 cannot prove anything, it says so. Proof or silence.
 
 [![CI](https://github.com/Kartik24Hulmukh/jittest/actions/workflows/ci.yml/badge.svg)](https://github.com/Kartik24Hulmukh/jittest/actions)
-[![PyPI](https://img.shields.io/badge/PyPI-v0.3.2-blue)](https://pypi.org/project/jittest/)
+[![PyPI](https://img.shields.io/badge/PyPI-v0.3.4-blue)](https://pypi.org/project/jittest/)
 [![license](https://img.shields.io/badge/license-Apache--2.0-lightgrey)](LICENSE)
 ![dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)
 
@@ -34,21 +34,20 @@ verdicts:
 | `proven_catch` | test passes on base, fails on head — it discriminates; signed proof |
 | `refuted` | test fails on both — the claim did not hold |
 | `non_discriminating` | test passes on both — proves nothing about the change |
-| `inconclusive` | environment could not be built — a loud, signed refusal, never a guess |
+| `inconclusive` | environment could not be built — a loud refusal, never a guess |
 
-Every run emits an Ed25519-signed receipt (schema 2.0) with the exact SHAs,
-environment, output hashes, and wall-clock. The public key is in
-[`docs/KEYS.md`](docs/KEYS.md); the receipt contract is in
-[`docs/SCHEMA.md`](docs/SCHEMA.md).
+Receipts are Ed25519-signed. Verification checks integrity and, when you supply `--expected-signer`, authenticity against a key you chose. Without `--expected-signer` jittest reports integrity only and exits non-zero.
+
+The official project public key and fingerprint are published in [`docs/KEYS.md`](docs/KEYS.md); the receipt contract is in [`docs/SCHEMA.md`](docs/SCHEMA.md).
 
 ## Try it in 60 seconds — no keys, no setup
 
 ```bash
 pip install jittest
 
-# verify one of this repo's own published receipts, fully offline
+# verify one of this repo's own published receipts with official key fingerprint
 curl -sLO https://raw.githubusercontent.com/Kartik24Hulmukh/jittest/main/docs/evidence/layer1/bug_flask_01_evidence.json
-jittest verify-receipt bug_flask_01_evidence.json
+jittest verify-receipt bug_flask_01_evidence.json --expected-signer 4059d799af91096f
 ```
 
 Then recompute the measurement behind it end to end — the sweep script clones
@@ -63,15 +62,14 @@ Don't trust. Recompute.
 
 ## The measured status — we publish our denominator
 
-Layer-1 verdict-accuracy sweep over a frozen, human-adjudicated 83-row cohort
-of real Flask / requests / youtube-dl history. Zero LLM calls, $0.00:
+Layer-1 sweep over a frozen benchmark cohort of 83 historical pull requests across Flask, requests, and youtube-dl (evaluating execution capability, not estimating global prevalence). Zero LLM calls, $0.00:
 
 - **83/83** rows attempted, each with a signed receipt
 - **24/83 (29%)** executed to a definitive verdict
 - **5/11** executed bug rows caught with signed proof (`proven_catch`)
 - **0/13** executed controls false-fired
-- **59/83 signed refusals** (`inconclusive`) — decade-old revisions whose
-  environments no longer build. We count refusals as first-class results:
+- **59/83 signed refusals** (`inconclusive`) — historical revisions whose
+  environments could not be restored. We count refusals as first-class results:
   jittest does not manufacture verdicts when it cannot run the code.
 
 Full per-row data, disposition tally, and recompute commands:
@@ -100,6 +98,7 @@ on: pull_request
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   verify:
@@ -108,36 +107,36 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: Kartik24Hulmukh/jittest@v0   # or pin @v0.3.2
+      - uses: Kartik24Hulmukh/jittest@v0.3.4
         with:
-          sandbox-mode: "auto"
+          policy: "strict" # 'strict' (fails build unless catch proven), 'advisory' (never fails build), or 'block-on-refusal'
 ```
 
-If jittest proves nothing, it posts nothing. Silence is the default and it is
-a feature. See [`docs/QUICKSTART.md`](docs/QUICKSTART.md).
+> [!NOTE]
+> The default action policy is `advisory`, which executes checks and posts PR comments/annotations but **never fails the build** (always exits 0). To use jittest as a blocking CI merge gate that fails on unproven regressions or environment refusals, explicitly specify `policy: "strict"` (requires at least 1 `proven_catch`) or `policy: "block-on-refusal"`.
+
 
 ## Security
 
-jittest executes code. Outside-collaborator PRs run sandboxed by default
-(docker / podman / bwrap; `--network none` family of restrictions — see
-[`SECURITY.md`](SECURITY.md)). Never run untrusted code unsandboxed.
+jittest executes code. Outside-collaborator and untrusted PRs run sandboxed (`docker`, `podman`, or `bubblewrap` with `--network none` family of restrictions — see [`SECURITY.md`](SECURITY.md)). In untrusted context, sandboxing is required and fails closed if isolation cannot be established.
 
 ## Honest boundaries
 
 - Python projects today.
-- Historical environment decay is real: on very old revisions jittest will
+- Historical environment decay is real: on older revisions jittest will
   often refuse (`inconclusive`) rather than guess. That is the feature.
 - This release line is the **verifier**. The original generation pipeline
   (`jittest run`) still ships for research completeness; it was measured
-  honestly against a frozen, human-adjudicated cohort and produced a valid
+  honestly against a frozen cohort and produced a valid
   null — twice — and is not the product's claim. The product is the verifier.
 
-## Citing
+## Prior Art & Citations
 
-Method: [arXiv 2601.22832](https://arxiv.org/abs/2601.22832) (Meta's JIT
-catching-test paper). Independent validation of the proof-or-silence doctrine:
-[arXiv 2607.14890](https://arxiv.org/abs/2607.14890). See `CITATION.cff`.
+- **Origin of the problem statement**: [arXiv 2601.22832](https://arxiv.org/abs/2601.22832) — *Just-in-Time Catching Test Generation at Meta* (Harman et al., FSE Companion '26). Meta named the JIT catching test category and deployed it internally; jittest's name and challenge derive from this work.
+- **Related work on proof-carrying receipts**: [arXiv 2607.14890](https://arxiv.org/abs/2607.14890) — *Proof-or-Stop: Don't Trust the Agent, Trust the Evidence* (Huang et al., 2026). Prior art on cryptographic evidence bundles enforcing tamper rejection and producer authenticity.
+- **Empirical effect size**: [arXiv 2607.28871](https://arxiv.org/abs/2607.28871) — *BSG-VA* (Xu & Wu, 2026). Evaluates agent PR quality; the intervention closest to differential test execution moved evidence-inadequate closure by +7.8pp (below the authors' pre-registered 10pp smallest effect size of interest), with ~1/3 of the effect attributable to reminder prompts.
 
 ## Licence
 
 Apache-2.0.
+

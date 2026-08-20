@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.3.4 - 2026-08-20
+
+### Security & Trust Boundaries
+
+- **BREAKING: `verify-receipt` exits 3 when `--expected-signer` is omitted**:
+  - Verification now strictly differentiates between cryptographic integrity and signer identity.
+  - When `--expected-signer` is omitted, `jittest verify-receipt` outputs `SIGNATURE_VALID · SIGNER_UNVERIFIED` and exits with non-zero exit code `3` (integrity only, not authenticity).
+  - To assert authenticity and exit `0`, callers must explicitly supply `--expected-signer` with the project's public key hex, 16-character fingerprint prefix (`4059d799af91096f`), or an allowlist file.
+
+- **R1: Expected-Signer Verification (`jittest.receipt`, `jittest.cli`)**:
+  - `verify_receipt` and `jittest verify-receipt` now accept `--expected-signer` (verifying key hex, 16-character SHA-256 fingerprint prefix, or path to allowlist file).
+  - Explicit three-state verification semantics and exit codes:
+    - `SIGNATURE_VALID · SIGNER_TRUSTED` -> Exit `0`
+    - `SIGNATURE_VALID · SIGNER_UNTRUSTED` -> Exit `3` (attacker-chosen verifying key rejected)
+    - `SIGNATURE_VALID · SIGNER_UNVERIFIED` (when `--expected-signer` is omitted) -> Exit `3` (signals integrity only, not authenticity)
+    - `SIGNATURE_INVALID` -> Exit `2`
+  - Published official verifying key fingerprint `4059d799af91096f` in [`docs/KEYS.md`](docs/KEYS.md).
+
+- **R2: Isolated Composite Action Installation (`action.yml`)**:
+  - Installs jittest directly from `${{ github.action_path }}` into a dedicated isolated virtual environment under `${RUNNER_TEMP}/jittest-action-venv`.
+  - Removed global `pip install cryptography pytest` and consumer-polluting editable installs.
+  - Added end-to-end consumer test matrix job `consumer-action-e2e`.
+
+- **R3: Honest Sandbox Mode & Fail-Closed Isolation (`action.yml`, `jittest.action`, `jittest.verify`)**:
+  - Threaded real `sandbox_mode` parameter across action orchestrator and verification engine.
+  - `sandbox_mode=required` fails closed with explicit refusal when isolation backends are unavailable.
+  - Untrusted fork PRs and unresolvable context automatically enforce `required` sandbox mode.
+
+- **R4: Honest Exit Policies (`jittest.action`, `action.yml`)**:
+  - Replaced tautological exit with explicit policy options: `advisory` (default, exits 0 with visible `::warning::` annotations on refusals), `strict` (exits 1 on any non-`proven_catch`), and `block-on-refusal` (exits 1 on environment, setup, sandbox, or collection refusals).
+
+- **C1 & C2: Claim & Citation Repairs**:
+  - Stripped unjustified claims and reframed citations in documentation and metadata.
+
 ## 0.3.3 - 2026-08-17
 
 ### Security — receipts were forgeable in the default install
