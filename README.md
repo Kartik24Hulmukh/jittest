@@ -109,11 +109,12 @@ jobs:
           fetch-depth: 0
       - uses: Kartik24Hulmukh/jittest@v0.3.4
         with:
-          policy: "advisory" # 'advisory', 'strict', or 'block-on-refusal'
+          policy: "strict" # 'strict' (fails build unless catch proven), 'advisory' (never fails build), or 'block-on-refusal'
 ```
 
-If jittest proves nothing, it posts nothing. Silence is the default and it is
-a feature. See [`docs/QUICKSTART.md`](docs/QUICKSTART.md).
+> [!NOTE]
+> The default action policy is `advisory`, which executes checks and posts PR comments/annotations but **never fails the build** (always exits 0). To use jittest as a blocking CI merge gate that fails on unproven regressions or environment refusals, explicitly specify `policy: "strict"` (requires at least 1 `proven_catch`) or `policy: "block-on-refusal"`.
+
 
 ## Security
 

@@ -4,6 +4,11 @@
 
 ### Security & Trust Boundaries
 
+- **BREAKING: `verify-receipt` exits 3 when `--expected-signer` is omitted**:
+  - Verification now strictly differentiates between cryptographic integrity and signer identity.
+  - When `--expected-signer` is omitted, `jittest verify-receipt` outputs `SIGNATURE_VALID · SIGNER_UNVERIFIED` and exits with non-zero exit code `3` (integrity only, not authenticity).
+  - To assert authenticity and exit `0`, callers must explicitly supply `--expected-signer` with the project's public key hex, 16-character fingerprint prefix (`4059d799af91096f`), or an allowlist file.
+
 - **R1: Expected-Signer Verification (`jittest.receipt`, `jittest.cli`)**:
   - `verify_receipt` and `jittest verify-receipt` now accept `--expected-signer` (verifying key hex, 16-character SHA-256 fingerprint prefix, or path to allowlist file).
   - Explicit three-state verification semantics and exit codes:

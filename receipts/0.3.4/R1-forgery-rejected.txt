@@ -1,7 +1,11 @@
-COMMAND: C:\Program Files\Python312\python.exe -m jittest.cli verify-receipt C:\Users\praja\AppData\Local\Temp\tmpbonbb0mz\forged_receipt.json --expected-signer 4059d799af91096f
+RECEIPT_ID: R1-forgery-rejected
+VERDICT: N/A
+DISPOSITION: SIGNER_UNTRUSTED
+PROVEN_CATCH: False
+POLICY: N/A
 EXIT_CODE: 3
+COMMAND: python -m jittest.cli verify-receipt <TMPDIR>/forged_receipt.json --expected-signer 4059d799af91096f
 STDOUT:
-jittest verify-receipt: SIGNATURE_VALID · SIGNER_UNTRUSTED: signer fingerprint 8f71d7dc73c93a99 does not match expected 4059d799af91096f
-
+jittest verify-receipt: SIGNATURE_VALID · SIGNER_UNTRUSTED: signer fingerprint 63dd132a36cdddc5 does not match expected 4059d799af91096f
 STDERR:
 

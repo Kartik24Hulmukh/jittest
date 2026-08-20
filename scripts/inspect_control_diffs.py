@@ -10,9 +10,9 @@ rows = data if isinstance(data, list) else data.get("rows", data.get("benchmarks
 controls = [r for r in rows if r.get("kind") == "control"]
 
 repo_map = {
-    "https://github.com/pallets/flask": Path(r"C:\Users\praja\src\flask"),
-    "https://github.com/psf/requests": Path(r"C:\Users\praja\src\requests"),
-    "https://github.com/ytdl-org/youtube-dl": Path(r"C:\Users\praja\src\youtube-dl"),
+    "https://github.com/pallets/flask": Path.home() / "src" / "flask",
+    "https://github.com/psf/requests": Path.home() / "src" / "requests",
+    "https://github.com/ytdl-org/youtube-dl": Path.home() / "src" / "youtube-dl",
 }
 
 missing_commits = []

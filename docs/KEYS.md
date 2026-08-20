@@ -50,8 +50,6 @@ jittest verify-receipt: SIGNATURE_VALID · SIGNER_UNVERIFIED — integrity only,
 ```
 And exits with code **3** (non-zero) to signal that authorship has not been established.
 
----
-
 ## Allowlist File Format
 
 An allowlist file contains one allowed hex key or fingerprint prefix per line. Lines starting with `#` and empty lines are ignored:
@@ -61,3 +59,10 @@ An allowlist file contains one allowed hex key or fingerprint prefix per line. L
 74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130
 4059d799af91096f
 ```
+
+---
+
+## Key Storage & Custody
+
+The private signing key for published project receipts is currently held locally on developer hardware, not inside an HSM or automated CI secret store. Evidence receipts produced by repository maintainers are signed using this developer-held key.
+

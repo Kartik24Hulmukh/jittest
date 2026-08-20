@@ -16,12 +16,7 @@ from jittest.verify import verify_test
 
 SCRIPT_DIR = Path(__file__).resolve().parent.parent
 
-if sys.platform == "win32":
-    FLASK_REPO = Path(r"C:\Users\praja\src\flask")
-else:
-    FLASK_REPO = Path("/mnt/c/Users/praja/src/flask")
-    if not FLASK_REPO.exists():
-        FLASK_REPO = Path.home() / "src" / "flask"
+FLASK_REPO = Path.home() / "src" / "flask"
 
 EVIDENCE_PR_DIR = SCRIPT_DIR / "docs" / "evidence" / "pr"
 OUT_FILE = EVIDENCE_PR_DIR / "flask_pr_evidence.json"
