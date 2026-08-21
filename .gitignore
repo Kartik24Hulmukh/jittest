@@ -17,5 +17,8 @@ jittest-results.json
 eval-results.json
 false-positives.json
 .jittest-comment.md
-.DS_Store
 scratch/
+*.log
+*_log.txt
+failed_log.txt
+job_e2e_log.txt
