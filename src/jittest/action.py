@@ -8,7 +8,6 @@ to the declared policy.
 
 from __future__ import annotations
 
-import concurrent.futures
 import json
 import logging
 import os
@@ -202,13 +201,7 @@ def run_action(
                 "artifact": "",
             }
 
-    results: list[dict[str, Any]] = []
-    if len(changed_tests) > 1:
-        max_workers = min(4, os.cpu_count() or 4)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            results = list(executor.map(_verify_one, changed_tests))
-    else:
-        results = [_verify_one(t) for t in changed_tests]
+    results: list[dict[str, Any]] = [_verify_one(t) for t in changed_tests]
 
     refusal_tests: list[dict[str, Any]] = [
         r for r in results if r["disposition"] in REFUSAL_DISPOSITIONS or r["verdict"] == VerdictClass.INCONCLUSIVE

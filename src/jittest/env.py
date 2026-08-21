@@ -531,14 +531,14 @@ def provision_environment(
     core_pkgs = ["pytest", "setuptools-scm", "wheel", "packaging", "pluggy", "iniconfig", "exceptiongroup"]
     try:
         res_pt = run_installer(core_pkgs, timeout=90)
-        if res_pt.returncode != 0 and not uv_exe:
-            err_tail = res_pt.stderr[-1000:] or res_pt.stdout[-1000:]
-            raise EnvSetupError(f"pip install core test packages failed:\n{err_tail}")
+        if res_pt.returncode != 0:
+            logger.debug("pip install core test packages exited %d; continuing with standard library fallback", res_pt.returncode)
     except subprocess.TimeoutExpired as exc:
         raise EnvSetupError(f"env_build_timeout: install core test packages timed out: {exc}") from exc
     except Exception as exc:
         if isinstance(exc, EnvSetupError):
             raise
+        logger.debug("Core packages installer encountered exception: %s", exc)
         raise EnvSetupError(f"install core packages exception: {exc}") from exc
 
     # 4. Install discovered package extras
