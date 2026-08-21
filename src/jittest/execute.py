@@ -541,7 +541,10 @@ def run_test(workdir: Path, test_code: str, timeout_s: int = 120,
     else:
         candidate = workdir / f"{CANDIDATE_PREFIX}{token}.py"
     candidate.write_text(test_code, encoding="utf-8")
-    runner = detect_runner(python_path, workdir=workdir)
+    if sbx is not None and sbx.isolated and sbx.backend in ("docker", "podman"):
+        runner = [str(python_path) if python_path else "python", "-m", "jittest._minirunner"]
+    else:
+        runner = detect_runner(python_path, workdir=workdir)
     uses_pytest = "pytest" in runner
     report = workdir / f".jittest-junit-{token}.xml"
     command = [*runner, str(candidate)]
