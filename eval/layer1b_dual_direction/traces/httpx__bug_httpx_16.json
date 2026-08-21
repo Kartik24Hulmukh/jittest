@@ -1,0 +1,20 @@
+{
+  "instance_id": "httpx__bug_httpx_16",
+  "row_id": "bug_httpx_16",
+  "kind": "bug",
+  "execution_mode": "differential_verification",
+  "base_sha": "47f4a96ffaaaa07dca1614409549b5d7a6e7af49",
+  "head_sha": "189fc4bcbe5f314128775dec66a616ac9a31ad48",
+  "test_file": "tests/test_decoders.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  },
+  "signature": {
+    "algorithm": "Ed25519",
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "EJh8bNt3JzLpYu25IVhuFDDX5LDmf3d/52bOmuxIWwPl62K7tdWmGfc/zO8KTU1KAFbMFHO32flVsQV4C2KNBQ=="
+  }
+}

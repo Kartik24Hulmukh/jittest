@@ -1,0 +1,20 @@
+{
+  "instance_id": "flask__ctrl_flask_01",
+  "row_id": "ctrl_flask_01",
+  "kind": "control",
+  "execution_mode": "differential_verification",
+  "base_sha": "1d49747264554dee31f5627d4249d09aaaeced39",
+  "head_sha": "689362089edd09b6d68f7cfe99075e1345e0fede",
+  "test_file": "tests/test_basic.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  },
+  "signature": {
+    "algorithm": "Ed25519",
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "ahb8ZbdaCilLMZ4cKsokEsBR1SJv351Un4QPWuIyGWR8991Egv8iHx2S/ZA9BXi3OdDQ+3DJhz0hSSFrKautAQ=="
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "instance_id": "rich__bug_rich_24",
+  "row_id": "bug_rich_24",
+  "kind": "bug",
+  "execution_mode": "differential_verification",
+  "base_sha": "31930ddc842d9e1cd224327d5f6c22eff4a87f82",
+  "head_sha": "454fcfc92c66556f9538d420b5bd3ba95b1f57b7",
+  "test_file": "tests/test_cells.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  },
+  "signature": {
+    "algorithm": "Ed25519",
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "rCAohDQoBFW7olhBheUnjnAa1vihEHCMLgvn8oRwr9Y2xZFc67elPcIgNpiF67Yx/7HvgMkVXpqDGAr2umdcBg=="
+  }
+}

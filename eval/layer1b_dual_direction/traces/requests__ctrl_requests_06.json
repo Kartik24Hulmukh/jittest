@@ -1,0 +1,20 @@
+{
+  "instance_id": "requests__ctrl_requests_06",
+  "row_id": "ctrl_requests_06",
+  "kind": "control",
+  "execution_mode": "differential_verification",
+  "base_sha": "c4367f231b5dc54f23f2983828562ce3a7555a8a",
+  "head_sha": "cd90742ed94d901759e26766197d0ce7c7bd9c8e",
+  "test_file": "tests/test_requests.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  },
+  "signature": {
+    "algorithm": "Ed25519",
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "X7rRGro3j0484Q7s+b0jL9iZp3FOUwu+EW9HtZiWXaokquVEOK5BXuI8sES27ts4zF95tZjsz0YIoSwnB00VAA=="
+  }
+}

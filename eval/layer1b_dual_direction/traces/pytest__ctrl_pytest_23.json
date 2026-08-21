@@ -1,0 +1,20 @@
+{
+  "instance_id": "pytest__ctrl_pytest_23",
+  "row_id": "ctrl_pytest_23",
+  "kind": "control",
+  "execution_mode": "differential_verification",
+  "base_sha": "325893ff1f89a5f6c8d45921c9dcd8ce193537e4",
+  "head_sha": "28e86a6c2ae0173831e4925a4af89b02a2936d09",
+  "test_file": "testing/test_collection.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  },
+  "signature": {
+    "algorithm": "Ed25519",
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "xRYZ7NbKAFJ5yMHqHl2oMsLxX+fJK95rVTrOoq8BXthmGTLl+AxWPws9gqMbKOZD0bNT8ZSQYJTs9Tn1OMNoAQ=="
+  }
+}

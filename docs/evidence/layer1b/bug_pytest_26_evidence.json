@@ -6,7 +6,7 @@
   "base_reproduced": true,
   "disposition": "catching",
   "provenance": {
-    "repo_path": "/home/runner/.cache/jittest/fixtures/pytest",
+    "repo_path": "<TMPDIR>/.cache/jittest/fixtures/pytest",
     "base_sha": "0d6fbdeffa57c796123f62f81f7dd370d9b7ecdc",
     "head_sha": "a3a62a0ebd43ec848b979227421e2b7ba93a9dc9",
     "test_file_name": "test_excinfo.py",
@@ -32,8 +32,8 @@
     "stdout_sha256": "24296184d2c7fa80d8a952c7fe527aec29fafda62df4f09890c213072da33ab9",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "environment": {
-      "venv_dir": "/home/runner/.jittest/envs/env_35479e0dae04fc05",
-      "python_path": "/home/runner/.jittest/envs/env_35479e0dae04fc05/bin/python",
+      "venv_dir": "<TMPDIR>/.jittest/envs/env_35479e0dae04fc05",
+      "python_path": "<TMPDIR>/.jittest/envs/env_35479e0dae04fc05/bin/python",
       "cached": false,
       "cache_key": "35479e0dae04fc05",
       "lockfile_sha256": "95e7aa659b316b3732d65de1760bb07ed792ce125f00ac8dd6ef5b7ce27fe50d"
@@ -45,8 +45,8 @@
     "stdout_sha256": "b754f4bb839e35fe5a976c3b562c8297469b72105d5349872553ce141b600e4e",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "environment": {
-      "venv_dir": "/home/runner/.jittest/envs/env_3d3921258efce2e1",
-      "python_path": "/home/runner/.jittest/envs/env_3d3921258efce2e1/bin/python",
+      "venv_dir": "<TMPDIR>/.jittest/envs/env_3d3921258efce2e1",
+      "python_path": "<TMPDIR>/.jittest/envs/env_3d3921258efce2e1/bin/python",
       "cached": false,
       "cache_key": "3d3921258efce2e1",
       "lockfile_sha256": "95e7aa659b316b3732d65de1760bb07ed792ce125f00ac8dd6ef5b7ce27fe50d"
@@ -57,7 +57,7 @@
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
-    "public_key": "cfd3e147e28089db19d687fff24337b7f73bbfacefa5c55fe588f25f1b5d4973",
-    "value": "nEJbEBQ3/JTM3NS+6vxxnPjV8U6vUF8M6DOXwgiGfjH0PNW9jV/t5EAK+RutvGmCr2Ssm0Dwo4C587ZqkRu+BA=="
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "+CLaFPkIEuIamY9xEkDS5S83szVf7FbHXxqEMHrtjAwv0MHRMeix9F5sy0PNId1eLXT6gC2ISahlfrxYmirJCQ=="
   }
 }

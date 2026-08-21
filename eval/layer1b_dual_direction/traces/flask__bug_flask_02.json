@@ -1,0 +1,20 @@
+{
+  "instance_id": "flask__bug_flask_02",
+  "row_id": "bug_flask_02",
+  "kind": "bug",
+  "execution_mode": "differential_verification",
+  "base_sha": "e82db2ca3a22c9614c1987392c9cfaa8c6ce99ad",
+  "head_sha": "d3b78fd18a8d9e224cb9ef58a23cec9b1ffc9ce9",
+  "test_file": "tests/test_basic.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  },
+  "signature": {
+    "algorithm": "Ed25519",
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "mkvUETfWBYi7HKFCXB31HH/3jNnjg9aHaFLXdtLI7I5izXel6IeAn2QjeIbESgEQqvHyXtQ5TZfVMAF7u5ZYAA=="
+  }
+}

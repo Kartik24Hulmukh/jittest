@@ -78,8 +78,7 @@ jobs:
           forbidden = ['c:\\users', 'c:/users', '/home/runner/', '/home/user']
           violations = []
           for f in files:
-              # skip historical/recorded logs in test fixtures if any, but check all docs, src, receipts, changelog, workflows
-              if f.startswith('docs/evidence/layer1') or f == '.github/workflows/ci.yml':
+              if f == '.github/workflows/ci.yml':
                   continue
               try:
                   with open(f, 'r', encoding='utf-8', errors='ignore') as fh:
@@ -225,7 +224,8 @@ jobs:
               "SANDBOX_UNAVAILABLE",
               "TIMEOUT",
               "file_not_found",
-              "base_reproduction_failed"
+              "base_reproduction_failed",
+              "head_failed_base_failed_latent",
           }
 
           regression_catches = 0

@@ -479,7 +479,7 @@ def verify_test(
                     exit_code = 0
         elif head_run1.outcome is Outcome.FAIL:
             disposition = Disposition.HEAD_FAILED_BASE_FAILED_LATENT
-            verdict_class = VerdictClass.REFUTED
+            verdict_class = VerdictClass.INCONCLUSIVE
             is_proven_catch = False
             exit_code = 1
         else:
@@ -494,6 +494,13 @@ def verify_test(
         exit_code = 1
 
     wall_clock_s = round(time.monotonic() - start_time, 4)
+
+    if verdict_class == VerdictClass.PROVEN_CATCH:
+        catch_direction = "regression"
+    elif verdict_class == VerdictClass.REPRODUCTION_CATCH:
+        catch_direction = "reproduction"
+    else:
+        catch_direction = "none"
 
     base_env_dict = {
         k: str(v).replace("\\", "/") if isinstance(v, (str, Path)) else v
@@ -525,6 +532,7 @@ def verify_test(
         "tool": "jittest verify",
         "verdict": verdict_class,
         "proven_catch": is_proven_catch,
+        "catch_direction": catch_direction,
         "base_reproduced": base_reproduced,
         "base_failure_kind": base_failure_kind,
         "disposition": disposition.value if hasattr(disposition, "value") else str(disposition),

@@ -1,0 +1,20 @@
+{
+  "instance_id": "click__bug_click_14",
+  "row_id": "bug_click_14",
+  "kind": "bug",
+  "execution_mode": "differential_verification",
+  "base_sha": "051bb0f30b545cf7426deef819811815297c2798",
+  "head_sha": "cd9bdd96a9dcc8e4ecabd45b5c244dbc70034484",
+  "test_file": "tests/test_termui.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  },
+  "signature": {
+    "algorithm": "Ed25519",
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "qAg33mpaIfyi9UnEge7OAAB5YwxDZlBbDM7LYQfJr5vUwwXlZHMceHoliJZe77cmDzRYRBwtw09rCgnCY1obBA=="
+  }
+}

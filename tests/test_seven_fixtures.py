@@ -109,7 +109,7 @@ class SevenFixturesTest(unittest.TestCase):
         self.assertEqual(exit_code, 1)
 
     def test_fixture_4_inconclusive_both_fail(self):
-        """4. base FAIL -> head FAIL => inconclusive / latent failure"""
+        """4. base FAIL -> head FAIL => inconclusive"""
         base_sha = self._commit({
             "calc.py": "def add(a, b):\n    return a - b\n",
             "tests/test_calc.py": "from calc import add\ndef test_add():\n    assert add(2, 3) == 5\n"
@@ -126,7 +126,8 @@ class SevenFixturesTest(unittest.TestCase):
             test_file_path=self.repo / "tests" / "test_calc.py",
             sandbox_mode="off",
         )
-        self.assertIn(evidence["verdict"], (VerdictClass.INCONCLUSIVE, VerdictClass.REFUTED))
+        self.assertEqual(evidence["verdict"], VerdictClass.INCONCLUSIVE)
+        self.assertEqual(evidence["disposition"], Disposition.HEAD_FAILED_BASE_FAILED_LATENT)
         self.assertFalse(evidence["proven_catch"])
         self.assertEqual(exit_code, 1)
 
@@ -239,6 +240,33 @@ class SevenFixturesTest(unittest.TestCase):
         self.assertEqual(evidence["disposition"], Disposition.CATCHING)
         self.assertTrue(evidence["proven_catch"])
         self.assertEqual(exit_code, 0)
+
+    def test_fixture_9_missing_declared_dependency_fails_closed(self):
+        """9. base FAIL because a declared dependency is missing -> head PASS
+        MUST yield ENV_SETUP_FAILED / inconclusive, NEVER reproduction_catch."""
+        base_sha = self._commit({
+            "requirements.txt": "this-package-does-not-exist-xyz-9999999>=99.99\n",
+            "calc.py": "def add(a, b):\n    return a - b\n",
+        }, "base with unresolvable declared dependency")
+        head_sha = self._commit({
+            "calc.py": "def add(a, b):\n    return a + b\n",
+            "tests/test_calc.py": "from calc import add\ndef test_add():\n    assert add(2, 3) == 5\n"
+        }, "head clean with passing test")
+
+        evidence, exit_code = verify_test(
+            repo_path=self.repo,
+            base_ref=base_sha,
+            head_ref=head_sha,
+            test_file_path=self.repo / "tests" / "test_calc.py",
+            sandbox_mode="off",
+        )
+        # MUST NEVER be reproduction_catch or proven_catch!
+        self.assertNotEqual(evidence["verdict"], VerdictClass.REPRODUCTION_CATCH)
+        self.assertNotEqual(evidence["verdict"], VerdictClass.PROVEN_CATCH)
+        self.assertEqual(evidence["verdict"], VerdictClass.INCONCLUSIVE)
+        self.assertEqual(evidence["disposition"], Disposition.ENV_SETUP_FAILED)
+        self.assertFalse(evidence["proven_catch"])
+        self.assertEqual(exit_code, 1)
 
 
 if __name__ == "__main__":

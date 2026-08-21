@@ -6,7 +6,7 @@
   "base_reproduced": false,
   "disposition": "head_uncollectable_base_broken",
   "provenance": {
-    "repo_path": "/home/runner/.cache/jittest/fixtures/httpx",
+    "repo_path": "<TMPDIR>/.cache/jittest/fixtures/httpx",
     "base_sha": "652f051feaf1ab2828e1812eb0c48f9046a8b5ce",
     "head_sha": "3fee27838e9fd0cb528861e41f3ff98164081a4b",
     "test_file_name": "test_api.py",
@@ -32,8 +32,8 @@
     "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "stderr_sha256": "22485e1b38563cf1e3313dd245e99870264571128c7f7113f33d08294bd82eb3",
     "environment": {
-      "venv_dir": "/home/runner/.jittest/envs/env_2c62914384ec9e81",
-      "python_path": "/home/runner/.jittest/envs/env_2c62914384ec9e81/bin/python",
+      "venv_dir": "<TMPDIR>/.jittest/envs/env_2c62914384ec9e81",
+      "python_path": "<TMPDIR>/.jittest/envs/env_2c62914384ec9e81/bin/python",
       "cached": false,
       "cache_key": "2c62914384ec9e81",
       "lockfile_sha256": "88c42f6170f3507e3ceddbbd10d8188def22c0f23a934b4c95f573a3c14cbefe"
@@ -45,8 +45,8 @@
     "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "stderr_sha256": "4220680663c845b2e0a04b662ad7bf4dccd170a24f7f6fb53fc21beb2634e06f",
     "environment": {
-      "venv_dir": "/home/runner/.jittest/envs/env_681847c33be8d1e2",
-      "python_path": "/home/runner/.jittest/envs/env_681847c33be8d1e2/bin/python",
+      "venv_dir": "<TMPDIR>/.jittest/envs/env_681847c33be8d1e2",
+      "python_path": "<TMPDIR>/.jittest/envs/env_681847c33be8d1e2/bin/python",
       "cached": false,
       "cache_key": "681847c33be8d1e2",
       "lockfile_sha256": "88c42f6170f3507e3ceddbbd10d8188def22c0f23a934b4c95f573a3c14cbefe"
@@ -57,7 +57,7 @@
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
-    "public_key": "cfd3e147e28089db19d687fff24337b7f73bbfacefa5c55fe588f25f1b5d4973",
-    "value": "/zdM7TKsoPcXj4hhx4tRejlLTjzz0myPk4IH1apzbaRV5fs+LbUrpa6Bw0Mwkm588FxnCVYrcjrOOr0K04WNBQ=="
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "BfKzDPvThnhgsLnFuhJHz2NhCO+B6T5FHPfLBX1Gs8JJgqibw9Enj6114dKkUTSSFbHap4fjwqWw7Xynl2EHCA=="
   }
 }
