@@ -217,7 +217,12 @@ def detect_runner(python_exe: str | Path | None = None, workdir: Path | None = N
         return [exe, "-m", "jittest._minirunner"]
     env = _env_for(workdir) if workdir else None
     probe = subprocess.run(
-        [exe, "-c", "import pytest"], env=env, cwd=str(workdir) if workdir else None, capture_output=True, text=True, errors="replace",
+        [exe, "-m", "pytest", "--version"],
+        env=env,
+        cwd=str(workdir) if workdir else None,
+        capture_output=True,
+        text=True,
+        errors="replace",
     )
     if probe.returncode == 0:
         return [
