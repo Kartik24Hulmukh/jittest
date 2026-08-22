@@ -1,0 +1,20 @@
+{
+  "instance_id": "pytest__bug_pytest_27",
+  "row_id": "bug_pytest_27",
+  "kind": "bug",
+  "execution_mode": "differential_verification",
+  "base_sha": "a8cc3f122b9b61b11930a33a62aa7a4481382100",
+  "head_sha": "4b5048b7a4ecb58fee453fa3a65dac3f173e3ff0",
+  "test_file": "testing/test_mark.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  },
+  "signature": {
+    "algorithm": "Ed25519",
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "CkwImEDoIfXZHSgHK8/vx93R9kppBcV2Lzg+q/J0gOU6D0MUS+gAH9G9xwqCAI93udFTx5dtRVYwmx0N+DF8AA=="
+  }
+}

@@ -56,7 +56,7 @@
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
-    "public_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
     "value": "+smpYvkCjIxeG7Ke8Of0Liwz1Ft754DVWiblQzOxB/7E0Ggw0hNoJq8wnzYJcyU7Ae+2xaz1fAQIxoxlNF0TCg=="
   }
 }

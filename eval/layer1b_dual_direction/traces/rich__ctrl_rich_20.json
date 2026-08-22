@@ -1,0 +1,20 @@
+{
+  "instance_id": "rich__ctrl_rich_20",
+  "row_id": "ctrl_rich_20",
+  "kind": "control",
+  "execution_mode": "differential_verification",
+  "base_sha": "82e06e0d9985fd8cce456dc3977e0d2d9e84b4d8",
+  "head_sha": "d6556bc44881b9904f29f5d9d69a0812b30675d1",
+  "test_file": "tests/test_text.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  },
+  "signature": {
+    "algorithm": "Ed25519",
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "+/agcMNOQoOIB1wChpwRNvU0pmXYQ8hg3huGN4v8RveZ3wqfWHpTKHfYdEaNQ2giDz7y5LMptCRk/hEd55pyCQ=="
+  }
+}

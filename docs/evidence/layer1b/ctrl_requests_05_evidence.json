@@ -6,7 +6,7 @@
   "base_reproduced": true,
   "disposition": "head_passed",
   "provenance": {
-    "repo_path": "/home/runner/.cache/jittest/fixtures/requests",
+    "repo_path": "<TMPDIR>/.cache/jittest/fixtures/requests",
     "base_sha": "d38495c90653496c3c81f31e8f9bef162b400b44",
     "head_sha": "4c800e9aea2059660b8306b0fc8f9e9a4232cb3e",
     "test_file_name": "test_requests.py",
@@ -32,8 +32,8 @@
     "stdout_sha256": "5cff7f4bf1a8abe3ba06357d8e5ed05ad204b9024fd01761c6c1a924962a5db0",
     "stderr_sha256": "aa5ed69d99fb81a02991d7b458445d49b1bd3f7149b34601d4d4d33b7410b7a2",
     "environment": {
-      "venv_dir": "/home/runner/.jittest/envs/env_76a584abd3e5fabe",
-      "python_path": "/home/runner/.jittest/envs/env_76a584abd3e5fabe/bin/python",
+      "venv_dir": "<TMPDIR>/.jittest/envs/env_76a584abd3e5fabe",
+      "python_path": "<TMPDIR>/.jittest/envs/env_76a584abd3e5fabe/bin/python",
       "cached": false,
       "cache_key": "76a584abd3e5fabe",
       "lockfile_sha256": "ba51c8cc2345d6688dbc14dbbdb346fc94975ddbc8bc88e986b213934cbd6a1a"
@@ -45,8 +45,8 @@
     "stdout_sha256": "0a1d49b1d192103ef38e8cafe21ab83b1f49a0c05eb6ec9675d91257c7947afd",
     "stderr_sha256": "84086e107341fe18e16b2cd8a08c1a15265399262d8046b882b2828c02db943c",
     "environment": {
-      "venv_dir": "/home/runner/.jittest/envs/env_b87536429889ef92",
-      "python_path": "/home/runner/.jittest/envs/env_b87536429889ef92/bin/python",
+      "venv_dir": "<TMPDIR>/.jittest/envs/env_b87536429889ef92",
+      "python_path": "<TMPDIR>/.jittest/envs/env_b87536429889ef92/bin/python",
       "cached": false,
       "cache_key": "b87536429889ef92",
       "lockfile_sha256": "ba51c8cc2345d6688dbc14dbbdb346fc94975ddbc8bc88e986b213934cbd6a1a"
@@ -57,7 +57,7 @@
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
-    "public_key": "cfd3e147e28089db19d687fff24337b7f73bbfacefa5c55fe588f25f1b5d4973",
-    "value": "X3FCL7FYxXfyRWveifRuylXl+729CSjztbCmbmR65CGHDLXmErHV5x6JM5AKGNltOyJ7JaaKarVHUy8mlmJvDg=="
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "ONcfH8klGYrdqAitPhIGY7RBJMJo5UX1gcqNFhEbBV92SUMVUw6LAyY/QfF/vkgjqOifJxsjm9gsk81omZgOBg=="
   }
 }

@@ -1,0 +1,20 @@
+{
+  "instance_id": "pytest__bug_pytest_26",
+  "row_id": "bug_pytest_26",
+  "kind": "bug",
+  "execution_mode": "differential_verification",
+  "base_sha": "0d6fbdeffa57c796123f62f81f7dd370d9b7ecdc",
+  "head_sha": "a3a62a0ebd43ec848b979227421e2b7ba93a9dc9",
+  "test_file": "testing/code/test_excinfo.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  },
+  "signature": {
+    "algorithm": "Ed25519",
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "dwuTL+zCZzFJ2k/k8kZqVWQsZa9JMR5xWzWoFFiw4GVmz/Ym+iH8mSZw/wDod5zVVj5BgyqE1XmdJNLeFVtxBQ=="
+  }
+}

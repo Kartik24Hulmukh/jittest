@@ -1,0 +1,20 @@
+{
+  "instance_id": "click__bug_click_12",
+  "row_id": "bug_click_12",
+  "kind": "bug",
+  "execution_mode": "differential_verification",
+  "base_sha": "bec59289d8cf9b9b4010642b2fee483e5f8eeefc",
+  "head_sha": "916883afad450c0c9bbc4212817900949131adbd",
+  "test_file": "tests/test_basic.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  },
+  "signature": {
+    "algorithm": "Ed25519",
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "81GHIBlXNqlk3IBjyQZnrd2Of46UYZpP+1B7DSupJvEohuidOUVfDpdjHYqZ00VUb15s3Vi1NA7y8UDeud1QBA=="
+  }
+}

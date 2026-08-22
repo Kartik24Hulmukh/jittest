@@ -1265,5 +1265,10 @@
       "signature_valid": true,
       "artifact": "ctrl_youtube_dl_10594_47_evidence.json"
     }
-  ]
+  ],
+  "signature": {
+    "algorithm": "Ed25519",
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "3J13V4fCF5mapQMRnPOkb8Rap6LUJo2uW4GdB8yM5JWmTtkfq9+wmPVeUMj94YJ0fpNXYV7Bfb7c5kzn7GUpDA=="
+  }
 }

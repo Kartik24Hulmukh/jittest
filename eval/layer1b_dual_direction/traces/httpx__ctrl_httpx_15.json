@@ -1,0 +1,20 @@
+{
+  "instance_id": "httpx__ctrl_httpx_15",
+  "row_id": "ctrl_httpx_15",
+  "kind": "control",
+  "execution_mode": "differential_verification",
+  "base_sha": "4b23574cf83307ce27d3b14b4a425dc58c57d28d",
+  "head_sha": "652f051feaf1ab2828e1812eb0c48f9046a8b5ce",
+  "test_file": "tests/test_api.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  },
+  "signature": {
+    "algorithm": "Ed25519",
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "TJiIcQpu2uBYPoKE0nS5unFQceEzj8KxzHb4BZhd8wx1DEQAHAEn84UJXX3MBMoZXQ7531Xo3cvEa+6HZ1hdAw=="
+  }
+}
