@@ -13,10 +13,13 @@ Evidence Receipt Schema Notes:
       has uncommitted modifications at the time of execution. Scoped specifically
       to tool source files (["src", "eval", "tests", "scripts", "pyproject.toml"]),
       ignoring runtime receipts in docs/evidence/, caches, and virtual environments.
-    - verdict: One of 'proven_catch' (behavioral catch: head fail + base pass),
+    - verdict: One of 'proven_catch' (regression catch: head fail + base pass),
+      'reproduction_catch' (reproduction catch: base fail + head pass),
       'collection_catch' (collection catch: head uncollectable + base pass),
       'refuted' (head fail + base fail / latent), 'non_discriminating' (head pass),
       or 'inconclusive' (environment error, timeout, or base uncollectable).
+    - catch_direction: One of 'regression' (for proven_catch), 'reproduction'
+      (for reproduction_catch), or 'none' (for all other verdicts).
 """
 
 from __future__ import annotations
@@ -259,7 +262,7 @@ def verify_test(
 
     Returns:
         (evidence_dict, exit_code)
-        exit_code is 0 if verdict in ('proven_catch', 'collection_catch'), 1 otherwise.
+        exit_code is 0 if verdict in ('proven_catch', 'reproduction_catch'), 1 otherwise.
     """
     start_time = time.monotonic()
     repo_path = Path(repo_path).resolve()
@@ -453,7 +456,7 @@ def verify_test(
             disposition = Disposition.HEAD_UNCOLLECTABLE_BASE_PASSED
             verdict_class = VerdictClass.COLLECTION_CATCH  # Split collection catch from behavioral catch
             is_proven_catch = False  # NEVER count collection breakage as a behavioral catch
-            exit_code = 0
+            exit_code = 1
         else:
             disposition = Disposition.HEAD_NOTRUN
             verdict_class = VerdictClass.NON_DISCRIMINATING
