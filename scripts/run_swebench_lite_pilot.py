@@ -1,4 +1,9 @@
-"""Run SWT-Bench Lite Pilot (20 instances) for reproduction verification."""
+"""Run SWE-bench Lite Pilot (20 instances sampled from princeton-nlp/SWE-bench_Lite) for reproduction verification.
+
+Provenance: Sampled from SWE-bench Lite.
+Disclaimer: This is an internal self-selected evaluation, NOT a benchmark submission.
+No external party has re-executed these results.
+"""
 
 from __future__ import annotations
 
@@ -12,8 +17,8 @@ from typing import Any
 from jittest.diff import git_env
 from jittest.verify import verify_test
 
-SCRIPT_DIR = Path(r"C:\Users\praja\src\jittest")
-MANIFEST_PATH = SCRIPT_DIR / "eval" / "swt_bench_lite_20.json"
+SCRIPT_DIR = Path(__file__).resolve().parent.parent
+MANIFEST_PATH = SCRIPT_DIR / "eval" / "swebench_lite_20.json"
 
 
 def resolve_fixture_repo(repo_full: str) -> Path:
@@ -116,7 +121,7 @@ def main():
     with open(MANIFEST_PATH, encoding="utf-8") as fh:
         instances = json.load(fh)
 
-    print(f"=== RUNNING SWT-BENCH LITE PILOT ON {len(instances)} INSTANCES ===")
+    print(f"=== RUNNING SWE-BENCH LITE PILOT ON {len(instances)} INSTANCES ===")
     results = []
     for i, inst in enumerate(instances, 1):
         inst_id = inst["instance_id"]
@@ -128,7 +133,7 @@ def main():
 
     repro_catches = sum(1 for r in results if r.get("verdict") == "reproduction_catch")
     print("\n" + "=" * 60)
-    print("=== SWT-BENCH LITE PILOT SUMMARY ===")
+    print("=== SWE-BENCH LITE PILOT SUMMARY ===")
     print("=" * 60)
     print(f"reproduction_catch: {repro_catches} / {len(instances)}")
 
@@ -141,9 +146,21 @@ def main():
     for d, cnt in sorted(dispositions.items()):
         print(f"  {d:<32}: {cnt}")
 
-    out_file = SCRIPT_DIR / "eval" / "swt_bench_lite_20_results.json"
+    out_file = SCRIPT_DIR / "eval" / "swebench_lite_20_results.json"
     with open(out_file, "w", encoding="utf-8") as fh:
-        json.dump({"total": len(instances), "reproduction_catch": repro_catches, "results": results}, fh, indent=2)
+        json.dump(
+            {
+                "provenance": {
+                    "dataset": "SWE-bench Lite (princeton-nlp/SWE-bench_Lite, 20 instances)",
+                    "note": "This is an internal self-selected evaluation, NOT a benchmark submission. No external party has re-executed these results.",
+                },
+                "total": len(instances),
+                "reproduction_catch": repro_catches,
+                "results": results,
+            },
+            fh,
+            indent=2,
+        )
     print(f"\nWrote pilot results to {out_file}")
 
 
