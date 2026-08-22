@@ -526,7 +526,8 @@ def _kill_tree(proc: subprocess.Popen) -> None:
 def run_test(workdir: Path, test_code: str, timeout_s: int = 120,
              sbx: SandboxPlan | None = None,
              python_path: Path | str | None = None,
-             rel_test_path: Path | str | None = None) -> RunResult:
+             rel_test_path: Path | str | None = None,
+             node_id: str | None = None) -> RunResult:
     """Write the candidate into the checkout, run it, then remove it.
 
     ``sbx`` selects the isolation backend. ``None`` means unconfined, which is
@@ -549,7 +550,8 @@ def run_test(workdir: Path, test_code: str, timeout_s: int = 120,
         runner = detect_runner(python_path, workdir=workdir)
     uses_pytest = "pytest" in runner
     report = workdir / f".jittest-junit-{token}.xml"
-    command = [*runner, str(candidate)]
+    target_spec = f"{candidate}::{node_id}" if (node_id and uses_pytest) else str(candidate)
+    command = [*runner, target_spec]
     if uses_pytest:
         command.append(f"--junitxml={report}")
     env = _env_for(workdir)

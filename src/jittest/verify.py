@@ -274,7 +274,15 @@ def verify_test(
     if test_file_path is None:
         raise ValueError("test_file_path must be provided.")
 
-    test_path = Path(test_file_path).resolve()
+    node_id = None
+    if isinstance(test_file_path, str) and "::" in test_file_path:
+        parts = test_file_path.split("::")
+        file_part = parts[0]
+        node_id = "::".join(parts[1:])
+        test_path = Path(file_part).resolve()
+    else:
+        test_path = Path(test_file_path).resolve()
+
     if not test_path.exists():
         raise FileNotFoundError(f"Test file not found: {test_path}")
 
@@ -334,6 +342,7 @@ def verify_test(
                 sbx=sbx_plan,
                 python_path=base_python,
                 rel_test_path=rel_test,
+                node_id=node_id,
             )
     except EnvSetupError as exc:
         base_err = exc
@@ -354,6 +363,7 @@ def verify_test(
                 sbx=sbx_plan,
                 python_path=head_python,
                 rel_test_path=rel_test,
+                node_id=node_id,
             )
     except EnvSetupError as exc:
         head_err = exc
@@ -374,6 +384,7 @@ def verify_test(
                     sbx=sbx_plan,
                     python_path=head_python,
                     rel_test_path=rel_test,
+                    node_id=node_id,
                 )
                 head_runs.append(head_run2)
         except EnvSetupError:

@@ -120,9 +120,37 @@ def run_action(
         except Exception as exc:
             logger.warning("Could not fetch PR base/head: %s", exc)
 
-    if not base_sha or not head_sha:
-        base_sha = "origin/main"
-        head_sha = "HEAD"
+    if not head_sha:
+        try:
+            head_sha = subprocess.check_output(
+                ["git", "-C", str(repo), "rev-parse", "HEAD"],
+                text=True, errors="replace", env=git_env()
+            ).strip()
+        except Exception:
+            head_sha = "HEAD"
+
+    if not base_sha:
+        for candidate_ref in ("origin/main", "origin/master", "main", "master"):
+            try:
+                res = subprocess.run(
+                    ["git", "-C", str(repo), "merge-base", candidate_ref, head_sha],
+                    capture_output=True, text=True, errors="replace", check=True, env=git_env()
+                )
+                cand_sha = res.stdout.strip()
+                if cand_sha:
+                    base_sha = cand_sha
+                    break
+            except Exception:
+                continue
+        if not base_sha:
+            try:
+                res = subprocess.run(
+                    ["git", "-C", str(repo), "rev-parse", f"{head_sha}~1"],
+                    capture_output=True, text=True, errors="replace", check=True, env=git_env()
+                )
+                base_sha = res.stdout.strip()
+            except Exception:
+                base_sha = "HEAD~1"
 
     # Extract changed test files
     all_changed = get_changed_files(repo, base_sha, head_sha)
