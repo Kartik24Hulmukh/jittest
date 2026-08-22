@@ -1,17 +1,22 @@
 version: 2
 updates:
-  # jittest has zero runtime dependencies, so this only watches the dev and
-  # optional extras. If dependabot ever opens a PR against `dependencies`,
-  # something has gone wrong and the CI guard job will fail.
-  - package-ecosystem: pip
+  - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
-    labels: [dependencies]
+      interval: "weekly"
+    groups:
+      dev-dependencies:
+        patterns:
+          - "pytest*"
+          - "ruff"
+          - "mypy"
 
-  - package-ecosystem: github-actions
+  - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: weekly
-    labels: [dependencies, ci]
+      interval: "weekly"
+    groups:
+      actions:
+        patterns:
+          - "actions/*"
+          - "github/*"
