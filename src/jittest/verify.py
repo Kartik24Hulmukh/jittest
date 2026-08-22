@@ -391,7 +391,11 @@ def verify_test(
         out_err = base_run.stdout + "\n" + base_run.stderr
         if any(err_kw in out_err for err_kw in ("ImportError", "ModuleNotFoundError", "SyntaxError", "PytestCollectionWarning", "CollectionError")):
             base_failure_kind = "collection"
-        elif base_run.failure_kind == FailureKind.ASSERTION or "AssertionError" in out_err or " assert " in out_err:
+        elif base_run.failure_kind == FailureKind.ASSERTION:
+            base_failure_kind = "assertion"
+        elif base_run.failure_kind == FailureKind.ERROR:
+            base_failure_kind = "error"
+        elif "AssertionError" in out_err or "\nassert " in out_err:
             base_failure_kind = "assertion"
         else:
             base_failure_kind = "error"
@@ -447,8 +451,9 @@ def verify_test(
     elif base_run.outcome is Outcome.FAIL:
         if head_run1.outcome is Outcome.PASS:
             # Candidate for reproduction_catch (bug fixed on head, caught at base)
-            # Guard (a): The base failure must be an assertion failure, not a collection/import/env error
-            if base_failure_kind != "assertion" or base_run.failure_kind == FailureKind.ERROR:
+            # Guard (a): The base failure must be an assertion failure or an exception from the code
+            # under test during the test body, NOT a collection/import/syntax/env error.
+            if base_failure_kind == "collection" or base_run.outcome in (Outcome.ERROR, Outcome.TIMEOUT, Outcome.NOTRUN):
                 disposition = Disposition.BASE_UNCOLLECTABLE
                 verdict_class = VerdictClass.INCONCLUSIVE
                 is_proven_catch = False

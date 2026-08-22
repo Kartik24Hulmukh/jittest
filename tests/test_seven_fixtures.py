@@ -268,6 +268,30 @@ class SevenFixturesTest(unittest.TestCase):
         self.assertFalse(evidence["proven_catch"])
         self.assertEqual(exit_code, 1)
 
+    def test_fixture_10_typeerror_reproduction_catch(self):
+        """10. base raises TypeError from the code under test -> head PASS
+        MUST yield reproduction_catch, NOT base_uncollectable."""
+        base_sha = self._commit({
+            "calc.py": "def add(a, b):\n    raise TypeError('unsupported operand type(s)')\n",
+        }, "base raising TypeError in code under test")
+        head_sha = self._commit({
+            "calc.py": "def add(a, b):\n    return a + b\n",
+            "tests/test_calc.py": "from calc import add\ndef test_add():\n    assert add(2, 3) == 5\n"
+        }, "head fixed + new test")
+
+        evidence, exit_code = verify_test(
+            repo_path=self.repo,
+            base_ref=base_sha,
+            head_ref=head_sha,
+            test_file_path=self.repo / "tests" / "test_calc.py",
+            sandbox_mode="off",
+        )
+        self.assertEqual(evidence["verdict"], VerdictClass.REPRODUCTION_CATCH)
+        self.assertEqual(evidence["disposition"], Disposition.REPRODUCTION_CATCH)
+        self.assertTrue(evidence["proven_catch"])
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(evidence["base_failure_kind"], "error")
+
 
 if __name__ == "__main__":
     unittest.main()
