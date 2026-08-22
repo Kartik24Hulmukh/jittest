@@ -1,0 +1,63 @@
+name: no-number-drift
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: no-number-drift-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.12"
+
+      - name: Run recount.py and verify zero number drift
+        run: |
+          python eval/tools/recount.py > recount.json
+          python - <<'PY'
+          import json, sys
+          from pathlib import Path
+          
+          with open("recount.json", encoding="utf-8") as f:
+              recount = json.load(f)
+          
+          # Check sweep_summary.json
+          with open("docs/evidence/layer1b/sweep_summary.json", encoding="utf-8") as f:
+              summary = json.load(f)
+          
+          assert summary["total_rows"] == recount["manifest"]["total_rows"], "total_rows mismatch"
+          assert summary["dispositions"] == recount["dispositions"], "dispositions mismatch"
+          assert summary["verdicts"] == recount["verdicts"]["all_verdicts"], "verdicts mismatch"
+          assert summary["total_cost_usd"] == recount["cost"]["total_cost_usd"], "cost mismatch"
+          
+          # Check REPORT.md
+          with open("docs/evidence/layer1b/REPORT.md", encoding="utf-8") as f:
+              report = f.read()
+          
+          expected_tokens = [
+              "54/54 (100.0%) rows attempted with signed receipts",
+              "25/54 (46.3%) executed to definitive verdicts",
+              "29/54 (53.7%) refused loudly (inconclusive)",
+              "5/30 (16.7%) bug rows reproduced",
+              "Controls executed**: 20/24 — false proofs: 0/20",
+              "Bug rows executed**: 5/30 — proven_catch: 3/5",
+              "3 proven catches, 0 collection catches, 0 false proofs, 29 signed refusals",
+          ]
+          for tok in expected_tokens:
+              if tok not in report:
+                  print(f"Error: expected token '{tok}' missing from docs/evidence/layer1b/REPORT.md", file=sys.stderr)
+                  sys.exit(1)
+          
+          print("Verification passed: recount matches all documented evidence numbers exactly.")
+          PY
