@@ -82,6 +82,15 @@ CROSSED_DONOR: dict[str, str] = {
 }
 
 
+def _clone_url(repo_full: str) -> str:
+    """Build the HTTPS clone URL for a GitHub repository.
+
+    Extracted as a module-level helper so it can be unit-tested independently.
+    The .git suffix is canonical for clone URLs and avoids a redirect.
+    """
+    return f"https://github.com/{repo_full}.git"
+
+
 def resolve_repo(repo_full: str, cache_dir: Path | None = None) -> Path:
     if cache_dir is None:
         cache_dir = Path.home() / ".cache" / "jittest" / "fixtures"
@@ -91,7 +100,7 @@ def resolve_repo(repo_full: str, cache_dir: Path | None = None) -> Path:
         print(f"Cloning {repo_full} into {target}...")
         target.parent.mkdir(parents=True, exist_ok=True)
         subprocess.run(
-            ["git", "clone", "--quiet", f"https://github.com/{repo_full}", str(target)],
+            ["git", "clone", "--quiet", _clone_url(repo_full), str(target)],
             check=True,
             env=git_env(),
         )
