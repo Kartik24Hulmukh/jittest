@@ -42,3 +42,18 @@ python eval/false_positives.py --repo ~/src/some-active-repo --count 40
 
 Budget: 50 bugs at roughly $0.50 each is about $25 per full sweep. Run the
 10-bug smoke sweep while iterating on prompts.
+
+## Arm C (crossed) — FCR denominator disclosure
+
+Arm C applies a **donor** instance's solution patch against the current
+instance's base. Because the patch was generated against the donor's
+`base_commit` (a different commit), `git apply` may fail even with
+`--3way`. When the donor patch does not apply, the arm returns
+`crossed_patch_apply_failed / inconclusive` and **no crossed-arm
+observation exists** for that row.
+
+The False Catch Rate (FCR) must be reported as **0 / N** where N is the
+number of crossed rows with `donor_patch_applied == true`, never `0 / 20`
+by default. If N is small (e.g. 2 of 20), the gate "FCR = 0" is trivially
+satisfied and the confidence is correspondingly low. Report N alongside
+FCR in all summaries.

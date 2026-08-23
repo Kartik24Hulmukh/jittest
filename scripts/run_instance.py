@@ -144,7 +144,7 @@ def _apply_patch(repo_path: Path, patch_text: str) -> bool:
     p = Path(tempfile.mktemp(suffix=".patch"))
     p.write_bytes(patch_text.encode("utf-8"))
     res = subprocess.run(
-        ["git", "-C", str(repo_path), "apply", "--ignore-whitespace", str(p)],
+        ["git", "-C", str(repo_path), "apply", "--3way", "--ignore-whitespace", str(p)],
         capture_output=True,
         env=git_env(),
     )
@@ -336,6 +336,7 @@ def run_arm(
                 "instance_id": inst_id, "arm": arm, "verdict": "inconclusive",
                 "disposition": "crossed_patch_apply_failed",
                 "donor_instance_id": donor_id,
+                "donor_patch_applied": False,
             }
         head_ref = _commit_all(repo_path, f"crossed head: donor={donor_id}")
         crossed_donor_id = donor_id
@@ -390,6 +391,7 @@ def run_arm(
     }
     if arm == "crossed":
         result["donor_instance_id"] = crossed_donor_id  # type: ignore[possibly-undefined]
+        result["donor_patch_applied"] = True
     if arm == "comment":
         result["comment_target"] = comment_target_rel  # type: ignore[possibly-undefined]
 
