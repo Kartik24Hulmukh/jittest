@@ -40,7 +40,7 @@ from .github import fetch_pr_base_head
 from .receipt import sign_evidence
 from .sandbox import plan as plan_sandbox
 
-__all__ = ["verify_test", "VerdictClass"]
+__all__ = ["verify_test", "VerdictClass", "exit_code_for", "catch_direction_for"]
 
 logger = logging.getLogger("jittest.verify")
 
@@ -52,6 +52,30 @@ class VerdictClass:
     REFUTED = "refuted"
     NON_DISCRIMINATING = "non_discriminating"
     INCONCLUSIVE = "inconclusive"
+
+
+def exit_code_for(verdict_class: str) -> int:
+    """Return the exit code for a given verdict class.
+
+    Only proven catches (regression or reproduction) exit 0.
+    Everything else — including COLLECTION_CATCH — exits 1 (fail closed).
+    """
+    if verdict_class in (VerdictClass.PROVEN_CATCH, VerdictClass.REPRODUCTION_CATCH):
+        return 0
+    return 1
+
+
+def catch_direction_for(verdict_class: str) -> str:
+    """Return the catch direction for a given verdict class.
+
+    'regression' for PROVEN_CATCH, 'reproduction' for REPRODUCTION_CATCH,
+    'none' for everything else.
+    """
+    if verdict_class == VerdictClass.PROVEN_CATCH:
+        return "regression"
+    elif verdict_class == VerdictClass.REPRODUCTION_CATCH:
+        return "reproduction"
+    return "none"
 
 
 def _get_git_sha(repo_path: Path, ref: str) -> str:
@@ -514,12 +538,8 @@ def verify_test(
 
     wall_clock_s = round(time.monotonic() - start_time, 4)
 
-    if verdict_class == VerdictClass.PROVEN_CATCH:
-        catch_direction = "regression"
-    elif verdict_class == VerdictClass.REPRODUCTION_CATCH:
-        catch_direction = "reproduction"
-    else:
-        catch_direction = "none"
+    catch_direction = catch_direction_for(verdict_class)
+    exit_code = exit_code_for(verdict_class)
 
     base_env_dict = {
         k: str(v).replace("\\", "/") if isinstance(v, (str, Path)) else v
