@@ -190,41 +190,85 @@ def _reset_repo(repo_path: Path, base_sha: str, branch_name: str) -> None:
 def _find_source_file_for_comment(repo_path: Path, test_patch: str) -> Path | None:
     """Find the source file that the test actually imports.
 
-    D6 arm B (comment): the comment must go in a source file that the test
-    imports, not an arbitrary glob match. We parse the solution patch to find
-    which source file it modifies — that file is what the test is testing.
-    Falls back to the test file itself if no source file can be determined.
+    D6/D9 arm B (comment): the comment must go in a source file that the test
+    imports, not an arbitrary glob match. We parse the test file's imports to
+    find the module under test and resolve it to a file on disk.
+
+    Returns None if no source file can be determined — the caller should return
+    no_comment_target_found. NEVER falls back to the test file itself.
     """
     import re
-    # Look for 'diff --git a/<path>' lines in test_patch that do NOT match testing/*
-    # The solution patch modifies source; we want a source file the test imports.
-    # Try scanning the solution patch (which is in instance["patch"]) for the modified file.
-    # But we only have test_patch here; search it for import statements.
-    # Extract the test file name from the patch header
-    header_match = re.search(r"^diff --git a/(.+?) b/", test_patch, re.MULTILINE)
-    if not header_match:
+
+    # ── Choose the test file from test_patch ──────────────────────────────────
+    # Prefer a path whose basename starts with test_ or ends with _test.py.
+    # Fall back to the first entry only if none match.
+    diff_headers = re.findall(r"^diff --git a/(.+?) b/", test_patch, re.MULTILINE)
+    if not diff_headers:
         return None
-    test_file_rel = header_match.group(1)  # e.g. "testing/test_junitxml.py"
+
+    test_file_rel = None
+    for header in diff_headers:
+        basename = Path(header).name
+        if basename.startswith("test_") or basename.endswith("_test.py"):
+            test_file_rel = header
+            break
+    if test_file_rel is None:
+        test_file_rel = diff_headers[0]
+
     test_file_abs = repo_path / test_file_rel
     if not test_file_abs.exists():
         return None
-    # Read the test file and find the first local import
+
+    # Read the test file and find imports
     content = test_file_abs.read_text(encoding="utf-8", errors="replace")
-    # Look for: from _pytest.xxx import or import _pytest.xxx
+
     for line in content.splitlines():
+        # ── pytest-dev/pytest: from _pytest.xxx import ...
         m = re.match(r"^(?:from|import)\s+_pytest\.(\w+)", line)
         if m:
             module_name = m.group(1)
             candidate = repo_path / "src" / "_pytest" / f"{module_name}.py"
             if candidate.exists():
                 return candidate
+
         m = re.match(r"^from\s+pytest\s+import", line)
         if m:
             candidate = repo_path / "src" / "pytest" / "__init__.py"
             if candidate.exists():
                 return candidate
-    # Fallback: return test file itself (comment-only change to test file is still harmless)
-    return test_file_abs
+
+        # ── pallets/flask: from flask import ... / import flask
+        m = re.match(r"^(?:from|import)\s+flask\b", line)
+        if m:
+            candidate = repo_path / "src" / "flask" / "app.py"
+            if candidate.exists():
+                return candidate
+            # fallback: first .py under src/flask/
+            flask_dir = repo_path / "src" / "flask"
+            if flask_dir.is_dir():
+                for py in sorted(flask_dir.glob("*.py")):
+                    return py
+            return None
+
+        # ── psf/requests: from requests import ... / import requests
+        m = re.match(r"^(?:from|import)\s+requests\b", line)
+        if m:
+            # requests uses requests/ (no src/ prefix)
+            candidate = repo_path / "requests" / "sessions.py"
+            if candidate.exists():
+                return candidate
+            candidate = repo_path / "src" / "requests" / "sessions.py"
+            if candidate.exists():
+                return candidate
+            # fallback: first .py in whichever dir exists
+            for d in [repo_path / "requests", repo_path / "src" / "requests"]:
+                if d.is_dir():
+                    for py in sorted(d.glob("*.py")):
+                        return py
+            return None
+
+    # No matching import found — do NOT fall back to the test file
+    return None
 
 
 def run_arm(
