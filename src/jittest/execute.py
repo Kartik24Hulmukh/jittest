@@ -446,22 +446,24 @@ def _passed_from_junit(report: Path) -> int | None:
 def _failure_kind_from_junit(report: Path) -> FailureKind:
     """Distinguish an assertion that fired from a crash or a runner problem.
 
-    pytest records assertions under <failure> and everything else - import
-    errors, collection problems, unexpected exceptions - under <error>. When
-    the report is missing or unreadable, say UNKNOWN rather than guessing.
+    pytest records assertions under <failure> with AssertionError/assert, and
+    unhandled exceptions (TypeError, AttributeError, etc.) with their respective
+    exception message, and collection/import/fixture problems under <error>.
     """
     try:
         root = ET.fromstring(report.read_text(encoding="utf-8", errors="replace"))
     except (OSError, ET.ParseError):
         return FailureKind.UNKNOWN
-    saw_failure = False
     for case in root.iter("testcase"):
         for child in case:
             if child.tag == "error":
                 return FailureKind.ERROR
             if child.tag == "failure":
-                saw_failure = True
-    return FailureKind.ASSERTION if saw_failure else FailureKind.UNKNOWN
+                msg = child.attrib.get("message", "") or (child.text or "")
+                if msg.startswith("AssertionError") or msg.startswith("assert ") or "\nAssertionError" in msg:
+                    return FailureKind.ASSERTION
+                return FailureKind.ERROR
+    return FailureKind.NONE
 
 
 def _failure_kind_from_output(text: str) -> FailureKind:
@@ -524,7 +526,8 @@ def _kill_tree(proc: subprocess.Popen) -> None:
 def run_test(workdir: Path, test_code: str, timeout_s: int = 120,
              sbx: SandboxPlan | None = None,
              python_path: Path | str | None = None,
-             rel_test_path: Path | str | None = None) -> RunResult:
+             rel_test_path: Path | str | None = None,
+             node_id: str | None = None) -> RunResult:
     """Write the candidate into the checkout, run it, then remove it.
 
     ``sbx`` selects the isolation backend. ``None`` means unconfined, which is
@@ -547,7 +550,8 @@ def run_test(workdir: Path, test_code: str, timeout_s: int = 120,
         runner = detect_runner(python_path, workdir=workdir)
     uses_pytest = "pytest" in runner
     report = workdir / f".jittest-junit-{token}.xml"
-    command = [*runner, str(candidate)]
+    target_spec = f"{candidate}::{node_id}" if (node_id and uses_pytest) else str(candidate)
+    command = [*runner, target_spec]
     if uses_pytest:
         command.append(f"--junitxml={report}")
     env = _env_for(workdir)

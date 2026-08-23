@@ -952,5 +952,10 @@
   "ci_run_conclusion": "success",
   "ci_artifact_name": "layer1b-evidence-run4",
   "ci_artifact_digest": "sha256:5092ce538eefee6470150421773c050843fd197159db7f41428fddce993278e1",
-  "base_reproduced_rate": 0.16666666666666666
+  "base_reproduced_rate": 0.16666666666666666,
+  "signature": {
+    "algorithm": "Ed25519",
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "MY8mwCGTQ90v5aLHAF7Fze1UnfbvTaMUwPJ8nyuvN+4rtWiRc0cdZcKfAdP7RGmPcH4U6MM9jD408Gt12nNJBg=="
+  }
 }

@@ -1,0 +1,20 @@
+{
+  "instance_id": "httpx__bug_httpx_19",
+  "row_id": "bug_httpx_19",
+  "kind": "bug",
+  "execution_mode": "differential_verification",
+  "base_sha": "a7092af2fda78d92daaad7627e4cf0cf5e94b019",
+  "head_sha": "be56b747350008b7b0456242691919f9086c0f32",
+  "test_file": "tests/models/test_url.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  },
+  "signature": {
+    "algorithm": "Ed25519",
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "/jVyRqaKw5G/M2ol3RimM8RnQjR+Xid74SAanw28vHHWD5Wlbv5J7XP/1YLOxgPLdqFdc6mmI2jGPM6CGzm1DQ=="
+  }
+}

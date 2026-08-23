@@ -6,7 +6,7 @@
   "base_reproduced": true,
   "disposition": "catching",
   "provenance": {
-    "repo_path": "/home/runner/.cache/jittest/fixtures/rich",
+    "repo_path": "<TMPDIR>/.cache/jittest/fixtures/rich",
     "base_sha": "7ef2d05ca8aa3cb405dab2fdf3282e69cf8089e3",
     "head_sha": "19c67b9a3479841e9133bea94607c89ee931d3fc",
     "test_file_name": "test_markdown.py",
@@ -32,8 +32,8 @@
     "stdout_sha256": "75a05399add5a4dafe93b4e6372acf8695275ff275294a1577e55fcfc86ec21a",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "environment": {
-      "venv_dir": "/home/runner/.jittest/envs/env_6ae90f61d13ac605",
-      "python_path": "/home/runner/.jittest/envs/env_6ae90f61d13ac605/bin/python",
+      "venv_dir": "<TMPDIR>/.jittest/envs/env_6ae90f61d13ac605",
+      "python_path": "<TMPDIR>/.jittest/envs/env_6ae90f61d13ac605/bin/python",
       "cached": false,
       "cache_key": "6ae90f61d13ac605",
       "lockfile_sha256": "996ad57c1cada56e98bc19d563734db10227250c63ba8ee0e3e43784b470acb9"
@@ -45,8 +45,8 @@
     "stdout_sha256": "517ef9f7fc3330f2c56f0ea40f5045ff59d59612af86ac4e93cae0084b9c3565",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "environment": {
-      "venv_dir": "/home/runner/.jittest/envs/env_c254733a3083a655",
-      "python_path": "/home/runner/.jittest/envs/env_c254733a3083a655/bin/python",
+      "venv_dir": "<TMPDIR>/.jittest/envs/env_c254733a3083a655",
+      "python_path": "<TMPDIR>/.jittest/envs/env_c254733a3083a655/bin/python",
       "cached": false,
       "cache_key": "c254733a3083a655",
       "lockfile_sha256": "996ad57c1cada56e98bc19d563734db10227250c63ba8ee0e3e43784b470acb9"
@@ -57,7 +57,7 @@
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
-    "public_key": "cfd3e147e28089db19d687fff24337b7f73bbfacefa5c55fe588f25f1b5d4973",
-    "value": "78PGe53+tPIa3ttoYjgOCsDtboKbO21yANAnyszjqUuFIjS4ofw5XdcQG4WXl79Ea4Q+GsShaT5my0h0bPq4BQ=="
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "tQwQFnuWagSeGqE4nOW0/mTNfEfp5JbdS5+RlgJXPhsoCk5aipqPLKf09iWwMZSK5A3fn0ThIyXRneaS1uNYCg=="
   }
 }

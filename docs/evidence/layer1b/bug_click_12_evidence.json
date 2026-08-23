@@ -6,7 +6,7 @@
   "base_reproduced": false,
   "disposition": "base_reproduction_failed",
   "provenance": {
-    "repo_path": "/home/runner/.cache/jittest/fixtures/click",
+    "repo_path": "<TMPDIR>/.cache/jittest/fixtures/click",
     "base_sha": "bec59289d8cf9b9b4010642b2fee483e5f8eeefc",
     "head_sha": "916883afad450c0c9bbc4212817900949131adbd",
     "test_file_name": "test_basic.py",
@@ -32,8 +32,8 @@
     "stdout_sha256": "7cbb2d5d2129c87c733dca079056e204d2fa92961df593479d119af96813c22f",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "environment": {
-      "venv_dir": "/home/runner/.jittest/envs/env_3ab47cae54d16ac8",
-      "python_path": "/home/runner/.jittest/envs/env_3ab47cae54d16ac8/bin/python",
+      "venv_dir": "<TMPDIR>/.jittest/envs/env_3ab47cae54d16ac8",
+      "python_path": "<TMPDIR>/.jittest/envs/env_3ab47cae54d16ac8/bin/python",
       "cached": false,
       "cache_key": "3ab47cae54d16ac8",
       "lockfile_sha256": "947e4c1d147a5cb0638842d8ab7ad1171da96d2f3ce0d20f8764c5125bdf4534"
@@ -45,8 +45,8 @@
     "stdout_sha256": "6ba8a1928ce28d88cf2f48e6b8829ea395c26e900ec2590e2a262d4b6b7a01a7",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "environment": {
-      "venv_dir": "/home/runner/.jittest/envs/env_3d2b9bedc3479a22",
-      "python_path": "/home/runner/.jittest/envs/env_3d2b9bedc3479a22/bin/python",
+      "venv_dir": "<TMPDIR>/.jittest/envs/env_3d2b9bedc3479a22",
+      "python_path": "<TMPDIR>/.jittest/envs/env_3d2b9bedc3479a22/bin/python",
       "cached": false,
       "cache_key": "3d2b9bedc3479a22",
       "lockfile_sha256": "947e4c1d147a5cb0638842d8ab7ad1171da96d2f3ce0d20f8764c5125bdf4534"
@@ -57,7 +57,7 @@
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
-    "public_key": "cfd3e147e28089db19d687fff24337b7f73bbfacefa5c55fe588f25f1b5d4973",
-    "value": "FSfvTHbcm/E2+rWjnQXSRaKv25Li3fn004jkMjztzg1BTeGiec3VcxOI7fEw9tj2XWtGIdgRGG7h67Ck0ZctCQ=="
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "VNdohI0/ZtA3xDQvEPRu0+GyNRQWBzUUZhiSJpqqQK1H1uKX5qIvvYDpGv2R/Nxt3k8/evQFEVOaxf4HQOwMCw=="
   }
 }

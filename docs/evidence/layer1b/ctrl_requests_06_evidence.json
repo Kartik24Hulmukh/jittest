@@ -6,7 +6,7 @@
   "base_reproduced": false,
   "disposition": "head_failed_base_failed_latent",
   "provenance": {
-    "repo_path": "/home/runner/.cache/jittest/fixtures/requests",
+    "repo_path": "<TMPDIR>/.cache/jittest/fixtures/requests",
     "base_sha": "c4367f231b5dc54f23f2983828562ce3a7555a8a",
     "head_sha": "cd90742ed94d901759e26766197d0ce7c7bd9c8e",
     "test_file_name": "test_requests.py",
@@ -32,8 +32,8 @@
     "stdout_sha256": "a44887fc99de44943db6067679f36988665466b517ad26ab8ba662bed5d2600e",
     "stderr_sha256": "3f2336becf6be534bb46c1e8ac3cd5c14a5756cac133080ef2278029aa8755db",
     "environment": {
-      "venv_dir": "/home/runner/.jittest/envs/env_47437f10d4671d09",
-      "python_path": "/home/runner/.jittest/envs/env_47437f10d4671d09/bin/python",
+      "venv_dir": "<TMPDIR>/.jittest/envs/env_47437f10d4671d09",
+      "python_path": "<TMPDIR>/.jittest/envs/env_47437f10d4671d09/bin/python",
       "cached": false,
       "cache_key": "47437f10d4671d09",
       "lockfile_sha256": "e965dee2603e4d33e64623b577b66895e465c611981d09766242eef3feba8b74"
@@ -45,8 +45,8 @@
     "stdout_sha256": "af7f59ae69b747f8256f4634d8822e2045e3feb0c0fd374392bf324b0b78bc6a",
     "stderr_sha256": "f43fca44e0be82fc38bb14dc0f96f89ae2d9aee721ca99b8a845fd3231381e6f",
     "environment": {
-      "venv_dir": "/home/runner/.jittest/envs/env_88ab4d561187876a",
-      "python_path": "/home/runner/.jittest/envs/env_88ab4d561187876a/bin/python",
+      "venv_dir": "<TMPDIR>/.jittest/envs/env_88ab4d561187876a",
+      "python_path": "<TMPDIR>/.jittest/envs/env_88ab4d561187876a/bin/python",
       "cached": false,
       "cache_key": "88ab4d561187876a",
       "lockfile_sha256": "e965dee2603e4d33e64623b577b66895e465c611981d09766242eef3feba8b74"
@@ -57,7 +57,7 @@
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
-    "public_key": "cfd3e147e28089db19d687fff24337b7f73bbfacefa5c55fe588f25f1b5d4973",
-    "value": "F5INH4L/K67QJXVASSdC5qBBdvKR82YB+h0yEPKMg7En97qrceJM5HLhntKgNjfDgfEW8DpaTpv1h0/X5rNkBg=="
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "C0X4UGRMYcvXOzLuEmezYYKX3VRpSCqWVwMSt4yFQnCzPZKCIsmRfMAXRJfygmVcCntLaq7Y6egHqml71DWZDQ=="
   }
 }

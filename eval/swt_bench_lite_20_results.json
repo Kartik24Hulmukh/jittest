@@ -1,0 +1,206 @@
+{
+  "total": 20,
+  "reproduction_catch": 0,
+  "results": [
+    {
+      "instance_id": "pallets__flask-4045",
+      "repo": "pallets/flask",
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
+      "proven_catch": false,
+      "catch_direction": "none",
+      "base_failure_kind": "error",
+      "wall_clock_s": 32.81
+    },
+    {
+      "instance_id": "pallets__flask-4992",
+      "repo": "pallets/flask",
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
+      "proven_catch": false,
+      "catch_direction": "none",
+      "base_failure_kind": "error",
+      "wall_clock_s": 37.96
+    },
+    {
+      "instance_id": "pallets__flask-5063",
+      "repo": "pallets/flask",
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
+      "proven_catch": false,
+      "catch_direction": "none",
+      "base_failure_kind": "error",
+      "wall_clock_s": 35.1
+    },
+    {
+      "instance_id": "psf__requests-1963",
+      "repo": "psf/requests",
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
+      "proven_catch": false,
+      "catch_direction": "none",
+      "base_failure_kind": "error",
+      "wall_clock_s": 28.9
+    },
+    {
+      "instance_id": "psf__requests-2148",
+      "repo": "psf/requests",
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
+      "proven_catch": false,
+      "catch_direction": "none",
+      "base_failure_kind": "error",
+      "wall_clock_s": 10.18
+    },
+    {
+      "instance_id": "psf__requests-2317",
+      "repo": "psf/requests",
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
+      "proven_catch": false,
+      "catch_direction": "none",
+      "base_failure_kind": "error",
+      "wall_clock_s": 33.5
+    },
+    {
+      "instance_id": "psf__requests-2674",
+      "repo": "psf/requests",
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
+      "proven_catch": false,
+      "catch_direction": "none",
+      "base_failure_kind": "error",
+      "wall_clock_s": 16.12
+    },
+    {
+      "instance_id": "psf__requests-3362",
+      "repo": "psf/requests",
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
+      "proven_catch": false,
+      "catch_direction": "none",
+      "base_failure_kind": "error",
+      "wall_clock_s": 45.69
+    },
+    {
+      "instance_id": "psf__requests-863",
+      "repo": "psf/requests",
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
+      "proven_catch": false,
+      "catch_direction": "none",
+      "base_failure_kind": "error",
+      "wall_clock_s": 8.15
+    },
+    {
+      "instance_id": "pytest-dev__pytest-11143",
+      "repo": "pytest-dev/pytest",
+      "verdict": "inconclusive",
+      "disposition": "base_uncollectable",
+      "proven_catch": false,
+      "catch_direction": "none",
+      "base_failure_kind": "collection",
+      "wall_clock_s": 55.62
+    },
+    {
+      "instance_id": "pytest-dev__pytest-11148",
+      "repo": "pytest-dev/pytest",
+      "verdict": "inconclusive",
+      "disposition": "base_uncollectable",
+      "proven_catch": false,
+      "catch_direction": "none",
+      "base_failure_kind": "collection",
+      "wall_clock_s": 37.11
+    },
+    {
+      "instance_id": "pytest-dev__pytest-5103",
+      "repo": "pytest-dev/pytest",
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
+      "proven_catch": false,
+      "catch_direction": "none",
+      "base_failure_kind": "error",
+      "wall_clock_s": 46.88
+    },
+    {
+      "instance_id": "pytest-dev__pytest-5221",
+      "repo": "pytest-dev/pytest",
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
+      "proven_catch": false,
+      "catch_direction": "none",
+      "base_failure_kind": "error",
+      "wall_clock_s": 10.54
+    },
+    {
+      "instance_id": "pytest-dev__pytest-5227",
+      "repo": "pytest-dev/pytest",
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
+      "proven_catch": false,
+      "catch_direction": "none",
+      "base_failure_kind": "error",
+      "wall_clock_s": 10.67
+    },
+    {
+      "instance_id": "pytest-dev__pytest-5413",
+      "repo": "pytest-dev/pytest",
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
+      "proven_catch": false,
+      "catch_direction": "none",
+      "base_failure_kind": "error",
+      "wall_clock_s": 11.62
+    },
+    {
+      "instance_id": "pytest-dev__pytest-5495",
+      "repo": "pytest-dev/pytest",
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
+      "proven_catch": false,
+      "catch_direction": "none",
+      "base_failure_kind": "error",
+      "wall_clock_s": 11.67
+    },
+    {
+      "instance_id": "pytest-dev__pytest-5692",
+      "repo": "pytest-dev/pytest",
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
+      "proven_catch": false,
+      "catch_direction": "none",
+      "base_failure_kind": "error",
+      "wall_clock_s": 13.27
+    },
+    {
+      "instance_id": "pytest-dev__pytest-6116",
+      "repo": "pytest-dev/pytest",
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
+      "proven_catch": false,
+      "catch_direction": "none",
+      "base_failure_kind": "error",
+      "wall_clock_s": 14.58
+    },
+    {
+      "instance_id": "pytest-dev__pytest-7168",
+      "repo": "pytest-dev/pytest",
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
+      "proven_catch": false,
+      "catch_direction": "none",
+      "base_failure_kind": "error",
+      "wall_clock_s": 13.56
+    },
+    {
+      "instance_id": "pytest-dev__pytest-7220",
+      "repo": "pytest-dev/pytest",
+      "verdict": "inconclusive",
+      "disposition": "env_setup_failed",
+      "proven_catch": false,
+      "catch_direction": "none",
+      "base_failure_kind": "error",
+      "wall_clock_s": 16.1
+    }
+  ]
+}

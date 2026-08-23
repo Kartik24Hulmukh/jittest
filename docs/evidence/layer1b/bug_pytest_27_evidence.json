@@ -6,7 +6,7 @@
   "base_reproduced": false,
   "disposition": "base_reproduction_failed",
   "provenance": {
-    "repo_path": "/home/runner/.cache/jittest/fixtures/pytest",
+    "repo_path": "<TMPDIR>/.cache/jittest/fixtures/pytest",
     "base_sha": "a8cc3f122b9b61b11930a33a62aa7a4481382100",
     "head_sha": "4b5048b7a4ecb58fee453fa3a65dac3f173e3ff0",
     "test_file_name": "test_mark.py",
@@ -32,8 +32,8 @@
     "stdout_sha256": "b5dce33014a42182cb49f5e9fc9655c77cc72998b6950e17cc794f0a8cfa25a5",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "environment": {
-      "venv_dir": "/home/runner/.jittest/envs/env_72b135847bb69867",
-      "python_path": "/home/runner/.jittest/envs/env_72b135847bb69867/bin/python",
+      "venv_dir": "<TMPDIR>/.jittest/envs/env_72b135847bb69867",
+      "python_path": "<TMPDIR>/.jittest/envs/env_72b135847bb69867/bin/python",
       "cached": false,
       "cache_key": "72b135847bb69867",
       "lockfile_sha256": "95e7aa659b316b3732d65de1760bb07ed792ce125f00ac8dd6ef5b7ce27fe50d"
@@ -45,8 +45,8 @@
     "stdout_sha256": "fc39378b98d14e786baa003193991fa6de2cd239b4a38b04c66bc5c19c7d285d",
     "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "environment": {
-      "venv_dir": "/home/runner/.jittest/envs/env_1fdb78a1a881befe",
-      "python_path": "/home/runner/.jittest/envs/env_1fdb78a1a881befe/bin/python",
+      "venv_dir": "<TMPDIR>/.jittest/envs/env_1fdb78a1a881befe",
+      "python_path": "<TMPDIR>/.jittest/envs/env_1fdb78a1a881befe/bin/python",
       "cached": false,
       "cache_key": "1fdb78a1a881befe",
       "lockfile_sha256": "95e7aa659b316b3732d65de1760bb07ed792ce125f00ac8dd6ef5b7ce27fe50d"
@@ -57,7 +57,7 @@
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
-    "public_key": "cfd3e147e28089db19d687fff24337b7f73bbfacefa5c55fe588f25f1b5d4973",
-    "value": "cR/QWgfI8K68reCBDpHN+IDZEPApDBR2j9I281PfgI1ph1a//89Ce5HXfa40OD0SJcj0mrGY3leXQmy4T+YcDw=="
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "GkB/Javiyioih3b0v75WWwNu+LhwBVdAGUnBxaEP4x7WmJNqi8smcl8I25gDaGyEo9+i911n/T3a+ep/zyncBw=="
   }
 }

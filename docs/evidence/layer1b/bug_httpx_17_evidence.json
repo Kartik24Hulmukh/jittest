@@ -6,7 +6,7 @@
   "base_reproduced": false,
   "disposition": "base_reproduction_failed",
   "provenance": {
-    "repo_path": "/home/runner/.cache/jittest/fixtures/httpx",
+    "repo_path": "<TMPDIR>/.cache/jittest/fixtures/httpx",
     "base_sha": "49d74a2e7f773f88a84dd4af900d7a8543636ae2",
     "head_sha": "2e01aa0075327c5c30632207e8b7a1961dda5303",
     "test_file_name": "test_headers.py",
@@ -32,8 +32,8 @@
     "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "stderr_sha256": "efc9605078aa0f408c88a2be3af570bc60414b338da8c41d4ce7678ed59dee65",
     "environment": {
-      "venv_dir": "/home/runner/.jittest/envs/env_2ec28820c71dd4dc",
-      "python_path": "/home/runner/.jittest/envs/env_2ec28820c71dd4dc/bin/python",
+      "venv_dir": "<TMPDIR>/.jittest/envs/env_2ec28820c71dd4dc",
+      "python_path": "<TMPDIR>/.jittest/envs/env_2ec28820c71dd4dc/bin/python",
       "cached": false,
       "cache_key": "2ec28820c71dd4dc",
       "lockfile_sha256": "ae0daecef0efc008b84317c9768629cf25ac27f79541b652af6b1d5e3d02463d"
@@ -45,8 +45,8 @@
     "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "stderr_sha256": "9adc09b80cf02e3f36413ca6051cdb88a7f8999a450b9bee827d29b4f4cc60f9",
     "environment": {
-      "venv_dir": "/home/runner/.jittest/envs/env_84333ef3799c4629",
-      "python_path": "/home/runner/.jittest/envs/env_84333ef3799c4629/bin/python",
+      "venv_dir": "<TMPDIR>/.jittest/envs/env_84333ef3799c4629",
+      "python_path": "<TMPDIR>/.jittest/envs/env_84333ef3799c4629/bin/python",
       "cached": false,
       "cache_key": "84333ef3799c4629",
       "lockfile_sha256": "ae0daecef0efc008b84317c9768629cf25ac27f79541b652af6b1d5e3d02463d"
@@ -57,7 +57,7 @@
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
-    "public_key": "cfd3e147e28089db19d687fff24337b7f73bbfacefa5c55fe588f25f1b5d4973",
-    "value": "maAUdfUlfONypUsI2KtHqgCq5Ojb5kKPIHXjGnuWMlO+2kocx/oCio//yAAGS7gGGOBGv7kCjQxDTCJ69ocoBw=="
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "teUWvWjC+YCHUp52QtaaOMAkobFGC365Ob3qKegg6LZPTNThhs0xabmUzz6ngCQ+UhupvE1YsTgJJna7g/QWBA=="
   }
 }

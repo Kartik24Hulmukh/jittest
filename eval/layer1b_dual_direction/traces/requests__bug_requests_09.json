@@ -1,0 +1,20 @@
+{
+  "instance_id": "requests__bug_requests_09",
+  "row_id": "bug_requests_09",
+  "kind": "bug",
+  "execution_mode": "differential_verification",
+  "base_sha": "ef439eb779c1eba7cbdeeeb302b11e1e061b4b7d",
+  "head_sha": "cbce031327be4f1b4b5fd041ff4dcaa8efa2ce53",
+  "test_file": "tests/test_requests.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  },
+  "signature": {
+    "algorithm": "Ed25519",
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "t8p6Vlg8jMZgM1EZQ0QcG0E5JeggK+ns8b6z6RyEKxzidx2NikIZLxULrRnWV06YkYatiJNAWE3IAJNSOeK+Cw=="
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "instance_id": "httpx__bug_httpx_20",
+  "row_id": "bug_httpx_20",
+  "kind": "bug",
+  "execution_mode": "differential_verification",
+  "base_sha": "6d852d319acd5d97caf14037dff15ede04b37542",
+  "head_sha": "df5345140e09ac6c2de0d9589bcd6f3e31c6aa3f",
+  "test_file": "tests/test_timeouts.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  },
+  "signature": {
+    "algorithm": "Ed25519",
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "QJ+F8g4GZzXmjviZICNVF9hbwECm75EDGMRewsu1GpLzaLi7fEcAhayta2w5IQSTwE6nFZ2krzhvdmKHcfgYCg=="
+  }
+}

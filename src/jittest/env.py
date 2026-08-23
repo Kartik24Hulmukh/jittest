@@ -521,24 +521,27 @@ def provision_environment(
         try:
             res_rf = run_installer(["-r", str(rf)], timeout=90)
             if res_rf.returncode != 0:
-                logger.debug(f"Installer -r {rf.name} failed: {res_rf.stderr[-500:]}")
+                err_tail = res_rf.stderr[-1000:] or res_rf.stdout[-1000:]
+                raise EnvSetupError(f"pip install -r {rf.name} failed:\n{err_tail}")
         except subprocess.TimeoutExpired as exc:
             raise EnvSetupError(f"env_build_timeout: install -r {rf.name} timed out after 90s: {exc}") from exc
-        except Exception:
-            pass
+        except Exception as exc:
+            if isinstance(exc, EnvSetupError):
+                raise
+            raise EnvSetupError(f"install -r {rf.name} exception: {exc}") from exc
 
     # 3. Install core test & build infrastructure
     core_pkgs = ["pytest", "setuptools-scm", "wheel", "packaging", "pluggy", "iniconfig", "exceptiongroup"]
     try:
         res_pt = run_installer(core_pkgs, timeout=90)
         if res_pt.returncode != 0:
-            logger.debug("pip install core test packages exited %d; continuing with standard library fallback", res_pt.returncode)
+            err_tail = res_pt.stderr[-1000:] or res_pt.stdout[-1000:]
+            raise EnvSetupError(f"pip install core test packages failed:\n{err_tail}")
     except subprocess.TimeoutExpired as exc:
         raise EnvSetupError(f"env_build_timeout: install core test packages timed out: {exc}") from exc
     except Exception as exc:
         if isinstance(exc, EnvSetupError):
             raise
-        logger.debug("Core packages installer encountered exception: %s", exc)
         raise EnvSetupError(f"install core packages exception: {exc}") from exc
 
     # 4. Install discovered package extras

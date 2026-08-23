@@ -1,0 +1,20 @@
+{
+  "instance_id": "pytest__bug_pytest_30",
+  "row_id": "bug_pytest_30",
+  "kind": "bug",
+  "execution_mode": "differential_verification",
+  "base_sha": "224e9ef86758841a716c43a2bc711e1f56934528",
+  "head_sha": "1d5c40392ea42db38582b096f639eb762a5527c8",
+  "test_file": "testing/python/approx.py",
+  "status": "prepared",
+  "state_machine": {
+    "regression_direction": "base PASS -> head FAIL => proven_catch",
+    "reproduction_direction": "base FAIL (assertion) -> head PASS => reproduction_catch",
+    "pass_to_pass_guard": "enabled"
+  },
+  "signature": {
+    "algorithm": "Ed25519",
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "+W9yY60AtMmNr4cDuNeWmjhVXz8mI3zMjiUj8I1mbxzs9tMF6FFfG+JVubsbfMFD/sp5GZfmvHXr0etwcD7DAw=="
+  }
+}
