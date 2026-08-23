@@ -1,0 +1,14 @@
+{
+  "phase_c_direct": {
+    "preregistration_commit": "090d071fd0127428b17eb3c2f50c66312461a856",
+    "manifest_sha256": "e6632b71a023e7004b27837375c61b820822156cac2ed4cfb020388bbcefa630",
+    "candidates_evaluated": 34,
+    "catches": 0
+  },
+  "phase_d_differential": {
+    "preregistration_commit": "0c833f954737868c69198d7bcaff7ec69f74f4c7",
+    "manifest_sha256": "e6632b71a023e7004b27837375c61b820822156cac2ed4cfb020388bbcefa630",
+    "candidates_evaluated": 7,
+    "catches": 0
+  }
+}

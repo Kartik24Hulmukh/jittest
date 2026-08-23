@@ -14,9 +14,15 @@ from __future__ import annotations
 
 import subprocess
 import tempfile
+import unittest
 from pathlib import Path
 
-import pytest
+try:
+    import pytest
+except ModuleNotFoundError as exc:  # pragma: no cover - dependency-free ci.yml step
+    raise unittest.SkipTest(
+        "requires pytest; skipped by the zero-dependency unittest run in ci.yml"
+    ) from exc
 
 from jittest.diff import git_env
 from jittest.verify import (
