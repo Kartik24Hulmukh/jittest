@@ -1,4 +1,8 @@
 {
+  "provenance": {
+    "dataset": "SWE-bench Lite (princeton-nlp/SWE-bench_Lite, 20 instances)",
+    "note": "This is an internal self-selected evaluation, NOT a benchmark submission. No external party has re-executed these results."
+  },
   "total": 20,
   "reproduction_catch": 0,
   "results": [
