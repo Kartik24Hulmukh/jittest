@@ -1,0 +1,87 @@
+name: wo17-gauntlet
+
+# IMPORTANT — This run is NOT the pre-registered in-container protocol and its
+# results may not be compared to the WO-17 decision gates.
+#
+# The pre-registered protocol specifies in-container execution using
+# swebench/sweb.eval.x86_64.<instance_id_lower>:latest, container python at
+# /opt/miniconda3/envs/testbed/bin/python, testbed path /testbed. This
+# workflow runs bare on ubuntu-latest with pip install -e . which is a
+# different environment and cannot be used to adjudicate the WO-17 FCR gate.
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: wo17-gauntlet-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gauntlet:
+    name: ${{ matrix.instance_id }} (${{ matrix.arm }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        instance_id:
+          - pallets__flask-4045
+          - pallets__flask-4992
+          - pallets__flask-5063
+          - psf__requests-1963
+          - psf__requests-2148
+          - psf__requests-2317
+          - psf__requests-2674
+          - psf__requests-3362
+          - psf__requests-863
+          - pytest-dev__pytest-11143
+          - pytest-dev__pytest-11148
+          - pytest-dev__pytest-5103
+          - pytest-dev__pytest-5221
+          - pytest-dev__pytest-5227
+          - pytest-dev__pytest-5413
+          - pytest-dev__pytest-5495
+          - pytest-dev__pytest-5692
+          - pytest-dev__pytest-6116
+          - pytest-dev__pytest-7168
+          - pytest-dev__pytest-7220
+        arm:
+          # A: gold — gold patch applied; expect reproduction_catch
+          - gold
+          # B: comment — comment-only patch; expect NOT a catch
+          - comment
+          # C: crossed — gold patch of different same-repo instance; false-proof control (FCR gate)
+          - crossed
+          # D: timeout — gold patch + --timeout 1s; probes exit-code path
+          - timeout
+          # E: p2p — gold patch + PASS_TO_PASS; expect non_discriminating
+          - p2p
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Run instance arm
+        run: |
+          python scripts/run_instance.py \
+            --manifest eval/swebench_lite_20.json \
+            --instance-id "${{ matrix.instance_id }}" \
+            --arm "${{ matrix.arm }}" \
+            --output-dir gauntlet_artifacts
+
+      - name: Upload arm evidence
+        if: always()
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        with:
+          name: gauntlet-${{ matrix.instance_id }}-${{ matrix.arm }}
+          path: gauntlet_artifacts/

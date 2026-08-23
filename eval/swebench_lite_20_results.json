@@ -1,7 +1,9 @@
 {
   "provenance": {
     "dataset": "SWE-bench Lite (princeton-nlp/SWE-bench_Lite, 20 instances)",
-    "note": "This is an internal self-selected evaluation, NOT a benchmark submission. No external party has re-executed these results."
+    "note": "This is an internal self-selected evaluation, NOT a benchmark submission. No external party has re-executed these results.",
+    "not_pre_registered_protocol": true,
+    "protocol_note": "This run used bare ubuntu-latest + pip install -e . without the SWE-bench in-container environment (swebench/sweb.eval.x86_64.<instance_id>:latest). All 20 results are inconclusive/env_setup_failed or inconclusive/base_uncollectable. reproduction_catch=0 is NOT a measured catch rate; the harness could not execute any test. These numbers must not be cited as benchmark results."
   },
   "total": 20,
   "reproduction_catch": 0,
