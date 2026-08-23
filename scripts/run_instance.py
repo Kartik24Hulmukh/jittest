@@ -52,7 +52,15 @@ def run_arm(
     base_sha = instance["base_commit"]
     patch = instance.get("patch", "")
     test_patch = instance.get("test_patch", "")
-    fail_to_pass = instance.get("FAIL_TO_PASS", [])
+    fail_to_pass_raw = instance.get("FAIL_TO_PASS", [])
+    # FAIL_TO_PASS may be a JSON-encoded string (e.g. '["tests/..."]') or already a list.
+    if isinstance(fail_to_pass_raw, str):
+        try:
+            fail_to_pass = json.loads(fail_to_pass_raw)
+        except (ValueError, TypeError):
+            fail_to_pass = []
+    else:
+        fail_to_pass = fail_to_pass_raw
 
     output_dir.mkdir(parents=True, exist_ok=True)
     out_artifact = output_dir / f"{inst_id}_{arm}_evidence.json"
@@ -130,9 +138,13 @@ def run_arm(
     else:
         raise ValueError(f"Unknown arm: {arm}")
 
-    # Resolve test file
-    test_file = test_node.split("::")[0]
-    test_full_path = repo_path / test_file
+    # Build test_file_path: always use repo_path as the base so verify_test
+    # resolves the test file within the target repo, not the jittest CWD.
+    if "::" in test_node:
+        file_part, node_part = test_node.split("::", 1)
+        abs_test_path = str(repo_path / file_part) + "::" + node_part
+    else:
+        abs_test_path = str(repo_path / test_node)
 
     effective_sbx = "required" if arm == "unsandboxed" else sandbox_mode
 
@@ -140,7 +152,7 @@ def run_arm(
         repo_path=repo_path,
         base_ref=base_sha,
         head_ref=head_sha,
-        test_file_path=test_node if "::" in test_node else str(test_full_path),
+        test_file_path=abs_test_path,
         output_path=out_artifact,
         sandbox_mode=effective_sbx,
     )
