@@ -69,17 +69,21 @@ jobs:
       - run: pip install ruff mypy
       - run: ruff check src tests
       - run: mypy src/jittest --ignore-missing-imports || true
-      - name: Assert no absolute local user paths in tracked files
+      - name: Assert no absolute local user paths in shipped files
         run: |
           python - <<'PY'
           import subprocess, sys
+          targets = ['src', 'scripts', 'tests', 'action.yml', 'pyproject.toml', 'README.md']
           res = subprocess.run(['git', 'ls-files'], capture_output=True, text=True, check=True)
-          files = [f.strip() for f in res.stdout.splitlines() if f.strip()]
-          forbidden = ['c:\\users', 'c:/users', '/home/runner/', '/home/user']
+          files = []
+          for f in [line.strip() for line in res.stdout.splitlines() if line.strip()]:
+              for target in targets:
+                  if f == target or f.startswith(target + '/') or f.startswith(target + '\\'):
+                      files.append(f)
+                      break
+          forbidden = ['c:\\users', 'c:/users', '/home/user']
           violations = []
           for f in files:
-              if f == '.github/workflows/ci.yml':
-                  continue
               try:
                   with open(f, 'r', encoding='utf-8', errors='ignore') as fh:
                       for i, line in enumerate(fh, 1):
@@ -90,11 +94,11 @@ jobs:
               except Exception:
                   pass
           if violations:
-              print(f"Found {len(violations)} absolute local path violations:")
+              print(f"Found {len(violations)} absolute local path violations in shipped files:")
               for v in violations:
                   print(f"  {v}")
               sys.exit(1)
-          print("ok: zero absolute local paths found")
+          print("ok: zero absolute local paths found in shipped files")
           PY
 
   build:

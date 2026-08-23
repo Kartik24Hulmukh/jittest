@@ -1,5 +1,7 @@
 # WO-22-REPORT.md
 
+> Note: Local development paths in test output snippets have been redacted to `<local>` for privacy.
+
 Branch: wo22/d13-results-provenance (last branch — WO-22 report lives here)
 Base for all WO-22 branches: wo21/d6-base-test-patch (05cfe144f8ca375d14dd67fcc513c99e96e719d7)
 
@@ -36,7 +38,7 @@ Output:
 ```
 ============================= test session starts =============================
 platform win32 -- Python 3.12.0, pytest-9.0.3, pluggy-1.6.0
-rootdir: <local-dev-path>
+rootdir: <local>
 configfile: pyproject.toml
 plugins: anyio-4.14.1, Faker-40.23.0, hypothesis-6.155.2, libtmux-0.58.0, asyncio-1.4.0, cov-7.1.0, xdist-3.8.0
 asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
@@ -97,7 +99,7 @@ Output:
 ```
 ============================= test session starts =============================
 platform win32 -- Python 3.12.0, pytest-9.0.3, pluggy-1.6.0
-rootdir: <local-dev-path>
+rootdir: <local>
 configfile: pyproject.toml
 plugins: anyio-4.14.1, Faker-40.23.0, hypothesis-6.155.2, libtmux-0.58.0, asyncio-1.4.0, cov-7.1.0, xdist-3.8.0
 asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
