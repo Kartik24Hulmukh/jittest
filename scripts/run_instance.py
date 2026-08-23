@@ -145,7 +145,7 @@ def _apply_patch(repo_path: Path, patch_text: str) -> bool:
 def _commit_all(repo_path: Path, message: str) -> str:
     """Stage all changes and commit. Returns the new HEAD SHA."""
     subprocess.run(
-        ["git", "-C", str(repo_path), "add", "."],
+        ["git", "-C", str(repo_path), "add", "-A"],
         check=True, capture_output=True, env=git_env(),
     )
     subprocess.run(
@@ -165,6 +165,13 @@ def _reset_repo(repo_path: Path, base_sha: str, branch_name: str) -> None:
     )
     subprocess.run(
         ["git", "-C", str(repo_path), "reset", "--hard"],
+        check=True, capture_output=True, env=git_env(),
+    )
+    # D14: git reset --hard does NOT remove untracked files.
+    # Clean __pycache__, .pytest_cache, build artifacts, previous arm output
+    # so they cannot contaminate the next arm's base_ref commit.
+    subprocess.run(
+        ["git", "-C", str(repo_path), "clean", "-xfd"],
         check=True, capture_output=True, env=git_env(),
     )
     subprocess.run(
