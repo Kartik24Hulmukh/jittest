@@ -20,7 +20,7 @@ jobs:
   gauntlet:
     name: ${{ matrix.instance_id }} (${{ matrix.arm }})
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:

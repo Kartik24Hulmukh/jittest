@@ -1,0 +1,62 @@
+name: wo17-smoke
+
+# IMPORTANT — This run is NOT the pre-registered in-container protocol and its
+# results may not be compared to the WO-17 decision gates.
+#
+# The pre-registered protocol specifies in-container execution using
+# swebench/sweb.eval.x86_64.<instance_id_lower>:latest, container python at
+# /opt/miniconda3/envs/testbed/bin/python, testbed path /testbed. This
+# workflow runs bare on ubuntu-latest with pip install -e . which is a
+# different environment and cannot be used to adjudicate the WO-17 FCR gate.
+
+on:
+  workflow_dispatch:
+    inputs:
+      instance_id:
+        description: "Instance ID to run"
+        required: false
+        default: "pytest-dev__pytest-5692"
+      arm:
+        description: "Arm to run (gold|comment|crossed|timeout|p2p)"
+        required: false
+        default: "gold"
+
+jobs:
+  smoke:
+    name: smoke ${{ github.event.inputs.instance_id }} (${{ github.event.inputs.arm }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Clear fixture cache (force cold-clone path)
+        run: |
+          rm -rf ~/.cache/jittest/fixtures
+          echo "Fixture cache cleared. Clone will execute."
+
+      - name: Run instance arm
+        run: |
+          python scripts/run_instance.py \
+            --manifest eval/swebench_lite_20.json \
+            --instance-id "${{ github.event.inputs.instance_id }}" \
+            --arm "${{ github.event.inputs.arm }}" \
+            --output-dir smoke_artifacts
+
+      - name: Upload arm evidence
+        if: always()
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        with:
+          name: smoke-${{ github.event.inputs.instance_id }}-${{ github.event.inputs.arm }}
+          path: smoke_artifacts/
