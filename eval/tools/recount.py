@@ -111,7 +111,31 @@ def compute_recount(
             elif verdict == "inconclusive":
                 ctrl_inconclusive += 1
 
+    # ── DEFINITIONS (printed in JSON output for audit traceability) ─────────
+    # "bug row"      = a receipt whose filename begins with "bug_" (classification
+    #                  determined by filename prefix in the evidence directory).
+    # "control row"  = a receipt whose filename does NOT begin with "bug_".
+    # "executed"     = verdict != "inconclusive" (i.e. reached a definitive
+    #                  verdict; inconclusive counts as a loud refusal, not as
+    #                  execution. This definition includes ALL non-inconclusive
+    #                  verdicts: proven_catch, reproduction_catch, collection_catch,
+    #                  non_discriminating, and refuted).
+    # "definitive"   = synonym for "executed" (same filter: verdict != "inconclusive").
+    # "proven_catch" = verdict == "proven_catch" (behavioral catch with signed proof).
+    # "false proof"  = a control row that reaches verdict proven_catch or
+    #                  reproduction_catch (i.e. the verifier claims a catch on
+    #                  a row known to be non-buggy). FCR = false-proof count / executed.
+    # ────────────────────────────────────────────────────────────────────────
+
     summary = {
+        "definitions": {
+            "bug_row": "filename begins with 'bug_'",
+            "control_row": "filename does NOT begin with 'bug_'",
+            "executed": "verdict != 'inconclusive'",
+            "definitive": "synonym for executed (verdict != 'inconclusive')",
+            "proven_catch": "verdict == 'proven_catch'",
+            "false_proof": "control row with verdict in (proven_catch, reproduction_catch)",
+        },
         "manifest": {
             "total_rows": len(manifest_rows),
             "bug_rows": len(bug_manifest_rows),
@@ -157,10 +181,37 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Recompute evaluation counts from evidence.")
     parser.add_argument("--manifest", default="eval/layer1b_manifest.json", help="Path to manifest")
     parser.add_argument("--evidence-dir", default="docs/evidence/layer1b", help="Path to evidence directory")
+    parser.add_argument("--csv", metavar="PATH", default=None, help="If set, also emit per-row CSV to this file")
     args = parser.parse_args()
 
     results = compute_recount(args.manifest, args.evidence_dir)
     print(json.dumps(results, indent=2))
+
+    if args.csv:
+        evidence_dir = Path(args.evidence_dir)
+        receipt_files = sorted(glob.glob(str(evidence_dir / "*_evidence.json")))
+        rows = []
+        for rf in receipt_files:
+            with open(rf, encoding="utf-8") as f:
+                r = json.load(f)
+            fname = os.path.basename(rf)
+            is_bug = fname.startswith("bug_")
+            verdict = r.get("verdict", "unknown")
+            disposition = r.get("disposition", "unknown")
+            is_definitive = verdict != "inconclusive"
+            counted_as = "definitive" if is_definitive else "inconclusive"
+            rows.append({
+                "filename": fname,
+                "cohort": "bug" if is_bug else "control",
+                "verdict": verdict,
+                "disposition": disposition,
+                "counted_as": counted_as,
+            })
+        with open(args.csv, "w", encoding="utf-8") as out:
+            out.write("filename,cohort,verdict,disposition,counted_as\n")
+            for row in rows:
+                out.write(f"{row['filename']},{row['cohort']},{row['verdict']},{row['disposition']},{row['counted_as']}\n")
+        print(f"Per-row CSV written to {args.csv}", file=sys.stderr)
 
 
 if __name__ == "__main__":
