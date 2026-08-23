@@ -1,5 +1,14 @@
 name: wo17-gauntlet
 
+# IMPORTANT — This run is NOT the pre-registered in-container protocol and its
+# results may not be compared to the WO-17 decision gates.
+#
+# The pre-registered protocol specifies in-container execution using
+# swebench/sweb.eval.x86_64.<instance_id_lower>:latest, container python at
+# /opt/miniconda3/envs/testbed/bin/python, testbed path /testbed. This
+# workflow runs bare on ubuntu-latest with pip install -e . which is a
+# different environment and cannot be used to adjudicate the WO-17 FCR gate.
+
 on:
   workflow_dispatch:
 
@@ -11,7 +20,7 @@ jobs:
   gauntlet:
     name: ${{ matrix.instance_id }} (${{ matrix.arm }})
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -37,11 +46,16 @@ jobs:
           - pytest-dev__pytest-7168
           - pytest-dev__pytest-7220
         arm:
+          # A: gold — gold patch applied; expect reproduction_catch
           - gold
-          - test_only
-          - empty
-          - forged
-          - unsandboxed
+          # B: comment — comment-only patch; expect NOT a catch
+          - comment
+          # C: crossed — gold patch of different same-repo instance; false-proof control (FCR gate)
+          - crossed
+          # D: timeout — gold patch + --timeout 1s; probes exit-code path
+          - timeout
+          # E: p2p — gold patch + PASS_TO_PASS; expect non_discriminating
+          - p2p
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -59,7 +73,11 @@ jobs:
 
       - name: Run instance arm
         run: |
-          python scripts/run_instance.py --manifest eval/swebench_lite_20.json --instance-id "${{ matrix.instance_id }}" --arm "${{ matrix.arm }}" --output-dir gauntlet_artifacts
+          python scripts/run_instance.py \
+            --manifest eval/swebench_lite_20.json \
+            --instance-id "${{ matrix.instance_id }}" \
+            --arm "${{ matrix.arm }}" \
+            --output-dir gauntlet_artifacts
 
       - name: Upload arm evidence
         if: always()
