@@ -1,4 +1,4 @@
-﻿# WO-22-REPORT.md
+# WO-22-REPORT.md
 
 Branch: wo22/d13-results-provenance (last branch — WO-22 report lives here)
 Base for all WO-22 branches: wo21/d6-base-test-patch (05cfe144f8ca375d14dd67fcc513c99e96e719d7)
@@ -36,7 +36,7 @@ Output:
 ```
 ============================= test session starts =============================
 platform win32 -- Python 3.12.0, pytest-9.0.3, pluggy-1.6.0
-rootdir: C:\Users\praja\src\jittest
+rootdir: <local-dev-path>
 configfile: pyproject.toml
 plugins: anyio-4.14.1, Faker-40.23.0, hypothesis-6.155.2, libtmux-0.58.0, asyncio-1.4.0, cov-7.1.0, xdist-3.8.0
 asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
@@ -97,7 +97,7 @@ Output:
 ```
 ============================= test session starts =============================
 platform win32 -- Python 3.12.0, pytest-9.0.3, pluggy-1.6.0
-rootdir: C:\Users\praja\src\jittest
+rootdir: <local-dev-path>
 configfile: pyproject.toml
 plugins: anyio-4.14.1, Faker-40.23.0, hypothesis-6.155.2, libtmux-0.58.0, asyncio-1.4.0, cov-7.1.0, xdist-3.8.0
 asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
@@ -508,7 +508,7 @@ https://github.com/Kartik24Hulmukh/jittest/actions/runs/32630811658
 2026-08-23T09:22:33.6141289Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
 2026-08-23T09:22:33.6141688Z ##[endgroup]
 2026-08-23T09:22:50.2952594Z WARNING: sandbox isolation unavailable - docker is available but the image 'python:3.13-slim' is not present locally; candidates ran unconfined rather than triggering an unannounced image pull mid-run. Run 'docker pull python:3.13-slim' once, or set sandbox mode to 'required' to accept the pull.
-2026-08-23T09:23:13.7309498Z Cloning pytest-dev/pytest into /home/runner/.cache/jittest/fixtures/pytest...
+2026-08-23T09:23:13.7309498Z Cloning pytest-dev/pytest into <runner-cache>/jittest/fixtures/pytest...
 2026-08-23T09:23:13.7311445Z {
 2026-08-23T09:23:13.7313190Z   "instance_id": "pytest-dev__pytest-5692",
 2026-08-23T09:23:13.7314054Z   "arm": "gold",
@@ -524,7 +524,7 @@ https://github.com/Kartik24Hulmukh/jittest/actions/runs/32630811658
 2026-08-23T09:23:13.7320751Z }
 ```
 
-**PASS CONDITION STATUS: MET.** The line `Cloning pytest-dev/pytest into /home/runner/.cache/jittest/fixtures/pytest...` appears in the log. The clone succeeded. No `CalledProcessError` on `git clone`. Verdict is `inconclusive/env_setup_failed` — acceptable per spec.
+**PASS CONDITION STATUS: MET.** The line `Cloning pytest-dev/pytest into <runner-cache>/jittest/fixtures/pytest...` appears in the log. The clone succeeded. No `CalledProcessError` on `git clone`. Verdict is `inconclusive/env_setup_failed` — acceptable per spec.
 
 ### Uploaded artifact JSON (verbatim):
 
@@ -542,7 +542,7 @@ https://github.com/Kartik24Hulmukh/jittest/actions/runs/32630811658
   "interpreter_version": null,
   "resolved_versions": null,
   "provenance": {
-    "repo_path": "/home/runner/.cache/jittest/fixtures/pytest",
+    "repo_path": "<runner-cache>/jittest/fixtures/pytest",
     "base_sha": "cce54eef0b9c5f80c30017b35fd7e9ed835c156c",
     "head_sha": "6bd1c06a2e32cd5e13ed30b6162770307de9fa85",
     "test_file_name": "test_junitxml.py",
