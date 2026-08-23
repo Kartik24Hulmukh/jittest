@@ -13,10 +13,13 @@ Evidence Receipt Schema Notes:
       has uncommitted modifications at the time of execution. Scoped specifically
       to tool source files (["src", "eval", "tests", "scripts", "pyproject.toml"]),
       ignoring runtime receipts in docs/evidence/, caches, and virtual environments.
-    - verdict: One of 'proven_catch' (behavioral catch: head fail + base pass),
+    - verdict: One of 'proven_catch' (regression catch: head fail + base pass),
+      'reproduction_catch' (reproduction catch: base fail + head pass),
       'collection_catch' (collection catch: head uncollectable + base pass),
       'refuted' (head fail + base fail / latent), 'non_discriminating' (head pass),
       or 'inconclusive' (environment error, timeout, or base uncollectable).
+    - catch_direction: One of 'regression' (for proven_catch), 'reproduction'
+      (for reproduction_catch), or 'none' (for all other verdicts).
 """
 
 from __future__ import annotations
@@ -37,7 +40,7 @@ from .github import fetch_pr_base_head
 from .receipt import sign_evidence
 from .sandbox import plan as plan_sandbox
 
-__all__ = ["verify_test", "VerdictClass"]
+__all__ = ["verify_test", "VerdictClass", "exit_code_for", "catch_direction_for"]
 
 logger = logging.getLogger("jittest.verify")
 
@@ -49,6 +52,30 @@ class VerdictClass:
     REFUTED = "refuted"
     NON_DISCRIMINATING = "non_discriminating"
     INCONCLUSIVE = "inconclusive"
+
+
+def exit_code_for(verdict_class: str) -> int:
+    """Return the exit code for a given verdict class.
+
+    Only proven catches (regression or reproduction) exit 0.
+    Everything else — including COLLECTION_CATCH — exits 1 (fail closed).
+    """
+    if verdict_class in (VerdictClass.PROVEN_CATCH, VerdictClass.REPRODUCTION_CATCH):
+        return 0
+    return 1
+
+
+def catch_direction_for(verdict_class: str) -> str:
+    """Return the catch direction for a given verdict class.
+
+    'regression' for PROVEN_CATCH, 'reproduction' for REPRODUCTION_CATCH,
+    'none' for everything else.
+    """
+    if verdict_class == VerdictClass.PROVEN_CATCH:
+        return "regression"
+    elif verdict_class == VerdictClass.REPRODUCTION_CATCH:
+        return "reproduction"
+    return "none"
 
 
 def _get_git_sha(repo_path: Path, ref: str) -> str:
@@ -259,7 +286,7 @@ def verify_test(
 
     Returns:
         (evidence_dict, exit_code)
-        exit_code is 0 if verdict in ('proven_catch', 'collection_catch'), 1 otherwise.
+        exit_code is 0 if verdict in ('proven_catch', 'reproduction_catch'), 1 otherwise.
     """
     start_time = time.monotonic()
     repo_path = Path(repo_path).resolve()
@@ -453,7 +480,7 @@ def verify_test(
             disposition = Disposition.HEAD_UNCOLLECTABLE_BASE_PASSED
             verdict_class = VerdictClass.COLLECTION_CATCH  # Split collection catch from behavioral catch
             is_proven_catch = False  # NEVER count collection breakage as a behavioral catch
-            exit_code = 0
+            exit_code = 1
         else:
             disposition = Disposition.HEAD_NOTRUN
             verdict_class = VerdictClass.NON_DISCRIMINATING
@@ -511,12 +538,8 @@ def verify_test(
 
     wall_clock_s = round(time.monotonic() - start_time, 4)
 
-    if verdict_class == VerdictClass.PROVEN_CATCH:
-        catch_direction = "regression"
-    elif verdict_class == VerdictClass.REPRODUCTION_CATCH:
-        catch_direction = "reproduction"
-    else:
-        catch_direction = "none"
+    catch_direction = catch_direction_for(verdict_class)
+    exit_code = exit_code_for(verdict_class)
 
     base_env_dict = {
         k: str(v).replace("\\", "/") if isinstance(v, (str, Path)) else v
