@@ -131,15 +131,26 @@ def _build_test_path(repo_path: Path, test_node: str) -> str:
 
 
 def _apply_patch(repo_path: Path, patch_text: str) -> bool:
-    """Apply a patch. Returns True on success."""
-    p = Path(tempfile.mktemp(suffix=".patch"))
-    p.write_bytes(patch_text.encode("utf-8"))
-    res = subprocess.run(
-        ["git", "-C", str(repo_path), "apply", "--ignore-whitespace", str(p)],
-        capture_output=True,
-        env=git_env(),
+    """Apply a patch. Returns True on success.
+
+    Uses NamedTemporaryFile instead of the deprecated mktemp() to avoid
+    TOCTOU race conditions. The temp file is deleted in a finally block.
+    """
+    tmp = tempfile.NamedTemporaryFile(
+        mode="wb", suffix=".patch", delete=False
     )
-    return res.returncode == 0
+    try:
+        tmp.write(patch_text.encode("utf-8"))
+        tmp.flush()
+        tmp.close()
+        res = subprocess.run(
+            ["git", "-C", str(repo_path), "apply", "--ignore-whitespace", tmp.name],
+            capture_output=True,
+            env=git_env(),
+        )
+        return res.returncode == 0
+    finally:
+        Path(tmp.name).unlink(missing_ok=True)
 
 
 def _commit_all(repo_path: Path, message: str) -> str:
