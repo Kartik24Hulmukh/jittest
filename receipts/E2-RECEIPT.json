@@ -1,0 +1,891 @@
+{
+  "experiment": "E2",
+  "question": "is the safety gate's refusal boundary sound, and does closing it cost real candidates",
+  "executed_utc": "2026-08-25T14:04:07.261058+00:00",
+  "file_under_test": "src/jittest/safety.py",
+  "git_blob_sha1": "8393a3a85e60df78da7fd1295ee7dad0da15da55",
+  "byte_identity_with_main": true,
+  "payloads_executed": 35,
+  "accepted_by_shipped_gate": 23,
+  "closed_by_fix": 22,
+  "still_accepted": [
+    "N13"
+  ],
+  "predictions_retracted": [
+    "N16"
+  ],
+  "negative_controls": 10,
+  "negative_controls_refused": 10,
+  "legitimate_candidates": 34,
+  "legitimate_newly_refused": 0,
+  "false_positive_rate_pct": 0.0,
+  "disclosed_casualties": [
+    "K01",
+    "K02"
+  ],
+  "success_threshold": "all identified bypasses closed and 0 new false positives",
+  "threshold_met": false,
+  "threshold_met_note": "22 of 23 closed; N13 is a computed path that an AST check cannot resolve and is documented as accepted risk, so the kill criterion (>10% false positives) was not triggered and the narrow-and-document branch applies to N13 only",
+  "rows": [
+    {
+      "id": "P1",
+      "expectation": "BYPASS",
+      "cls": "alias-attr",
+      "label": "3rd party finding: alias os.system to a Name, then call the Name",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "references banned attribute `system` without calling it",
+      "new_warn": []
+    },
+    {
+      "id": "P2",
+      "expectation": "BYPASS",
+      "cls": "alias-attr",
+      "label": "3rd party finding: alias a bound write_text",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "references banned attribute `write_text` without calling it",
+      "new_warn": []
+    },
+    {
+      "id": "P3",
+      "expectation": "BYPASS",
+      "cls": "reflection",
+      "label": "literal getattr reaches banned attr with no Attribute node",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "reaches banned name `system` via `getattr`",
+      "new_warn": []
+    },
+    {
+      "id": "P4",
+      "expectation": "BYPASS",
+      "cls": "attr-open",
+      "label": "Path(x).open('w') - write-mode check is Name-only",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "writes `src/jittest/verify.py`, which is inside the tree under test; a candidate that touches the source or the git metadata instead of the behaviour differs between base and head for a reason that is not the change",
+      "new_warn": []
+    },
+    {
+      "id": "P4b",
+      "expectation": "BYPASS",
+      "cls": "attr-open",
+      "label": "io.open(x,'w') - same hole via a different receiver",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "writes `src/jittest/verify.py`, which is inside the tree under test; a candidate that touches the source or the git metadata instead of the behaviour differs between base and head for a reason that is not the change",
+      "new_warn": []
+    },
+    {
+      "id": "P4c",
+      "expectation": "BYPASS",
+      "cls": "attr-open",
+      "label": "codecs.open write mode",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "writes `src/jittest/verify.py`, which is inside the tree under test; a candidate that touches the source or the git metadata instead of the behaviour differs between base and head for a reason that is not the change",
+      "new_warn": []
+    },
+    {
+      "id": "P5",
+      "expectation": "BYPASS",
+      "cls": "os-mutator",
+      "label": "os.remove - in BANNED_IMPORT_NAMES but not BANNED_ATTRS",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "calls `remove` on a filesystem or process receiver, which can corrupt the base/head comparison",
+      "new_warn": []
+    },
+    {
+      "id": "P5b",
+      "expectation": "BYPASS",
+      "cls": "os-mutator",
+      "label": "os.replace clobbers a source file under test",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "calls `replace` on a filesystem or process receiver, which can corrupt the base/head comparison",
+      "new_warn": []
+    },
+    {
+      "id": "P5c",
+      "expectation": "BYPASS",
+      "cls": "os-mutator",
+      "label": "Path.rename on a source file under test",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "calls `rename` on a filesystem or process receiver, which can corrupt the base/head comparison",
+      "new_warn": []
+    },
+    {
+      "id": "P6",
+      "expectation": "PASS",
+      "cls": "control",
+      "label": "CONTROL: must be accepted",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": true,
+      "new_reason": "",
+      "new_warn": []
+    },
+    {
+      "id": "N7a",
+      "expectation": "BYPASS",
+      "cls": "vacuous",
+      "label": "NEW: vacuous truthy list literal defeats the constant-assert check",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "asserts a non-empty literal container, which proves nothing",
+      "new_warn": []
+    },
+    {
+      "id": "N7b",
+      "expectation": "BYPASS",
+      "cls": "vacuous",
+      "label": "NEW: vacuous truthy dict literal",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "asserts a non-empty literal container, which proves nothing",
+      "new_warn": []
+    },
+    {
+      "id": "N7c",
+      "expectation": "BYPASS",
+      "cls": "vacuous",
+      "label": "NEW: vacuous truthy tuple literal",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "asserts a non-empty literal container, which proves nothing",
+      "new_warn": []
+    },
+    {
+      "id": "N8",
+      "expectation": "BYPASS",
+      "cls": "exec-egress",
+      "label": "NEW: asyncio subprocess - subprocess is banned, asyncio is not",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "calls `create_subprocess_shell`",
+      "new_warn": []
+    },
+    {
+      "id": "N9",
+      "expectation": "BYPASS",
+      "cls": "network",
+      "label": "NEW: asyncio.open_connection - socket/http/urllib banned, asyncio is not",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "calls `open_connection`",
+      "new_warn": []
+    },
+    {
+      "id": "N9b",
+      "expectation": "BYPASS",
+      "cls": "network",
+      "label": "NEW: imaplib/ssl/xmlrpc are absent from BANNED_MODULES",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "imports banned module `imaplib`",
+      "new_warn": []
+    },
+    {
+      "id": "N10",
+      "expectation": "BYPASS",
+      "cls": "network",
+      "label": "NEW: aiohttp/openai/litellm resolve in the head env and are not banned",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "imports banned module `aiohttp`",
+      "new_warn": []
+    },
+    {
+      "id": "N11",
+      "expectation": "BYPASS",
+      "cls": "exec-egress",
+      "label": "NEW: os.posix_spawn - spawnl/spawnv listed, posix_spawn is not",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "calls `posix_spawn`",
+      "new_warn": []
+    },
+    {
+      "id": "N12a",
+      "expectation": "BYPASS",
+      "cls": "fs-mutator",
+      "label": "NEW: os.truncate zeroes a source file under test",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "calls `truncate` on a filesystem or process receiver, which can corrupt the base/head comparison",
+      "new_warn": []
+    },
+    {
+      "id": "N12b",
+      "expectation": "BYPASS",
+      "cls": "fs-mutator",
+      "label": "NEW: Path.touch / os.link / os.utime",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "calls `utime` on a filesystem or process receiver, which can corrupt the base/head comparison",
+      "new_warn": []
+    },
+    {
+      "id": "N12c",
+      "expectation": "BYPASS",
+      "cls": "fs-mutator",
+      "label": "NEW: os.environ assignment is a Subscript store, not a Call",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [
+        "mentions `os.environ[`"
+      ],
+      "new_ok": false,
+      "new_reason": "assigns into `os.environ`",
+      "new_warn": []
+    },
+    {
+      "id": "N13",
+      "expectation": "BYPASS",
+      "cls": "computed-path",
+      "label": "NEW: computed path defeats the hard-coded-path rejection (warning only)",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [
+        "opens a computed path with mode `w`"
+      ],
+      "new_ok": true,
+      "new_reason": "",
+      "new_warn": [
+        "opens a computed path with mode `w`"
+      ]
+    },
+    {
+      "id": "N14",
+      "expectation": "BYPASS",
+      "cls": "MANUFACTURED-CATCH",
+      "label": "NEW CLASS: read the source under test and assert on the fix. Zero banned constructs. Fails on head, passes on base.",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "reads `src/jittest/verify.py`, which is inside the tree under test; a candidate that touches the source or the git metadata instead of the behaviour differs between base and head for a reason that is not the change",
+      "new_warn": []
+    },
+    {
+      "id": "N15",
+      "expectation": "BYPASS",
+      "cls": "MANUFACTURED-CATCH",
+      "label": "NEW CLASS: detect which arm you are on via .git and fail selectively",
+      "base_ok": true,
+      "base_reason": "",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "reads `.git/HEAD`, which is inside the tree under test; a candidate that touches the source or the git metadata instead of the behaviour differs between base and head for a reason that is not the change",
+      "new_warn": []
+    },
+    {
+      "id": "N16",
+      "expectation": "BYPASS",
+      "cls": "MANUFACTURED-CATCH",
+      "label": "NEW CLASS: assert on package metadata version instead of behaviour",
+      "base_ok": false,
+      "base_reason": "imports banned module `importlib.metadata`",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "imports banned module `importlib.metadata`",
+      "new_warn": []
+    },
+    {
+      "id": "C1",
+      "expectation": "REJECT",
+      "cls": "control-neg",
+      "label": "CONTROL: direct os.system call",
+      "base_ok": false,
+      "base_reason": "calls `system`",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "calls `system`",
+      "new_warn": []
+    },
+    {
+      "id": "C2",
+      "expectation": "REJECT",
+      "cls": "control-neg",
+      "label": "CONTROL: from os import system",
+      "base_ok": false,
+      "base_reason": "imports banned name `system` from `os`",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "imports banned name `system` from `os`",
+      "new_warn": []
+    },
+    {
+      "id": "C3",
+      "expectation": "REJECT",
+      "cls": "control-neg",
+      "label": "CONTROL: eval bound to a Name",
+      "base_ok": false,
+      "base_reason": "references banned builtin `eval` without calling it",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "references banned builtin `eval` without calling it",
+      "new_warn": []
+    },
+    {
+      "id": "C4",
+      "expectation": "REJECT",
+      "cls": "control-neg",
+      "label": "CONTROL: vacuous constant assertion",
+      "base_ok": false,
+      "base_reason": "contains `assert True`, which proves nothing",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "contains `assert True`, which proves nothing",
+      "new_warn": []
+    },
+    {
+      "id": "C5",
+      "expectation": "REJECT",
+      "cls": "control-neg",
+      "label": "CONTROL: sys.modules indirection still exposes .system as a call",
+      "base_ok": false,
+      "base_reason": "calls `system`",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "calls `system`",
+      "new_warn": []
+    },
+    {
+      "id": "C6",
+      "expectation": "REJECT",
+      "cls": "control-neg",
+      "label": "CONTROL: banned module import",
+      "base_ok": false,
+      "base_reason": "imports banned module `subprocess`",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "imports banned module `subprocess`",
+      "new_warn": []
+    },
+    {
+      "id": "C7",
+      "expectation": "REJECT",
+      "cls": "control-neg",
+      "label": "CONTROL: socket network egress",
+      "base_ok": false,
+      "base_reason": "imports banned module `socket`",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "imports banned module `socket`",
+      "new_warn": []
+    },
+    {
+      "id": "C8",
+      "expectation": "REJECT",
+      "cls": "control-neg",
+      "label": "CONTROL: hard-coded literal write to source under test",
+      "base_ok": false,
+      "base_reason": "opens the hard-coded path `src/jittest/verify.py` with mode `w`; a candidate that writes into the worktree can corrupt the base/head comparison",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "writes `src/jittest/verify.py`, which is inside the tree under test; a candidate that touches the source or the git metadata instead of the behaviour differs between base and head for a reason that is not the change",
+      "new_warn": []
+    },
+    {
+      "id": "C9",
+      "expectation": "REJECT",
+      "cls": "control-neg",
+      "label": "CONTROL: no test_ function",
+      "base_ok": false,
+      "base_reason": "no function named test_*",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "no function named test_*",
+      "new_warn": []
+    },
+    {
+      "id": "C10",
+      "expectation": "REJECT",
+      "cls": "control-neg",
+      "label": "CONTROL: no assertion at all",
+      "base_ok": false,
+      "base_reason": "no assertion",
+      "base_warn": [],
+      "new_ok": false,
+      "new_reason": "no assertion",
+      "new_warn": []
+    }
+  ],
+  "false_positive_rows": [
+    {
+      "id": "L01",
+      "note": "plain arithmetic",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L02",
+      "note": "str.replace - the exact collision BANNED_ATTRS avoids",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L03",
+      "note": "list.remove - second collision",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L04",
+      "note": "dict.pop and rename-like keys",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L05",
+      "note": "pytest.raises",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L06",
+      "note": "tmp_path fixture write via builtin open",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [
+        "opens a computed path with mode `w`"
+      ],
+      "new_warnings": [
+        "opens a computed path with mode `w`"
+      ]
+    },
+    {
+      "id": "L07",
+      "note": "tmp_path fixture write via Path.open - the attribute form",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": [
+        "opens a computed path with mode `w`"
+      ]
+    },
+    {
+      "id": "L08",
+      "note": "tempfile.mkdtemp scratch dir",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [
+        "opens a computed path with mode `w`"
+      ],
+      "new_warnings": [
+        "opens a computed path with mode `w`"
+      ]
+    },
+    {
+      "id": "L09",
+      "note": "reading a data fixture, not source",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L10",
+      "note": "os.path read-only helpers",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L11",
+      "note": "os.environ read via get",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L12",
+      "note": "monkeypatch setenv, the sanctioned way",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [
+        "mentions `os.environ[`"
+      ],
+      "new_warnings": [
+        "mentions `os.environ[`"
+      ]
+    },
+    {
+      "id": "L13",
+      "note": "Path read-only predicates",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L14",
+      "note": "Path.mkdir in a temp dir - must NOT be refused",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L15",
+      "note": "parametrize",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L16",
+      "note": "unittest.TestCase style",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L17",
+      "note": "json round trip",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L18",
+      "note": "dataclass equality",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L19",
+      "note": "regex",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L20",
+      "note": "datetime",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L21",
+      "note": "sorting stability",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L22",
+      "note": "async test using asyncio - must stay legal",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L23",
+      "note": "mock via unittest.mock",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L24",
+      "note": "monkeypatch.setattr with a literal name",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L25",
+      "note": "StringIO truncate - collides with a hard mutator name",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L26",
+      "note": "bytes.replace on a variable",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L27",
+      "note": "pathlib joinpath read",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L28",
+      "note": "float approx",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L29",
+      "note": "exception message assertion",
+      "casualty": false,
+      "base_ok": false,
+      "base_reason": "no assertion",
+      "new_ok": false,
+      "new_reason": "no assertion",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L30",
+      "note": "generator exhaustion",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L31",
+      "note": "csv via io, no filesystem",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L32",
+      "note": "decimal",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L33",
+      "note": "itertools",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L34",
+      "note": "caplog",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L35",
+      "note": "non-empty container compared, not asserted bare",
+      "casualty": false,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": true,
+      "new_reason": "",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "L36",
+      "note": "writes a .py file into tmp_path to test import machinery",
+      "casualty": false,
+      "base_ok": false,
+      "base_reason": "calls `write_bytes`",
+      "new_ok": false,
+      "new_reason": "calls `write_bytes`",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "K01",
+      "note": "assert callable(Path.write_text) - named casualty",
+      "casualty": true,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": false,
+      "new_reason": "references banned attribute `write_text` without calling it",
+      "base_warnings": [],
+      "new_warnings": []
+    },
+    {
+      "id": "K02",
+      "note": "assertRaises with an uncalled p.unlink - named casualty",
+      "casualty": true,
+      "base_ok": true,
+      "base_reason": "",
+      "new_ok": false,
+      "new_reason": "references banned attribute `unlink` without calling it",
+      "base_warnings": [],
+      "new_warnings": []
+    }
+  ]
+}
