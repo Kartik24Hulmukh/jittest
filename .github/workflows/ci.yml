@@ -15,7 +15,7 @@ concurrency:
 jobs:
   test:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -100,6 +100,29 @@ jobs:
               sys.exit(1)
           print("ok: zero absolute local paths found in shipped files")
           PY
+
+      - name: Assert receipts/ contains only signed files
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          receipts = Path("receipts")
+          unsigned = []
+          for f in receipts.iterdir():
+              if not f.is_file():
+                  continue
+              text = f.read_text(encoding="utf-8", errors="ignore")
+              # Ed25519 signature markers written by jittest receipt.py
+              if "SIGNATURE" not in text and "-----BEGIN" not in text:
+                  unsigned.append(str(f))
+          if unsigned:
+              print(f"FAIL: {len(unsigned)} unsigned file(s) directly under receipts/:")
+              for u in unsigned:
+                  print(f"  {u}")
+              sys.exit(1)
+          print(f"ok: 0 unsigned files directly under receipts/ ({len(list(receipts.iterdir()))} entries checked)")
+          PY
+        shell: bash
 
   build:
     runs-on: ubuntu-latest
@@ -258,17 +281,29 @@ jobs:
           print("SUCCESS: consumer-action-e2e verified both regression and reproduction catches.")
           PY
 
+  mypy-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - run: pip install mypy
+      - name: Type-check safety.py without mask
+        run: mypy src/jittest/safety.py --ignore-missing-imports
+
   ci:
     if: always()
-    needs: [lint, test, build, consumer_action_e2e]
+    needs: [lint, test, build, consumer_action_e2e, mypy-safety]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Check aggregate result
         run: |
-          echo "lint=${{ needs.lint.result }} test=${{ needs.test.result }} build=${{ needs.build.result }} consumer=${{ needs.consumer_action_e2e.result }}"
+          echo "lint=${{ needs.lint.result }} test=${{ needs.test.result }} build=${{ needs.build.result }} consumer=${{ needs.consumer_action_e2e.result }} mypy-safety=${{ needs.mypy-safety.result }}"
           [ "${{ needs.lint.result }}" = "success" ] || exit 1
           [ "${{ needs.test.result }}" = "success" ] || exit 1
           [ "${{ needs.build.result }}" = "success" ] || exit 1
           [ "${{ needs.consumer_action_e2e.result }}" = "success" ] || exit 1
-
+          [ "${{ needs.mypy-safety.result }}" = "success" ] || exit 1

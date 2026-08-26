@@ -53,7 +53,11 @@ def test_programmatic_provenance_shas_in_markdown():
     valid_shas = {s.lower() for s in git_shas} | artifact_shas
 
     md_files = [
-        md for md in list(REPO_ROOT.glob("*.md")) + list((REPO_ROOT / "docs").glob("*.md"))
+        md for md in (
+            list(REPO_ROOT.glob("*.md"))
+            + list((REPO_ROOT / "docs").glob("*.md"))
+            + list((REPO_ROOT / "docs" / "reports").glob("*.md"))
+        )
         if not md.name.startswith("WO-")
     ]
     for md in md_files:
