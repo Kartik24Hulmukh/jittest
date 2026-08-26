@@ -39,7 +39,7 @@ from __future__ import annotations
 
 import ast
 from dataclasses import dataclass
-from typing import cast
+from typing import TypeGuard
 
 __all__ = [
     "CodeCheck", "check_candidate", "BANNED_MODULES", "BANNED_CALLS",
@@ -135,17 +135,24 @@ def _root(name: str) -> str:
     return name.split(".")[0]
 
 
-def _is_const_str(node: ast.AST) -> bool:
+class _ConstStr(ast.Constant):
+    value: str
+
+
+def _is_const_str(node: ast.AST) -> TypeGuard[_ConstStr]:
     return isinstance(node, ast.Constant) and isinstance(node.value, str)
 
 
 def _open_mode(node: ast.Call) -> str | None:
     """The literal mode string passed to `open`, if there is one."""
-    if len(node.args) >= 2 and _is_const_str(node.args[1]):
-        return cast(str, cast(ast.Constant, node.args[1]).value)
+    if len(node.args) >= 2:
+        mode_arg = node.args[1]
+        if _is_const_str(mode_arg):
+            return mode_arg.value
     for kw in node.keywords:
-        if kw.arg == "mode" and _is_const_str(kw.value):
-            return cast(str, cast(ast.Constant, kw.value).value)
+        kw_val = kw.value
+        if kw.arg == "mode" and _is_const_str(kw_val):
+            return kw_val.value
     return None
 
 
@@ -176,18 +183,19 @@ def _any_open_mode(node: ast.Call) -> str | None:
     form was invisible to the write-mode check.
     """
     for arg in node.args:
-        if _is_const_str(arg) and _looks_like_mode(cast(str, cast(ast.Constant, arg).value)):
-            return cast(str, cast(ast.Constant, arg).value)
+        if _is_const_str(arg) and _looks_like_mode(arg.value):
+            return arg.value
     for kw in node.keywords:
-        if kw.arg == "mode" and _is_const_str(kw.value):
-            return cast(str, cast(ast.Constant, kw.value).value)
+        kw_val = kw.value
+        if kw.arg == "mode" and _is_const_str(kw_val):
+            return kw_val.value
     return None
 
 
 def _path_expressions(node: ast.Call) -> list[ast.AST]:
     """Every sub-expression that could name the file an open() call touches."""
     modes = {id(a) for a in node.args
-             if _is_const_str(a) and _looks_like_mode(cast(str, cast(ast.Constant, a).value))}
+             if _is_const_str(a) and _looks_like_mode(a.value)}
     out: list[ast.AST] = [a for a in node.args if id(a) not in modes]
     out += [kw.value for kw in node.keywords
             if kw.arg in ("file", "path", "name", "filename")]
@@ -202,7 +210,7 @@ def _target_literals(node: ast.Call) -> list[str]:
     for expr in _path_expressions(node):
         for sub in ast.walk(expr):
             if _is_const_str(sub):
-                found.append(cast(str, cast(ast.Constant, sub).value))
+                found.append(sub.value)
     return found
 
 
@@ -356,22 +364,23 @@ def check_candidate(code: str, max_bytes: int = 20000) -> CodeCheck:
             if isinstance(func, ast.Name) and func.id in BANNED_CALLS:
                 return CodeCheck(False, f"calls banned builtin `{func.id}`")
             if (isinstance(func, ast.Name)
-                    and func.id in ("getattr", "setattr", "delattr")
-                    and (len(node.args) < 2 or not _is_const_str(node.args[1]))):
+                    and func.id in ("getattr", "setattr", "delattr")):
+                if len(node.args) < 2:
                     return CodeCheck(
                         False, f"computed attribute access via `{func.id}`")
-            if (isinstance(func, ast.Name)
-                    and func.id in ("getattr", "setattr", "delattr")
-                    and len(node.args) > 1
-                    and _is_const_str(node.args[1])
-                    and cast(ast.Constant, node.args[1]).value in (
-                        BANNED_ATTRS | BANNED_CALLS | BANNED_DUNDERS)):
-                # Only *computed* second arguments were rejected. A literal
-                # one produced no Attribute node named `system` anywhere in
-                # the tree, so class 3 was open. Receipt P3.
-                return CodeCheck(
-                    False,
-                    f"reaches banned name `{cast(str, cast(ast.Constant, node.args[1]).value)}` via `{func.id}`")
+                target_arg = node.args[1]
+                if not _is_const_str(target_arg):
+                    return CodeCheck(
+                        False, f"computed attribute access via `{func.id}`")
+                if target_arg.value in (
+                    BANNED_ATTRS | BANNED_CALLS | BANNED_DUNDERS
+                ):
+                    # Only *computed* second arguments were rejected. A literal
+                    # one produced no Attribute node named `system` anywhere in
+                    # the tree, so class 3 was open. Receipt P3.
+                    return CodeCheck(
+                        False,
+                        f"reaches banned name `{target_arg.value}` via `{func.id}`")
             if ((isinstance(func, ast.Name) and func.id == "open")
                     or (isinstance(func, ast.Attribute) and func.attr == "open")):
                 # `Path(p).open("w")`, `io.open(p, "w")` and
