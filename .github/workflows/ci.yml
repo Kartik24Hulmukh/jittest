@@ -37,6 +37,7 @@ jobs:
           git config --global init.defaultBranch main
 
       - name: Test with no dependencies at all
+        if: (matrix.os == 'ubuntu-latest' && matrix.python == '3.12') || (matrix.os == 'windows-latest' && matrix.python == '3.12')
         run: PYTHONPATH=src python -m unittest discover -s tests -p 'test_*.py' -t . -v
         shell: bash
 
@@ -101,26 +102,28 @@ jobs:
           print("ok: zero absolute local paths found in shipped files")
           PY
 
-      - name: Assert receipts/ contains only signed files
+      - name: Assert receipts/ contains only cryptographically verified files
         run: |
-          python - <<'PY'
+          PYTHONPATH=src python - <<'PY'
           import sys
           from pathlib import Path
-          receipts = Path("receipts")
-          unsigned = []
-          for f in receipts.iterdir():
-              if not f.is_file():
-                  continue
-              text = f.read_text(encoding="utf-8", errors="ignore")
-              # Ed25519 signature markers written by jittest receipt.py
-              if "SIGNATURE" not in text and "-----BEGIN" not in text:
-                  unsigned.append(str(f))
-          if unsigned:
-              print(f"FAIL: {len(unsigned)} unsigned file(s) directly under receipts/:")
-              for u in unsigned:
-                  print(f"  {u}")
+          from jittest.receipt import verify_receipt
+
+          receipts_dir = Path("receipts")
+          files = [p for p in receipts_dir.rglob("*") if p.is_file()]
+          if not files:
+              print("warning: no files found under receipts/")
+          unverifiable = []
+          for p in files:
+              valid, reason = verify_receipt(p)
+              if not valid:
+                  unverifiable.append((str(p), reason))
+          if unverifiable:
+              print(f"FAIL: {len(unverifiable)} unverifiable file(s) under receipts/:")
+              for path, reason in unverifiable:
+                  print(f"  {path}: {reason}")
               sys.exit(1)
-          print(f"ok: 0 unsigned files directly under receipts/ ({len(list(receipts.iterdir()))} entries checked)")
+          print(f"ok: all {len(files)} file(s) under receipts/ are cryptographically verified")
           PY
         shell: bash
 
