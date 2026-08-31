@@ -46,15 +46,17 @@ class TestVerifyCliRefusalEdges(unittest.TestCase):
                 "def test_example():\n    assert True\n", encoding="utf-8"
             )
             stderr = io.StringIO()
-            with patch(
-                "jittest.verify.verify_test",
-                side_effect=SandboxUnavailable("no usable isolation backend"),
+            with (
+                patch(
+                    "jittest.verify.verify_test",
+                    side_effect=SandboxUnavailable("no usable isolation backend"),
+                ),
+                redirect_stderr(stderr),
             ):
-                with redirect_stderr(stderr):
-                    rc = main([
-                        "verify", "--repo", str(repo), "--base", "base", "--head", "head",
-                        "--test", "test_example.py", "--sandbox-mode", "required",
-                    ])
+                rc = main([
+                    "verify", "--repo", str(repo), "--base", "base", "--head", "head",
+                    "--test", "test_example.py", "--sandbox-mode", "required",
+                ])
         self.assertEqual(rc, 2)
         self.assertIn("refused", stderr.getvalue())
         self.assertIn("no usable isolation backend", stderr.getvalue())

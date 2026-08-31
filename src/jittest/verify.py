@@ -172,11 +172,7 @@ def _write_json_atomically(path: Path, payload: dict[str, Any]) -> None:
             os.fsync(fh.fileno())
         os.replace(temp_path, path)
     finally:
-        if temp_path.exists():
-            try:
-                temp_path.unlink()
-            except OSError:
-                pass
+        temp_path.unlink(missing_ok=True)
 
 
 def _verify_pass_to_pass(
