@@ -107,9 +107,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: Kartik24Hulmukh/jittest@v0.3.4
         with:
-          policy: "strict" # 'strict' (fails build unless catch proven), 'advisory' (never fails build), or 'block-on-refusal'
+          sandbox-mode: "required"
+          policy: "advisory" # executes and reports without blocking the build
 ```
 
 > [!NOTE]
