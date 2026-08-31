@@ -120,6 +120,8 @@ jobs:
 
 jittest executes code. Outside-collaborator and untrusted PRs run sandboxed (`docker`, `podman`, or `bubblewrap` with `--network none` family of restrictions — see [`SECURITY.md`](SECURITY.md)). In untrusted context, sandboxing is required and fails closed if isolation cannot be established.
 
+`jittest verify --allow-unconfined` (alias of `--no-sandbox`) is for non-production debugging only.
+
 ## Honest boundaries
 
 - Python projects today.
@@ -139,4 +141,3 @@ jittest executes code. Outside-collaborator and untrusted PRs run sandboxed (`do
 ## Licence
 
 Apache-2.0.
-

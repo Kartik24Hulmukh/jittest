@@ -1,11 +1,17 @@
 """Tests for jittest verify MVP on synthetic two-commit fixture repository."""
 
 import json
+import os
 import subprocess
+import sys
 import tempfile
+from importlib.util import find_spec
 from pathlib import Path
+from types import SimpleNamespace
+from unittest import mock
 
 from jittest.diff import git_env
+from jittest.execute import FailureKind, Outcome
 from jittest.verify import VerdictClass, verify_test
 
 
@@ -49,6 +55,21 @@ def create_synthetic_repo(tmp_dir: Path) -> tuple[Path, str, str, Path]:
     head_sha = _git(repo, "rev-parse", "HEAD")
 
     return repo, base_sha, head_sha, test_file
+
+
+def _run_verify_cli(repo: Path, *args: str, cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
+    root = Path(__file__).resolve().parents[1]
+    env = dict(os.environ)
+    env["PYTHONPATH"] = os.pathsep.join([str(root / "src"), env.get("PYTHONPATH", "")]).rstrip(os.pathsep)
+    return subprocess.run(
+        [sys.executable, "-m", "jittest.cli", "verify", "--repo", str(repo), *args],
+        capture_output=True,
+        text=True,
+        errors="replace",
+        cwd=str(cwd) if cwd else None,
+        env=env,
+        timeout=300,
+    )
 
 
 def test_verify_known_bug_produces_proven_catch():
@@ -133,3 +154,144 @@ def test_verify_signed_receipt():
         assert ok is True
         assert "SIGNER_TRUSTED" in msg
 
+
+def test_verify_cli_resolves_relative_test_to_repo_from_other_cwd():
+    with tempfile.TemporaryDirectory() as tmp:
+        repo, base_sha, head_sha, _ = create_synthetic_repo(Path(tmp))
+        out_artifact = Path(tmp) / "evidence-from-cli.json"
+        other_cwd = Path(tmp) / "elsewhere"
+        other_cwd.mkdir()
+        proc = _run_verify_cli(
+            repo,
+            "--base",
+            base_sha,
+            "--head",
+            head_sha,
+            "--test",
+            "test_app.py",
+            "--output",
+            str(out_artifact),
+            "--json",
+            cwd=other_cwd,
+        )
+        assert proc.returncode == 0, proc.stderr
+        payload = json.loads(proc.stdout)
+        assert payload["verdict"] == VerdictClass.PROVEN_CATCH
+        assert out_artifact.exists()
+
+
+def test_verify_test_preserves_full_pytest_node_id():
+    with tempfile.TemporaryDirectory() as td:
+        repo = Path(td) / "repo-node-id"
+        repo.mkdir()
+        test_file = repo / "tests" / "test_app.py"
+        test_file.parent.mkdir(parents=True)
+        test_file.write_text("def test_regression_target():\n    assert True\n", encoding="utf-8")
+
+        class _Plan:
+            isolated = False
+            backend = "none"
+            notes: list[str] = []
+
+            def as_dict(self):
+                return {"isolated": False, "backend": "none", "notes": []}
+
+        class _Worktree:
+            def __init__(self, *_args, **_kwargs):
+                self.path = repo
+
+            def __enter__(self):
+                return self.path
+
+            def __exit__(self, *_exc):
+                return None
+
+        outcomes = iter([Outcome.PASS, Outcome.FAIL, Outcome.FAIL])
+        seen_node_ids: list[str | None] = []
+
+        def _fake_run_test(*_args, **kwargs):
+            seen_node_ids.append(kwargs.get("node_id"))
+            outcome = next(outcomes)
+            return SimpleNamespace(
+                outcome=outcome,
+                returncode=1 if outcome is Outcome.FAIL else 0,
+                stdout="",
+                stderr="",
+                failure_kind=FailureKind.ASSERTION,
+            )
+
+        with mock.patch("jittest.verify.resolve_revision", side_effect=["a" * 40, "b" * 40]), \
+             mock.patch("jittest.verify.plan_sandbox", return_value=_Plan()), \
+             mock.patch("jittest.verify.Worktree", _Worktree), \
+             mock.patch("jittest.verify.provision_environment", return_value={"python_path": None}), \
+             mock.patch("jittest.verify.run_test", side_effect=_fake_run_test), \
+             mock.patch("jittest.verify.sign_evidence", side_effect=lambda evidence, key_path=None: evidence), \
+             mock.patch("jittest.verify._get_git_sha", return_value=""), \
+             mock.patch("jittest.verify._get_git_branch", return_value=""), \
+             mock.patch("jittest.verify._get_git_dirty", return_value=False):
+            evidence, exit_code = verify_test(
+                repo_path=repo,
+                base_ref="base",
+                head_ref="head",
+                test_file_path="tests/test_app.py::Suite::test_regression_target",
+            )
+
+        assert exit_code == 0
+        assert evidence["verdict"] == VerdictClass.PROVEN_CATCH
+        assert seen_node_ids and all(n == "Suite::test_regression_target" for n in seen_node_ids)
+
+
+def test_verify_cli_refuses_missing_or_empty_tests_without_traceback():
+    with tempfile.TemporaryDirectory() as tmp:
+        repo, base_sha, head_sha, _ = create_synthetic_repo(Path(tmp))
+
+        missing = _run_verify_cli(repo, "--base", base_sha, "--head", head_sha, "--test", "missing_test.py")
+        assert missing.returncode == 2
+        assert "test file not found" in missing.stderr
+        assert "Traceback (most recent call last)" not in missing.stderr
+
+        empty_file = repo / "empty_test.py"
+        empty_file.write_text("", encoding="utf-8")
+        empty = _run_verify_cli(repo, "--base", base_sha, "--head", head_sha, "--test", "empty_test.py")
+        assert empty.returncode == 2
+        assert "test file is empty" in empty.stderr
+        assert "Traceback (most recent call last)" not in empty.stderr
+
+
+def test_verify_cli_refuses_nonexistent_base_and_head_revisions_cleanly():
+    with tempfile.TemporaryDirectory() as tmp:
+        repo, base_sha, head_sha, _ = create_synthetic_repo(Path(tmp))
+
+        bad_base = _run_verify_cli(repo, "--base", "no-such-base-ref", "--head", head_sha, "--test", "test_app.py")
+        assert bad_base.returncode == 2
+        assert "base revision not found: no-such-base-ref" in bad_base.stderr
+        assert "Traceback (most recent call last)" not in bad_base.stderr
+
+        bad_head = _run_verify_cli(repo, "--base", base_sha, "--head", "no-such-head-ref", "--test", "test_app.py")
+        assert bad_head.returncode == 2
+        assert "head revision not found: no-such-head-ref" in bad_head.stderr
+        assert "Traceback (most recent call last)" not in bad_head.stderr
+
+
+def test_verify_cli_json_output_is_parseable_complete_receipt():
+    with tempfile.TemporaryDirectory() as tmp:
+        repo, base_sha, head_sha, _ = create_synthetic_repo(Path(tmp))
+        out_artifact = Path(tmp) / "cli-receipt.json"
+        proc = _run_verify_cli(
+            repo,
+            "--base",
+            base_sha,
+            "--head",
+            head_sha,
+            "--test",
+            "test_app.py",
+            "--output",
+            str(out_artifact),
+            "--json",
+        )
+        assert proc.returncode == 0, proc.stderr
+        payload = json.loads(proc.stdout)
+        for key in ("schema_version", "verdict", "verdict_text", "signature", "base_execution", "head_execution", "provenance"):
+            assert key in payload
+        file_payload = json.loads(out_artifact.read_text(encoding="utf-8"))
+        assert file_payload["signature"]["algorithm"] == "Ed25519"
