@@ -107,9 +107,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: Kartik24Hulmukh/jittest@v0.3.4
         with:
-          policy: "strict" # 'strict' (fails build unless catch proven), 'advisory' (never fails build), or 'block-on-refusal'
+          sandbox-mode: "required"
+          policy: "advisory" # executes and reports without blocking the build
 ```
 
 > [!NOTE]
@@ -119,6 +121,8 @@ jobs:
 ## Security
 
 jittest executes code. Outside-collaborator and untrusted PRs run sandboxed (`docker`, `podman`, or `bubblewrap` with `--network none` family of restrictions — see [`SECURITY.md`](SECURITY.md)). In untrusted context, sandboxing is required and fails closed if isolation cannot be established.
+
+`jittest verify --allow-unconfined` (alias of `--no-sandbox`) is for non-production debugging only.
 
 ## Honest boundaries
 
@@ -139,4 +143,3 @@ jittest executes code. Outside-collaborator and untrusted PRs run sandboxed (`do
 ## Licence
 
 Apache-2.0.
-

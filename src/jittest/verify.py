@@ -27,8 +27,10 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import os
 import re
 import subprocess
+import tempfile
 import time
 from pathlib import Path
 from typing import Any
@@ -40,9 +42,13 @@ from .github import fetch_pr_base_head
 from .receipt import sign_evidence
 from .sandbox import plan as plan_sandbox
 
-__all__ = ["verify_test", "VerdictClass", "exit_code_for", "catch_direction_for"]
+__all__ = ["verify_test", "VerdictClass", "VerifyRefusalError", "exit_code_for", "catch_direction_for"]
 
 logger = logging.getLogger("jittest.verify")
+
+
+class VerifyRefusalError(ValueError):
+    """A clean refusal for unusable verify inputs."""
 
 
 class VerdictClass:
@@ -76,6 +82,21 @@ def catch_direction_for(verdict_class: str) -> str:
     elif verdict_class == VerdictClass.REPRODUCTION_CATCH:
         return "reproduction"
     return "none"
+
+
+def verdict_text_for(verdict_class: str) -> str:
+    """Plain-language explanation for each public verdict label."""
+    if verdict_class == VerdictClass.PROVEN_CATCH:
+        return "Regression catch proven: the test passed on base and failed on head."
+    if verdict_class == VerdictClass.REPRODUCTION_CATCH:
+        return "Reproduction catch proven: the test failed on base and passed on head."
+    if verdict_class == VerdictClass.COLLECTION_CATCH:
+        return "Collection catch: head could not collect or execute while base passed."
+    if verdict_class == VerdictClass.REFUTED:
+        return "Refuted: the test failed on both base and head."
+    if verdict_class == VerdictClass.NON_DISCRIMINATING:
+        return "Non-discriminating: the test passed on both base and head."
+    return "Inconclusive: verification refused because execution could not be completed safely."
 
 
 def _get_git_sha(repo_path: Path, ref: str) -> str:
@@ -138,6 +159,20 @@ def _get_git_dirty(repo_path: Path) -> bool:
 
 def _hash_str(text: str) -> str:
     return hashlib.sha256((text or "").encode("utf-8")).hexdigest()
+
+
+def _write_json_atomically(path: Path, payload: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temp_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=str(path.parent))
+    temp_path = Path(temp_name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            json.dump(payload, fh, indent=2)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(temp_path, path)
+    finally:
+        temp_path.unlink(missing_ok=True)
 
 
 def _verify_pass_to_pass(
@@ -296,28 +331,36 @@ def verify_test(
         base_ref, head_ref = fetch_pr_base_head(str(repo_path), pr_number)
 
     if not base_ref or not head_ref:
-        raise ValueError("Both base_ref and head_ref (or a valid --pr number) must be provided.")
+        raise VerifyRefusalError("both base and head revisions are required")
 
     if test_file_path is None:
-        raise ValueError("test_file_path must be provided.")
+        raise VerifyRefusalError("test file path is required")
 
     node_id = None
     if isinstance(test_file_path, str) and "::" in test_file_path:
-        parts = test_file_path.split("::")
-        file_part = parts[0]
-        node_id = "::".join(parts[1:])
-        test_path = Path(file_part).resolve()
+        file_part, node_id = test_file_path.split("::", 1)
+        test_path = Path(file_part)
     else:
-        test_path = Path(test_file_path).resolve()
+        test_path = Path(test_file_path)
+
+    if not test_path.is_absolute():
+        test_path = repo_path / test_path
+    test_path = test_path.resolve()
 
     if not test_path.exists():
-        raise FileNotFoundError(f"Test file not found: {test_path}")
+        raise VerifyRefusalError(f"test file not found: {test_path}")
 
     test_code = test_path.read_text(encoding="utf-8")
+    if not test_code.strip():
+        raise VerifyRefusalError(f"test file is empty: {test_path}")
     test_file_sha256 = _hash_str(test_code)
 
     resolved_base = resolve_revision(repo_path, base_ref)
     resolved_head = resolve_revision(repo_path, head_ref)
+    if not resolved_base:
+        raise VerifyRefusalError(f"base revision not found: {base_ref}")
+    if not resolved_head:
+        raise VerifyRefusalError(f"head revision not found: {head_ref}")
 
     # Sandbox plan setup
     if sandbox_mode is not None:
@@ -570,6 +613,7 @@ def verify_test(
         "schema_version": "2.0",
         "tool": "jittest verify",
         "verdict": verdict_class,
+        "verdict_text": verdict_text_for(verdict_class),
         "proven_catch": is_proven_catch,
         "catch_direction": catch_direction,
         "base_reproduced": base_reproduced,
@@ -611,7 +655,6 @@ def verify_test(
 
     if output_path is not None:
         out_p = Path(output_path).resolve()
-        out_p.parent.mkdir(parents=True, exist_ok=True)
-        out_p.write_text(json.dumps(signed_evidence, indent=2), encoding="utf-8")
+        _write_json_atomically(out_p, signed_evidence)
 
     return signed_evidence, exit_code

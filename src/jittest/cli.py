@@ -121,7 +121,13 @@ def build_parser() -> argparse.ArgumentParser:
     vf.add_argument("--test", "-t", required=True, help="path to test file")
     vf.add_argument("--path", default=".", help="relative directory path within repo (for monorepos)")
     vf.add_argument("--output", "-o", default=None, help="path to output evidence JSON artifact")
-    vf.add_argument("--no-sandbox", action="store_true", help="disable container/namespace isolation (opt-out)")
+    vf.add_argument(
+        "--no-sandbox",
+        "--allow-unconfined",
+        dest="no_sandbox",
+        action="store_true",
+        help="disable container/namespace isolation (non-production debugging only)",
+    )
     vf.add_argument(
         "--signing-key",
         default=None,
@@ -405,9 +411,30 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
 
 
 def _cmd_verify(args: argparse.Namespace) -> int:
-    from .verify import verify_test
+    from .sandbox import SandboxUnavailable
+    from .verify import VerifyRefusalError, verify_test
+
     repo = Path(args.repo).resolve() if Path(args.repo).exists() else args.repo
-    test_path = Path(args.test).resolve()
+    test_spec = args.test
+    if not isinstance(test_spec, str) or not test_spec.strip():
+        print("jittest verify: refused - test path is required", file=sys.stderr)
+        return 2
+
+    test_file_part = test_spec.split("::", 1)[0]
+    if not test_file_part.strip():
+        print("jittest verify: refused - test path is required before a pytest node ID", file=sys.stderr)
+        return 2
+
+    # For local repositories, reject a directory immediately as an operational
+    # refusal. Missing files are still handled by verify_test so its API and CLI
+    # return the same precise message.
+    if isinstance(repo, Path):
+        local_test = Path(test_file_part)
+        if not local_test.is_absolute():
+            local_test = repo / local_test
+        if local_test.exists() and not local_test.is_file():
+            print(f"jittest verify: refused - test path is not a regular file: {local_test}", file=sys.stderr)
+            return 2
 
     base_ref = args.base
     head_ref = args.head
@@ -418,7 +445,7 @@ def _cmd_verify(args: argparse.Namespace) -> int:
 
     out_path = args.output
     if not out_path and not args.as_json and isinstance(repo, Path):
-        out_path = repo / f"jittest-evidence-{test_path.stem}.json"
+        out_path = repo / f"jittest-evidence-{Path(test_file_part).stem}.json"
 
     from .receipt import SigningKeyError
 
@@ -428,7 +455,7 @@ def _cmd_verify(args: argparse.Namespace) -> int:
             base_ref=base_ref,
             head_ref=head_ref,
             pr_number=args.pr,
-            test_file_path=test_path,
+            test_file_path=test_spec,
             rel_path=args.path,
             output_path=out_path,
             timeout_s=args.timeout,
@@ -443,11 +470,14 @@ def _cmd_verify(args: argparse.Namespace) -> int:
         # written, and the reason is stated in one line rather than a traceback.
         print(f"jittest verify: cannot sign evidence - {exc}", file=sys.stderr)
         return 2
+    except (VerifyRefusalError, SandboxUnavailable, OSError, ValueError) as exc:
+        print(f"jittest verify: refused - {exc}", file=sys.stderr)
+        return 2
 
     if args.as_json:
         print(json.dumps(evidence, indent=2))
     else:
-        print(f"jittest verify: {evidence['verdict']} (disposition: {evidence['disposition']})")
+        print(f"jittest verify: {evidence['verdict_text']} (disposition: {evidence['disposition']})")
         if out_path:
             print(f"Signed evidence written to: {out_path}")
 

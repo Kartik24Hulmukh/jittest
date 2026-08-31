@@ -15,9 +15,9 @@ inputs:
     required: false
     default: ''
   sandbox-mode:
-    description: 'Sandbox isolation mode: auto, required, or off (leave empty for automatic fork isolation)'
+    description: 'Sandbox isolation mode: auto, required, or off'
     required: false
-    default: ''
+    default: 'required'
   policy:
     description: 'Exit policy: advisory (default), strict, or block-on-refusal'
     required: false
