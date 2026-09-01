@@ -10,6 +10,11 @@ pip install jittest
 
 No dependencies are pulled in. Python 3.11+ and `git` are the only requirements.
 
+> The current public package and immutable Action tag are `0.3.4`. The `0.3.5`
+> source on `main` is a release candidate until its release gates pass. Evaluate
+> an unreleased candidate only by an exact commit SHA—never by mutable `main` or
+> a floating major tag.
+
 ## 2. Check the environment
 
 ```bash
@@ -62,11 +67,14 @@ jittest v0.2.1  0f9e8d7c...a1b2c3d4
 A run that finds nothing is the common case and is not a failure. Most diffs do
 not contain a regression.
 
-For untrusted pull requests, prefer `JITTEST_SANDBOX=required` (or the action
-input `sandbox: "required"`) so model-written tests never fall back to the
-bare runner without saying so.
+For untrusted pull requests, require sandbox isolation so candidate tests never
+fall back to the bare runner. A required backend that is absent or broken is an
+honest refusal, not a verified result.
 
-## 5. Add it to CI
+## 5. Add the verifier to CI
+
+Start in advisory mode. This collects signed receipts without claiming that the
+workflow is already a production merge gate.
 
 ```yaml
 name: jittest
@@ -79,19 +87,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
-      - uses: Kartik24Hulmukh/jittest@v0.3.2 # or @v0
         with:
-          sandbox-mode: "auto"
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: Kartik24Hulmukh/jittest@v0.3.4
+        with:
+          sandbox-mode: "required"
+          policy: "advisory"
           budget: "1.00"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          output-dir: "jittest-evidence"
 ```
 
-`fetch-depth: 0` matters: the oracle needs to check out both commits.
+`fetch-depth: 0` matters because the verifier needs both commits. Advisory mode
+reports evidence but does not block the build. Move to a blocking policy only
+after you have measured refusal and false-fire behavior on your repository.
 
-Start without `fail-on-regression`. Let it comment for a couple of weeks, label
-the findings, then decide whether it has earned the right to block a merge.
+For fork pull requests, GitHub normally gives `pull_request` workflows a
+read-only token and withholds ordinary secrets. Treat PR comments as best effort;
+the uploaded receipt and job summary are the reliable channels. Do not switch to
+`pull_request_target` and execute an untrusted checkout just to obtain write
+permissions.
 
 ## 6. Tell it when it was right or wrong
 
