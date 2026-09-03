@@ -156,6 +156,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="verifying key hex, fingerprint prefix, or path to allowlist file",
     )
+    vr.add_argument("--expected-base", default=None, help="expected PR base commit SHA")
+    vr.add_argument("--expected-head", default=None, help="expected PR head commit SHA")
+    vr.add_argument("--expected-test-sha256", default=None, help="expected test file source SHA-256")
+    vr.add_argument("--expected-repo", default=None, help="expected repository path or substring")
+    vr.add_argument("--strict-signer", action="store_true", help="require trusted signer (exit non-zero on unverified)")
     vr.add_argument("--json", dest="as_json", action="store_true")
 
     dr = sub.add_parser("doctor", help="check that this environment can run jittest")
@@ -496,23 +501,41 @@ def _cmd_verify_receipt(args: argparse.Namespace) -> int:
     from .receipt import verify_receipt
     artifact_path = Path(args.artifact).resolve()
     expected_signer = getattr(args, "expected_signer", None)
-    ok, reason = verify_receipt(artifact_path, expected_signer=expected_signer)
+    expected_base = getattr(args, "expected_base", None)
+    expected_head = getattr(args, "expected_head", None)
+    expected_test_sha256 = getattr(args, "expected_test_sha256", None)
+    expected_repo = getattr(args, "expected_repo", None)
+
+    res = verify_receipt(
+        artifact_path,
+        expected_signer=expected_signer,
+        expected_base=expected_base,
+        expected_head=expected_head,
+        expected_test_sha256=expected_test_sha256,
+        expected_repo=expected_repo,
+    )
+    ok, reason = res[0], res[1]
 
     if args.as_json:
-        print(json.dumps({
-            "valid": ok,
+        payload = {
+            "valid": ok and (res.signer_status != "UNTRUSTED"),
+            "signature_valid": res.signature_valid,
+            "signer_status": res.signer_status,
+            "schema_valid": res.schema_valid,
+            "provenance_matched": res.provenance_matched,
             "reason": reason,
             "artifact": str(artifact_path),
             "expected_signer": expected_signer,
-        }, indent=2))
+        }
+        print(json.dumps(payload, indent=2))
     else:
         print(f"jittest verify-receipt: {reason}")
 
     if not ok:
         return 2
-    if "SIGNER_TRUSTED" in reason:
-        return 0
-    if "SIGNER_UNTRUSTED" in reason or "SIGNER_UNVERIFIED" in reason:
+    if getattr(args, "strict_signer", False) and res.signer_status != "TRUSTED":
+        return 3
+    if res.signer_status == "UNTRUSTED" or "SIGNER_UNTRUSTED" in reason:
         return 3
     return 0
 
