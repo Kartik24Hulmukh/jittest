@@ -80,4 +80,4 @@ runs:
         name: jittest-evidence
         path: ${{ inputs.output-dir }}/
         retention-days: 30
-        if-no-files-found: ignore
+        if-no-files-found: warn

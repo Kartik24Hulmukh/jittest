@@ -119,9 +119,9 @@ class TestWave3D8ActionDefaultsAndHygiene(unittest.TestCase):
         self.assertIn("sandbox-mode:", text)
         self.assertIn("default: 'auto'", text)
 
-        # Check artifact upload step ignores missing files cleanly
+        # Check artifact upload step warns if missing per contract
         self.assertIn("uses: actions/upload-artifact", text)
-        self.assertIn("if-no-files-found: ignore", text)
+        self.assertIn("if-no-files-found: warn", text)
 
 
 if __name__ == "__main__":
