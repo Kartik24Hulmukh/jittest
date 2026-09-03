@@ -1,6 +1,6 @@
 # Hardening Loop Status
 
-- **Current main SHA**: e296c71f17f828d7ec683115542eeb7eb055ebab
+- **Current main SHA**: b528185e01c773614905c00f747a11aa9920d250
 - **Defect Status**:
   - D3 (Path containment in verify.py): CLOSED & MERGED in PR #167
   - D4 (Signer prefix floor in receipt.py): CLOSED & MERGED in PR #167
@@ -12,5 +12,5 @@
   - D8 (Action defaults & artifact hygiene): CLOSED (action.yml default restored to required; fork-aware safety preserved in action.py)
   - D9 (Real container isolation status & Option D contract): OPEN (no real-daemon dependency-bearing isolation proof; docs/ISOLATION.md documents Option D contract)
   - D10 (Test file scope): DOCUMENTED (Mode A verifier evaluates PR-modified Python tests)
-- **Exact failing test or CI job**: None (Local test suite passing 100%)
-- **Next step**: Verify PR checks on GitHub Actions after pushing branch.
+- **Exact failing test or CI job**: None (All 26 GitHub Actions checks passed on PR #171; 784 local tests passing)
+- **Next step**: Secure 2 named maintainers for 14-day advisory SHA-pin trial; draft NLnet/Restack grant proposal; spike Option B in-container provisioning.

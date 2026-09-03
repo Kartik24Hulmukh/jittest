@@ -1,6 +1,7 @@
 """Unit tests for jittest.action GitHub Action entrypoint module."""
 
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -114,6 +115,34 @@ class TestActionHelpers(unittest.TestCase):
             with patch("jittest.action.get_trust_context", return_value="internal"):
                 run_action(repo_path=tmpdir, sandbox_override="off")
                 self.assertEqual(mock_verify.call_args[1]["sandbox_mode"], "off")
+
+            # 10. JITTEST_SANDBOX_MODE="auto" from env (e.g. YAML default) in fork context -> 'required'
+            with patch.dict(os.environ, {"JITTEST_SANDBOX_MODE": "auto"}), patch(
+                "jittest.action.get_trust_context", return_value="fork"
+            ):
+                run_action(repo_path=tmpdir, sandbox_override=None)
+                self.assertEqual(mock_verify.call_args[1]["sandbox_mode"], "required")
+
+            # 11. JITTEST_SANDBOX_MODE="auto" from env in unknown context -> 'required'
+            with patch.dict(os.environ, {"JITTEST_SANDBOX_MODE": "auto"}), patch(
+                "jittest.action.get_trust_context", return_value="unknown"
+            ):
+                run_action(repo_path=tmpdir, sandbox_override=None)
+                self.assertEqual(mock_verify.call_args[1]["sandbox_mode"], "required")
+
+            # 12. JITTEST_SANDBOX_MODE="auto" from env in internal context -> 'auto'
+            with patch.dict(os.environ, {"JITTEST_SANDBOX_MODE": "auto"}), patch(
+                "jittest.action.get_trust_context", return_value="internal"
+            ):
+                run_action(repo_path=tmpdir, sandbox_override=None)
+                self.assertEqual(mock_verify.call_args[1]["sandbox_mode"], "auto")
+
+            # 13. JITTEST_SANDBOX_MODE="off" from env in fork context -> enforced 'required'
+            with patch.dict(os.environ, {"JITTEST_SANDBOX_MODE": "off"}), patch(
+                "jittest.action.get_trust_context", return_value="fork"
+            ):
+                run_action(repo_path=tmpdir, sandbox_override=None)
+                self.assertEqual(mock_verify.call_args[1]["sandbox_mode"], "required")
 
     @patch("jittest.action.get_changed_files")
     @patch("jittest.action.upsert_pr_comment")

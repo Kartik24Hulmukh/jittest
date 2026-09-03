@@ -23,7 +23,7 @@ This engagement audited the JitTest repository against the 2026-09-03 decision p
 | **Wave 2** | [PR #168](https://github.com/Kartik24Hulmukh/jittest/pull/168) | `6cb695c43e13fc08a09b3a66a649ff0cfad3f587` | D7 (6-verdict schema conformance), D5 (Receipt semantics & provenance) | 26 / 26 Green |
 | **Wave 3** | [PR #169](https://github.com/Kartik24Hulmukh/jittest/pull/169) | `e27370b33b3e5263f9cef74b5445caa22945fadd` | D1 (Option D refusal), D2 (Sanitized installer env + Job F), D8 (Action defaults) | 26 / 26 Green |
 | **Wave 4** | [PR #170](https://github.com/Kartik24Hulmukh/jittest/pull/170) | `e296c71f17f828d7ec683115542eeb7eb055ebab` | D9 (Container daemon status & Option D contract docs), Honest README boundaries | 26 / 26 Green |
-| **Follow-up** | PR (current) | Pending merge | Restore `action.yml` default to `required`; enforce fork safety in `action.py`; align D1/D2/D9 statuses | Target 26 / 26 |
+| **Follow-up** | [PR #171](https://github.com/Kartik24Hulmukh/jittest/pull/171) | `b528185e01c773614905c00f747a11aa9920d250` | Restore `action.yml` default to `required`; enforce fork safety in `action.py`; align D1/D2/D9 statuses | 26 / 26 Green |
 
 ---
 
@@ -108,6 +108,31 @@ This engagement audited the JitTest repository against the 2026-09-03 decision p
 - `install (3.11)`: 100703160189
 - `install (3.12)`: 100703159807
 - `install (3.13)`: 100703160375
+
+### PR #171 (Action Default & Defect Alignment) — Run 33779062651 (All 26 Passed)
+- `test (windows-latest, 3.12)`: 100727960305
+- `test (windows-latest, 3.11)`: 100727960753
+- `test (windows-latest, 3.13)`: 100727960598
+- `test (ubuntu-latest, 3.12)`: 100727960943
+- `test (ubuntu-latest, 3.13)`: 100727960618
+- `test (ubuntu-latest, 3.11)`: 100727960627
+- `test (macos-latest, 3.12)`: 100727960506
+- `test (macos-latest, 3.11)`: 100727961722
+- `test (macos-latest, 3.13)`: 100727960817
+- `lint`: 100727960426
+- `build`: 100727960684
+- `mypy-safety`: 100727960555
+- `dogfood`: 100727960106
+- `consumer_action_e2e`: 100727960584
+- `ci`: 100733731955
+- `Analyze (python)`: 100727958104
+- `Analyze (actions)`: 100727957880
+- `catching-tests`: 100727959651
+- `verify-pr`: 100727959110
+- `check-drift`: 100727959485, 100727897654
+- `install (3.11)`: 100727898478
+- `install (3.12)`: 100727898414
+- `install (3.13)`: 100727897924
 
 ---
 

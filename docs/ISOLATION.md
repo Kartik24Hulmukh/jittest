@@ -28,5 +28,6 @@
 
 - **Action Default**: The `action.yml` default for `sandbox-mode` is `required`.
 - **Fork Safety**: `action.py` ensures that pull requests from forks or unknown contexts always resolve to `sandbox-mode: required` (even if `sandbox-mode: auto` is supplied), preventing unconfined downgrades on untrusted PRs.
+- **Internal PR Resolution under 'auto'**: For trusted internal PRs where capability degradation is acceptable, specifying `sandbox-mode: auto` resolves according to runner capability (container if available, unconfined if absent).
 - **Advisory Verifier**: JitTest Mode A is an advisory verifier for pull requests adding or modifying tests, not a blocking production merge gate.
 - **Release Pin**: The published package on PyPI is `v0.3.4`. Source code on `main` is an unpublished release candidate and must be referenced strictly by exact commit SHA.
