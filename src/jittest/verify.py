@@ -345,11 +345,21 @@ def verify_test(
 
     if not test_path.is_absolute():
         test_path = repo_path / test_path
-    test_path = test_path.resolve()
 
     if not test_path.exists():
         raise VerifyRefusalError(f"test file not found: {test_path}")
 
+    resolved_test = test_path.resolve()
+    if not resolved_test.is_file():
+        raise VerifyRefusalError(f"test path is not a regular file: {test_path}")
+
+    try:
+        if not resolved_test.is_relative_to(repo_path):
+            raise VerifyRefusalError(f"test path is outside repository: {test_path}")
+    except (ValueError, AttributeError):
+        raise VerifyRefusalError(f"test path is outside repository: {test_path}") from None
+
+    test_path = resolved_test
     test_code = test_path.read_text(encoding="utf-8")
     if not test_code.strip():
         raise VerifyRefusalError(f"test file is empty: {test_path}")
@@ -387,14 +397,7 @@ def verify_test(
     tool_dirty = _get_git_dirty(tool_root)
     tool_tree_sha = _get_git_sha(tool_root, "HEAD^{tree}")
 
-    rel_test = None
-    try:
-        if test_path.is_relative_to(repo_path):
-            rel_test = test_path.relative_to(repo_path)
-    except (ValueError, AttributeError):
-        pass
-    if rel_test is None:
-        rel_test = Path(test_path.name)
+    rel_test = test_path.relative_to(repo_path)
 
     # 1. ALWAYS provision and execute BASE first (never short-circuit)
     base_run = None

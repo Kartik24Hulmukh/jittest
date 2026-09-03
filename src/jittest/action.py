@@ -8,6 +8,7 @@ to the declared policy.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
@@ -188,7 +189,9 @@ def run_action(
                 "artifact": "",
             }
 
-        out_artifact = out_dir / f"evidence-{test_path.stem}.json"
+        posix_rel = Path(test_rel).as_posix()
+        path_digest = hashlib.sha256(posix_rel.encode("utf-8")).hexdigest()[:12]
+        out_artifact = out_dir / f"evidence-{test_path.stem}-{path_digest}.json"
         print(f"\n[jittest action] Verifying {test_rel} (base={base_sha[:8]}, head={head_sha[:8]}, sandbox={sbx_mode})...")
 
         try:
@@ -241,14 +244,15 @@ def run_action(
         "<!-- jittest-report -->",
         "### 🛡️ `jittest verify` PR Verdict Summary",
         "",
-        "| Changed Test File | Base SHA | Head SHA | Verdict | Disposition | Duration |",
-        "| :--- | :--- | :--- | :--- | :--- | :--- |",
+        "| Changed Test File | Base SHA | Head SHA | Verdict | Disposition | Duration | Artifact |",
+        "| :--- | :--- | :--- | :--- | :--- | :--- | :--- |",
     ]
 
     for r in results:
         v_str = f"**`{r['verdict']}`**" if r["proven_catch"] else f"`{r['verdict']}`"
+        art_str = f"`{Path(r['artifact']).name}`" if r.get("artifact") else "-"
         table_lines.append(
-            f"| `{r['file']}` | `{base_sha[:8]}` | `{head_sha[:8]}` | {v_str} | `{r['disposition']}` | {r['wall_clock_s']:.1f}s |"
+            f"| `{r['file']}` | `{base_sha[:8]}` | `{head_sha[:8]}` | {v_str} | `{r['disposition']}` | {r['wall_clock_s']:.1f}s | {art_str} |"
         )
 
     table_lines.append("")

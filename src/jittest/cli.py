@@ -12,6 +12,7 @@ Typer, Click and Rich into somebody else's dependency graph.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import subprocess
@@ -445,7 +446,14 @@ def _cmd_verify(args: argparse.Namespace) -> int:
 
     out_path = args.output
     if not out_path and not args.as_json and isinstance(repo, Path):
-        out_path = repo / f"jittest-evidence-{Path(test_file_part).stem}.json"
+        test_p = Path(test_file_part)
+        try:
+            rel_p = test_p.resolve().relative_to(repo)
+            posix_rel = rel_p.as_posix()
+        except (ValueError, AttributeError):
+            posix_rel = test_p.as_posix()
+        path_digest = hashlib.sha256(posix_rel.encode("utf-8")).hexdigest()[:12]
+        out_path = repo / f"jittest-evidence-{test_p.stem}-{path_digest}.json"
 
     from .receipt import SigningKeyError
 
