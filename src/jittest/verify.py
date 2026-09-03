@@ -407,6 +407,8 @@ def verify_test(
         with Worktree(repo_path, resolved_base) as base_dir:
             base_workdir = base_dir / rel_path if rel_path != "." else base_dir
             base_env_info = provision_environment(base_workdir, resolved_base, repo_path)
+            if getattr(sbx_plan, "backend", None) in ("docker", "podman") and base_env_info.get("has_project_dependencies"):
+                raise VerifyRefusalError("isolation contract cannot import project dependencies in container mode")
             base_python = base_env_info.get("python_path")
             base_run = run_test(
                 base_workdir,
@@ -428,6 +430,8 @@ def verify_test(
         with Worktree(repo_path, resolved_head) as head_dir:
             head_workdir = head_dir / rel_path if rel_path != "." else head_dir
             head_env_info = provision_environment(head_workdir, resolved_head, repo_path)
+            if getattr(sbx_plan, "backend", None) in ("docker", "podman") and head_env_info.get("has_project_dependencies"):
+                raise VerifyRefusalError("isolation contract cannot import project dependencies in container mode")
             head_python = head_env_info.get("python_path")
             head_run1 = run_test(
                 head_workdir,

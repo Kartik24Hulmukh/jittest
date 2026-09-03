@@ -11,6 +11,7 @@ import configparser
 import contextlib
 import hashlib
 import logging
+import os
 import re
 import subprocess
 import sys
@@ -22,13 +23,30 @@ try:
 except ImportError:
     import tomli as tomllib  # type: ignore
 
-__all__ = ["provision_environment", "get_venv_python", "ensure_worktree_fixes", "EnvSetupError"]
+__all__ = ["provision_environment", "get_venv_python", "ensure_worktree_fixes", "EnvSetupError", "_scrubbed_installer_env"]
 
 logger = logging.getLogger("jittest.env")
 
 
 class EnvSetupError(RuntimeError):
     """Raised when virtual environment creation, dependency installation, or preflight checks fail."""
+
+
+def _scrubbed_installer_env() -> dict[str, str]:
+    """Sanitize host environment before running untrusted package installers (setup.py, pip).
+
+    Strips GITHUB_TOKEN, secrets, credentials, passwords, and private API keys
+    so untrusted PR code executing in setup.py or PEP 517 build backends cannot
+    harvest runner credentials.
+    """
+    scrubbed: dict[str, str] = {}
+    forbidden = ("TOKEN", "SECRET", "KEY", "PASS", "AUTH", "CRED", "BEARER")
+    for k, v in os.environ.items():
+        k_upper = k.upper()
+        if any(bad in k_upper for bad in forbidden):
+            continue
+        scrubbed[k] = v
+    return scrubbed
 
 
 def _hash_file(path: Path) -> str:
@@ -421,6 +439,9 @@ def provision_environment(
     uv_exe = find_uv()
 
     lockfile_hash = _compute_lockfile_hash(worktree)
+    discovered_pkgs, req_files = _discover_extras_and_requirements(worktree)
+    has_lockfiles = bool(lockfile_hash and lockfile_hash != "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+    has_project_deps = bool(has_lockfiles or discovered_pkgs or req_files)
     cache_key_raw = f"{repo}:{commit_sha}:{target_py}:{cutoff}:{lockfile_hash}"
     cache_key = hashlib.sha256(cache_key_raw.encode("utf-8")).hexdigest()[:16]
 
@@ -457,6 +478,7 @@ def provision_environment(
                 "exclude_newer_cutoff": cutoff,
                 "interpreter_version": py_version_str,
                 "resolved_versions": resolved_versions,
+                "has_project_dependencies": has_project_deps,
             }
         except EnvSetupError:
             import shutil
@@ -511,7 +533,15 @@ def provision_environment(
             cmd.extend(args_list)
         else:
             cmd = [str(pip_exe), "install"] + args_list
-        return subprocess.run(cmd, cwd=str(worktree), capture_output=True, text=True, errors="replace", timeout=timeout)
+        return subprocess.run(
+            cmd,
+            cwd=str(worktree),
+            env=_scrubbed_installer_env(),
+            capture_output=True,
+            text=True,
+            errors="replace",
+            timeout=timeout,
+        )
 
     # 1. Discover requirements files and extras
     discovered_pkgs, req_files = _discover_extras_and_requirements(worktree)
@@ -590,7 +620,7 @@ def provision_environment(
     _preflight_environment(python_exe, worktree)
 
     # 7. Capture resolved versions (freeze output) and interpreter version
-    resolved_versions: list[str] = []
+    resolved_versions = []
     py_version_str = ""
     try:
         if uv_exe:
@@ -614,4 +644,5 @@ def provision_environment(
         "exclude_newer_cutoff": cutoff,
         "interpreter_version": py_version_str,
         "resolved_versions": resolved_versions,
+        "has_project_dependencies": has_project_deps,
     }

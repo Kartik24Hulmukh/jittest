@@ -171,7 +171,7 @@ def run_action(
     # If explicitly overridden, honor override.
     # Otherwise: 'fork' or 'unknown' trust context -> 'required'; 'internal' -> 'auto'
     sbx_override = sandbox_override if sandbox_override is not None else os.getenv("JITTEST_SANDBOX_MODE")
-    if sbx_override and sbx_override.strip():
+    if sbx_override and sbx_override.strip() and sbx_override.strip().lower() not in ("auto", "default", ""):
         sbx_mode = sbx_override.strip().lower()
     else:
         trust = get_trust_context()
