@@ -31,11 +31,14 @@ import base64
 import contextlib
 import hashlib
 import json
+import logging
 import os
 from pathlib import Path
 from typing import Any
 
 from . import _ed25519
+
+logger = logging.getLogger("jittest.receipt")
 
 try:
     from cryptography.hazmat.primitives import serialization
@@ -180,6 +183,35 @@ def sign_evidence(
     return result
 
 
+def _is_hex(s: str) -> bool:
+    return bool(s) and all(c in "0123456789abcdef" for c in s)
+
+
+def _match_single_entry(entry: str, k_hex: str, f_hex: str) -> bool:
+    clean = entry.strip().lower()
+    if not clean or not _is_hex(clean):
+        return False
+    # Signer floor: prefix must be at least 16 hex chars (fingerprint length)
+    if len(clean) < 16:
+        return False
+    if len(clean) == 64:
+        if k_hex == clean:
+            logger.info("Matched full verifying key %s (len=64)", clean)
+            return True
+        return False
+    if len(clean) == 16:
+        if f_hex == clean:
+            logger.info("Matched fingerprint %s (len=16)", clean)
+            return True
+        return False
+    if 16 < len(clean) < 64:
+        if k_hex.startswith(clean):
+            logger.info("Matched verifying key prefix %s (len=%d)", clean, len(clean))
+            return True
+        return False
+    return False
+
+
 def _matches_signer(expected: str, key_hex: str, fingerprint: str) -> bool:
     target = expected.strip().lower()
     k_hex = key_hex.lower()
@@ -192,21 +224,13 @@ def _matches_signer(expected: str, key_hex: str, fingerprint: str) -> bool:
             content = target_path.read_text(encoding="utf-8")
             for line in content.splitlines():
                 entry = line.split("#")[0].strip().lower()
-                if entry and (
-                    entry in (k_hex, f_hex)
-                    or k_hex.startswith(entry)
-                    or f_hex.startswith(entry)
-                ):
+                if _match_single_entry(entry, k_hex, f_hex):
                     return True
             return False
         except OSError:
             pass
 
-    return (
-        target in (k_hex, f_hex)
-        or k_hex.startswith(target)
-        or f_hex.startswith(target)
-    )
+    return _match_single_entry(target, k_hex, f_hex)
 
 
 def verify_receipt(
