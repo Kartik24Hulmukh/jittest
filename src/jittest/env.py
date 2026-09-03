@@ -11,6 +11,7 @@ import configparser
 import contextlib
 import hashlib
 import logging
+import os
 import re
 import subprocess
 import sys
@@ -22,13 +23,57 @@ try:
 except ImportError:
     import tomli as tomllib  # type: ignore
 
-__all__ = ["provision_environment", "get_venv_python", "ensure_worktree_fixes", "EnvSetupError"]
+__all__ = ["provision_environment", "get_venv_python", "ensure_worktree_fixes", "EnvSetupError", "_scrubbed_installer_env"]
 
 logger = logging.getLogger("jittest.env")
 
 
 class EnvSetupError(RuntimeError):
     """Raised when virtual environment creation, dependency installation, or preflight checks fail."""
+
+
+def _scrubbed_installer_env() -> dict[str, str]:
+    """Sanitize host environment before running untrusted package installers (setup.py, pip).
+
+    Strips GITHUB_TOKEN, secrets, credentials, passwords, and private API keys
+    so untrusted PR code executing in setup.py or PEP 517 build backends cannot
+    harvest runner credentials.
+    """
+    safe_keys = {
+        "PATH",
+        "SYSTEMROOT",
+        "WINDIR",
+        "SYSTEMDRIVE",
+        "COMSPEC",
+        "PATHEXT",
+        "TEMP",
+        "TMP",
+        "TMPDIR",
+        "HOME",
+        "USERPROFILE",
+        "HOMEDRIVE",
+        "HOMEPATH",
+        "USER",
+        "LOGNAME",
+        "LANG",
+        "LC_ALL",
+        "LC_CTYPE",
+        "PYTHONHOME",
+        "PYTHONIOENCODING",
+        "PYTHONUTF8",
+        "PIP_CACHE_DIR",
+        "UV_CACHE_DIR",
+        "UV_PYTHON",
+    }
+    scrubbed: dict[str, str] = {}
+    forbidden = ("TOKEN", "SECRET", "KEY", "PASS", "AUTH", "CRED", "BEARER")
+    for k, v in os.environ.items():
+        k_upper = k.upper()
+        if any(bad in k_upper for bad in forbidden):
+            continue
+        if k_upper in safe_keys:
+            scrubbed[k] = v
+    return scrubbed
 
 
 def _hash_file(path: Path) -> str:
@@ -511,7 +556,15 @@ def provision_environment(
             cmd.extend(args_list)
         else:
             cmd = [str(pip_exe), "install"] + args_list
-        return subprocess.run(cmd, cwd=str(worktree), capture_output=True, text=True, errors="replace", timeout=timeout)
+        return subprocess.run(
+            cmd,
+            cwd=str(worktree),
+            env=_scrubbed_installer_env(),
+            capture_output=True,
+            text=True,
+            errors="replace",
+            timeout=timeout,
+        )
 
     # 1. Discover requirements files and extras
     discovered_pkgs, req_files = _discover_extras_and_requirements(worktree)
@@ -590,7 +643,7 @@ def provision_environment(
     _preflight_environment(python_exe, worktree)
 
     # 7. Capture resolved versions (freeze output) and interpreter version
-    resolved_versions: list[str] = []
+    resolved_versions = []
     py_version_str = ""
     try:
         if uv_exe:
