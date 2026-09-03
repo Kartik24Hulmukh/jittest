@@ -39,40 +39,13 @@ def _scrubbed_installer_env() -> dict[str, str]:
     so untrusted PR code executing in setup.py or PEP 517 build backends cannot
     harvest runner credentials.
     """
-    safe_keys = {
-        "PATH",
-        "SYSTEMROOT",
-        "WINDIR",
-        "SYSTEMDRIVE",
-        "COMSPEC",
-        "PATHEXT",
-        "TEMP",
-        "TMP",
-        "TMPDIR",
-        "HOME",
-        "USERPROFILE",
-        "HOMEDRIVE",
-        "HOMEPATH",
-        "USER",
-        "LOGNAME",
-        "LANG",
-        "LC_ALL",
-        "LC_CTYPE",
-        "PYTHONHOME",
-        "PYTHONIOENCODING",
-        "PYTHONUTF8",
-        "PIP_CACHE_DIR",
-        "UV_CACHE_DIR",
-        "UV_PYTHON",
-    }
     scrubbed: dict[str, str] = {}
     forbidden = ("TOKEN", "SECRET", "KEY", "PASS", "AUTH", "CRED", "BEARER")
     for k, v in os.environ.items():
         k_upper = k.upper()
         if any(bad in k_upper for bad in forbidden):
             continue
-        if k_upper in safe_keys:
-            scrubbed[k] = v
+        scrubbed[k] = v
     return scrubbed
 
 
