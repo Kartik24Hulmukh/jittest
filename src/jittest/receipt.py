@@ -233,38 +233,88 @@ def _matches_signer(expected: str, key_hex: str, fingerprint: str) -> bool:
     return _match_single_entry(target, k_hex, f_hex)
 
 
+VALID_VERDICTS = {
+    "proven_catch",
+    "reproduction_catch",
+    "collection_catch",
+    "refuted",
+    "non_discriminating",
+    "inconclusive",
+}
+
+
+class ReceiptVerificationResult(tuple):
+    """Result of verify_receipt, unpacking as (valid: bool, reason: str)."""
+
+    signature_valid: bool
+    signer_status: str
+    schema_valid: bool
+    provenance_matched: bool | None
+    reason: str
+    details: dict[str, Any]
+
+    def __new__(
+        cls,
+        valid: bool,
+        reason: str,
+        signature_valid: bool = False,
+        signer_status: str = "UNVERIFIED",
+        schema_valid: bool = False,
+        provenance_matched: bool | None = None,
+        details: dict[str, Any] | None = None,
+    ):
+        instance = super().__new__(cls, (valid, reason))
+        instance.signature_valid = signature_valid
+        instance.signer_status = signer_status
+        instance.schema_valid = schema_valid
+        instance.provenance_matched = provenance_matched
+        instance.reason = reason
+        instance.details = details or {}
+        return instance
+
+
 def verify_receipt(
     evidence_input: Path | str | dict[str, Any],
     key_path: Path | str | None = None,
     backend: str | None = None,
     expected_signer: str | Path | None = None,
-) -> tuple[bool, str]:
-    """Verify a receipt using the public key carried inside it.
+    expected_base: str | None = None,
+    expected_head: str | None = None,
+    expected_test_sha256: str | None = None,
+    expected_repo: str | None = None,
+    check_schema: bool = True,
+) -> ReceiptVerificationResult:
+    """Verify a receipt using the public key carried inside it, with semantic and provenance checks.
 
     Args:
         evidence_input: Path to receipt JSON or parsed evidence dictionary.
         key_path: Accepted for backward compatibility.
         backend: Optional backend selection ('vendored' or 'cryptography').
         expected_signer: Verifying key hex, fingerprint prefix, or path to allowlist file.
+        expected_base: Optional expected PR base commit SHA.
+        expected_head: Optional expected PR head commit SHA.
+        expected_test_sha256: Optional expected SHA-256 digest of verified test file source.
+        expected_repo: Optional expected repository path or substring.
+        check_schema: Whether to validate verdict enums and proven_catch boolean invariants.
 
     Returns:
-        ``(valid, reason)``. Never raises on malformed or unrecognised input; an
-        unverifiable receipt is a result, not a crash.
+        ``ReceiptVerificationResult``, unpacking as ``(valid, reason)``. Never raises
+        on malformed or unrecognised input; an unverifiable receipt is a result, not a crash.
     """
     if isinstance(evidence_input, (str, Path)):
         p = Path(evidence_input)
         if not p.exists():
-            return False, f"file_not_found: {p}"
+            return ReceiptVerificationResult(False, f"file_not_found: {p}")
         try:
             evidence_dict = json.loads(p.read_text(encoding="utf-8"))
         except Exception as exc:
-            return False, f"invalid_json: {exc}"
+            return ReceiptVerificationResult(False, f"invalid_json: {exc}")
     else:
         evidence_dict = dict(evidence_input)
 
     sig_block = evidence_dict.get("signature")
     if not isinstance(sig_block, dict):
-        return False, "missing_signature_block"
+        return ReceiptVerificationResult(False, "missing_signature_block")
 
     alg = sig_block.get("algorithm", "Ed25519")
     sig_b64 = sig_block.get("value")
@@ -272,31 +322,32 @@ def verify_receipt(
     key_hex = sig_block.get("verifying_key") or sig_block.get("public_key")
 
     if alg in ("HMAC-SHA256", "HMAC"):
-        return False, (
+        return ReceiptVerificationResult(
+            False,
             "legacy_hmac_receipt_not_independently_verifiable: produced by jittest "
             "<= 0.3.2 without cryptography installed. Its key is derivable from "
             "published source, so this artifact cannot establish authorship. Re-run "
-            "`jittest verify` to obtain an Ed25519 receipt."
+            "`jittest verify` to obtain an Ed25519 receipt.",
         )
 
     if alg != "Ed25519":
-        return False, f"unsupported_algorithm: {alg}"
+        return ReceiptVerificationResult(False, f"unsupported_algorithm: {alg}")
 
     if not key_hex or not sig_b64:
-        return False, "incomplete_signature_block"
+        return ReceiptVerificationResult(False, "incomplete_signature_block")
 
     try:
         pub_bytes = bytes.fromhex(key_hex)
         sig_bytes = base64.b64decode(sig_b64)
     except Exception as exc:
-        return False, f"malformed_signature_block: {exc}"
+        return ReceiptVerificationResult(False, f"malformed_signature_block: {exc}")
 
     data = _canonical_bytes(evidence_dict)
 
     try:
         chosen = _select_backend(backend)
     except SigningKeyError as exc:
-        return False, f"backend_unavailable: {exc}"
+        return ReceiptVerificationResult(False, f"backend_unavailable: {exc}")
 
     valid_sig = False
     if chosen == CRYPTOGRAPHY:
@@ -304,23 +355,110 @@ def verify_receipt(
             ed25519.Ed25519PublicKey.from_public_bytes(pub_bytes).verify(sig_bytes, data)
             valid_sig = True
         except Exception as exc:
-            return False, f"signature_verification_failed: {exc}"
+            return ReceiptVerificationResult(False, f"signature_verification_failed: {exc}", signature_valid=False)
     else:
         if _ed25519.verify(pub_bytes, data, sig_bytes):
             valid_sig = True
         else:
-            return False, "signature_verification_failed: Ed25519 signature does not match payload"
+            return ReceiptVerificationResult(
+                False, "signature_verification_failed: Ed25519 signature does not match payload", signature_valid=False
+            )
 
     if not valid_sig:
-        return False, "signature_verification_failed: Ed25519 signature does not match payload"
+        return ReceiptVerificationResult(
+            False, "signature_verification_failed: Ed25519 signature does not match payload", signature_valid=False
+        )
 
     fingerprint = hashlib.sha256(pub_bytes).hexdigest()[:16]
 
+    # Signer Authenticity check
     if not expected_signer:
-        return True, "SIGNATURE_VALID · SIGNER_UNVERIFIED — integrity only, not authenticity"
-
-    if _matches_signer(str(expected_signer), key_hex, fingerprint):
-        return True, f"SIGNATURE_VALID · SIGNER_TRUSTED (fingerprint: {fingerprint})"
+        signer_status = "UNVERIFIED"
+        signer_msg = "SIGNER_UNVERIFIED — integrity only, not authenticity"
+    elif _matches_signer(str(expected_signer), key_hex, fingerprint):
+        signer_status = "TRUSTED"
+        signer_msg = f"SIGNER_TRUSTED (fingerprint: {fingerprint})"
     else:
-        return True, f"SIGNATURE_VALID · SIGNER_UNTRUSTED: signer fingerprint {fingerprint} does not match expected {expected_signer}"
+        signer_status = "UNTRUSTED"
+        signer_msg = f"SIGNER_UNTRUSTED: signer fingerprint {fingerprint} does not match expected {expected_signer}"
+
+    # Semantic & Schema validation
+    schema_valid = True
+    schema_msg = "SCHEMA_VALID"
+    if check_schema:
+        verdict = evidence_dict.get("verdict")
+        if verdict not in VALID_VERDICTS:
+            schema_valid = False
+            schema_msg = f"SCHEMA_INVALID: unknown_verdict '{verdict}'"
+        elif "proven_catch" in evidence_dict:
+            pc = evidence_dict.get("proven_catch")
+            expected_pc = verdict in ("proven_catch", "reproduction_catch")
+            if pc is not expected_pc:
+                schema_valid = False
+                schema_msg = (
+                    f"SCHEMA_INVALID: proven_catch_invariant_violation: "
+                    f"verdict '{verdict}' expects proven_catch={expected_pc}, got {pc}"
+                )
+
+    # Provenance consistency validation
+    provenance_matched: bool | None = None
+    prov_msg = ""
+    if any(x is not None for x in (expected_base, expected_head, expected_test_sha256, expected_repo)):
+        prov = evidence_dict.get("provenance", {})
+        mismatches: list[str] = []
+        if expected_base is not None:
+            actual_b = str(prov.get("base_sha", "")).lower()
+            exp_b = str(expected_base).lower()
+            if not (actual_b.startswith(exp_b) or exp_b.startswith(actual_b)):
+                mismatches.append(f"base_sha mismatch: expected {expected_base}, got {prov.get('base_sha')}")
+        if expected_head is not None:
+            actual_h = str(prov.get("head_sha", "")).lower()
+            exp_h = str(expected_head).lower()
+            if not (actual_h.startswith(exp_h) or exp_h.startswith(actual_h)):
+                mismatches.append(f"head_sha mismatch: expected {expected_head}, got {prov.get('head_sha')}")
+        if expected_test_sha256 is not None:
+            actual_s = str(prov.get("test_file_sha256", "")).lower()
+            exp_s = str(expected_test_sha256).lower()
+            if actual_s != exp_s:
+                mismatches.append(
+                    f"test_file_sha256 mismatch: expected {expected_test_sha256}, got {prov.get('test_file_sha256')}"
+                )
+        if expected_repo is not None:
+            actual_r = str(prov.get("repo_path", "")).lower()
+            exp_r = str(expected_repo).lower()
+            if exp_r not in actual_r:
+                mismatches.append(f"repo_path mismatch: expected {expected_repo}, got {prov.get('repo_path')}")
+
+        if mismatches:
+            provenance_matched = False
+            prov_msg = f"PROVENANCE_MISMATCH: {'; '.join(mismatches)}"
+        else:
+            provenance_matched = True
+            prov_msg = "PROVENANCE_MATCHED"
+
+    parts = ["SIGNATURE_VALID", signer_msg, schema_msg]
+    if prov_msg:
+        parts.append(prov_msg)
+    final_reason = " · ".join(parts)
+
+    overall_valid = (
+        valid_sig
+        and schema_valid
+        and (provenance_matched is not False)
+    )
+
+    return ReceiptVerificationResult(
+        overall_valid,
+        final_reason,
+        signature_valid=valid_sig,
+        signer_status=signer_status,
+        schema_valid=schema_valid,
+        provenance_matched=provenance_matched,
+        details={
+            "fingerprint": fingerprint,
+            "verifying_key": key_hex,
+            "verdict": evidence_dict.get("verdict"),
+            "proven_catch": evidence_dict.get("proven_catch"),
+        },
+    )
 

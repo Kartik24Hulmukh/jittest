@@ -26,15 +26,17 @@ jittest does neither. **jittest recomputes the claim.**
 ## What it does
 
 `jittest verify` takes a base revision, a head revision, and a test. It runs
-the test on both revisions in isolated environments and issues one of four
+the test on both revisions in isolated environments and issues one of six
 verdicts:
 
 | Verdict | Meaning |
 | --- | --- |
-| `proven_catch` | test passes on base, fails on head — it discriminates; signed proof |
+| `proven_catch` | regression catch: test passes on base, fails on head — signed proof |
+| `reproduction_catch` | bug-fix proof: test fails on base, passes on head — signed proof |
+| `collection_catch` | head could not collect or execute while base passed |
 | `refuted` | test fails on both — the claim did not hold |
 | `non_discriminating` | test passes on both — proves nothing about the change |
-| `inconclusive` | environment could not be built — a loud refusal, never a guess |
+| `inconclusive` | environment could not be restored safely — a loud refusal, never a guess |
 
 Receipts are Ed25519-signed. Verification checks integrity and, when you supply `--expected-signer`, authenticity against a key you chose. Without `--expected-signer` jittest reports integrity only and exits non-zero.
 
