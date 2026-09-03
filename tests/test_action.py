@@ -85,6 +85,36 @@ class TestActionHelpers(unittest.TestCase):
                 run_action(repo_path=tmpdir, sandbox_override="")
                 self.assertEqual(mock_verify.call_args[1]["sandbox_mode"], "auto")
 
+            # 4. Fork context with sandbox_override="auto" -> 'required'
+            with patch("jittest.action.get_trust_context", return_value="fork"):
+                run_action(repo_path=tmpdir, sandbox_override="auto")
+                self.assertEqual(mock_verify.call_args[1]["sandbox_mode"], "required")
+
+            # 5. Unknown context with sandbox_override="auto" -> 'required'
+            with patch("jittest.action.get_trust_context", return_value="unknown"):
+                run_action(repo_path=tmpdir, sandbox_override="auto")
+                self.assertEqual(mock_verify.call_args[1]["sandbox_mode"], "required")
+
+            # 6. Internal context with sandbox_override="auto" -> 'auto'
+            with patch("jittest.action.get_trust_context", return_value="internal"):
+                run_action(repo_path=tmpdir, sandbox_override="auto")
+                self.assertEqual(mock_verify.call_args[1]["sandbox_mode"], "auto")
+
+            # 7. Fork context cannot downgrade to 'off' -> enforced 'required'
+            with patch("jittest.action.get_trust_context", return_value="fork"):
+                run_action(repo_path=tmpdir, sandbox_override="off")
+                self.assertEqual(mock_verify.call_args[1]["sandbox_mode"], "required")
+
+            # 8. Unknown context cannot downgrade to 'off' -> enforced 'required'
+            with patch("jittest.action.get_trust_context", return_value="unknown"):
+                run_action(repo_path=tmpdir, sandbox_override="off")
+                self.assertEqual(mock_verify.call_args[1]["sandbox_mode"], "required")
+
+            # 9. Internal context with 'off' -> 'off'
+            with patch("jittest.action.get_trust_context", return_value="internal"):
+                run_action(repo_path=tmpdir, sandbox_override="off")
+                self.assertEqual(mock_verify.call_args[1]["sandbox_mode"], "off")
+
     @patch("jittest.action.get_changed_files")
     @patch("jittest.action.upsert_pr_comment")
     @patch("jittest.action.verify_test")

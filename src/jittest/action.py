@@ -168,13 +168,23 @@ def run_action(
         return 0
 
     # Determine Sandbox Mode:
-    # If explicitly overridden, honor override.
-    # Otherwise: 'fork' or 'unknown' trust context -> 'required'; 'internal' -> 'auto'
+    # Fork safety contract: untrusted fork PRs or unknown context MUST run with 'required'.
+    # When sandbox-mode is 'auto', 'default', or unset:
+    #   - 'fork' or 'unknown' context -> 'required'
+    #   - 'internal' context -> 'auto'
+    # Any explicit non-required mode (e.g. 'off') is disallowed for untrusted contexts.
+    trust = get_trust_context()
     sbx_override = sandbox_override if sandbox_override is not None else os.getenv("JITTEST_SANDBOX_MODE")
     if sbx_override and sbx_override.strip() and sbx_override.strip().lower() not in ("auto", "default", ""):
         sbx_mode = sbx_override.strip().lower()
+        if trust in ("fork", "unknown") and sbx_mode != "required":
+            logger.warning(
+                "Untrusted %s context cannot downgrade sandbox-mode '%s'; enforcing 'required'",
+                trust,
+                sbx_mode,
+            )
+            sbx_mode = "required"
     else:
-        trust = get_trust_context()
         sbx_mode = "required" if trust in ("fork", "unknown") else "auto"
 
     def _verify_one(test_rel: str) -> dict[str, Any]:
