@@ -1,6 +1,6 @@
-# Hardening Loop Status
+﻿# Hardening Loop Status
 
-- **Current main SHA**: e27370b925bdfa9fc9e32049d58a5c37ebf86950
+- **Current main SHA**: e27370b33b3e5263f9cef74b5445caa22945fadd
 - **Defect Status**:
   - D3 (Path containment in verify.py): CLOSED & MERGED in PR #167
   - D4 (Signer prefix floor in receipt.py): CLOSED & MERGED in PR #167
