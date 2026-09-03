@@ -466,6 +466,8 @@ def provision_environment(
     uv_exe = find_uv()
 
     lockfile_hash = _compute_lockfile_hash(worktree)
+    discovered_pkgs, req_files = _discover_extras_and_requirements(worktree)
+    has_project_deps = bool(lockfile_hash or discovered_pkgs or req_files)
     cache_key_raw = f"{repo}:{commit_sha}:{target_py}:{cutoff}:{lockfile_hash}"
     cache_key = hashlib.sha256(cache_key_raw.encode("utf-8")).hexdigest()[:16]
 
@@ -502,6 +504,7 @@ def provision_environment(
                 "exclude_newer_cutoff": cutoff,
                 "interpreter_version": py_version_str,
                 "resolved_versions": resolved_versions,
+                "has_project_dependencies": has_project_deps,
             }
         except EnvSetupError:
             import shutil
@@ -667,4 +670,5 @@ def provision_environment(
         "exclude_newer_cutoff": cutoff,
         "interpreter_version": py_version_str,
         "resolved_versions": resolved_versions,
+        "has_project_dependencies": has_project_deps,
     }

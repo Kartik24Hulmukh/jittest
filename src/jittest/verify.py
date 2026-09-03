@@ -408,7 +408,7 @@ def verify_test(
             base_workdir = base_dir / rel_path if rel_path != "." else base_dir
             base_env_info = provision_environment(base_workdir, resolved_base, repo_path)
             if getattr(sbx_plan, "backend", None) in ("docker", "podman") and (
-                base_env_info.get("lockfile_sha256") or base_env_info.get("resolved_versions")
+                base_env_info.get("has_project_dependencies") or base_env_info.get("lockfile_sha256")
             ):
                 raise VerifyRefusalError("isolation contract cannot import project dependencies in container mode")
             base_python = base_env_info.get("python_path")
@@ -433,7 +433,7 @@ def verify_test(
             head_workdir = head_dir / rel_path if rel_path != "." else head_dir
             head_env_info = provision_environment(head_workdir, resolved_head, repo_path)
             if getattr(sbx_plan, "backend", None) in ("docker", "podman") and (
-                head_env_info.get("lockfile_sha256") or head_env_info.get("resolved_versions")
+                head_env_info.get("has_project_dependencies") or head_env_info.get("lockfile_sha256")
             ):
                 raise VerifyRefusalError("isolation contract cannot import project dependencies in container mode")
             head_python = head_env_info.get("python_path")

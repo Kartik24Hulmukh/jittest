@@ -14,6 +14,7 @@ from pathlib import Path
 from unittest import mock
 
 from jittest.env import _scrubbed_installer_env, provision_environment
+from jittest.execute import FailureKind, Outcome
 from jittest.sandbox import SandboxPlan
 from jittest.verify import VerifyRefusalError, verify_test
 
@@ -107,6 +108,30 @@ class TestWave3D1IsolationContract(unittest.TestCase):
                 with self.assertRaises(VerifyRefusalError) as ctx:
                     verify_test(repo, "HEAD~1", "HEAD", test_file, sandbox_mode="required")
                 self.assertIn("isolation contract cannot import project dependencies", str(ctx.exception))
+
+    def test_container_mode_allows_stdlib_only_repo(self):
+        """Option D: docker/podman allows stdlib-only tests without refusal."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            test_file = repo / "test_stdlib.py"
+            test_file.write_text("def test_x(): assert True\n", encoding="utf-8")
+
+            docker_plan = SandboxPlan(backend="docker", image="python:3.13-slim")
+
+            with (
+                mock.patch("jittest.verify.resolve_revision", side_effect=["a" * 40, "b" * 40]),
+                mock.patch("jittest.verify.plan_sandbox", return_value=docker_plan),
+                mock.patch("jittest.verify.Worktree", _Worktree),
+                mock.patch("jittest.verify.provision_environment", return_value={
+                    "python_path": sys.executable,
+                    "lockfile_sha256": "",
+                    "has_project_dependencies": False,
+                }),
+                mock.patch("jittest.verify.run_test", return_value=mock.Mock(outcome=Outcome.PASS, failure_kind=FailureKind.NONE, returncode=0, stdout="", stderr="", wall_clock_s=0.1)),
+            ):
+                # stdlib repo should NOT raise VerifyRefusalError
+                res = verify_test(repo, "HEAD~1", "HEAD", test_file, sandbox_mode="required")
+                self.assertIsNotNone(res)
 
 
 class TestWave3D8ActionDefaultsAndHygiene(unittest.TestCase):
