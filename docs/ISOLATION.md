@@ -1,33 +1,32 @@
 # JitTest Isolation Contract
 
-## 1. Overview & Selected Contract: Option D
+## 1. Overview & Selected Contract: Option D (D1 — Waived)
 
-JitTest isolates the execution of candidate tests to protect runner infrastructure and prevent test code from accessing secrets or exfiltrating data.
+- **Defect D1 Status**: **WAIVED via Option D** (honest refusal for dependency-bearing repos; stdlib-only in container; not a full fix for Flask/Django/requests).
+- **Scope**:
+  - **Stdlib-only execution in containers**: Candidate tests that require only standard library modules execute inside container isolation (`docker` or `podman`) with `--network none`, unprivileged user, and read-only worktree mounts.
+  - **Explicit refusal on dependency-bearing repositories**: Any candidate test targeting a repository that declares external dependencies (e.g. `requirements.txt`, `pyproject.toml`, lockfiles) refuses execution with:
+    ```text
+    jittest verify: refused - isolation contract cannot import project dependencies in container mode
+    ```
+- **Brutal Truth**: Option D is an honest refusal, not a general fix. Docker/Podman container mode cannot execute tests for repos with dependencies like Flask, Django, or requests because the host virtual environment is not bind-mounted into the container (which would violate glibc/wheel ABI compatibility). JitTest refuses cleanly instead of falsely claiming isolated execution. This makes it a safer alpha verifier, but not yet an end-to-end product for dependency-bearing pytest repos.
 
-Per the decision framework in `04-ISOLATION-CONTRACT.md`, JitTest implements **Contract Option D — Restricted Support**:
+## 2. Provisioning Boundary & Threat Model (D2 — Mitigated, Not Closed)
 
-- **Stdlib-only execution in containers**: Candidate tests that require only standard library modules execute inside container isolation (`docker` or `podman`) with `--network none`, unprivileged user, and read-only worktree mounts.
-- **Explicit refusal on dependency-bearing repositories**: Any candidate test targeting a repository that declares dependencies (e.g. `requirements.txt`, `pyproject.toml`, lockfiles) refuses with:
-  ```text
-  jittest verify: refused - isolation contract cannot import project dependencies in container mode
-  ```
-- **Rationale**: Container backends run inside immutable slim images (`python:3.13-slim`). Naively bind-mounting the runner's host virtualenv into the container discards glibc/wheel ABI compatibility and creates a false impression of containerized dependency execution. Option D fails closed honestly rather than silently degrading or guessing.
+- **Defect D2 Status**: **MITIGATED** (secrets scrubbed via `_scrubbed_installer_env`, but host `pip` still runs unconfined PR files before sandbox; not claimed fork-safe).
+- **Environment Sanitization**: When running package installers (`pip`, `uv`), `jittest` scrubs the runner's environment via `_scrubbed_installer_env()`. All sensitive environment keys matching `TOKEN`, `SECRET`, `KEY`, `PASS`, `AUTH`, `CRED`, or `BEARER` (specifically including `GITHUB_TOKEN` and CI runner secrets) are stripped before executing setup or installer hooks.
+- **Host Execution Disclosure**: Dependency installation commands (`pip install -r ...`, `pip install -e ...`) run directly on the host runner prior to container wrapping. While malicious code in a candidate PR's `setup.py` or PEP 517 build backend cannot harvest runner secrets, it still executes unconfined on the host runner OS.
+- **Untrusted Forks**: Scrubbing secrets does not equal sandboxing. Do **not** claim that untrusted forks are fully safe from malicious build-time execution until Option B (in-container provisioning) is implemented.
 
-## 2. Provisioning Boundary & Threat Model (D2)
+## 3. Container Daemon Status (D9 — Open)
 
-Before candidate tests are executed in the container, `jittest` provisions virtual environments to inspect dependencies:
+- **Defect D9 Status**: **OPEN** (no real-daemon dependency-bearing isolation proof).
+- **Current Verification**: Documenting Option D in documentation does not close an operational gate. CI validates stdlib-only container execution and honest refusal of dependency-bearing repositories.
+- **Open Operational Gate**: There is no proof of real container daemon isolation executing a dependency-bearing candidate suite end-to-end. Container-native provisioning (installing dependencies inside the container before running with `--network none`, i.e. Option B/C) remains an open work item.
 
-- **Environment Sanitization**: When running package installers (`pip`, `uv`), `jittest` scrubs the runner's environment via `_scrubbed_installer_env()`. All sensitive environment keys matching `TOKEN`, `SECRET`, `KEY`, `PASS`, `AUTH`, `CRED`, or `BEARER` (specifically including `GITHUB_TOKEN` and runner secrets) are stripped.
-- **Host Execution Disclosure**: In the current architecture, dependency installation commands (`pip install -r ...`, `pip install -e ...`) run on the host runner prior to container wrapping. While attacker code inside `setup.py` cannot access runner secrets or tokens, it does execute within the runner OS before the container sandbox starts.
-- **Untrusted Forks**: Do not claim that `sandbox-mode: required` provides complete sandbox containment for malicious `setup.py` hooks from untrusted forks until Option B (in-container provisioning) is implemented.
+## 4. GitHub Action Sandbox Resolution & Operational Boundaries (D8)
 
-## 3. Container Daemon Status (D9)
-
-- Container isolation is validated for stdlib-only execution and explicit refusal of dependency-bearing tests.
-- Full container-native provisioning (building and installing dependencies inside the container before executing with `--network none`) is designated for a future architectural release.
-- Real container daemon runs against complex third-party stacks (e.g. Flask, Django) will require Option B/C.
-
-## 4. Operational Boundaries
-
-- **Advisory Verifier**: JitTest is an advisory verifier for pull requests adding or modifying tests. It is not currently a production merge gate.
-- **Release Pin**: The published package on PyPI is `v0.3.4`. Source code on `main` is an unpublished release candidate (0.3.5) and must be evaluated strictly by exact commit SHA.
+- **Action Default**: The `action.yml` default for `sandbox-mode` is `required`.
+- **Fork Safety**: `action.py` ensures that pull requests from forks or unknown contexts always resolve to `sandbox-mode: required` (even if `sandbox-mode: auto` is supplied), preventing unconfined downgrades on untrusted PRs.
+- **Advisory Verifier**: JitTest Mode A is an advisory verifier for pull requests adding or modifying tests, not a blocking production merge gate.
+- **Release Pin**: The published package on PyPI is `v0.3.4`. Source code on `main` is an unpublished release candidate and must be referenced strictly by exact commit SHA.

@@ -141,9 +141,9 @@ class TestWave3D8ActionDefaultsAndHygiene(unittest.TestCase):
         self.assertTrue(action_path.exists())
         text = action_path.read_text(encoding="utf-8")
 
-        # Verify sandbox-mode defaults to auto
+        # Verify sandbox-mode defaults to required
         self.assertIn("sandbox-mode:", text)
-        self.assertIn("default: 'auto'", text)
+        self.assertIn("default: 'required'", text)
 
         # Check artifact upload step warns if missing per contract
         self.assertIn("uses: actions/upload-artifact", text)

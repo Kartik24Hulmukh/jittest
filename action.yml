@@ -15,9 +15,9 @@ inputs:
     required: false
     default: ''
   sandbox-mode:
-    description: 'Sandbox isolation mode: auto, required, or off'
+    description: 'Sandbox isolation mode: required (default), auto, or off'
     required: false
-    default: 'auto'
+    default: 'required'
   policy:
     description: 'Exit policy: advisory (default), strict, or block-on-refusal'
     required: false
