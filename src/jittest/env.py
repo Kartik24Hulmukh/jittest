@@ -467,7 +467,8 @@ def provision_environment(
 
     lockfile_hash = _compute_lockfile_hash(worktree)
     discovered_pkgs, req_files = _discover_extras_and_requirements(worktree)
-    has_project_deps = bool(lockfile_hash or discovered_pkgs or req_files)
+    has_lockfiles = bool(lockfile_hash and lockfile_hash != "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+    has_project_deps = bool(has_lockfiles or discovered_pkgs or req_files)
     cache_key_raw = f"{repo}:{commit_sha}:{target_py}:{cutoff}:{lockfile_hash}"
     cache_key = hashlib.sha256(cache_key_raw.encode("utf-8")).hexdigest()[:16]
 

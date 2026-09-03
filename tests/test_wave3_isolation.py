@@ -102,6 +102,7 @@ class TestWave3D1IsolationContract(unittest.TestCase):
                 mock.patch("jittest.verify.provision_environment", return_value={
                     "python_path": sys.executable,
                     "lockfile_sha256": "abcdef" * 10,
+                    "has_project_dependencies": True,
                     "resolved_versions": {"pytest": "8.0.0"},
                 }),
             ):
