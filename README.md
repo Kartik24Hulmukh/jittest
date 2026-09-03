@@ -44,6 +44,9 @@ The official project public key and fingerprint are published in [`docs/KEYS.md`
 
 ## Try it in 60 seconds — no keys, no setup
 
+> [!IMPORTANT]
+> The published package on PyPI is `0.3.4`. Code on `main` is an unpublished alpha release candidate. `pip install jittest` installs `0.3.4`, not this development SHA. Evaluate development changes by exact commit SHA.
+
 ```bash
 pip install jittest
 
@@ -120,15 +123,17 @@ jobs:
 > The default action policy is `advisory`, which executes checks and posts PR comments/annotations but **never fails the build** (always exits 0). To use jittest as a blocking CI merge gate that fails on unproven regressions or environment refusals, explicitly specify `policy: "strict"` (requires at least 1 `proven_catch`) or `policy: "block-on-refusal"`.
 
 
-## Security
+## Security & Isolation
 
-jittest executes code. Outside-collaborator and untrusted PRs run sandboxed (`docker`, `podman`, or `bubblewrap` with `--network none` family of restrictions — see [`SECURITY.md`](SECURITY.md)). In untrusted context, sandboxing is required and fails closed if isolation cannot be established.
+jittest executes code. Container isolation follows **Contract Option D** (Restricted support: containers execute stdlib-only candidate tests; dependency-bearing tests refuse cleanly with `isolation contract cannot import project dependencies in container mode`). Provisioning environment is scrubbed of CI secrets (`GITHUB_TOKEN`, `*_SECRET`, `*_KEY`), but runs on the runner before the sandbox wrap. For the complete isolation contract, host-provisioning threat model, and verified daemon status, see [`docs/ISOLATION.md`](docs/ISOLATION.md).
 
 `jittest verify --allow-unconfined` (alias of `--no-sandbox`) is for non-production debugging only.
 
 ## Honest boundaries
 
 - Python projects today.
+- **Advisory only**: Mode A verifier is an advisory reporter, not a blocking production merge gate.
+- **Release status**: The published package on PyPI is `0.3.4`. Version `0.3.5` on `main` is an unreleased alpha candidate.
 - Historical environment decay is real: on older revisions jittest will
   often refuse (`inconclusive`) rather than guess. That is the feature.
 - This release line is the **verifier**. The original generation pipeline
