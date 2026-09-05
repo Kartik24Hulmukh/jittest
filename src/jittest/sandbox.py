@@ -110,6 +110,7 @@ class SandboxPlan:
     backend: str = "none"
     image: str = DEFAULT_IMAGE
     notes: list[str] = field(default_factory=list)
+    mode: str = "auto"
 
     @property
     def isolated(self) -> bool:
@@ -122,6 +123,7 @@ class SandboxPlan:
 
     def as_dict(self) -> dict:
         return {
+            "mode": self.mode,
             "backend": self.backend,
             "image": self.image if self.backend in ("docker", "podman") else None,
             "isolated": self.isolated,
@@ -235,7 +237,7 @@ def plan(mode: str, preferred: str = "", image: str = DEFAULT_IMAGE,
         mode = "auto"
 
     if mode == "off":
-        return SandboxPlan(backend="none", image=image, notes=[
+        return SandboxPlan(backend="none", image=image, mode="off", notes=[
             "sandbox disabled by configuration: candidate tests share the "
             "filesystem, network and user account of this runner. Do not use "
             "this setting on pull requests from outside collaborators."])
@@ -248,7 +250,7 @@ def plan(mode: str, preferred: str = "", image: str = DEFAULT_IMAGE,
                 "available. Install podman, docker or bubblewrap on this "
                 "runner, or set sandbox.mode to 'auto' and accept that "
                 "candidates run unconfined.")
-        return SandboxPlan(backend="none", image=image, notes=[
+        return SandboxPlan(backend="none", image=image, mode=mode, notes=[
             "no container or namespace backend found (looked for podman, "
             "docker, bubblewrap): candidates ran unconfined. Credentials were "
             "still withheld by the environment allowlist, but network egress "
@@ -268,7 +270,7 @@ def plan(mode: str, preferred: str = "", image: str = DEFAULT_IMAGE,
             # no reason to run unconfined when bwrap is right there.
             backend = "bubblewrap"
         else:
-            return SandboxPlan(backend="none", image=image, notes=[
+            return SandboxPlan(backend="none", image=image, mode=mode, notes=[
                 f"{backend} is available but the image {image!r} is not "
                 f"present locally; candidates ran unconfined rather than "
                 f"triggering an unannounced image pull mid-run. Run "
@@ -282,7 +284,7 @@ def plan(mode: str, preferred: str = "", image: str = DEFAULT_IMAGE,
                 raise SandboxUnavailable(
                     f"sandbox.mode is 'required' and {backend} is installed but "
                     f"not working: {detail}")
-            return SandboxPlan(backend="none", image=image, notes=[
+            return SandboxPlan(backend="none", image=image, mode=mode, notes=[
                 f"{backend} was found but did not work ({detail}); candidates "
                 f"ran unconfined. This is reported rather than retried because "
                 f"a sandbox that fails to start makes every candidate look "
@@ -293,7 +295,7 @@ def plan(mode: str, preferred: str = "", image: str = DEFAULT_IMAGE,
             if backend != "bubblewrap" else
             "candidates executed under bubblewrap namespaces with network "
             "egress denied and the host filesystem mounted read-only")
-    return SandboxPlan(backend=backend, image=image, notes=[note])
+    return SandboxPlan(backend=backend, image=image, mode=mode, notes=[note])
 
 
 def wrap(argv: list[str], workdir: Path | str, env: dict[str, str],
@@ -363,32 +365,83 @@ def _container_pythonpath(value: str, workdir: Path) -> list[str]:
     return out
 
 
-def _wrap_container(argv: list[str], workdir: Path, env: dict[str, str],
-                    sbx: SandboxPlan) -> list[str]:
-    cmd = [
-        sbx.backend, "run", "--rm",
-        "--network", "none",             # the whole point
-        "--read-only",                   # only the binds below are writable
-        "--cap-drop", "ALL",
-        "--security-opt", "no-new-privileges",
-        "--pids-limit", _PIDS,
-        "--memory", _MEMORY,
-        "--tmpfs", "/tmp:rw,exec,nosuid,size=512m",
-        "-v", f"{workdir}:/workspace:rw",
-        # Read-only: the candidate must be able to import the runner, and must
-        # not be able to edit the thing that is judging it.
-        "-v", f"{_PACKAGE_ROOT}:{_PACKAGE_MOUNT}:ro",
-        "-w", "/workspace",
-    ]
-    # Run as the invoking user so files the candidate writes into the bound
-    # checkout do not end up owned by root, which would break reset_workdir
-    # on the next candidate and leave the worktree undeletable.
-    if hasattr(os, "getuid"):
-        cmd += ["-u", f"{os.getuid()}:{os.getgid()}"]
+CONTAINER_ALLOWLIST_ENV = frozenset({
+    "PATH",
+    "PYTHONDONTWRITEBYTECODE",
+    "PYTHONNOUSERSITE",
+    "PYTHONSAFEPATH",
+    "PYTHONHASHSEED",
+    "HOME",
+    "LANG",
+    "PYTHONPATH",
+    "JITTEST_INSIDE_SANDBOX",
+})
 
-    for name, value in sorted(env.items()):
+
+def _is_allowed_container_env(k: str) -> bool:
+    if k in CONTAINER_ALLOWLIST_ENV:
+        return True
+    return k.startswith("JITTEST_") and not k.startswith("JITTEST_SIGNING_KEY")
+
+
+def _wrap_container(
+    argv: list[str], workdir: Path, env: dict[str, str], sbx: SandboxPlan
+) -> list[str]:
+    import uuid
+
+    container_name = f"jittest-{uuid.uuid4()}"
+    cmd = [
+        sbx.backend,
+        "run",
+        "--rm",
+        "--name",
+        container_name,
+        "--network",
+        "none",  # the whole point
+        "--read-only",  # only the binds below are writable
+        "--cap-drop",
+        "ALL",
+        "--security-opt",
+        "no-new-privileges",
+        "--security-opt",
+        "seccomp=default",
+        "--cpus",
+        "2",
+        "--ulimit",
+        "nofile=1024:1024",
+        "--pids-limit",
+        _PIDS,
+        "--memory",
+        _MEMORY,
+        "--tmpfs",
+        "/tmp:rw,exec,nosuid,size=512m",
+        "-v",
+        f"{workdir}:/workspace:rw",
+        "-v",
+        f"{_PACKAGE_ROOT}:{_PACKAGE_MOUNT}:ro",
+        "-w",
+        "/workspace",
+    ]
+
+    # User isolation: fallback to 65534:65534 (nobody:nogroup) when root or on non-POSIX
+    if hasattr(os, "getuid"):
+        uid = os.getuid()
+        gid = os.getgid()
+        if uid == 0:
+            cmd += ["--user", "65534:65534"]
+        else:
+            cmd += ["-u", f"{uid}:{gid}"]
+    else:
+        cmd += ["--user", "65534:65534"]
+
+    # Filter strictly by allowlist (env-file avoidance & credential protection)
+    filtered_env = {k: v for k, v in env.items() if _is_allowed_container_env(k)}
+    filtered_env["JITTEST_INSIDE_SANDBOX"] = "1"
+    filtered_env.setdefault("HOME", "/tmp/jt-home")
+
+    for name, value in sorted(filtered_env.items()):
         if name == "PATH":
-            continue                     # the image's PATH, not the host's
+            continue  # the image's PATH, not the host's
         if name == "PYTHONPATH":
             value = ":".join(_container_pythonpath(value, workdir))
         cmd += ["-e", f"{name}={value}"]
@@ -403,22 +456,43 @@ def _wrap_container(argv: list[str], workdir: Path, env: dict[str, str],
 def _wrap_bwrap(argv: list[str], workdir: Path, env: dict[str, str]) -> list[str]:
     """Namespace isolation with no daemon and no image.
 
-    ``--unshare-all`` includes the network namespace, and no interface is
-    configured inside it, so egress is denied. The host root is bound read-only
-    because the candidate must still be able to execute the interpreter and
-    import the standard library; the checkout is re-bound read-write on top,
-    which is the only place a candidate is permitted to leave anything behind.
+    Mounts essential directories read-only instead of host root /, denies network,
+    clears host environment, and drops capabilities.
     """
-    return [
+    bwrap_cmd = [
         "bwrap",
         "--unshare-all",
+        "--unshare-user",
+        "--uid",
+        "65534",
+        "--gid",
+        "65534",
         "--die-with-parent",
-        "--new-session",                 # no terminal-injection back at the host
-        "--ro-bind", "/", "/",
-        "--dev", "/dev",
-        "--proc", "/proc",
-        "--tmpfs", "/tmp",
-        "--bind", str(workdir), str(workdir),
-        "--chdir", str(workdir),
-        *argv,
+        "--new-session",  # no terminal-injection back at the host
+        "--dev",
+        "/dev",
+        "--proc",
+        "/proc",
+        "--tmpfs",
+        "/tmp",
     ]
+
+    # Mount only essential system directories read-only instead of host root /
+    system_binds = ["/usr", "/lib", "/lib64", "/bin", "/etc/alternatives", "/etc/ld.so.cache"]
+    for p in system_binds:
+        if os.path.exists(p):
+            bwrap_cmd.extend(["--ro-bind", p, p])
+
+    home_dir = env.get("HOME", "/tmp/jt-home")
+    bwrap_cmd.extend(["--tmpfs", home_dir])
+    bwrap_cmd.extend(["--bind", str(workdir), str(workdir)])
+    bwrap_cmd.extend(["--chdir", str(workdir)])
+    bwrap_cmd.append("--clearenv")
+
+    filtered_env = {k: v for k, v in env.items() if _is_allowed_container_env(k) and k != "PATH"}
+    filtered_env["JITTEST_INSIDE_SANDBOX"] = "1"
+    for k, v in sorted(filtered_env.items()):
+        bwrap_cmd.extend(["--setenv", k, v])
+
+    bwrap_cmd.extend(argv)
+    return bwrap_cmd

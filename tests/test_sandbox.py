@@ -25,8 +25,10 @@ from __future__ import annotations
 import json
 import os
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
@@ -202,6 +204,56 @@ class BrokenBackend(unittest.TestCase):
         finally:
             S.detect_backend, S.probe_backend = original_detect, original_probe
             S._image_present = original_present
+
+
+class TestSandboxHardeningJ1_5(unittest.TestCase):
+    def test_container_argv_has_no_host_home_or_socket(self):
+        plan = S.SandboxPlan(backend="docker", image="python:3.13-slim")
+        workdir = Path("/tmp/fake_worktree")
+        env = {
+            "PATH": "/usr/bin",
+            "HOME": "/tmp/jt-home",
+            "PYTHONPATH": "/tmp/fake_worktree/src",
+            "HOST_SECRET": "must_not_appear",
+        }
+        with mock.patch.object(S, "_PACKAGE_ROOT", Path("/opt/jittest_pkg")):
+            argv, _ = S.wrap(["python", "-c", "pass"], workdir, env, plan)
+            argv_str = " ".join(argv)
+
+            # Assert resource constraints & security options
+            self.assertIn("--cpus 2", argv_str)
+            self.assertIn("--ulimit nofile=1024:1024", argv_str)
+            self.assertIn("seccomp=default", argv_str)
+
+            # Assert no socket or host home in argv
+            self.assertNotIn("/var/run/docker.sock", argv_str)
+            self.assertNotIn(".jittest", argv_str)
+            self.assertNotIn(str(Path.home()), argv_str)
+
+            # Assert only allowlisted env vars
+            self.assertNotIn("HOST_SECRET", argv_str)
+
+    def test_bwrap_does_not_bind_host_root(self):
+        plan = S.SandboxPlan(backend="bubblewrap")
+        workdir = Path(tempfile.gettempdir()) / "fake_worktree"
+        env = {"PATH": "/bin", "HOME": "/tmp/jt-home"}
+        argv, _ = S.wrap(["python", "-c", "pass"], workdir, env, plan)
+        argv_str = " ".join(argv)
+
+        self.assertNotIn("--ro-bind / /", argv_str)
+        self.assertIn("--unshare-user", argv_str)
+        self.assertIn("--uid 65534", argv_str)
+        self.assertIn("--gid 65534", argv_str)
+
+    def test_bwrap_clears_env(self):
+        plan = S.SandboxPlan(backend="bubblewrap")
+        workdir = Path(tempfile.gettempdir()) / "fake_worktree"
+        env = {"PATH": "/bin", "HOME": "/tmp/jt-home", "LANG": "C"}
+        argv, _ = S.wrap(["python", "-c", "pass"], workdir, env, plan)
+        argv_str = " ".join(argv)
+
+        self.assertIn("--clearenv", argv_str)
+        self.assertIn("--setenv", argv_str)
 
 
 if __name__ == "__main__":

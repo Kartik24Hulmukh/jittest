@@ -13,7 +13,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from jittest.env import _scrubbed_installer_env, provision_environment
+from jittest.env import _preflight_environment, _scrubbed_installer_env, provision_environment
 from jittest.execute import FailureKind, Outcome
 from jittest.sandbox import SandboxPlan
 from jittest.verify import VerifyRefusalError, verify_test
@@ -148,6 +148,69 @@ class TestWave3D8ActionDefaultsAndHygiene(unittest.TestCase):
         # Check artifact upload step warns if missing per contract
         self.assertIn("uses: actions/upload-artifact", text)
         self.assertIn("if-no-files-found: warn", text)
+
+
+class TestWave3D2PreflightIsolation(unittest.TestCase):
+    def test_preflight_refuses_when_backend_none_and_mode_required(self):
+        sbx = SandboxPlan(backend="none")
+        sbx.mode = "required"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            wt = Path(tmpdir)
+            with self.assertRaises(VerifyRefusalError) as ctx:
+                _preflight_environment(Path(sys.executable), wt, sbx_plan=sbx)
+            self.assertIn("refused:pre_isolation_execution", str(ctx.exception))
+
+    def test_preflight_never_runs_candidate_on_host_cache_miss(self):
+        """Spy on subprocess.run: candidate preflight must run inside sandbox boundary or trusted wrapper."""
+        sbx = SandboxPlan(backend="docker", image="python:3.13-slim")
+        sbx.mode = "required"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            wt = Path(tmpdir).resolve()
+            canary_file = wt / "leaked_env.txt"
+            (wt / "sitecustomize.py").write_text(
+                f"import os, pathlib\npathlib.Path({str(canary_file)!r}).write_text(os.environ.get('GITHUB_TOKEN', ''))\n",
+                encoding="utf-8",
+            )
+            spawned_commands: list[list[str]] = []
+
+            def spy_run(cmd, *args, **kwargs):
+                spawned_commands.append(list(cmd) if isinstance(cmd, (list, tuple)) else [str(cmd)])
+                return subprocess.CompletedProcess(cmd, 0, stdout="pytest 8.0.0\n", stderr="")
+
+            with mock.patch("subprocess.run", side_effect=spy_run), \
+                 mock.patch.dict(os.environ, {"GITHUB_TOKEN": "canary_secret_12345"}):
+                _preflight_environment(Path(sys.executable), wt, sbx_plan=sbx)
+
+            self.assertTrue(len(spawned_commands) >= 1)
+            for cmd in spawned_commands:
+                self.assertIn(cmd[0], ("docker", "podman", "bwrap"))
+            self.assertFalse(canary_file.exists(), "Hostile sitecustomize ran on host during preflight!")
+
+    def test_preflight_never_runs_candidate_on_host_cache_hit(self):
+        """Even when venv is cached, preflight must never run candidate code on host."""
+        sbx = SandboxPlan(backend="docker", image="python:3.13-slim")
+        sbx.mode = "required"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            wt = Path(tmpdir).resolve()
+            canary_file = wt / "leaked_env.txt"
+            (wt / "sitecustomize.py").write_text(
+                f"import os, pathlib\npathlib.Path({str(canary_file)!r}).write_text(os.environ.get('GITHUB_TOKEN', ''))\n",
+                encoding="utf-8",
+            )
+            spawned_commands: list[list[str]] = []
+
+            def spy_run(cmd, *args, **kwargs):
+                spawned_commands.append(list(cmd) if isinstance(cmd, (list, tuple)) else [str(cmd)])
+                return subprocess.CompletedProcess(cmd, 0, stdout="pytest 8.0.0\n", stderr="")
+
+            with mock.patch("subprocess.run", side_effect=spy_run), \
+                 mock.patch.dict(os.environ, {"GITHUB_TOKEN": "canary_secret_12345"}):
+                _preflight_environment(Path(sys.executable), wt, sbx_plan=sbx)
+
+            self.assertTrue(len(spawned_commands) >= 1)
+            for cmd in spawned_commands:
+                self.assertIn(cmd[0], ("docker", "podman", "bwrap"))
+            self.assertFalse(canary_file.exists(), "Hostile sitecustomize ran on host during preflight on cache hit!")
 
 
 if __name__ == "__main__":

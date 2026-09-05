@@ -497,10 +497,21 @@ def _run_process(command: list[str], cwd: str, env: dict, timeout_s: int):
         command, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         text=True, errors="replace", **popen_kwargs,
     )
+    container_name = None
+    container_backend = None
+    if command and command[0] in ("docker", "podman") and "--name" in command:
+        container_backend = command[0]
+        try:
+            name_idx = command.index("--name")
+            if name_idx + 1 < len(command):
+                container_name = command[name_idx + 1]
+        except (ValueError, IndexError):
+            pass
+
     try:
         out, err = proc.communicate(timeout=timeout_s)
     except subprocess.TimeoutExpired:
-        _kill_tree(proc)
+        _kill_tree(proc, container_name=container_name, backend=container_backend)
         # Reap what we just signalled. If it will not die even now, say so by
         # timing out again rather than blocking the run forever.
         with contextlib.suppress(subprocess.TimeoutExpired):
@@ -509,8 +520,26 @@ def _run_process(command: list[str], cwd: str, env: dict, timeout_s: int):
     return proc.returncode, out or "", err or ""
 
 
-def _kill_tree(proc: subprocess.Popen) -> None:
-    """Best effort: signal the group, then the process. Never raise."""
+def _kill_tree(
+    proc: subprocess.Popen,
+    container_name: str | None = None,
+    backend: str | None = None,
+) -> None:
+    """Best effort: kill container if present, signal the group, then the process. Never raise."""
+    if container_name and backend in ("docker", "podman"):
+        with contextlib.suppress(Exception):
+            subprocess.run([backend, "kill", container_name], capture_output=True, timeout=10)
+        with contextlib.suppress(Exception):
+            chk = subprocess.run(
+                [backend, "ps", "-a", "--filter", f"name={container_name}", "--format", "{{.Names}}"],
+                capture_output=True,
+                text=True,
+                errors="replace",
+                timeout=10,
+            )
+            if chk.stdout.strip():
+                subprocess.run([backend, "rm", "-f", container_name], capture_output=True, timeout=10)
+
     try:
         if hasattr(os, "killpg") and hasattr(os, "getpgid"):
             os.killpg(os.getpgid(proc.pid), signal.SIGKILL)

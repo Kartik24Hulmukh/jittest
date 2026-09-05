@@ -91,3 +91,63 @@ assert not written, "Filesystem escape write succeeded outside checkout"
 """
     global_ns = {}
     exec(code, global_ns)
+
+
+def test_timeout_child_spawner_cleaned_up():
+    """Verify that a container spawning background children is killed by name on timeout and cleaned up."""
+    import subprocess
+
+    from jittest.execute import _run_process
+    from jittest.sandbox import detect_backend
+
+    backend = detect_backend()
+    if backend not in ("docker", "podman"):
+        if pytest is not None:
+            pytest.skip(f"No running container backend available ({backend}); marked NOT_RUN")
+        return
+
+    try:
+        chk = subprocess.run([backend, "info"], capture_output=True, timeout=5)
+        if chk.returncode != 0:
+            if pytest is not None:
+                pytest.skip("Docker daemon not reachable; marked NOT_RUN")
+            return
+    except Exception:
+        if pytest is not None:
+            pytest.skip("Docker daemon not reachable; marked NOT_RUN")
+        return
+
+    import uuid
+    cname = f"jittest-spawner-{uuid.uuid4().hex[:8]}"
+    cmd = [
+        backend, "run", "--rm", "--name", cname, "python:3.13-slim",
+        "python", "-c", "import subprocess, time; subprocess.Popen(['sleep', '600']); time.sleep(10)"
+    ]
+    with pytest.raises(subprocess.TimeoutExpired):
+        _run_process(cmd, cwd=".", env={}, timeout_s=1)
+
+    # Verify no container with that name remains
+    check = subprocess.run(
+        [backend, "ps", "-a", "--filter", f"name={cname}", "--format", "{{.Names}}"],
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+    assert cname not in check.stdout.split()
+
+
+def test_kill_tree_kills_container_by_name():
+    """Unit test for container process tree killing and cleanup."""
+    from unittest import mock
+
+    from jittest.execute import _kill_tree
+
+    mock_proc = mock.MagicMock()
+    with mock.patch("subprocess.run") as mock_sub:
+        mock_sub.return_value = mock.MagicMock(returncode=0, stdout="")
+        _kill_tree(mock_proc, container_name="jittest-1234", backend="docker")
+
+        calls = [c[0][0] for c in mock_sub.call_args_list]
+        assert ["docker", "kill", "jittest-1234"] in calls
+        assert any("ps" in c and "name=jittest-1234" in str(c) for c in calls)
+        mock_proc.kill.assert_called_once()
