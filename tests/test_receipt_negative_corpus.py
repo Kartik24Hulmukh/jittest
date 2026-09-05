@@ -92,6 +92,7 @@ def test_negative_corpus_field_rejection(
 CLI_CASES = [
     ("tampered_byte.json", [], 2),
     ("unknown_signer.json", ["--strict-signer", "--expected-signer", "deadbeef" * 8], 3),
+    ("short_signer_prefix.json", ["--expected-signer", "12345678"], 3),
     ("missing_provenance.json", [], 4),
     ("unknown_future_schema.json", [], 4),
     ("pass_pass_proven_catch.json", [], 5),

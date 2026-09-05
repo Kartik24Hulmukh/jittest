@@ -174,3 +174,71 @@ class TestNoRaiseContractAndLegacy(unittest.TestCase):
         self.assertEqual(res.schema_status, "VALID_LEGACY")
         self.assertEqual(res.execution_trust, "UNKNOWN")
         self.assertTrue(res.valid)
+
+
+class TestEdgeCaseHardening(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.key_file = Path(self.tmp.name) / "key.pem"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_refusal_forbids_catch_verdict(self):
+        ev = _make_valid_21_evidence()
+        ev["refusal"] = {
+            "code": "pre_isolation_execution",
+            "message": "refused",
+            "phase": "plan",
+            "details": "",
+        }
+        res = validate_semantics(ev)
+        self.assertFalse(res.valid)
+        self.assertTrue(
+            any("presence of refusal requires verdict 'inconclusive'" in err for err in res.errors)
+        )
+
+    def test_empty_failure_kind_cannot_be_proven_catch(self):
+        ev = _make_valid_21_evidence()
+        ev["head_execution"]["failure_kind"] = ""
+        res = validate_semantics(ev)
+        self.assertFalse(res.valid)
+        self.assertTrue(any("assertion" in err for err in res.errors))
+
+    def test_collection_catch_requires_collection_failure_kind(self):
+        ev = _make_valid_21_evidence()
+        ev["verdict"] = "collection_catch"
+        ev["proven_catch"] = False
+        ev["head_execution"]["outcome"] = "ERROR"
+        ev["head_execution"]["failure_kind"] = "timeout"
+        res = validate_semantics(ev)
+        self.assertFalse(res.valid)
+        self.assertTrue(any("collection" in err or "import" in err for err in res.errors))
+
+    def test_wall_clock_boolean_is_schema_invalid(self):
+        ev = _make_valid_21_evidence()
+        ev["wall_clock_s"] = True
+        res = validate_schema(ev)
+        self.assertFalse(res.valid)
+        self.assertEqual(res.status, "INVALID")
+
+    def test_empty_expected_base_fails(self):
+        ev = _make_valid_21_evidence()
+        signed = sign_evidence(ev, key_path=self.key_file)
+        res = verify_receipt(signed, expected_base="")
+        self.assertFalse(res.valid)
+        self.assertEqual(res.provenance_status, "MISMATCH")
+
+    def test_sandbox_mode_off_is_unconfined(self):
+        ev = _make_valid_21_evidence()
+        ev["sandbox"] = {"mode": "off", "backend": "docker", "image": "python:3.12-slim"}
+        signed = sign_evidence(ev, key_path=self.key_file)
+        res = verify_receipt(signed)
+        self.assertEqual(res.execution_trust, "UNCONFINED")
+
+    def test_crypto_backend_not_shadowed_by_sandbox_backend(self):
+        ev = _make_valid_21_evidence()
+        ev["sandbox"]["backend"] = "docker"
+        signed = sign_evidence(ev, key_path=self.key_file)
+        res = verify_receipt(signed, backend="vendored")
+        self.assertTrue(res.signature_valid)

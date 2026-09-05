@@ -598,9 +598,35 @@ def _cmd_verify_receipt(args: argparse.Namespace) -> int:
             "LEGACY: this receipt predates strict validation; it proves integrity, not execution trust."
         )
 
+    # Exit code mapping according to specification:
+    # 0 ok
+    # 2 signature invalid
+    # 3 signer untrusted/unverified under --strict-signer (or expected_signer mismatch)
+    # 4 schema invalid/unsupported
+    # 5 semantic invalid
+    # 6 provenance mismatch/unresolvable
+    # 7 execution not confined under --require-confined
+    exit_code = 0
+    if not res.signature_valid:
+        exit_code = 2
+    elif res.schema_status in ("INVALID", "UNSUPPORTED"):
+        exit_code = 4
+    elif not res.semantic_valid:
+        exit_code = 5
+    elif res.provenance_status in ("MISMATCH", "UNRESOLVABLE"):
+        exit_code = 6
+    elif (
+        (strict_signer and res.signer_status != "TRUSTED")
+        or (expected_signer is not None and res.signer_status != "TRUSTED")
+        or (res.signer_status in ("UNTRUSTED", "INVALID_FORMAT"))
+    ):
+        exit_code = 3
+    elif require_confined and res.execution_trust != "CONFINED":
+        exit_code = 7
+
     if getattr(args, "as_json", False):
         payload = {
-            "valid": res.valid,
+            "valid": exit_code == 0,
             "signature_valid": res.signature_valid,
             "signer_status": res.signer_status,
             "schema_status": res.schema_status,
@@ -615,29 +641,7 @@ def _cmd_verify_receipt(args: argparse.Namespace) -> int:
     else:
         print(f"jittest verify-receipt: {res.reason}")
 
-    # Exit code mapping according to specification:
-    # 0 ok
-    # 2 signature invalid
-    # 3 signer untrusted/unverified under --strict-signer (or expected_signer mismatch)
-    # 4 schema invalid/unsupported
-    # 5 semantic invalid
-    # 6 provenance mismatch/unresolvable
-    # 7 execution not confined under --require-confined
-    if not res.signature_valid:
-        return 2
-    if res.schema_status in ("INVALID", "UNSUPPORTED"):
-        return 4
-    if not res.semantic_valid:
-        return 5
-    if res.provenance_status in ("MISMATCH", "UNRESOLVABLE"):
-        return 6
-    if strict_signer and res.signer_status != "TRUSTED":
-        return 3
-    if res.signer_status == "UNTRUSTED":
-        return 3
-    if require_confined and res.execution_trust != "CONFINED":
-        return 7
-    return 0
+    return exit_code
 
 
 def _cmd_action(args: argparse.Namespace) -> int:

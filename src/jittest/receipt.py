@@ -268,30 +268,38 @@ def _matches_signer(expected: str, key_hex: str, fingerprint: str) -> bool:
 
 SUPPORTED_SCHEMA_VERSIONS = frozenset({"2.0", "2.1"})
 
-REQUIRED_TOP_LEVEL = {
-    "schema_version": (str,),
-    "tool": (str,),
-    "verdict": (str,),
-    "proven_catch": (bool,),
-    "disposition": (str,),
-    "provenance": (dict,),
-    "sandbox": (dict,),
-    "base_execution": (dict,),
-    "head_execution": (dict,),
-    "rerun_agreement": (bool,),
+REQUIRED_TOP_LEVEL: dict[str, Any] = {
+    "schema_version": str,
+    "tool": str,
+    "verdict": str,
+    "proven_catch": bool,
+    "disposition": str,
+    "provenance": dict,
+    "sandbox": dict,
+    "base_execution": dict,
+    "head_execution": dict,
+    "rerun_agreement": bool,
     "wall_clock_s": (int, float),
-    "signature": (dict,),
+    "signature": dict,
 }
 
-REQUIRED_PROVENANCE = {
-    "repo_path": (str,),
-    "base_sha": (str,),
-    "head_sha": (str,),
-    "test_file_name": (str,),
-    "test_file_sha256": (str,),
-    "tool_commit_sha": (str,),
-    "rel_path": (str,),
+REQUIRED_PROVENANCE: dict[str, Any] = {
+    "repo_path": str,
+    "base_sha": str,
+    "head_sha": str,
+    "test_file_name": str,
+    "test_file_sha256": str,
+    "tool_commit_sha": str,
+    "rel_path": str,
 }
+
+
+def _check_type(val: Any, exp: Any) -> bool:
+    exp_tuple = exp if isinstance(exp, tuple) else (exp,)
+    if not isinstance(val, exp_tuple):
+        return False
+    return not (isinstance(val, bool) and bool not in exp_tuple)
+
 
 HEX_40_RE = re.compile(r"^[0-9a-fA-F]{40}$")
 HEX_64_RE = re.compile(r"^[0-9a-fA-F]{64}$")
@@ -422,7 +430,7 @@ def validate_schema(evidence: dict, require_signature: bool = True) -> SchemaRes
             continue
         if k not in evidence:
             errors.append(f"missing required top-level field: '{k}'")
-        elif not isinstance(evidence[k], exp_types):
+        elif not _check_type(evidence[k], exp_types):
             errors.append(
                 f"field '{k}' must be of type {exp_types}, got {type(evidence[k]).__name__}"
             )
@@ -434,7 +442,7 @@ def validate_schema(evidence: dict, require_signature: bool = True) -> SchemaRes
         for k, exp_types in REQUIRED_PROVENANCE.items():
             if k not in prov:
                 errors.append(f"missing required provenance field: '{k}'")
-            elif not isinstance(prov[k], exp_types):
+            elif not _check_type(prov[k], exp_types):
                 errors.append(
                     f"provenance field '{k}' must be of type {exp_types}, got {type(prov[k]).__name__}"
                 )
@@ -484,6 +492,19 @@ def validate_semantics(evidence: dict) -> SemanticResult:
     verdict = evidence.get("verdict")
     rerun_agreement = evidence.get("rerun_agreement")
 
+    refusal_obj = evidence.get("refusal")
+    disp = str(evidence.get("disposition", ""))
+    has_refusal = refusal_obj is not None or disp.startswith("refused_")
+    if has_refusal:
+        if verdict != "inconclusive":
+            errors.append(f"presence of refusal requires verdict 'inconclusive', got '{verdict}'")
+        if evidence.get("proven_catch") is not False:
+            errors.append("presence of refusal requires proven_catch=False")
+        if refusal_obj is not None and not disp.startswith("refused_"):
+            errors.append(
+                f"presence of refusal requires disposition starting with 'refused_', got '{disp}'"
+            )
+
     if rerun_agreement is False and verdict in (
         "proven_catch",
         "reproduction_catch",
@@ -503,6 +524,7 @@ def validate_semantics(evidence: dict) -> SemanticResult:
         head_outcome = str(head_exec.get("outcome", "")).upper()
         base_fk = str(base_exec.get("failure_kind", "")).lower()
         head_fk = str(head_exec.get("failure_kind", "")).lower()
+        is_legacy = str(evidence.get("schema_version", "")) in ("1.0", "2.0")
 
         if verdict == "proven_catch":
             if base_outcome != "PASS":
@@ -513,20 +535,32 @@ def validate_semantics(evidence: dict) -> SemanticResult:
                 errors.append(
                     f"verdict 'proven_catch' requires head outcome FAIL, got '{head_outcome}'"
                 )
-            if head_fk not in ("assertion", ""):
-                errors.append(
-                    f"verdict 'proven_catch' requires head failure_kind 'assertion', got '{head_fk}'"
-                )
+            if is_legacy:
+                if head_fk not in ("assertion", ""):
+                    errors.append(
+                        f"verdict 'proven_catch' requires head failure_kind 'assertion', got '{head_fk}'"
+                    )
+            else:
+                if head_fk != "assertion":
+                    errors.append(
+                        f"verdict 'proven_catch' requires head failure_kind 'assertion', got '{head_fk}'"
+                    )
 
         elif verdict == "reproduction_catch":
             if base_outcome != "FAIL":
                 errors.append(
                     f"verdict 'reproduction_catch' requires base outcome FAIL, got '{base_outcome}'"
                 )
-            if base_fk not in ("assertion", ""):
-                errors.append(
-                    f"verdict 'reproduction_catch' requires base failure_kind 'assertion', got '{base_fk}'"
-                )
+            if is_legacy:
+                if base_fk not in ("assertion", ""):
+                    errors.append(
+                        f"verdict 'reproduction_catch' requires base failure_kind 'assertion', got '{base_fk}'"
+                    )
+            else:
+                if base_fk != "assertion":
+                    errors.append(
+                        f"verdict 'reproduction_catch' requires base failure_kind 'assertion', got '{base_fk}'"
+                    )
             if head_outcome != "PASS":
                 errors.append(
                     f"verdict 'reproduction_catch' requires head outcome PASS, got '{head_outcome}'"
@@ -537,10 +571,19 @@ def validate_semantics(evidence: dict) -> SemanticResult:
                 errors.append(
                     f"verdict 'collection_catch' requires base outcome PASS, got '{base_outcome}'"
                 )
-            if head_fk not in ("collection", "import") and head_outcome not in ("ERROR", "NOTRUN"):
-                errors.append(
-                    f"verdict 'collection_catch' requires head failure_kind in {{collection, import}}, got '{head_fk}'"
-                )
+            if is_legacy:
+                if head_fk not in ("collection", "import", "") and head_outcome not in (
+                    "ERROR",
+                    "NOTRUN",
+                ):
+                    errors.append(
+                        f"verdict 'collection_catch' requires head failure_kind in {{collection, import}}, got '{head_fk}'"
+                    )
+            else:
+                if head_fk not in ("collection", "import"):
+                    errors.append(
+                        f"verdict 'collection_catch' requires head failure_kind in {{collection, import}}, got '{head_fk}'"
+                    )
 
         elif verdict == "refuted":
             if base_outcome != "FAIL" or head_outcome != "FAIL":
@@ -555,7 +598,6 @@ def validate_semantics(evidence: dict) -> SemanticResult:
                 )
 
         elif verdict == "inconclusive":
-            has_refusal = evidence.get("refusal") is not None
             base_problem = base_outcome in ("ERROR", "TIMEOUT", "NOTRUN") or base_fk in (
                 "collection",
                 "error",
@@ -565,7 +607,6 @@ def validate_semantics(evidence: dict) -> SemanticResult:
                 "error",
                 "timeout",
             )
-            disp = str(evidence.get("disposition", ""))
             disp_ok = disp.startswith("refused_") or disp in (
                 "env_setup_failed",
                 "env_build_timeout",
@@ -573,6 +614,7 @@ def validate_semantics(evidence: dict) -> SemanticResult:
                 "base_reproduction_failed",
                 "base_uncollectable",
                 "not_run",
+                "head_failed_base_failed_latent",
             )
             if not (
                 has_refusal or base_problem or head_problem or rerun_agreement is False or disp_ok
@@ -770,13 +812,16 @@ def verify_receipt(
     if refusal is not None or disp.startswith("refused_"):
         execution_trust = "REFUSED"
     elif isinstance(sbx, dict):
-        if sbx.get("confined") is True or (
-            sbx.get("backend") in ("docker", "podman", "bubblewrap")
-            and sbx.get("confined") is not False
+        mode = sbx.get("mode")
+        sbx_backend = sbx.get("backend")
+        confined = sbx.get("confined")
+
+        if mode == "off" or sbx_backend == "none" or confined is False:
+            execution_trust = "UNCONFINED"
+        elif confined is True or (
+            sbx_backend in ("docker", "podman", "bubblewrap") and mode != "off"
         ):
             execution_trust = "CONFINED"
-        elif sbx.get("backend") == "none" or sbx.get("confined") is False:
-            execution_trust = "UNCONFINED"
         else:
             execution_trust = "UNKNOWN"
     elif schema_ver == "2.0":
@@ -936,7 +981,9 @@ def verify_receipt(
             if expected_base is not None:
                 exp_b = str(expected_base).strip().lower()
                 actual_b = str(prov.get("base_sha", "")).strip().lower()
-                if not actual_b:
+                if not exp_b:
+                    prov_mismatches.append("expected base_sha is empty")
+                elif not actual_b:
                     prov_mismatches.append("actual base_sha is empty")
                 elif len(exp_b) < 40:
                     resolved_b = ""
@@ -955,13 +1002,15 @@ def verify_receipt(
                         prov_mismatches.append(
                             f"base_sha unresolvable: abbreviated ref '{exp_b}' cannot be resolved without repository"
                         )
-                if not prov_unresolvable and actual_b != exp_b:
+                if not prov_unresolvable and exp_b and actual_b != exp_b:
                     prov_mismatches.append(f"base_sha mismatch: expected {exp_b}, got {actual_b}")
 
             if expected_head is not None:
                 exp_h = str(expected_head).strip().lower()
                 actual_h = str(prov.get("head_sha", "")).strip().lower()
-                if not actual_h:
+                if not exp_h:
+                    prov_mismatches.append("expected head_sha is empty")
+                elif not actual_h:
                     prov_mismatches.append("actual head_sha is empty")
                 elif len(exp_h) < 40:
                     resolved_h = ""
@@ -980,13 +1029,15 @@ def verify_receipt(
                         prov_mismatches.append(
                             f"head_sha unresolvable: abbreviated ref '{exp_h}' cannot be resolved without repository"
                         )
-                if not prov_unresolvable and actual_h != exp_h:
+                if not prov_unresolvable and exp_h and actual_h != exp_h:
                     prov_mismatches.append(f"head_sha mismatch: expected {exp_h}, got {actual_h}")
 
             if expected_test_sha256 is not None:
                 exp_s = str(expected_test_sha256).strip().lower()
                 actual_s = str(prov.get("test_file_sha256", "")).strip().lower()
-                if not actual_s:
+                if not exp_s:
+                    prov_mismatches.append("expected test_file_sha256 is empty")
+                elif not actual_s:
                     prov_mismatches.append("actual test_file_sha256 is empty")
                 elif actual_s != exp_s:
                     prov_mismatches.append(
@@ -994,27 +1045,31 @@ def verify_receipt(
                     )
 
             if expected_repo is not None:
-                exp_repo_norm = normalize_repo_canonical(str(expected_repo))
-                actual_canonical = str(prov.get("repo_canonical", "")).strip()
-                if not actual_canonical:
-                    if prov.get("repo_path"):
+                exp_repo_raw = str(expected_repo).strip()
+                if not exp_repo_raw:
+                    prov_mismatches.append("expected repository identity is empty")
+                else:
+                    exp_repo_norm = normalize_repo_canonical(exp_repo_raw)
+                    actual_canonical = str(prov.get("repo_canonical", "")).strip()
+                    if not actual_canonical:
+                        if prov.get("repo_path"):
+                            prov_unresolvable = True
+                            prov_mismatches.append(
+                                "repo_canonical missing in receipt provenance (legacy v2.0)"
+                            )
+                        else:
+                            prov_mismatches.append("actual repository identity missing")
+                    elif actual_canonical.startswith("local:") and not exp_repo_norm.startswith(
+                        "local:"
+                    ):
                         prov_unresolvable = True
                         prov_mismatches.append(
-                            "repo_canonical missing in receipt provenance (legacy v2.0)"
+                            f"PROVENANCE_REPO_UNRESOLVABLE: receipt is from a local checkout without remote ({actual_canonical}), cannot match '{expected_repo}'"
                         )
-                    else:
-                        prov_mismatches.append("actual repository identity missing")
-                elif actual_canonical.startswith("local:") and not exp_repo_norm.startswith(
-                    "local:"
-                ):
-                    prov_unresolvable = True
-                    prov_mismatches.append(
-                        f"PROVENANCE_REPO_UNRESOLVABLE: receipt is from a local checkout without remote ({actual_canonical}), cannot match '{expected_repo}'"
-                    )
-                elif actual_canonical.lower() != exp_repo_norm.lower():
-                    prov_mismatches.append(
-                        f"repo_canonical mismatch: expected '{exp_repo_norm}', got '{actual_canonical}'"
-                    )
+                    elif actual_canonical.lower() != exp_repo_norm.lower():
+                        prov_mismatches.append(
+                            f"repo_canonical mismatch: expected '{exp_repo_norm}', got '{actual_canonical}'"
+                        )
 
         if prov_unresolvable:
             provenance_status = "UNRESOLVABLE"
