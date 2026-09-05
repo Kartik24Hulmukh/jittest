@@ -31,6 +31,48 @@ def _evidence() -> dict:
     }
 
 
+def _evidence_21() -> dict:
+    return {
+        "schema_version": "2.1",
+        "tool": "jittest verify",
+        "verdict": "proven_catch",
+        "proven_catch": True,
+        "disposition": "catching",
+        "provenance": {
+            "repo_path": "/tmp/test-repo",
+            "repo_canonical": "github.com/example/repo",
+            "base_sha": "a" * 40,
+            "head_sha": "b" * 40,
+            "test_file_name": "test_example.py",
+            "test_file_sha256": "c" * 64,
+            "tool_commit_sha": "d" * 40,
+            "rel_path": ".",
+        },
+        "sandbox": {
+            "mode": "required",
+            "backend": "docker",
+            "image": "python:3.13-slim",
+            "confined": True,
+        },
+        "base_execution": {
+            "outcome": "PASS",
+            "failure_kind": "none",
+            "exit_code": 0,
+            "stdout_sha256": "e" * 64,
+            "stderr_sha256": "f" * 64,
+        },
+        "head_execution": {
+            "outcome": "FAIL",
+            "failure_kind": "assertion",
+            "exit_code": 1,
+            "stdout_sha256": "0" * 64,
+            "stderr_sha256": "1" * 64,
+        },
+        "rerun_agreement": True,
+        "wall_clock_s": 1.23,
+    }
+
+
 class TestVendoredEd25519Correctness(unittest.TestCase):
     """The vendored signer must be RFC 8032, not merely self-consistent."""
 
@@ -134,6 +176,32 @@ class TestCrossEnvironmentVerification(unittest.TestCase):
             signed = self._sign_with("vendored", key)
             ok, reason = receipt.verify_receipt(signed, backend="vendored")
             self.assertTrue(ok, reason)
+
+    def test_schema_21_positive_roundtrip_both_backends(self):
+        """Schema 2.1 positive receipt round-trips cleanly across both backends."""
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as d:
+            key = Path(d) / "k21.pem"
+            signed_vendored = receipt.sign_evidence(_evidence_21(), key_path=key, backend="vendored")
+            res_v = receipt.verify_receipt(signed_vendored, backend="vendored")
+            self.assertTrue(res_v.valid)
+            self.assertTrue(res_v.signature_valid)
+            self.assertEqual(res_v.schema_status, "VALID")
+            self.assertEqual(res_v.execution_trust, "CONFINED")
+
+            if receipt.HAS_CRYPTOGRAPHY:
+                signed_crypto = receipt.sign_evidence(_evidence_21(), key_path=key, backend="cryptography")
+                res_c = receipt.verify_receipt(signed_crypto, backend="cryptography")
+                self.assertTrue(res_c.valid)
+                self.assertTrue(res_c.signature_valid)
+                self.assertEqual(res_c.schema_status, "VALID")
+
+                res_vc = receipt.verify_receipt(signed_vendored, backend="cryptography")
+                self.assertTrue(res_vc.valid)
+                res_cv = receipt.verify_receipt(signed_crypto, backend="vendored")
+                self.assertTrue(res_cv.valid)
 
 
 class TestNoForgeableMode(unittest.TestCase):

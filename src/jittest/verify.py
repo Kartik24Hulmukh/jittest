@@ -39,10 +39,16 @@ from .diff import git_env
 from .env import EnvSetupError, provision_environment
 from .execute import Disposition, FailureKind, Outcome, Worktree, resolve_revision, run_test
 from .github import fetch_pr_base_head
-from .receipt import sign_evidence
+from .receipt import get_repo_canonical, sign_evidence
 from .sandbox import plan as plan_sandbox
 
-__all__ = ["verify_test", "VerdictClass", "VerifyRefusalError", "exit_code_for", "catch_direction_for"]
+__all__ = [
+    "verify_test",
+    "VerdictClass",
+    "VerifyRefusalError",
+    "exit_code_for",
+    "catch_direction_for",
+]
 
 logger = logging.getLogger("jittest.verify")
 
@@ -216,7 +222,10 @@ def _verify_pass_to_pass(
         test_candidates = [
             f
             for f in sorted(common)
-            if (f.endswith(".py") and (Path(f).name.startswith("test_") or Path(f).name.endswith("_test.py")))
+            if (
+                f.endswith(".py")
+                and (Path(f).name.startswith("test_") or Path(f).name.endswith("_test.py"))
+            )
             and str(Path(f)) != str(Path(rel_test))
             and Path(f).name != Path(rel_test).name
         ]
@@ -407,8 +416,12 @@ def verify_test(
         with Worktree(repo_path, resolved_base) as base_dir:
             base_workdir = base_dir / rel_path if rel_path != "." else base_dir
             base_env_info = provision_environment(base_workdir, resolved_base, repo_path)
-            if getattr(sbx_plan, "backend", None) in ("docker", "podman") and base_env_info.get("has_project_dependencies"):
-                raise VerifyRefusalError("isolation contract cannot import project dependencies in container mode")
+            if getattr(sbx_plan, "backend", None) in ("docker", "podman") and base_env_info.get(
+                "has_project_dependencies"
+            ):
+                raise VerifyRefusalError(
+                    "isolation contract cannot import project dependencies in container mode"
+                )
             base_python = base_env_info.get("python_path")
             base_run = run_test(
                 base_workdir,
@@ -430,8 +443,12 @@ def verify_test(
         with Worktree(repo_path, resolved_head) as head_dir:
             head_workdir = head_dir / rel_path if rel_path != "." else head_dir
             head_env_info = provision_environment(head_workdir, resolved_head, repo_path)
-            if getattr(sbx_plan, "backend", None) in ("docker", "podman") and head_env_info.get("has_project_dependencies"):
-                raise VerifyRefusalError("isolation contract cannot import project dependencies in container mode")
+            if getattr(sbx_plan, "backend", None) in ("docker", "podman") and head_env_info.get(
+                "has_project_dependencies"
+            ):
+                raise VerifyRefusalError(
+                    "isolation contract cannot import project dependencies in container mode"
+                )
             head_python = head_env_info.get("python_path")
             head_run1 = run_test(
                 head_workdir,
@@ -477,7 +494,16 @@ def verify_test(
         base_failure_kind = "collection"
     elif base_run.outcome is Outcome.FAIL:
         out_err = base_run.stdout + "\n" + base_run.stderr
-        if any(err_kw in out_err for err_kw in ("ImportError", "ModuleNotFoundError", "SyntaxError", "PytestCollectionWarning", "CollectionError")):
+        if any(
+            err_kw in out_err
+            for err_kw in (
+                "ImportError",
+                "ModuleNotFoundError",
+                "SyntaxError",
+                "PytestCollectionWarning",
+                "CollectionError",
+            )
+        ):
             base_failure_kind = "collection"
         elif base_run.failure_kind == FailureKind.ASSERTION:
             base_failure_kind = "assertion"
@@ -491,6 +517,39 @@ def verify_test(
         base_failure_kind = "none"
     else:
         base_failure_kind = "none"
+
+    # Determine head_failure_kind (assertion | error | timeout | collection | none)
+    if head_err is not None or head_run1 is None:
+        head_failure_kind = "error"
+    elif head_run1.outcome is Outcome.TIMEOUT:
+        head_failure_kind = "timeout"
+    elif head_run1.outcome is Outcome.ERROR:
+        head_failure_kind = "collection"
+    elif head_run1.outcome is Outcome.FAIL:
+        out_err = head_run1.stdout + "\n" + head_run1.stderr
+        if any(
+            err_kw in out_err
+            for err_kw in (
+                "ImportError",
+                "ModuleNotFoundError",
+                "SyntaxError",
+                "PytestCollectionWarning",
+                "CollectionError",
+            )
+        ):
+            head_failure_kind = "collection"
+        elif head_run1.failure_kind == FailureKind.ASSERTION:
+            head_failure_kind = "assertion"
+        elif head_run1.failure_kind == FailureKind.ERROR:
+            head_failure_kind = "error"
+        elif "AssertionError" in out_err or "\nassert " in out_err:
+            head_failure_kind = "assertion"
+        else:
+            head_failure_kind = "error"
+    elif head_run1.outcome is Outcome.PASS:
+        head_failure_kind = "none"
+    else:
+        head_failure_kind = "none"
 
     base_reproduced = bool(base_run is not None and base_run.outcome is Outcome.PASS)
 
@@ -528,7 +587,9 @@ def verify_test(
             exit_code = 1
         elif head_run1.outcome in (Outcome.ERROR, Outcome.NOTRUN, Outcome.TIMEOUT):
             disposition = Disposition.HEAD_UNCOLLECTABLE_BASE_PASSED
-            verdict_class = VerdictClass.COLLECTION_CATCH  # Split collection catch from behavioral catch
+            verdict_class = (
+                VerdictClass.COLLECTION_CATCH
+            )  # Split collection catch from behavioral catch
             is_proven_catch = False  # NEVER count collection breakage as a behavioral catch
             exit_code = 1
         else:
@@ -541,7 +602,11 @@ def verify_test(
             # Candidate for reproduction_catch (bug fixed on head, caught at base)
             # Guard (a): The base failure must be an assertion failure or an exception from the code
             # under test during the test body, NOT a collection/import/syntax/env error.
-            if base_failure_kind == "collection" or base_run.outcome in (Outcome.ERROR, Outcome.TIMEOUT, Outcome.NOTRUN):
+            if base_failure_kind == "collection" or base_run.outcome in (
+                Outcome.ERROR,
+                Outcome.TIMEOUT,
+                Outcome.NOTRUN,
+            ):
                 disposition = Disposition.BASE_UNCOLLECTABLE
                 verdict_class = VerdictClass.INCONCLUSIVE
                 is_proven_catch = False
@@ -572,7 +637,10 @@ def verify_test(
                     exit_code = 0
         elif head_run1.outcome is Outcome.FAIL:
             disposition = Disposition.HEAD_FAILED_BASE_FAILED_LATENT
-            verdict_class = VerdictClass.INCONCLUSIVE
+            if base_failure_kind == "assertion" and head_failure_kind == "assertion":
+                verdict_class = VerdictClass.REFUTED
+            else:
+                verdict_class = VerdictClass.INCONCLUSIVE
             is_proven_catch = False
             exit_code = 1
         else:
@@ -602,6 +670,7 @@ def verify_test(
 
     base_exec_dict = {
         "outcome": base_run.outcome.name if base_run else "NOTRUN",
+        "failure_kind": base_failure_kind,
         "exit_code": base_run.returncode if base_run else -1,
         "stdout_sha256": _hash_str(base_run.stdout) if base_run else _hash_str(""),
         "stderr_sha256": _hash_str(base_run.stderr) if base_run else _hash_str(""),
@@ -610,6 +679,7 @@ def verify_test(
 
     head_exec_dict = {
         "outcome": head_run1.outcome.name if head_run1 else "NOTRUN",
+        "failure_kind": head_failure_kind,
         "exit_code": head_run1.returncode if head_run1 else -1,
         "stdout_sha256": _hash_str(head_run1.stdout) if head_run1 else _hash_str(""),
         "stderr_sha256": _hash_str(head_run1.stderr) if head_run1 else _hash_str(""),
@@ -617,7 +687,7 @@ def verify_test(
     }
 
     evidence_dict: dict[str, Any] = {
-        "schema_version": "2.0",
+        "schema_version": "2.1",
         "tool": "jittest verify",
         "verdict": verdict_class,
         "verdict_text": verdict_text_for(verdict_class),
@@ -626,11 +696,16 @@ def verify_test(
         "base_reproduced": base_reproduced,
         "base_failure_kind": base_failure_kind,
         "disposition": disposition.value if hasattr(disposition, "value") else str(disposition),
-        "exclude_newer_cutoff": base_env_info.get("exclude_newer_cutoff") if base_env_info else None,
+        "exclude_newer_cutoff": base_env_info.get("exclude_newer_cutoff")
+        if base_env_info
+        else None,
         "interpreter_version": base_env_info.get("interpreter_version") if base_env_info else None,
         "resolved_versions": base_env_info.get("resolved_versions") if base_env_info else None,
         "provenance": {
-            "repo_path": re.sub(r"^[a-zA-Z]:/[Uu]sers/[^/]+", "<USER_DIR>", str(repo_path).replace("\\", "/")),
+            "repo_path": re.sub(
+                r"^[a-zA-Z]:/[Uu]sers/[^/]+", "<USER_DIR>", str(repo_path).replace("\\", "/")
+            ),
+            "repo_canonical": get_repo_canonical(repo_path),
             "base_sha": resolved_base,
             "head_sha": resolved_head,
             "test_file_name": test_path.name,
