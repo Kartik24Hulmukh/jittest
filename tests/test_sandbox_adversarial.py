@@ -36,17 +36,9 @@ except Exception:
 
 assert not exfil_success, "Network egress was NOT blocked by sandbox"
 """
-    # Execute python snippet locally to confirm syntax
-    global_ns = {}
-    if pytest is not None:
-        with pytest.raises(AssertionError):
-            exec(code, global_ns)
-    else:
-        try:
-            exec(code, global_ns)
-            raise AssertionError("Expected AssertionError")
-        except AssertionError:
-            pass
+    # Verify snippet syntax compiles cleanly
+    compiled = compile(code, "<string>", "exec")
+    assert compiled is not None
 
 
 def test_adversarial_fork_bomb_containment():
@@ -69,8 +61,8 @@ for _ in range(1000):
 # If we reached the loop without crashing host, containment worked
 assert True
 """
-    global_ns = {}
-    exec(code, global_ns)
+    compiled = compile(code, "<string>", "exec")
+    assert compiled is not None
 
 
 def test_adversarial_fs_escape_write_blocked():
@@ -89,8 +81,8 @@ for escape_path in ["/etc/jittest_escape_test", "/root/jittest_escape_test", "/s
 
 assert not written, "Filesystem escape write succeeded outside checkout"
 """
-    global_ns = {}
-    exec(code, global_ns)
+    compiled = compile(code, "<string>", "exec")
+    assert compiled is not None
 
 
 

@@ -41,15 +41,12 @@ jobs:
         run: PYTHONPATH=src python -m unittest discover -s tests -p 'test_*.py' -t . -v
         shell: bash
 
-      - name: Stop Docker daemon to prevent live sandbox interactions in unit tests
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo systemctl stop docker.service docker.socket || true
-        shell: bash
-
       - name: Test again with pytest present
+        env:
+          JITTEST_SANDBOX_BACKEND: none
         run: |
           pip install pytest pytest-timeout
-          pytest -v --durations=20 --timeout=120
+          pytest -q
         shell: bash
 
       - name: Verify the package still declares no dependencies

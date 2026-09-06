@@ -146,7 +146,7 @@ def _usable(binary: str, args: list[str]) -> bool:
     try:
         proc = subprocess.run(
             [binary, *args], capture_output=True, text=True,
-            errors="replace", timeout=20,
+            errors="replace", timeout=3,
         )
     except (OSError, subprocess.SubprocessError):
         return False
@@ -177,6 +177,9 @@ def detect_backend(preferred: str = "") -> str:
     yields a stronger result there. ``preferred`` pins one backend for testing
     and for users who have both and want the other.
     """
+    if not preferred:
+        preferred = os.getenv("JITTEST_SANDBOX_BACKEND", "").strip().lower()
+
     candidates = ["podman", "docker", "bubblewrap"]
     if preferred:
         if preferred not in candidates:
