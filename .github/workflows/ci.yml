@@ -46,7 +46,7 @@ jobs:
           JITTEST_SANDBOX_BACKEND: none
         run: |
           pip install pytest pytest-timeout
-          pytest -q
+          pytest -v --durations=20 --timeout=60
         shell: bash
 
       - name: Verify the package still declares no dependencies

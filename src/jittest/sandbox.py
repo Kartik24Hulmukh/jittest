@@ -177,8 +177,12 @@ def detect_backend(preferred: str = "") -> str:
     yields a stronger result there. ``preferred`` pins one backend for testing
     and for users who have both and want the other.
     """
+    env_backend = os.getenv("JITTEST_SANDBOX_BACKEND", "").strip().lower()
+    if env_backend == "none" and not preferred:
+        return "none"
+
     if not preferred:
-        preferred = os.getenv("JITTEST_SANDBOX_BACKEND", "").strip().lower()
+        preferred = env_backend
 
     candidates = ["podman", "docker", "bubblewrap"]
     if preferred:
@@ -212,6 +216,7 @@ def probe_backend(backend: str, image: str = DEFAULT_IMAGE) -> tuple[bool, str]:
     """
     if backend == "none":
         return True, ""
+
     if backend == "bubblewrap":
         import tempfile
         try:
