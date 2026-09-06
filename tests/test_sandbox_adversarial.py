@@ -96,10 +96,16 @@ assert not written, "Filesystem escape write succeeded outside checkout"
 
 def test_timeout_child_spawner_cleaned_up():
     """Verify that a container spawning background children is killed by name on timeout and cleaned up."""
+    import os
     import subprocess
 
     from jittest.execute import _run_process
     from jittest.sandbox import detect_backend
+
+    if os.environ.get("JITTEST_E2E_DOCKER") != "1":
+        if pytest is not None:
+            pytest.skip("Container spawner test requires JITTEST_E2E_DOCKER=1; marked NOT_RUN")
+        return
 
     backend = detect_backend()
     if backend not in ("docker", "podman"):
