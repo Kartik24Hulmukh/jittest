@@ -69,8 +69,11 @@ def _run_verify_cli(repo: Path, *args: str, cwd: Path | None = None) -> subproce
     root = Path(__file__).resolve().parents[1]
     env = dict(os.environ)
     env["PYTHONPATH"] = os.pathsep.join([str(root / "src"), env.get("PYTHONPATH", "")]).rstrip(os.pathsep)
+    extra_args: list[str] = []
+    if not any(a.startswith("--sandbox-mode") for a in args) and "--no-sandbox" not in args:
+        extra_args.extend(["--sandbox-mode", "off"])
     return subprocess.run(
-        [sys.executable, "-m", "jittest.cli", "verify", "--repo", str(repo), *args],
+        [sys.executable, "-m", "jittest.cli", "verify", "--repo", str(repo), *extra_args, *args],
         capture_output=True,
         text=True,
         errors="replace",
@@ -91,6 +94,7 @@ def test_verify_known_bug_produces_proven_catch():
             head_ref=head_sha,
             test_file_path=test_file,
             output_path=out_artifact,
+            sandbox_mode="off",
         )
 
         assert exit_code == 0
@@ -121,6 +125,7 @@ def test_verify_non_discriminating_test():
             head_ref=base_sha,
             test_file_path=test_file,
             output_path=out_artifact,
+            sandbox_mode="off",
         )
 
         assert exit_code == 1

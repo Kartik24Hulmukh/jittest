@@ -195,7 +195,7 @@ def probe_backend(backend: str, image: str = DEFAULT_IMAGE) -> tuple[bool, str]:
     argv = _probe_argv(backend, image)
     try:
         proc = subprocess.run(
-            argv, capture_output=True, text=True, errors="replace", timeout=15,
+            argv, capture_output=True, text=True, errors="replace", timeout=5,
         )
     except subprocess.TimeoutExpired:
         return False, f"{backend} probe timed out"
@@ -519,21 +519,26 @@ def _wrap_bwrap(argv: list[str], workdir: Path, env: dict[str, str]) -> list[str
                 bwrap_cmd.extend(["--dir", str(parent)])
         bwrap_cmd.extend(["--ro-bind", sys.prefix, sys.prefix])
 
-    home_dir = env.get("HOME", "/tmp/jt-home")
-    bwrap_cmd.extend(["--tmpfs", home_dir])
+    home_dir = "/tmp/jt-home"
+    bwrap_cmd.extend(["--dir", home_dir, "--tmpfs", home_dir])
     for parent in list(workdir.parents)[::-1]:
         if str(parent) != "/":
             bwrap_cmd.extend(["--dir", str(parent)])
+    bwrap_cmd.extend(["--dir", str(workdir)])
     bwrap_cmd.extend(["--bind", str(workdir), str(workdir)])
     bwrap_cmd.extend(["--chdir", str(workdir)])
     bwrap_cmd.append("--clearenv")
 
-    filtered_env = {k: v for k, v in env.items() if _is_allowed_container_env(k) and k != "PATH"}
+    filtered_env = {k: v for k, v in env.items() if _is_allowed_container_env(k) and k not in ("PATH", "HOME")}
     filtered_env["JITTEST_INSIDE_SANDBOX"] = "1"
+    filtered_env["HOME"] = home_dir
     for k, v in sorted(filtered_env.items()):
         bwrap_cmd.extend(["--setenv", k, v])
     bwrap_cmd.extend(["--setenv", "PATH", env.get("PATH", os.environ.get("PATH", "/usr/bin:/bin"))])
 
-    bwrap_cmd.extend(argv)
+    inner_argv = list(argv)
+    if inner_argv and (inner_argv[0] == "python" or inner_argv[0].endswith("/python")):
+        inner_argv[0] = _host_python()
+    bwrap_cmd.extend(inner_argv)
     return bwrap_cmd
 

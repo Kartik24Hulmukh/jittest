@@ -155,7 +155,7 @@ def _preflight_environment(
             capture_output=True,
             text=True,
             errors="replace",
-            timeout=30,
+            timeout=15,
         )
         if res.returncode != 0:
             if getattr(sbx_plan, "backend", "none") in ("docker", "podman", "bubblewrap"):
@@ -168,14 +168,14 @@ def _preflight_environment(
                     capture_output=True,
                     text=True,
                     errors="replace",
-                    timeout=30,
+                    timeout=15,
                 )
                 if res_sys.returncode == 0:
                     return
             err_msg = res.stderr.strip() or res.stdout.strip()
             raise EnvSetupError(f"Preflight python & pytest import check failed:\nSTDERR:\n{err_msg[-1000:]}")
     except subprocess.TimeoutExpired as exc:
-        raise EnvSetupError(f"env_build_timeout: preflight python import check timed out after 30s: {exc}") from exc
+        raise EnvSetupError(f"env_build_timeout: preflight python import check timed out after 15s: {exc}") from exc
     except Exception as exc:
         from .verify import VerifyRefusalError
 
@@ -194,7 +194,7 @@ def _preflight_environment(
             capture_output=True,
             text=True,
             errors="replace",
-            timeout=30,
+            timeout=15,
         )
         if res_pytest.returncode != 0:
             if getattr(sbx_plan, "backend", "none") in ("docker", "podman", "bubblewrap"):
@@ -202,7 +202,7 @@ def _preflight_environment(
             err_msg = res_pytest.stderr.strip() or res_pytest.stdout.strip()
             raise EnvSetupError(f"Preflight pytest --version check failed:\nSTDERR:\n{err_msg[-1000:]}")
     except subprocess.TimeoutExpired as exc:
-        raise EnvSetupError(f"env_build_timeout: preflight pytest --version check timed out after 30s: {exc}") from exc
+        raise EnvSetupError(f"env_build_timeout: preflight pytest --version check timed out after 15s: {exc}") from exc
     except Exception as exc:
         from .verify import VerifyRefusalError
 
