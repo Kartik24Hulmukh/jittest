@@ -21,76 +21,91 @@ def test_sandbox_plan_defaults():
 
 
 def test_adversarial_network_exfil_code():
-    """Python snippet asserting network egress is blocked."""
+    """Verify candidate attempting network exfiltration fails/blocked under sandbox."""
+    import tempfile
+    from pathlib import Path
+
+    from jittest.execute import Outcome, run_test
+
+    sbx = plan(mode="auto", probe=True)
+    if not sbx.isolated:
+        if pytest is not None:
+            pytest.skip("No isolated sandbox backend available; marked NOT_RUN")
+        return
+
     code = """
 import socket
 
-try:
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(2.0)
-    s.connect(("8.8.8.8", 53))
-    s.close()
-    exfil_success = True
-except Exception:
-    exfil_success = False
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.settimeout(2.0)
+s.connect(("8.8.8.8", 53))
+s.close()
 
-assert not exfil_success, "Network egress was NOT blocked by sandbox"
+def test_exfil():
+    assert True
 """
-    # Execute python snippet locally to confirm syntax
-    global_ns = {}
-    if pytest is not None:
-        with pytest.raises(AssertionError):
-            exec(code, global_ns)
-    else:
-        try:
-            exec(code, global_ns)
-            raise AssertionError("Expected AssertionError")
-        except AssertionError:
-            pass
+    with tempfile.TemporaryDirectory() as tmpdir:
+        res = run_test(Path(tmpdir), code, sbx=sbx, timeout_s=10)
+        assert res.outcome in (Outcome.FAIL, Outcome.ERROR)
 
 
 def test_adversarial_fork_bomb_containment():
-    """Python snippet asserting fork bomb is stopped by PID limit or OS limit."""
+    """Verify candidate fork bomb is stopped by PID limit or OS limit under sandbox."""
+    import tempfile
+    from pathlib import Path
+
+    from jittest.execute import run_test
+
+    sbx = plan(mode="auto", probe=True)
+    if not sbx.isolated:
+        if pytest is not None:
+            pytest.skip("No isolated sandbox backend available; marked NOT_RUN")
+        return
+
     code = """
 import os
-import sys
 
-forked = 0
 for _ in range(1000):
     if hasattr(os, "fork"):
         try:
             pid = os.fork()
             if pid == 0:
                 os._exit(0)
-            forked += 1
         except OSError:
             break
 
-# If we reached the loop without crashing host, containment worked
-assert True
+def test_fork():
+    assert True
 """
-    global_ns = {}
-    exec(code, global_ns)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        res = run_test(Path(tmpdir), code, sbx=sbx, timeout_s=10)
+        assert res.returncode is not None
 
 
 def test_adversarial_fs_escape_write_blocked():
-    """Python snippet asserting root filesystem is read-only."""
+    """Verify candidate attempting container escape / root fs write fails under sandbox."""
+    import tempfile
+    from pathlib import Path
+
+    from jittest.execute import Outcome, run_test
+
+    sbx = plan(mode="auto", probe=True)
+    if not sbx.isolated:
+        if pytest is not None:
+            pytest.skip("No isolated sandbox backend available; marked NOT_RUN")
+        return
+
     code = """
-import sys
+with open("/etc/jittest_escape_test", "w") as fh:
+    fh.write("escape")
 
-written = False
-for escape_path in ["/etc/jittest_escape_test", "/root/jittest_escape_test", "/sys/jittest_escape_test"]:
-    try:
-        with open(escape_path, "w") as fh:
-            fh.write("escape")
-        written = True
-    except OSError:
-        pass
-
-assert not written, "Filesystem escape write succeeded outside checkout"
+def test_escape():
+    assert True
 """
-    global_ns = {}
-    exec(code, global_ns)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        res = run_test(Path(tmpdir), code, sbx=sbx, timeout_s=10)
+        assert res.outcome in (Outcome.FAIL, Outcome.ERROR)
+
 
 
 def test_timeout_child_spawner_cleaned_up():

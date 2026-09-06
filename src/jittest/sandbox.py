@@ -195,7 +195,7 @@ def probe_backend(backend: str, image: str = DEFAULT_IMAGE) -> tuple[bool, str]:
     argv = _probe_argv(backend, image)
     try:
         proc = subprocess.run(
-            argv, capture_output=True, text=True, errors="replace", timeout=180,
+            argv, capture_output=True, text=True, errors="replace", timeout=15,
         )
     except subprocess.TimeoutExpired:
         return False, f"{backend} probe timed out"
@@ -215,9 +215,32 @@ def _probe_argv(backend: str, image: str) -> list[str]:
     if backend in ("docker", "podman"):
         return [backend, "run", "--rm", "--network", "none", image,
                 "python", "-c", marker]
-    return ["bwrap", "--unshare-all", "--ro-bind", "/", "/", "--dev", "/dev",
-            "--proc", "/proc", "--tmpfs", "/tmp", "--die-with-parent",
-            _host_python(), "-c", marker]
+    bwrap_cmd = [
+        "bwrap",
+        "--unshare-all",
+        "--unshare-user",
+        "--uid",
+        "65534",
+        "--gid",
+        "65534",
+        "--die-with-parent",
+        "--new-session",
+        "--dev",
+        "/dev",
+        "--proc",
+        "/proc",
+        "--tmpfs",
+        "/tmp",
+    ]
+    for p in ("/usr", "/lib", "/lib64", "/bin", "/etc/alternatives", "/etc/ld.so.cache", "/opt"):
+        if os.path.exists(p):
+            bwrap_cmd.extend(["--ro-bind", p, p])
+    py_host = _host_python()
+    if sys.prefix and os.path.exists(sys.prefix) and not any(sys.prefix.startswith(b) for b in ("/usr", "/opt")):
+        bwrap_cmd.extend(["--ro-bind", sys.prefix, sys.prefix])
+    bwrap_cmd.extend(["--setenv", "PATH", os.environ.get("PATH", "/usr/bin:/bin")])
+    bwrap_cmd.extend([py_host, "-c", marker])
+    return bwrap_cmd
 
 
 def _host_python() -> str:
@@ -497,6 +520,8 @@ def _wrap_bwrap(argv: list[str], workdir: Path, env: dict[str, str]) -> list[str
     filtered_env["JITTEST_INSIDE_SANDBOX"] = "1"
     for k, v in sorted(filtered_env.items()):
         bwrap_cmd.extend(["--setenv", k, v])
+    bwrap_cmd.extend(["--setenv", "PATH", env.get("PATH", os.environ.get("PATH", "/usr/bin:/bin"))])
 
     bwrap_cmd.extend(argv)
     return bwrap_cmd
+
