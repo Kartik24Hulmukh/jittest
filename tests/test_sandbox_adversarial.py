@@ -45,7 +45,7 @@ def test_exfil():
     assert True
 """
     with tempfile.TemporaryDirectory() as tmpdir:
-        res = run_test(Path(tmpdir), code, sbx=sbx, timeout_s=10)
+        res = run_test(Path(tmpdir), code, sbx=sbx, timeout_s=5)
         assert res.outcome in (Outcome.FAIL, Outcome.ERROR)
 
 
@@ -86,7 +86,7 @@ def test_fork():
     assert True
 """
     with tempfile.TemporaryDirectory() as tmpdir:
-        res = run_test(Path(tmpdir), code, sbx=sbx, timeout_s=10)
+        res = run_test(Path(tmpdir), code, sbx=sbx, timeout_s=5)
         assert res.returncode is not None
 
 
@@ -111,7 +111,7 @@ def test_escape():
     assert True
 """
     with tempfile.TemporaryDirectory() as tmpdir:
-        res = run_test(Path(tmpdir), code, sbx=sbx, timeout_s=10)
+        res = run_test(Path(tmpdir), code, sbx=sbx, timeout_s=5)
         assert res.outcome in (Outcome.FAIL, Outcome.ERROR)
 
 

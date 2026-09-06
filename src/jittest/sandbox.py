@@ -153,6 +153,23 @@ def _usable(binary: str, args: list[str]) -> bool:
     return proc.returncode == 0
 
 
+def _bwrap_usable() -> bool:
+    """Is bwrap present and capable of unsharing user namespaces?"""
+    if not shutil.which("bwrap"):
+        return False
+    try:
+        proc = subprocess.run(
+            ["bwrap", "--unshare-user", "--uid", "65534", "--gid", "65534", "true"],
+            capture_output=True,
+            text=True,
+            errors="replace",
+            timeout=2,
+        )
+        return proc.returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
 def detect_backend(preferred: str = "") -> str:
     """Return the best available backend name, or ``"none"``.
 
@@ -169,7 +186,7 @@ def detect_backend(preferred: str = "") -> str:
     for name in candidates:
         if name in ("podman", "docker") and _usable(name, ["info", "--format", "{{.ID}}"]):
             return name
-        if name == "bubblewrap" and _usable("bwrap", ["--version"]):
+        if name == "bubblewrap" and _bwrap_usable():
             return "bubblewrap"
     return "none"
 
@@ -249,8 +266,6 @@ def _probe_argv(backend: str, image: str) -> list[str]:
         "/dev",
         "--proc",
         "/proc",
-        "--tmpfs",
-        "/tmp",
     ]
     for p in (
         "/usr", "/lib", "/lib64", "/bin",
@@ -524,8 +539,6 @@ def _wrap_bwrap(argv: list[str], workdir: Path, env: dict[str, str]) -> list[str
         "/dev",
         "--proc",
         "/proc",
-        "--tmpfs",
-        "/tmp",
     ]
 
     # Mount essential system directories read-only instead of host root /

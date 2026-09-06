@@ -215,30 +215,34 @@ def detect_runner(python_exe: str | Path | None = None, workdir: Path | None = N
     exe = str(python_exe) if python_exe else sys.executable
     if os.getenv("JITTEST_FORCE_MINIRUNNER") == "1":
         return [exe, "-m", "jittest._minirunner"]
-    env = _env_for(workdir) if workdir else None
-    probe = subprocess.run(
-        [exe, "-m", "pytest", "--version"],
-        env=env,
-        cwd=str(workdir) if workdir else None,
-        capture_output=True,
-        text=True,
-        errors="replace",
-    )
-    if probe.returncode == 0:
-        return [
-            exe,
-            "-m",
-            "pytest",
-            "-q",
-            "-p",
-            "no:cacheprovider",
-            "-W",
-            "ignore::pytest.PytestRemovedIn10Warning",
-            "-W",
-            "ignore::pytest.PytestDeprecationWarning",
-            "-W",
-            "ignore::DeprecationWarning",
-        ]
+    try:
+        env = _env_for(workdir) if workdir else None
+        probe = subprocess.run(
+            [exe, "-m", "pytest", "--version"],
+            env=env,
+            cwd=str(workdir) if workdir else None,
+            capture_output=True,
+            text=True,
+            errors="replace",
+            timeout=10,
+        )
+        if probe.returncode == 0:
+            return [
+                exe,
+                "-m",
+                "pytest",
+                "-q",
+                "-p",
+                "no:cacheprovider",
+                "-W",
+                "ignore::pytest.PytestRemovedIn10Warning",
+                "-W",
+                "ignore::pytest.PytestDeprecationWarning",
+                "-W",
+                "ignore::DeprecationWarning",
+            ]
+    except (subprocess.TimeoutExpired, OSError):
+        pass
     return [exe, "-m", "jittest._minirunner"]
 
 
