@@ -573,7 +573,7 @@ def run_test(workdir: Path, test_code: str, timeout_s: int = 120,
     else:
         candidate = workdir / f"{CANDIDATE_PREFIX}{token}.py"
     candidate.write_text(test_code, encoding="utf-8")
-    if sbx is not None and sbx.isolated and sbx.backend in ("docker", "podman"):
+    if sbx is not None and sbx.isolated and sbx.backend in ("docker", "podman", "bubblewrap"):
         runner = [str(python_path) if python_path else "python", "-m", "jittest._minirunner"]
     else:
         runner = detect_runner(python_path, workdir=workdir)

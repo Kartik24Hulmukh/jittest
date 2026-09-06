@@ -60,6 +60,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -475,11 +476,16 @@ def _wrap_bwrap(argv: list[str], workdir: Path, env: dict[str, str]) -> list[str
         "/tmp",
     ]
 
-    # Mount only essential system directories read-only instead of host root /
-    system_binds = ["/usr", "/lib", "/lib64", "/bin", "/etc/alternatives", "/etc/ld.so.cache"]
+    # Mount essential system directories read-only instead of host root /
+    system_binds = ["/usr", "/lib", "/lib64", "/bin", "/etc/alternatives", "/etc/ld.so.cache", "/opt"]
     for p in system_binds:
         if os.path.exists(p):
             bwrap_cmd.extend(["--ro-bind", p, p])
+
+    if _PACKAGE_ROOT.exists() and not str(_PACKAGE_ROOT).startswith(("/usr", "/opt")):
+        bwrap_cmd.extend(["--ro-bind", str(_PACKAGE_ROOT), str(_PACKAGE_ROOT)])
+    if sys.prefix and os.path.exists(sys.prefix) and not any(sys.prefix.startswith(b) for b in ("/usr", "/opt")):
+        bwrap_cmd.extend(["--ro-bind", sys.prefix, sys.prefix])
 
     home_dir = env.get("HOME", "/tmp/jt-home")
     bwrap_cmd.extend(["--tmpfs", home_dir])

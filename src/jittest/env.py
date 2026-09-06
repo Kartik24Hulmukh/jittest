@@ -158,7 +158,7 @@ def _preflight_environment(
             timeout=30,
         )
         if res.returncode != 0:
-            if getattr(sbx_plan, "backend", "none") in ("docker", "podman"):
+            if getattr(sbx_plan, "backend", "none") in ("docker", "podman", "bubblewrap"):
                 sys_cmd = [str(python_exe), "-I", "-s", "-B", "-c", "import sys"]
                 sys_argv, sys_env = sandbox.wrap(sys_cmd, worktree_dir, allowlist_env, sbx_plan)
                 res_sys = subprocess.run(
@@ -197,7 +197,7 @@ def _preflight_environment(
             timeout=30,
         )
         if res_pytest.returncode != 0:
-            if getattr(sbx_plan, "backend", "none") in ("docker", "podman"):
+            if getattr(sbx_plan, "backend", "none") in ("docker", "podman", "bubblewrap"):
                 return
             err_msg = res_pytest.stderr.strip() or res_pytest.stdout.strip()
             raise EnvSetupError(f"Preflight pytest --version check failed:\nSTDERR:\n{err_msg[-1000:]}")
@@ -507,9 +507,9 @@ def provision_environment(
             )
         )
 
-    # 2. Dependency-bearing check under container isolation
-    is_container = sbx_plan is not None and getattr(sbx_plan, "backend", "none") in ("docker", "podman")
-    if is_container and manifest.declared_dependencies:
+    # 2. Dependency-bearing check under isolation (Option D)
+    is_isolated = sbx_plan is not None and getattr(sbx_plan, "backend", "none") in ("docker", "podman", "bubblewrap")
+    if is_isolated and manifest.declared_dependencies:
         details = f"declared dependencies: {', '.join(manifest.declared_dependencies[:5])}"
         raise VerifyRefusalError(
             RefusalReason(
@@ -521,15 +521,17 @@ def provision_environment(
         )
 
     cutoff = get_commit_cutoff(repo, commit_sha)
-    if is_container:
+    if is_isolated:
+        is_bwrap = getattr(sbx_plan, "backend", "none") == "bubblewrap"
+        py_exe = str(sys.executable) if is_bwrap else "python"
         return {
             "venv_dir": "",
-            "python_path": "python",
+            "python_path": py_exe,
             "cached": True,
-            "cache_key": f"container_{commit_sha[:16]}",
+            "cache_key": f"isolated_{commit_sha[:16]}",
             "lockfile_sha256": "",
             "exclude_newer_cutoff": cutoff,
-            "interpreter_version": "python",
+            "interpreter_version": py_exe,
             "resolved_versions": [],
             "has_project_dependencies": False,
         }
