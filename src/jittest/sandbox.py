@@ -237,6 +237,9 @@ def _probe_argv(backend: str, image: str) -> list[str]:
             bwrap_cmd.extend(["--ro-bind", p, p])
     py_host = _host_python()
     if sys.prefix and os.path.exists(sys.prefix) and not any(sys.prefix.startswith(b) for b in ("/usr", "/opt")):
+        for parent in list(Path(sys.prefix).parents)[::-1]:
+            if str(parent) != "/":
+                bwrap_cmd.extend(["--dir", str(parent)])
         bwrap_cmd.extend(["--ro-bind", sys.prefix, sys.prefix])
     bwrap_cmd.extend(["--setenv", "PATH", os.environ.get("PATH", "/usr/bin:/bin")])
     bwrap_cmd.extend([py_host, "-c", marker])
@@ -506,12 +509,21 @@ def _wrap_bwrap(argv: list[str], workdir: Path, env: dict[str, str]) -> list[str
             bwrap_cmd.extend(["--ro-bind", p, p])
 
     if _PACKAGE_ROOT.exists() and not str(_PACKAGE_ROOT).startswith(("/usr", "/opt")):
+        for parent in list(_PACKAGE_ROOT.parents)[::-1]:
+            if str(parent) != "/":
+                bwrap_cmd.extend(["--dir", str(parent)])
         bwrap_cmd.extend(["--ro-bind", str(_PACKAGE_ROOT), str(_PACKAGE_ROOT)])
     if sys.prefix and os.path.exists(sys.prefix) and not any(sys.prefix.startswith(b) for b in ("/usr", "/opt")):
+        for parent in list(Path(sys.prefix).parents)[::-1]:
+            if str(parent) != "/":
+                bwrap_cmd.extend(["--dir", str(parent)])
         bwrap_cmd.extend(["--ro-bind", sys.prefix, sys.prefix])
 
     home_dir = env.get("HOME", "/tmp/jt-home")
     bwrap_cmd.extend(["--tmpfs", home_dir])
+    for parent in list(workdir.parents)[::-1]:
+        if str(parent) != "/":
+            bwrap_cmd.extend(["--dir", str(parent)])
     bwrap_cmd.extend(["--bind", str(workdir), str(workdir)])
     bwrap_cmd.extend(["--chdir", str(workdir)])
     bwrap_cmd.append("--clearenv")

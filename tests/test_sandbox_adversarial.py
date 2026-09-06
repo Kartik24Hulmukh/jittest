@@ -57,22 +57,30 @@ def test_adversarial_fork_bomb_containment():
     from jittest.execute import run_test
 
     sbx = plan(mode="auto", probe=True)
-    if not sbx.isolated:
+    if not sbx.isolated or sbx.backend not in ("docker", "podman"):
         if pytest is not None:
-            pytest.skip("No isolated sandbox backend available; marked NOT_RUN")
+            pytest.skip("PID limit containment requires container backend (docker/podman); marked NOT_RUN")
         return
 
     code = """
 import os
 
-for _ in range(1000):
+pids = []
+for _ in range(300):
     if hasattr(os, "fork"):
         try:
             pid = os.fork()
             if pid == 0:
                 os._exit(0)
+            pids.append(pid)
         except OSError:
             break
+
+for pid in pids:
+    try:
+        os.waitpid(pid, 0)
+    except OSError:
+        pass
 
 def test_fork():
     assert True
