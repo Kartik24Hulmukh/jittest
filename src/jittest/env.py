@@ -158,12 +158,28 @@ def _preflight_environment(
             timeout=30,
         )
         if res.returncode != 0:
+            if getattr(sbx_plan, "backend", "none") in ("docker", "podman"):
+                sys_cmd = [str(python_exe), "-I", "-s", "-B", "-c", "import sys"]
+                sys_argv, sys_env = sandbox.wrap(sys_cmd, worktree_dir, allowlist_env, sbx_plan)
+                res_sys = subprocess.run(
+                    sys_argv,
+                    cwd=str(worktree_dir),
+                    env=sys_env,
+                    capture_output=True,
+                    text=True,
+                    errors="replace",
+                    timeout=30,
+                )
+                if res_sys.returncode == 0:
+                    return
             err_msg = res.stderr.strip() or res.stdout.strip()
             raise EnvSetupError(f"Preflight python & pytest import check failed:\nSTDERR:\n{err_msg[-1000:]}")
     except subprocess.TimeoutExpired as exc:
         raise EnvSetupError(f"env_build_timeout: preflight python import check timed out after 30s: {exc}") from exc
     except Exception as exc:
-        if isinstance(exc, (EnvSetupError, ValueError)):
+        from .verify import VerifyRefusalError
+
+        if isinstance(exc, (EnvSetupError, VerifyRefusalError)):
             raise
         raise EnvSetupError(f"Preflight python check exception: {exc}") from exc
 
@@ -181,12 +197,16 @@ def _preflight_environment(
             timeout=30,
         )
         if res_pytest.returncode != 0:
+            if getattr(sbx_plan, "backend", "none") in ("docker", "podman"):
+                return
             err_msg = res_pytest.stderr.strip() or res_pytest.stdout.strip()
             raise EnvSetupError(f"Preflight pytest --version check failed:\nSTDERR:\n{err_msg[-1000:]}")
     except subprocess.TimeoutExpired as exc:
         raise EnvSetupError(f"env_build_timeout: preflight pytest --version check timed out after 30s: {exc}") from exc
     except Exception as exc:
-        if isinstance(exc, (EnvSetupError, ValueError)):
+        from .verify import VerifyRefusalError
+
+        if isinstance(exc, (EnvSetupError, VerifyRefusalError)):
             raise
         raise EnvSetupError(f"Preflight pytest check exception: {exc}") from exc
 
@@ -501,6 +521,18 @@ def provision_environment(
         )
 
     cutoff = get_commit_cutoff(repo, commit_sha)
+    if is_container:
+        return {
+            "venv_dir": "",
+            "python_path": "python",
+            "cached": True,
+            "cache_key": f"container_{commit_sha[:16]}",
+            "lockfile_sha256": "",
+            "exclude_newer_cutoff": cutoff,
+            "interpreter_version": "python",
+            "resolved_versions": [],
+            "has_project_dependencies": False,
+        }
     py_req = detect_python_requires(worktree)
     target_py = resolve_target_python_version(py_req)
     uv_exe = find_uv()

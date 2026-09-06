@@ -9,7 +9,14 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-import pytest
+try:
+    import pytest
+except ModuleNotFoundError as exc:  # pragma: no cover - dependency-free ci.yml step
+    import unittest
+
+    raise unittest.SkipTest(
+        "requires pytest; skipped by the zero-dependency unittest run in ci.yml"
+    ) from exc
 
 from jittest.diff import git_env
 from jittest.execute import FailureKind, Outcome

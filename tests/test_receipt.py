@@ -94,7 +94,7 @@ def test_signing_key_posix_mode_refusal():
         mock_stat.st_mode = 0o100644
 
         def selective_stat(self, *args, **kwargs):
-            if str(self) == str(key_file):
+            if getattr(self, "name", None) == key_file.name:
                 return mock_stat
             return orig_stat(self, *args, **kwargs)
 

@@ -106,15 +106,17 @@ def test_timeout_child_spawner_cleaned_up():
             pytest.skip(f"No running container backend available ({backend}); marked NOT_RUN")
         return
 
-    try:
-        chk = subprocess.run([backend, "info"], capture_output=True, timeout=5)
-        if chk.returncode != 0:
-            if pytest is not None:
-                pytest.skip("Docker daemon not reachable; marked NOT_RUN")
-            return
-    except Exception:
+    from jittest.sandbox import _image_present, probe_backend
+
+    if not _image_present(backend, "python:3.13-slim"):
         if pytest is not None:
-            pytest.skip("Docker daemon not reachable; marked NOT_RUN")
+            pytest.skip("Container image python:3.13-slim not present locally; marked NOT_RUN")
+        return
+
+    ok, detail = probe_backend(backend, "python:3.13-slim")
+    if not ok:
+        if pytest is not None:
+            pytest.skip(f"Container backend probe failed ({detail}); marked NOT_RUN")
         return
 
     import uuid
