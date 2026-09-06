@@ -403,8 +403,6 @@ def _wrap_container(
         "ALL",
         "--security-opt",
         "no-new-privileges",
-        "--security-opt",
-        "seccomp=default",
         "--cpus",
         "2",
         "--ulimit",

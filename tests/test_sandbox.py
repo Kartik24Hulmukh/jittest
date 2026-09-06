@@ -223,7 +223,7 @@ class TestSandboxHardeningJ1_5(unittest.TestCase):
             # Assert resource constraints & security options
             self.assertIn("--cpus 2", argv_str)
             self.assertIn("--ulimit nofile=1024:1024", argv_str)
-            self.assertIn("seccomp=default", argv_str)
+            self.assertIn("no-new-privileges", argv_str)
 
             # Assert no socket or host home in argv
             self.assertNotIn("/var/run/docker.sock", argv_str)

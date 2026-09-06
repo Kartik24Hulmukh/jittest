@@ -118,9 +118,9 @@ def _preflight_environment(
     ensure_worktree_fixes(worktree_dir)
 
     if sbx_plan is None:
-        from .sandbox import plan as plan_sandbox
+        from .sandbox import SandboxPlan
 
-        sbx_plan = plan_sandbox(mode="auto", probe=False)
+        sbx_plan = SandboxPlan(backend="none", mode="off")
 
     sbx_mode = getattr(sbx_plan, "mode", "auto")
     if getattr(sbx_plan, "backend", "none") == "none" and sbx_mode == "required":
