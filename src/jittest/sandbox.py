@@ -192,6 +192,25 @@ def probe_backend(backend: str, image: str = DEFAULT_IMAGE) -> tuple[bool, str]:
     """
     if backend == "none":
         return True, ""
+    if backend == "bubblewrap":
+        import tempfile
+        try:
+            with tempfile.TemporaryDirectory(prefix="jittest-probe-") as pdir:
+                pw = Path(pdir)
+                cmd = _wrap_bwrap([_host_python(), "-c", "print('jittest-sandbox-ok')"], pw, {"PATH": os.environ.get("PATH", "/usr/bin:/bin")})
+                proc = subprocess.run(cmd, capture_output=True, text=True, errors="replace", timeout=5)
+                if proc.returncode != 0:
+                    detail = (proc.stderr or proc.stdout or "").strip().splitlines()
+                    return False, f"bubblewrap probe exited {proc.returncode}: " + (
+                        detail[-1] if detail else "no output")
+                if "jittest-sandbox-ok" not in proc.stdout:
+                    return False, "bubblewrap probe produced no confirmation"
+                return True, ""
+        except subprocess.TimeoutExpired:
+            return False, "bubblewrap probe timed out"
+        except OSError as exc:
+            return False, f"bubblewrap probe could not start: {exc}"
+
     argv = _probe_argv(backend, image)
     try:
         proc = subprocess.run(

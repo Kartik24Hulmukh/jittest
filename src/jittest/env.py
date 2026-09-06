@@ -543,6 +543,18 @@ def provision_environment(
     discovered_pkgs, req_files = _discover_extras_and_requirements(worktree)
     has_lockfiles = bool(lockfile_hash and lockfile_hash != "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
     has_project_deps = bool(manifest.declared_dependencies or has_lockfiles or discovered_pkgs or req_files)
+    if not has_project_deps:
+        return {
+            "venv_dir": "",
+            "python_path": str(sys.executable),
+            "cached": True,
+            "cache_key": f"stdlib_{commit_sha[:16]}",
+            "lockfile_sha256": "",
+            "exclude_newer_cutoff": cutoff,
+            "interpreter_version": f"Python {sys.version.split()[0]}",
+            "resolved_versions": [],
+            "has_project_dependencies": False,
+        }
     cache_key_raw = f"{repo}:{commit_sha}:{target_py}:{cutoff}:{lockfile_hash}"
     cache_key = hashlib.sha256(cache_key_raw.encode("utf-8")).hexdigest()[:16]
 

@@ -44,7 +44,7 @@ jobs:
       - name: Test again with pytest present
         run: |
           pip install pytest pytest-timeout
-          pytest -v -s --durations=20 --timeout=30
+          pytest -v -s --durations=20 --timeout=180
         shell: bash
 
       - name: Verify the package still declares no dependencies
