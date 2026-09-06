@@ -468,11 +468,42 @@ def _failure_kind_from_junit(report: Path) -> FailureKind:
 
 def _failure_kind_from_output(text: str) -> FailureKind:
     """Fallback for the mini-runner, which writes no junit report."""
-    if "AssertionError" in text or " assert " in text:
+    if not text.strip():
+        return FailureKind.UNKNOWN
+    # Inspect each line for explicit runner failure tags or pytest markers
+    for line in text.splitlines():
+        line_s = line.strip()
+        if line_s.startswith("FAIL "):
+            # Format: FAIL <label>: <ExcType>: <exc>
+            parts = line_s.split(":", 2)
+            if len(parts) >= 2:
+                exc_part = parts[1].strip()
+                if exc_part == "AssertionError" or exc_part.startswith("AssertionError "):
+                    return FailureKind.ASSERTION
+                if exc_part.endswith("Error") or exc_part.endswith("Exception"):
+                    return FailureKind.ERROR
+        if line_s.startswith("E "):
+            rest = line_s[2:].strip()
+            if rest.startswith("assert ") or rest.startswith("AssertionError"):
+                return FailureKind.ASSERTION
+            if any(rest.startswith(err) for err in ("TypeError", "AttributeError", "ValueError", "KeyError", "IndexError", "Exception")):
+                return FailureKind.ERROR
+
+    # Check the final exception line in traceback
+    for line in reversed(text.splitlines()):
+        line_s = line.strip()
+        if not line_s:
+            continue
+        if line_s.startswith("AssertionError"):
+            return FailureKind.ASSERTION
+        if ": " in line_s:
+            prefix = line_s.split(":", 1)[0]
+            if (prefix.endswith("Error") or prefix.endswith("Exception")) and " " not in prefix:
+                return FailureKind.ERROR
+
+    if "AssertionError" in text:
         return FailureKind.ASSERTION
-    if text.strip():
-        return FailureKind.ERROR
-    return FailureKind.UNKNOWN
+    return FailureKind.ERROR
 
 
 def _run_process(command: list[str], cwd: str, env: dict, timeout_s: int):

@@ -237,6 +237,7 @@ def _probe_argv(backend: str, image: str) -> list[str]:
     bwrap_cmd = [
         "bwrap",
         "--unshare-all",
+        "--loopback",
         "--unshare-user",
         "--uid",
         "65534",
@@ -251,7 +252,12 @@ def _probe_argv(backend: str, image: str) -> list[str]:
         "--tmpfs",
         "/tmp",
     ]
-    for p in ("/usr", "/lib", "/lib64", "/bin", "/etc/alternatives", "/etc/ld.so.cache", "/opt"):
+    for p in (
+        "/usr", "/lib", "/lib64", "/bin",
+        "/etc/alternatives", "/etc/ld.so.cache",
+        "/etc/passwd", "/etc/group", "/etc/nsswitch.conf",
+        "/etc/hosts", "/etc/resolv.conf", "/opt",
+    ):
         if os.path.exists(p):
             bwrap_cmd.extend(["--ro-bind", p, p])
     py_host = _host_python()
@@ -506,6 +512,7 @@ def _wrap_bwrap(argv: list[str], workdir: Path, env: dict[str, str]) -> list[str
     bwrap_cmd = [
         "bwrap",
         "--unshare-all",
+        "--loopback",
         "--unshare-user",
         "--uid",
         "65534",
@@ -522,7 +529,20 @@ def _wrap_bwrap(argv: list[str], workdir: Path, env: dict[str, str]) -> list[str
     ]
 
     # Mount essential system directories read-only instead of host root /
-    system_binds = ["/usr", "/lib", "/lib64", "/bin", "/etc/alternatives", "/etc/ld.so.cache", "/opt"]
+    system_binds = [
+        "/usr",
+        "/lib",
+        "/lib64",
+        "/bin",
+        "/etc/alternatives",
+        "/etc/ld.so.cache",
+        "/etc/passwd",
+        "/etc/group",
+        "/etc/nsswitch.conf",
+        "/etc/hosts",
+        "/etc/resolv.conf",
+        "/opt",
+    ]
     for p in system_binds:
         if os.path.exists(p):
             bwrap_cmd.extend(["--ro-bind", p, p])

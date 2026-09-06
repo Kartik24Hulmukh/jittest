@@ -2,10 +2,13 @@
 
 import json
 import os
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from jittest.action import get_trust_context, is_test_file, run_action
 from jittest.sandbox import SandboxPlan
