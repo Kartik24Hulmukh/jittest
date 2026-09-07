@@ -53,14 +53,21 @@ jobs:
           PYTHONUNBUFFERED: "1"
           JITTEST_SANDBOX_BACKEND: none
         run: |
-          rc=0
+          exec > test_stdout.log 2>&1
           if command -v timeout >/dev/null 2>&1 && [ "$RUNNER_OS" != "Windows" ]; then
-            timeout --kill-after=15s 600s python scripts/run_ci_tests.py > test_stdout.log 2>&1 || rc=$?
+            timeout --kill-after=15s 600s python scripts/run_ci_tests.py
           else
-            python scripts/run_ci_tests.py > test_stdout.log 2>&1 || rc=$?
+            python scripts/run_ci_tests.py
           fi
-          cat test_stdout.log
-          exit $rc
+        shell: bash
+
+      - name: Print test results
+        if: always()
+        run: |
+          if [ -f test_stdout.log ]; then
+            echo "=== TEST STDOUT & STDERR ==="
+            cat test_stdout.log
+          fi
         shell: bash
 
       - name: Print last 100 lines of test run log
@@ -77,7 +84,9 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: test-run-log-${{ matrix.os }}-${{ matrix.python }}
-          path: test_run.log
+          path: |
+            test_run.log
+            test_stdout.log
           if-no-files-found: ignore
 
       - name: Verify the package still declares no dependencies
