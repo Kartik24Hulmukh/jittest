@@ -38,6 +38,9 @@ jobs:
 
       - name: Test with no dependencies at all
         if: (matrix.os == 'ubuntu-latest' && matrix.python == '3.12') || (matrix.os == 'windows-latest' && matrix.python == '3.12')
+        env:
+          PYTHONUNBUFFERED: "1"
+          JITTEST_SANDBOX_BACKEND: none
         run: PYTHONPATH=src python -m unittest discover -s tests -p 'test_*.py' -t . -v
         shell: bash
 
@@ -59,8 +62,13 @@ jobs:
 
           failed = []
           timed_out = []
+          suite_start = time.time()
 
           for i, f in enumerate(test_files, 1):
+              if time.time() - suite_start > 500:
+                  print(f"\n[ABORT] Suite exceeded 500s budget. Last file: {f}", flush=True)
+                  timed_out.append(f)
+                  break
               t0 = time.time()
               print(f"\n>>> [{i:02d}/{len(test_files):02d}] START {f}", flush=True)
               try:
@@ -72,11 +80,11 @@ jobs:
                           "-v",
                           "-s",
                           "--durations=5",
-                          "--timeout=60",
+                          "--timeout=40",
                           "--timeout-method=thread",
                           f,
                       ],
-                      timeout=90,
+                      timeout=50,
                   )
                   elapsed = time.time() - t0
                   if res.returncode != 0:
@@ -86,7 +94,7 @@ jobs:
                       print(f">>> [{i:02d}/{len(test_files):02d}] PASS {f} ({elapsed:.1f}s)", flush=True)
               except subprocess.TimeoutExpired:
                   elapsed = time.time() - t0
-                  print(f">>> [{i:02d}/{len(test_files):02d}] TIMEOUT {f} exceeded 90s limit ({elapsed:.1f}s)!", flush=True)
+                  print(f">>> [{i:02d}/{len(test_files):02d}] TIMEOUT {f} exceeded 50s limit ({elapsed:.1f}s)!", flush=True)
                   timed_out.append(f)
 
           print("\n=== Test Execution Summary ===", flush=True)

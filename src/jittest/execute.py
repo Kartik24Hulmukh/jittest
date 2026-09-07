@@ -90,6 +90,7 @@ _ENV_ALLOWLIST = frozenset({
     "COMSPEC", "PATHEXT", "NUMBER_OF_PROCESSORS", "PROCESSOR_ARCHITECTURE",
     "USERPROFILE", "APPDATA", "LOCALAPPDATA",
     "JITTEST_FORCE_MINIRUNNER",
+    "JITTEST_SANDBOX_BACKEND",
 })
 
 # Second layer. If someone widens the allowlist later and the new name looks

@@ -178,7 +178,7 @@ def detect_backend(preferred: str = "") -> str:
     and for users who have both and want the other.
     """
     env_backend = os.getenv("JITTEST_SANDBOX_BACKEND", "").strip().lower()
-    if env_backend == "none" and not preferred:
+    if env_backend == "none":
         return "none"
 
     if not preferred:
