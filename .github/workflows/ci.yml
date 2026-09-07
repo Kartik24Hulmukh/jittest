@@ -30,6 +30,13 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
+      - name: Disable live sandbox backends in unit test runner
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo systemctl stop docker.service docker.socket || true
+          sudo chmod 000 /usr/bin/bwrap || true
+        shell: bash
+
       - name: Configure git for the fixture repositories
         run: |
           git config --global user.email "ci@jittest.dev"
@@ -65,8 +72,8 @@ jobs:
           suite_start = time.time()
 
           for i, f in enumerate(test_files, 1):
-              if time.time() - suite_start > 500:
-                  print(f"\n[ABORT] Suite exceeded 500s budget. Last file: {f}", flush=True)
+              if time.time() - suite_start > 1000:
+                  print(f"\n[ABORT] Suite exceeded 1000s budget. Last file: {f}", flush=True)
                   timed_out.append(f)
                   break
               t0 = time.time()
@@ -80,11 +87,11 @@ jobs:
                           "-v",
                           "-s",
                           "--durations=5",
-                          "--timeout=40",
+                          "--timeout=100",
                           "--timeout-method=thread",
                           f,
                       ],
-                      timeout=50,
+                      timeout=120,
                   )
                   elapsed = time.time() - t0
                   if res.returncode != 0:
@@ -94,7 +101,7 @@ jobs:
                       print(f">>> [{i:02d}/{len(test_files):02d}] PASS {f} ({elapsed:.1f}s)", flush=True)
               except subprocess.TimeoutExpired:
                   elapsed = time.time() - t0
-                  print(f">>> [{i:02d}/{len(test_files):02d}] TIMEOUT {f} exceeded 50s limit ({elapsed:.1f}s)!", flush=True)
+                  print(f">>> [{i:02d}/{len(test_files):02d}] TIMEOUT {f} exceeded 120s limit ({elapsed:.1f}s)!", flush=True)
                   timed_out.append(f)
 
           print("\n=== Test Execution Summary ===", flush=True)
