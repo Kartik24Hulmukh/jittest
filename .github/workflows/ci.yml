@@ -52,13 +52,7 @@ jobs:
         env:
           PYTHONUNBUFFERED: "1"
           JITTEST_SANDBOX_BACKEND: none
-        run: |
-          exec > test_stdout.log 2>&1
-          if command -v timeout >/dev/null 2>&1 && [ "$RUNNER_OS" != "Windows" ]; then
-            timeout --kill-after=15s 600s python scripts/run_ci_tests.py
-          else
-            python scripts/run_ci_tests.py
-          fi
+        run: python scripts/run_ci_tests.py
         shell: bash
 
       - name: Print test results

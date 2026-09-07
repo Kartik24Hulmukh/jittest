@@ -137,13 +137,74 @@ def _dump_tail(file_path: str, log_fn) -> None:
 
 
 def _kill_process_group(proc: subprocess.Popen) -> None:
+    """Kill a process and all its descendants aggressively."""
+    # First, collect all descendant PIDs (recursive) on Linux via /proc.
+    descendants: list[int] = []
+    if sys.platform == "linux":
+        descendants = _get_all_descendants(proc.pid)
+
+    # 1) Try SIGTERM on the process group for graceful shutdown.
+    if hasattr(os, "killpg") and hasattr(os, "getpgid"):
+        with contextlib.suppress(OSError):
+            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+
+    # 2) SIGTERM each descendant individually (they may have different pgids).
+    for pid in descendants:
+        with contextlib.suppress(OSError):
+            os.kill(pid, signal.SIGTERM)
+
+    # Give processes a brief moment to exit cleanly.
+    with contextlib.suppress(Exception):
+        proc.wait(timeout=3)
+
+    # 3) SIGKILL the process group.
     if hasattr(os, "killpg") and hasattr(os, "getpgid"):
         with contextlib.suppress(OSError):
             os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+
+    # 4) SIGKILL each descendant individually.
+    for pid in descendants:
+        with contextlib.suppress(OSError):
+            os.kill(pid, signal.SIGKILL)
+
+    # 5) Kill the main process directly.
     with contextlib.suppress(OSError):
         proc.kill()
     with contextlib.suppress(Exception):
         proc.wait(timeout=5)
+
+
+def _get_all_descendants(pid: int) -> list[int]:
+    """Recursively find all descendant PIDs via /proc on Linux."""
+    descendants: list[int] = []
+    try:
+        children_path = Path(f"/proc/{pid}/task/{pid}/children")
+        if children_path.exists():
+            child_pids = children_path.read_text().split()
+            for cpid_str in child_pids:
+                cpid = int(cpid_str)
+                descendants.append(cpid)
+                descendants.extend(_get_all_descendants(cpid))
+        else:
+            # Fallback: scan /proc for processes whose ppid matches.
+            for entry in Path("/proc").iterdir():
+                if not entry.name.isdigit():
+                    continue
+                try:
+                    status = (entry / "status").read_text()
+                    for line in status.splitlines():
+                        if line.startswith("PPid:"):
+                            ppid = int(line.split()[1])
+                            if ppid == pid:
+                                cpid = int(entry.name)
+                                descendants.append(cpid)
+                                descendants.extend(_get_all_descendants(cpid))
+                            break
+                except (OSError, ValueError):
+                    continue
+    except (OSError, ValueError):
+        pass
+    return descendants
 
 
 if __name__ == "__main__":
