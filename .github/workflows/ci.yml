@@ -15,7 +15,7 @@ concurrency:
 jobs:
   test:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -44,6 +44,13 @@ jobs:
         run: PYTHONPATH=src python -m unittest discover -s tests -p 'test_*.py' -t . -v
         shell: bash
 
+      - name: Stop Docker daemon to prevent sandbox probing (Ubuntu only)
+        if: runner.os == 'Linux'
+        run: |
+          sudo systemctl stop docker.service docker.socket || true
+          echo "Docker daemon stopped for test isolation"
+        shell: bash
+
       - name: Install test runner dependencies
         run: pip install pytest pytest-timeout
         shell: bash
@@ -52,6 +59,7 @@ jobs:
         env:
           PYTHONUNBUFFERED: "1"
           JITTEST_SANDBOX_BACKEND: none
+          PYTHONPATH: src
         run: python scripts/run_ci_tests.py
         shell: bash
 

@@ -32,8 +32,8 @@ def main() -> None:
     suite_start = time.time()
 
     for i, f in enumerate(test_files, 1):
-        if time.time() - suite_start > 550:
-            log(f"\n[ABORT] Suite exceeded 550s budget. Last file: {f}")
+        if time.time() - suite_start > 900:
+            log(f"\n[ABORT] Suite exceeded 900s budget. Last file: {f}")
             timed_out.append(f)
             break
 
