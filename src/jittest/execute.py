@@ -529,10 +529,6 @@ def _run_process(command: list[str], cwd: str, env: dict, timeout_s: int):
         popen_kwargs["creationflags"] = getattr(
             subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
 
-    proc = subprocess.Popen(
-        command, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        text=True, errors="replace", **popen_kwargs,
-    )
     container_name = None
     container_backend = None
     if command and command[0] in ("docker", "podman") and "--name" in command:
@@ -544,16 +540,32 @@ def _run_process(command: list[str], cwd: str, env: dict, timeout_s: int):
         except (ValueError, IndexError):
             pass
 
-    try:
-        out, err = proc.communicate(timeout=timeout_s)
-    except subprocess.TimeoutExpired:
-        _kill_tree(proc, container_name=container_name, backend=container_backend)
-        # Reap what we just signalled. If it will not die even now, say so by
-        # timing out again rather than blocking the run forever.
-        with contextlib.suppress(subprocess.TimeoutExpired):
-            proc.communicate(timeout=10)
-        raise
-    return proc.returncode, out or "", err or ""
+    with tempfile.TemporaryFile(mode="w+b") as stdout_f, tempfile.TemporaryFile(mode="w+b") as stderr_f:
+        proc = subprocess.Popen(
+            command,
+            cwd=cwd,
+            env=env,
+            stdin=subprocess.DEVNULL,
+            stdout=stdout_f,
+            stderr=stderr_f,
+            close_fds=True,
+            **popen_kwargs,
+        )
+        try:
+            proc.wait(timeout=timeout_s)
+        except subprocess.TimeoutExpired:
+            _kill_tree(proc, container_name=container_name, backend=container_backend)
+            # Reap what we just signalled. If it will not die even now, say so by
+            # timing out again rather than blocking the run forever.
+            with contextlib.suppress(subprocess.TimeoutExpired):
+                proc.wait(timeout=10)
+            raise
+        finally:
+            stdout_f.seek(0)
+            out = stdout_f.read().decode("utf-8", errors="replace")
+            stderr_f.seek(0)
+            err = stderr_f.read().decode("utf-8", errors="replace")
+        return proc.returncode, out or "", err or ""
 
 
 def _kill_tree(

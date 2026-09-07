@@ -152,3 +152,26 @@ def test_kill_tree_kills_container_by_name():
         assert ["docker", "kill", "jittest-1234"] in calls
         assert any("ps" in c and "name=jittest-1234" in str(c) for c in calls)
         mock_proc.kill.assert_called_once()
+
+
+def test_run_process_detached_child_does_not_deadlock():
+    """Verify that a candidate leaving a detached child process does not deadlock _run_process."""
+    import sys
+    import time
+
+    from jittest.execute import _run_process
+
+    cmd = [
+        sys.executable,
+        "-c",
+        "import subprocess, sys, time; "
+        "subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(5)']); "
+        "print('candidate_complete')"
+    ]
+    t0 = time.time()
+    code, out, err = _run_process(cmd, cwd=".", env={}, timeout_s=10)
+    elapsed = time.time() - t0
+    assert code == 0
+    assert "candidate_complete" in out
+    assert elapsed < 3.0, f"_run_process took {elapsed}s, expected <3s (likely wedged on child fd)"
+
