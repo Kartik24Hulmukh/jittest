@@ -83,21 +83,22 @@ def main() -> None:
                     log(f">>> [{i:02d}/{len(test_files):02d}] TIMEOUT {f} exceeded 100s limit ({elapsed:.1f}s)!")
                     timed_out.append(f)
                     _kill_process_group(proc)
-                    _dump_tail(out_tmp_path, log)
-                    continue
-
-                elapsed = time.time() - t0
-                if proc.returncode != 0:
-                    log(f">>> [{i:02d}/{len(test_files):02d}] FAIL {f} (exit {proc.returncode}, {elapsed:.1f}s)")
-                    failed.append((f, proc.returncode))
-                    _dump_tail(out_tmp_path, log)
                 else:
-                    log(f">>> [{i:02d}/{len(test_files):02d}] PASS {f} ({elapsed:.1f}s)")
+                    elapsed = time.time() - t0
+                    if proc.returncode != 0:
+                        log(f">>> [{i:02d}/{len(test_files):02d}] FAIL {f} (exit {proc.returncode}, {elapsed:.1f}s)")
+                        failed.append((f, proc.returncode))
+                    else:
+                        log(f">>> [{i:02d}/{len(test_files):02d}] PASS {f} ({elapsed:.1f}s)")
             except Exception as exc:
                 log(f">>> [{i:02d}/{len(test_files):02d}] ERROR {f}: {exc}")
                 failed.append((f, -1))
                 if proc:
                     _kill_process_group(proc)
+
+        # After out_fh is closed, safely dump output tail if failed or timed out
+        if (failed and failed[-1][0] == f) or (timed_out and timed_out[-1] == f):
+            _dump_tail(out_tmp_path, log)
 
     with contextlib.suppress(OSError):
         if os.path.exists(out_tmp_path):

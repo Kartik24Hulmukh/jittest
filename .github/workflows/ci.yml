@@ -30,19 +30,6 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      - name: Disable live sandbox backends in unit test runner
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo systemctl stop docker.service docker.socket || true
-          sudo systemctl stop podman.service podman.socket || true
-          for bin in podman docker bwrap; do
-            p=$(which $bin 2>/dev/null || true)
-            if [ -n "$p" ]; then
-              sudo chmod 000 "$p" || true
-            fi
-          done
-        shell: bash
-
       - name: Configure git for the fixture repositories
         run: |
           git config --global user.email "ci@jittest.dev"
@@ -57,13 +44,20 @@ jobs:
         run: PYTHONPATH=src python -m unittest discover -s tests -p 'test_*.py' -t . -v
         shell: bash
 
+      - name: Install test runner dependencies
+        run: pip install pytest pytest-timeout
+        shell: bash
+
       - name: Test again with pytest present
         env:
           PYTHONUNBUFFERED: "1"
           JITTEST_SANDBOX_BACKEND: none
         run: |
-          pip install pytest pytest-timeout
-          python scripts/run_ci_tests.py
+          if command -v timeout >/dev/null 2>&1 && [ "$RUNNER_OS" != "Windows" ]; then
+            timeout --kill-after=15s 600s python scripts/run_ci_tests.py
+          else
+            python scripts/run_ci_tests.py
+          fi
         shell: bash
 
       - name: Print last 100 lines of test run log
