@@ -44,52 +44,14 @@ jobs:
         run: PYTHONPATH=src python -m unittest discover -s tests -p 'test_*.py' -t . -v
         shell: bash
 
-      - name: Stop Docker daemon to prevent sandbox probing (Ubuntu only)
-        if: runner.os == 'Linux'
-        run: |
-          sudo systemctl stop docker.service docker.socket || true
-          echo "Docker daemon stopped for test isolation"
-        shell: bash
-
-      - name: Install test runner dependencies
-        run: pip install pytest pytest-timeout
-        shell: bash
-
       - name: Test again with pytest present
         env:
-          PYTHONUNBUFFERED: "1"
-          JITTEST_SANDBOX_BACKEND: none
           PYTHONPATH: src
-        run: python scripts/run_ci_tests.py
-        shell: bash
-
-      - name: Print test results
-        if: always()
+          JITTEST_SANDBOX_BACKEND: none
         run: |
-          if [ -f test_stdout.log ]; then
-            echo "=== TEST STDOUT & STDERR ==="
-            cat test_stdout.log
-          fi
+          pip install pytest pytest-timeout
+          pytest -q -o timeout=60
         shell: bash
-
-      - name: Print last 100 lines of test run log
-        if: always()
-        run: |
-          if [ -f test_run.log ]; then
-            echo "=== LAST 100 LINES OF test_run.log ==="
-            tail -n 100 test_run.log
-          fi
-        shell: bash
-
-      - name: Upload test run log artifact
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: test-run-log-${{ matrix.os }}-${{ matrix.python }}
-          path: |
-            test_run.log
-            test_stdout.log
-          if-no-files-found: ignore
 
       - name: Verify the package still declares no dependencies
         run: |

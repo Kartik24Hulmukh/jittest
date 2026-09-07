@@ -600,18 +600,21 @@ def provision_environment(
     venv_dir.parent.mkdir(parents=True, exist_ok=True)
 
     # Create virtualenv with uv (or fallback to python -m venv)
+    current_py = f"{sys.version_info.major}.{sys.version_info.minor}"
     venv_created = False
     if uv_exe:
-        with contextlib.suppress(Exception):
-            subprocess.run([uv_exe, "python", "install", target_py], capture_output=True, timeout=120)
+        py_for_venv = str(sys.executable) if target_py == current_py else target_py
+        if target_py != current_py:
+            with contextlib.suppress(Exception):
+                subprocess.run([uv_exe, "python", "install", target_py], capture_output=True, timeout=120)
 
         try:
             res_uv_venv = subprocess.run(
-                [uv_exe, "venv", "--python", target_py, str(venv_dir)],
+                [uv_exe, "venv", "--python", py_for_venv, str(venv_dir)],
                 capture_output=True,
                 text=True,
                 errors="replace",
-                timeout=120,
+                timeout=30,
             )
             if res_uv_venv.returncode == 0:
                 venv_created = True
