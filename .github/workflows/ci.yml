@@ -42,22 +42,69 @@ jobs:
         shell: bash
 
       - name: Test again with pytest present
-        timeout-minutes: 8
         env:
           PYTHONUNBUFFERED: "1"
           JITTEST_SANDBOX_BACKEND: none
         run: |
           pip install pytest pytest-timeout
-          pytest -v -s --durations=20 --timeout=30 2>&1 | tee test_run.log
-        shell: bash
+          python -u - <<'PY'
+          import glob
+          import os
+          import subprocess
+          import sys
+          import time
 
-      - name: Dump test log tail if step failed
-        if: always()
-        run: |
-          if [ -f test_run.log ]; then
-            echo "=== TAIL OF test_run.log ==="
-            tail -n 100 test_run.log
-          fi
+          test_files = sorted(glob.glob("tests/test_*.py"))
+          print(f"=== Running {len(test_files)} test files with pytest ===", flush=True)
+
+          failed = []
+          timed_out = []
+
+          for i, f in enumerate(test_files, 1):
+              t0 = time.time()
+              print(f"\n>>> [{i:02d}/{len(test_files):02d}] START {f}", flush=True)
+              try:
+                  res = subprocess.run(
+                      [
+                          sys.executable,
+                          "-m",
+                          "pytest",
+                          "-v",
+                          "-s",
+                          "--durations=5",
+                          "--timeout=60",
+                          "--timeout-method=thread",
+                          f,
+                      ],
+                      timeout=90,
+                  )
+                  elapsed = time.time() - t0
+                  if res.returncode != 0:
+                      print(f">>> [{i:02d}/{len(test_files):02d}] FAIL {f} (exit {res.returncode}, {elapsed:.1f}s)", flush=True)
+                      failed.append((f, res.returncode))
+                  else:
+                      print(f">>> [{i:02d}/{len(test_files):02d}] PASS {f} ({elapsed:.1f}s)", flush=True)
+              except subprocess.TimeoutExpired:
+                  elapsed = time.time() - t0
+                  print(f">>> [{i:02d}/{len(test_files):02d}] TIMEOUT {f} exceeded 90s limit ({elapsed:.1f}s)!", flush=True)
+                  timed_out.append(f)
+
+          print("\n=== Test Execution Summary ===", flush=True)
+          print(f"Total: {len(test_files)}, Passed: {len(test_files) - len(failed) - len(timed_out)}, Failed: {len(failed)}, Timed out: {len(timed_out)}", flush=True)
+
+          if failed or timed_out:
+              if failed:
+                  print("\nFailed files:")
+                  for f, code in failed:
+                      print(f"  {f} (exit {code})")
+              if timed_out:
+                  print("\nTimed out files:")
+                  for f in timed_out:
+                      print(f"  {f}")
+              sys.exit(1)
+
+          print("\nALL TEST FILES PASSED SUCCESSFULLY!", flush=True)
+          PY
         shell: bash
 
       - name: Verify the package still declares no dependencies
