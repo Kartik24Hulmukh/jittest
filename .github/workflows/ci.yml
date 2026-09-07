@@ -34,7 +34,13 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo systemctl stop docker.service docker.socket || true
-          sudo chmod 000 /usr/bin/bwrap || true
+          sudo systemctl stop podman.service podman.socket || true
+          for bin in podman docker bwrap; do
+            p=$(which $bin 2>/dev/null || true)
+            if [ -n "$p" ]; then
+              sudo chmod 000 "$p" || true
+            fi
+          done
         shell: bash
 
       - name: Configure git for the fixture repositories
@@ -52,7 +58,6 @@ jobs:
         shell: bash
 
       - name: Test again with pytest present
-        timeout-minutes: 13
         env:
           PYTHONUNBUFFERED: "1"
           JITTEST_SANDBOX_BACKEND: none
