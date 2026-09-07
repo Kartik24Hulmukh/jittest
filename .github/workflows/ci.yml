@@ -42,11 +42,22 @@ jobs:
         shell: bash
 
       - name: Test again with pytest present
+        timeout-minutes: 8
         env:
+          PYTHONUNBUFFERED: "1"
           JITTEST_SANDBOX_BACKEND: none
         run: |
           pip install pytest pytest-timeout
-          pytest -v --durations=20 --timeout=60
+          pytest -v -s --durations=20 --timeout=30 2>&1 | tee test_run.log
+        shell: bash
+
+      - name: Dump test log tail if step failed
+        if: always()
+        run: |
+          if [ -f test_run.log ]; then
+            echo "=== TAIL OF test_run.log ==="
+            tail -n 100 test_run.log
+          fi
         shell: bash
 
       - name: Verify the package still declares no dependencies
