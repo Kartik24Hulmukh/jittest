@@ -424,15 +424,26 @@ def resolve_target_python_version(python_requires: str) -> str:
     if "<3.13" in python_requires or "<=3.12" in python_requires:
         return "3.12"
 
+    curr_ver = (sys.version_info.major, sys.version_info.minor)
     if ">=3.12" in python_requires:
+        if curr_ver >= (3, 12):
+            return f"{curr_ver[0]}.{curr_ver[1]}"
         return "3.12"
     if ">=3.11" in python_requires:
+        if curr_ver >= (3, 11):
+            return f"{curr_ver[0]}.{curr_ver[1]}"
         return "3.11"
     if ">=3.10" in python_requires:
+        if curr_ver >= (3, 10):
+            return f"{curr_ver[0]}.{curr_ver[1]}"
         return "3.10"
     if ">=3.9" in python_requires:
+        if curr_ver >= (3, 9):
+            return f"{curr_ver[0]}.{curr_ver[1]}"
         return "3.9"
     if ">=3.8" in python_requires:
+        if curr_ver >= (3, 8):
+            return f"{curr_ver[0]}.{curr_ver[1]}"
         return "3.10"
 
     return f"{sys.version_info.major}.{sys.version_info.minor}"
@@ -606,7 +617,7 @@ def provision_environment(
         py_for_venv = str(sys.executable) if target_py == current_py else target_py
         if target_py != current_py:
             with contextlib.suppress(Exception):
-                subprocess.run([uv_exe, "python", "install", target_py], capture_output=True, timeout=120)
+                subprocess.run([uv_exe, "python", "install", target_py], capture_output=True, timeout=5)
 
         try:
             res_uv_venv = subprocess.run(

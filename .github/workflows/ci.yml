@@ -14,6 +14,7 @@ concurrency:
 
 jobs:
   test:
+    name: test (${{ matrix.os }}, ${{ matrix.python }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     strategy:
@@ -53,7 +54,7 @@ jobs:
           # thread-based timeout can break a C-level pipe/wait block (signal method cannot);
           # faulthandler dumps stacks if anything wedges again; external timeout caps the job.
           if command -v timeout >/dev/null 2>&1; then
-            timeout -k 30 1500 pytest -q -o timeout=60 -o timeout_method=thread -o faulthandler_timeout=240
+            timeout -k 30 600 pytest -q -o timeout=60 -o timeout_method=thread -o faulthandler_timeout=240
           else
             pytest -q -o timeout=60 -o timeout_method=thread -o faulthandler_timeout=240
           fi

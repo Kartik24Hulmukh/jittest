@@ -151,7 +151,21 @@ def test_kill_tree_kills_container_by_name():
         calls = [c[0][0] for c in mock_sub.call_args_list]
         assert ["docker", "kill", "jittest-1234"] in calls
         assert any("ps" in c and "name=jittest-1234" in str(c) for c in calls)
-        mock_proc.kill.assert_called_once()
+        # On POSIX, _kill_tree signals the whole process group and returns
+        # before ever touching proc.kill; assert that path instead.
+        import os as _os
+        if hasattr(_os, "killpg") and hasattr(_os, "getpgid"):
+            mock_sub.reset_mock()
+            with mock.patch("os.killpg") as mock_killpg, \
+                    mock.patch("os.getpgid", return_value=4242):
+                _kill_tree(mock_proc)
+                mock_killpg.assert_called_once()
+                sig = mock_killpg.call_args[0][1]
+                assert int(sig) == int(__import__("signal").SIGKILL)
+                assert mock_killpg.call_args[0][0] == 4242
+                mock_proc.kill.assert_not_called()
+        else:
+            mock_proc.kill.assert_called_once()
 
 
 def test_run_process_detached_child_does_not_deadlock():
