@@ -90,6 +90,7 @@ _ENV_ALLOWLIST = frozenset({
     "COMSPEC", "PATHEXT", "NUMBER_OF_PROCESSORS", "PROCESSOR_ARCHITECTURE",
     "USERPROFILE", "APPDATA", "LOCALAPPDATA",
     "JITTEST_FORCE_MINIRUNNER",
+    "JITTEST_SANDBOX_BACKEND",
 })
 
 # Second layer. If someone widens the allowlist later and the new name looks
@@ -215,30 +216,34 @@ def detect_runner(python_exe: str | Path | None = None, workdir: Path | None = N
     exe = str(python_exe) if python_exe else sys.executable
     if os.getenv("JITTEST_FORCE_MINIRUNNER") == "1":
         return [exe, "-m", "jittest._minirunner"]
-    env = _env_for(workdir) if workdir else None
-    probe = subprocess.run(
-        [exe, "-m", "pytest", "--version"],
-        env=env,
-        cwd=str(workdir) if workdir else None,
-        capture_output=True,
-        text=True,
-        errors="replace",
-    )
-    if probe.returncode == 0:
-        return [
-            exe,
-            "-m",
-            "pytest",
-            "-q",
-            "-p",
-            "no:cacheprovider",
-            "-W",
-            "ignore::pytest.PytestRemovedIn10Warning",
-            "-W",
-            "ignore::pytest.PytestDeprecationWarning",
-            "-W",
-            "ignore::DeprecationWarning",
-        ]
+    try:
+        env = _env_for(workdir) if workdir else None
+        probe = subprocess.run(
+            [exe, "-m", "pytest", "--version"],
+            env=env,
+            cwd=str(workdir) if workdir else None,
+            capture_output=True,
+            text=True,
+            errors="replace",
+            timeout=10,
+        )
+        if probe.returncode == 0:
+            return [
+                exe,
+                "-m",
+                "pytest",
+                "-q",
+                "-p",
+                "no:cacheprovider",
+                "-W",
+                "ignore::pytest.PytestRemovedIn10Warning",
+                "-W",
+                "ignore::pytest.PytestDeprecationWarning",
+                "-W",
+                "ignore::DeprecationWarning",
+            ]
+    except (subprocess.TimeoutExpired, OSError):
+        pass
     return [exe, "-m", "jittest._minirunner"]
 
 
@@ -468,11 +473,42 @@ def _failure_kind_from_junit(report: Path) -> FailureKind:
 
 def _failure_kind_from_output(text: str) -> FailureKind:
     """Fallback for the mini-runner, which writes no junit report."""
-    if "AssertionError" in text or " assert " in text:
+    if not text.strip():
+        return FailureKind.UNKNOWN
+    # Inspect each line for explicit runner failure tags or pytest markers
+    for line in text.splitlines():
+        line_s = line.strip()
+        if line_s.startswith("FAIL "):
+            # Format: FAIL <label>: <ExcType>: <exc>
+            parts = line_s.split(":", 2)
+            if len(parts) >= 2:
+                exc_part = parts[1].strip()
+                if exc_part == "AssertionError" or exc_part.startswith("AssertionError "):
+                    return FailureKind.ASSERTION
+                if exc_part.endswith("Error") or exc_part.endswith("Exception"):
+                    return FailureKind.ERROR
+        if line_s.startswith("E "):
+            rest = line_s[2:].strip()
+            if rest.startswith("assert ") or rest.startswith("AssertionError"):
+                return FailureKind.ASSERTION
+            if any(rest.startswith(err) for err in ("TypeError", "AttributeError", "ValueError", "KeyError", "IndexError", "Exception")):
+                return FailureKind.ERROR
+
+    # Check the final exception line in traceback
+    for line in reversed(text.splitlines()):
+        line_s = line.strip()
+        if not line_s:
+            continue
+        if line_s.startswith("AssertionError"):
+            return FailureKind.ASSERTION
+        if ": " in line_s:
+            prefix = line_s.split(":", 1)[0]
+            if (prefix.endswith("Error") or prefix.endswith("Exception")) and " " not in prefix:
+                return FailureKind.ERROR
+
+    if "AssertionError" in text:
         return FailureKind.ASSERTION
-    if text.strip():
-        return FailureKind.ERROR
-    return FailureKind.UNKNOWN
+    return FailureKind.ERROR
 
 
 def _run_process(command: list[str], cwd: str, env: dict, timeout_s: int):
@@ -493,27 +529,70 @@ def _run_process(command: list[str], cwd: str, env: dict, timeout_s: int):
         popen_kwargs["creationflags"] = getattr(
             subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
 
-    proc = subprocess.Popen(
-        command, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        text=True, errors="replace", **popen_kwargs,
-    )
-    try:
-        out, err = proc.communicate(timeout=timeout_s)
-    except subprocess.TimeoutExpired:
-        _kill_tree(proc)
-        # Reap what we just signalled. If it will not die even now, say so by
-        # timing out again rather than blocking the run forever.
-        with contextlib.suppress(subprocess.TimeoutExpired):
-            proc.communicate(timeout=10)
-        raise
-    return proc.returncode, out or "", err or ""
+    container_name = None
+    container_backend = None
+    if command and command[0] in ("docker", "podman") and "--name" in command:
+        container_backend = command[0]
+        try:
+            name_idx = command.index("--name")
+            if name_idx + 1 < len(command):
+                container_name = command[name_idx + 1]
+        except (ValueError, IndexError):
+            pass
+
+    with tempfile.TemporaryFile(mode="w+b") as stdout_f, tempfile.TemporaryFile(mode="w+b") as stderr_f:
+        proc = subprocess.Popen(
+            command,
+            cwd=cwd,
+            env=env,
+            stdin=subprocess.DEVNULL,
+            stdout=stdout_f,
+            stderr=stderr_f,
+            close_fds=True,
+            **popen_kwargs,
+        )
+        try:
+            proc.wait(timeout=timeout_s)
+        except subprocess.TimeoutExpired:
+            _kill_tree(proc, container_name=container_name, backend=container_backend)
+            # Reap what we just signalled. If it will not die even now, say so by
+            # timing out again rather than blocking the run forever.
+            with contextlib.suppress(subprocess.TimeoutExpired):
+                proc.wait(timeout=10)
+            raise
+        finally:
+            stdout_f.seek(0)
+            out = stdout_f.read().decode("utf-8", errors="replace")
+            stderr_f.seek(0)
+            err = stderr_f.read().decode("utf-8", errors="replace")
+        return proc.returncode, out or "", err or ""
 
 
-def _kill_tree(proc: subprocess.Popen) -> None:
-    """Best effort: signal the group, then the process. Never raise."""
+def _kill_tree(
+    proc: subprocess.Popen,
+    container_name: str | None = None,
+    backend: str | None = None,
+) -> None:
+    """Best effort: kill container if present, signal the group, then the process. Never raise."""
+    if container_name and backend in ("docker", "podman"):
+        with contextlib.suppress(Exception):
+            subprocess.run([backend, "kill", container_name], capture_output=True, timeout=10)
+        with contextlib.suppress(Exception):
+            chk = subprocess.run(
+                [backend, "ps", "-a", "--filter", f"name={container_name}", "--format", "{{.Names}}"],
+                capture_output=True,
+                text=True,
+                errors="replace",
+                timeout=10,
+            )
+            if chk.stdout.strip():
+                subprocess.run([backend, "rm", "-f", container_name], capture_output=True, timeout=10)
+
     try:
         if hasattr(os, "killpg") and hasattr(os, "getpgid"):
-            os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+            # SIGKILL does not exist on Windows; the group path is POSIX-only,
+            # but stay defensive so a stub platform degrades instead of raising.
+            os.killpg(os.getpgid(proc.pid), getattr(signal, "SIGKILL", signal.SIGTERM))
             return
     except OSError:
         # Covers ProcessLookupError: the group is already gone, which is the
@@ -544,7 +623,7 @@ def run_test(workdir: Path, test_code: str, timeout_s: int = 120,
     else:
         candidate = workdir / f"{CANDIDATE_PREFIX}{token}.py"
     candidate.write_text(test_code, encoding="utf-8")
-    if sbx is not None and sbx.isolated and sbx.backend in ("docker", "podman"):
+    if sbx is not None and sbx.isolated and sbx.backend in ("docker", "podman", "bubblewrap"):
         runner = [str(python_path) if python_path else "python", "-m", "jittest._minirunner"]
     else:
         runner = detect_runner(python_path, workdir=workdir)

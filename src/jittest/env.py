@@ -109,54 +109,104 @@ def ensure_worktree_fixes(worktree: Path) -> None:
                 v_file.write_text('version = "9.2.0.dev"\nversion_tuple = (9, 2, 0, "dev")\n', encoding="utf-8")
 
 
-def _preflight_environment(python_exe: Path, worktree_dir: Path) -> None:
-    """Preflight check: verify python can import sys and pytest works."""
+def _preflight_environment(
+    python_exe: Path,
+    worktree_dir: Path,
+    sbx_plan: Any | None = None,
+) -> None:
+    """Preflight check: verify python can import sys and pytest works inside isolation boundary."""
     ensure_worktree_fixes(worktree_dir)
 
-    import os
-    env = dict(os.environ)
+    if sbx_plan is None:
+        from .sandbox import SandboxPlan
+
+        sbx_plan = SandboxPlan(backend="none", mode="off")
+
+    sbx_mode = getattr(sbx_plan, "mode", "auto")
+    if getattr(sbx_plan, "backend", "none") == "none" and sbx_mode == "required":
+        from .verify import VerifyRefusalError
+
+        raise VerifyRefusalError("refused:pre_isolation_execution")
+
+    from . import sandbox
+
     src_dir = worktree_dir / "src"
     paths = [str(src_dir), str(worktree_dir)] if src_dir.is_dir() else [str(worktree_dir)]
-    existing_pp = env.get("PYTHONPATH", "")
-    env["PYTHONPATH"] = os.pathsep.join(paths + ([existing_pp] if existing_pp else []))
+    pp = os.pathsep.join(paths)
+
+    allowlist_env = {
+        "PATH": os.environ.get("PATH", ""),
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONSAFEPATH": "1",
+        "HOME": "/tmp/jt-home",
+        "LANG": os.environ.get("LANG", "C.UTF-8"),
+        "PYTHONPATH": pp,
+    }
+
+    probe_cmd = [str(python_exe), "-I", "-s", "-B", "-c", "import sys; import pytest"]
+    probe_argv, probe_env = sandbox.wrap(probe_cmd, worktree_dir, allowlist_env, sbx_plan)
 
     try:
         res = subprocess.run(
-            [str(python_exe), "-c", "import sys; import pytest"],
+            probe_argv,
             cwd=str(worktree_dir),
-            env=env,
+            env=probe_env,
             capture_output=True,
             text=True,
             errors="replace",
-            timeout=30,
+            timeout=15,
         )
         if res.returncode != 0:
+            if getattr(sbx_plan, "backend", "none") in ("docker", "podman", "bubblewrap"):
+                sys_cmd = [str(python_exe), "-I", "-s", "-B", "-c", "import sys"]
+                sys_argv, sys_env = sandbox.wrap(sys_cmd, worktree_dir, allowlist_env, sbx_plan)
+                res_sys = subprocess.run(
+                    sys_argv,
+                    cwd=str(worktree_dir),
+                    env=sys_env,
+                    capture_output=True,
+                    text=True,
+                    errors="replace",
+                    timeout=15,
+                )
+                if res_sys.returncode == 0:
+                    return
             err_msg = res.stderr.strip() or res.stdout.strip()
             raise EnvSetupError(f"Preflight python & pytest import check failed:\nSTDERR:\n{err_msg[-1000:]}")
     except subprocess.TimeoutExpired as exc:
-        raise EnvSetupError(f"env_build_timeout: preflight python import check timed out after 30s: {exc}") from exc
+        raise EnvSetupError(f"env_build_timeout: preflight python import check timed out after 15s: {exc}") from exc
     except Exception as exc:
-        if isinstance(exc, EnvSetupError):
+        from .verify import VerifyRefusalError
+
+        if isinstance(exc, (EnvSetupError, VerifyRefusalError)):
             raise
         raise EnvSetupError(f"Preflight python check exception: {exc}") from exc
 
+    pytest_cmd = [str(python_exe), "-I", "-s", "-B", "-m", "pytest", "--version"]
+    pytest_argv, pytest_env = sandbox.wrap(pytest_cmd, worktree_dir, allowlist_env, sbx_plan)
+
     try:
         res_pytest = subprocess.run(
-            [str(python_exe), "-m", "pytest", "--version"],
+            pytest_argv,
             cwd=str(worktree_dir),
-            env=env,
+            env=pytest_env,
             capture_output=True,
             text=True,
             errors="replace",
-            timeout=30,
+            timeout=15,
         )
         if res_pytest.returncode != 0:
+            if getattr(sbx_plan, "backend", "none") in ("docker", "podman", "bubblewrap"):
+                return
             err_msg = res_pytest.stderr.strip() or res_pytest.stdout.strip()
             raise EnvSetupError(f"Preflight pytest --version check failed:\nSTDERR:\n{err_msg[-1000:]}")
     except subprocess.TimeoutExpired as exc:
-        raise EnvSetupError(f"env_build_timeout: preflight pytest --version check timed out after 30s: {exc}") from exc
+        raise EnvSetupError(f"env_build_timeout: preflight pytest --version check timed out after 15s: {exc}") from exc
     except Exception as exc:
-        if isinstance(exc, EnvSetupError):
+        from .verify import VerifyRefusalError
+
+        if isinstance(exc, (EnvSetupError, VerifyRefusalError)):
             raise
         raise EnvSetupError(f"Preflight pytest check exception: {exc}") from exc
 
@@ -374,15 +424,26 @@ def resolve_target_python_version(python_requires: str) -> str:
     if "<3.13" in python_requires or "<=3.12" in python_requires:
         return "3.12"
 
+    curr_ver = (sys.version_info.major, sys.version_info.minor)
     if ">=3.12" in python_requires:
+        if curr_ver >= (3, 12):
+            return f"{curr_ver[0]}.{curr_ver[1]}"
         return "3.12"
     if ">=3.11" in python_requires:
+        if curr_ver >= (3, 11):
+            return f"{curr_ver[0]}.{curr_ver[1]}"
         return "3.11"
     if ">=3.10" in python_requires:
+        if curr_ver >= (3, 10):
+            return f"{curr_ver[0]}.{curr_ver[1]}"
         return "3.10"
     if ">=3.9" in python_requires:
+        if curr_ver >= (3, 9):
+            return f"{curr_ver[0]}.{curr_ver[1]}"
         return "3.9"
     if ">=3.8" in python_requires:
+        if curr_ver >= (3, 8):
+            return f"{curr_ver[0]}.{curr_ver[1]}"
         return "3.10"
 
     return f"{sys.version_info.major}.{sys.version_info.minor}"
@@ -410,6 +471,7 @@ def provision_environment(
     commit_sha: str,
     repo_path: Path | str,
     cache_root: Path | str | None = None,
+    sbx_plan: Any | None = None,
 ) -> dict[str, Any]:
     """Provision an isolated virtual environment for a worktree using uv era-correct resolution.
 
@@ -433,7 +495,57 @@ def provision_environment(
 
     ensure_worktree_fixes(worktree)
 
+    from .discovery import discover_manifest
+    from .verify import RefusalReason, VerifyRefusalError
+
+    manifest = discover_manifest(worktree)
+
+    # 1. Ambiguity & symlink escape checks
+    if manifest.ambiguous:
+        if manifest.symlink_escapes:
+            code = "symlink_escape"
+        elif any("syntax_error" in r or "parse_error" in r for r in manifest.reasons):
+            code = "unsupported_packaging"
+        else:
+            code = "ambiguous_build_metadata"
+        details = "; ".join(manifest.reasons)
+        raise VerifyRefusalError(
+            RefusalReason(
+                code=code,
+                message=f"Candidate worktree manifest is ambiguous: {details}",
+                phase="discovery",
+                details=details,
+            )
+        )
+
+    # 2. Dependency-bearing check under isolation (Option D)
+    is_isolated = sbx_plan is not None and getattr(sbx_plan, "backend", "none") in ("docker", "podman", "bubblewrap")
+    if is_isolated and manifest.declared_dependencies:
+        details = f"declared dependencies: {', '.join(manifest.declared_dependencies[:5])}"
+        raise VerifyRefusalError(
+            RefusalReason(
+                code="dependency_bearing",
+                message="isolation contract cannot import project dependencies in container mode",
+                phase="provision",
+                details=details,
+            )
+        )
+
     cutoff = get_commit_cutoff(repo, commit_sha)
+    if is_isolated:
+        is_bwrap = getattr(sbx_plan, "backend", "none") == "bubblewrap"
+        py_exe = str(sys.executable) if is_bwrap else "python"
+        return {
+            "venv_dir": "",
+            "python_path": py_exe,
+            "cached": True,
+            "cache_key": f"isolated_{commit_sha[:16]}",
+            "lockfile_sha256": "",
+            "exclude_newer_cutoff": cutoff,
+            "interpreter_version": py_exe,
+            "resolved_versions": [],
+            "has_project_dependencies": False,
+        }
     py_req = detect_python_requires(worktree)
     target_py = resolve_target_python_version(py_req)
     uv_exe = find_uv()
@@ -441,7 +553,19 @@ def provision_environment(
     lockfile_hash = _compute_lockfile_hash(worktree)
     discovered_pkgs, req_files = _discover_extras_and_requirements(worktree)
     has_lockfiles = bool(lockfile_hash and lockfile_hash != "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
-    has_project_deps = bool(has_lockfiles or discovered_pkgs or req_files)
+    has_project_deps = bool(manifest.declared_dependencies or has_lockfiles or discovered_pkgs or req_files)
+    if not has_project_deps:
+        return {
+            "venv_dir": "",
+            "python_path": str(sys.executable),
+            "cached": True,
+            "cache_key": f"stdlib_{commit_sha[:16]}",
+            "lockfile_sha256": "",
+            "exclude_newer_cutoff": cutoff,
+            "interpreter_version": f"Python {sys.version.split()[0]}",
+            "resolved_versions": [],
+            "has_project_dependencies": False,
+        }
     cache_key_raw = f"{repo}:{commit_sha}:{target_py}:{cutoff}:{lockfile_hash}"
     cache_key = hashlib.sha256(cache_key_raw.encode("utf-8")).hexdigest()[:16]
 
@@ -452,7 +576,7 @@ def provision_environment(
 
     if python_exe.exists():
         try:
-            _preflight_environment(python_exe, worktree)
+            _preflight_environment(python_exe, worktree, sbx_plan=sbx_plan)
             resolved_versions: list[str] = []
             py_version_str = ""
             try:
@@ -487,18 +611,21 @@ def provision_environment(
     venv_dir.parent.mkdir(parents=True, exist_ok=True)
 
     # Create virtualenv with uv (or fallback to python -m venv)
+    current_py = f"{sys.version_info.major}.{sys.version_info.minor}"
     venv_created = False
     if uv_exe:
-        with contextlib.suppress(Exception):
-            subprocess.run([uv_exe, "python", "install", target_py], capture_output=True, timeout=120)
+        py_for_venv = str(sys.executable) if target_py == current_py else target_py
+        if target_py != current_py:
+            with contextlib.suppress(Exception):
+                subprocess.run([uv_exe, "python", "install", target_py], capture_output=True, timeout=5)
 
         try:
             res_uv_venv = subprocess.run(
-                [uv_exe, "venv", "--python", target_py, str(venv_dir)],
+                [uv_exe, "venv", "--python", py_for_venv, str(venv_dir)],
                 capture_output=True,
                 text=True,
                 errors="replace",
-                timeout=120,
+                timeout=30,
             )
             if res_uv_venv.returncode == 0:
                 venv_created = True
@@ -533,10 +660,17 @@ def provision_environment(
             cmd.extend(args_list)
         else:
             cmd = [str(pip_exe), "install"] + args_list
+
+        from . import sandbox
+
+        inst_env = _scrubbed_installer_env()
+        if sbx_plan is not None and getattr(sbx_plan, "backend", "none") in ("docker", "podman", "bubblewrap"):
+            cmd, inst_env = sandbox.wrap(cmd, worktree, inst_env, sbx_plan)
+
         return subprocess.run(
             cmd,
             cwd=str(worktree),
-            env=_scrubbed_installer_env(),
+            env=inst_env,
             capture_output=True,
             text=True,
             errors="replace",
@@ -617,7 +751,7 @@ def provision_environment(
         logger.debug(f"Error applying pytest monkeypatch fix in {venv_dir}: {exc}")
 
     # Preflight check after installation
-    _preflight_environment(python_exe, worktree)
+    _preflight_environment(python_exe, worktree, sbx_plan=sbx_plan)
 
     # 7. Capture resolved versions (freeze output) and interpreter version
     resolved_versions = []

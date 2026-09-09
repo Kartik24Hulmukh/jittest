@@ -9,6 +9,15 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
+try:
+    import pytest
+except ModuleNotFoundError as exc:  # pragma: no cover - dependency-free ci.yml step
+    import unittest
+
+    raise unittest.SkipTest(
+        "requires pytest; skipped by the zero-dependency unittest run in ci.yml"
+    ) from exc
+
 from jittest.diff import git_env
 from jittest.execute import FailureKind, Outcome
 from jittest.verify import VerdictClass, verify_test
@@ -60,8 +69,11 @@ def _run_verify_cli(repo: Path, *args: str, cwd: Path | None = None) -> subproce
     root = Path(__file__).resolve().parents[1]
     env = dict(os.environ)
     env["PYTHONPATH"] = os.pathsep.join([str(root / "src"), env.get("PYTHONPATH", "")]).rstrip(os.pathsep)
+    extra_args: list[str] = []
+    if not any(a.startswith("--sandbox-mode") for a in args) and "--no-sandbox" not in args:
+        extra_args.extend(["--sandbox-mode", "off"])
     return subprocess.run(
-        [sys.executable, "-m", "jittest.cli", "verify", "--repo", str(repo), *args],
+        [sys.executable, "-m", "jittest.cli", "verify", "--repo", str(repo), *extra_args, *args],
         capture_output=True,
         text=True,
         errors="replace",
@@ -82,6 +94,7 @@ def test_verify_known_bug_produces_proven_catch():
             head_ref=head_sha,
             test_file_path=test_file,
             output_path=out_artifact,
+            sandbox_mode="off",
         )
 
         assert exit_code == 0
@@ -112,6 +125,7 @@ def test_verify_non_discriminating_test():
             head_ref=base_sha,
             test_file_path=test_file,
             output_path=out_artifact,
+            sandbox_mode="off",
         )
 
         assert exit_code == 1
@@ -294,3 +308,77 @@ def test_verify_cli_json_output_is_parseable_complete_receipt():
             assert key in payload
         file_payload = json.loads(out_artifact.read_text(encoding="utf-8"))
         assert file_payload["signature"]["algorithm"] == "Ed25519"
+
+
+def test_refusal_receipt_has_no_success_fields():
+    """Verify that refusal receipts strictly conform to schema 2.1 and have no success fields."""
+    with tempfile.TemporaryDirectory() as tmp:
+        repo, base_sha, head_sha, test_file = create_synthetic_repo(Path(tmp))
+        from jittest.receipt import verify_receipt
+        from jittest.verify import RefusalReason, make_refusal_receipt
+
+        reason = RefusalReason(
+            code="dependency_bearing",
+            message="Repository declares dependencies unsupported in container mode",
+            phase="provision",
+            details="Found dependencies: requests>=2.0.0",
+        )
+        receipt = make_refusal_receipt(
+            repo_path=repo,
+            base_ref=base_sha,
+            head_ref=head_sha,
+            test_file_path=test_file,
+            refusal=reason,
+        )
+
+        # 1. Refusal object is present and matches schema 2.1
+        assert receipt["schema_version"] == "2.1"
+        assert receipt["refusal"] is not None
+        assert receipt["refusal"]["code"] == "dependency_bearing"
+        assert receipt["refusal"]["phase"] == "provision"
+        assert "requests" in receipt["refusal"]["details"]
+
+        # 2. Never produces proven_catch or success fields
+        assert receipt["proven_catch"] is False
+        assert receipt["verdict"] == "inconclusive"
+        assert receipt["disposition"].startswith("refused_")
+        assert receipt["disposition"] == "refused_dependency_bearing"
+
+        # 3. Execution outcomes are NOTRUN
+        assert receipt["base_execution"]["outcome"] == "NOTRUN"
+        assert receipt["head_execution"]["outcome"] == "NOTRUN"
+
+        # 4. Valid signature
+        assert "signature" in receipt
+        assert receipt["signature"]["algorithm"] == "Ed25519"
+
+        # 5. Cryptographic integrity check
+        valid, reason_str = verify_receipt(receipt)
+        assert valid is True, f"Refusal receipt failed verification: {reason_str}"
+
+
+def test_required_sandbox_without_backend_refuses_before_worktree():
+    """Verify that sandbox_mode='required' without backend raises before any worktree is checked out."""
+    with tempfile.TemporaryDirectory() as tmp:
+        repo, base_sha, head_sha, test_file = create_synthetic_repo(Path(tmp))
+        from jittest.sandbox import SandboxUnavailable
+        from jittest.verify import VerifyRefusalError
+
+        with mock.patch("jittest.verify.plan_sandbox") as mock_plan, \
+             mock.patch("jittest.verify.Worktree") as mock_wt:
+            mock_plan.side_effect = SandboxUnavailable("no backend")
+
+            try:
+                verify_test(
+                    repo_path=repo,
+                    base_ref=base_sha,
+                    head_ref=head_sha,
+                    test_file_path=test_file,
+                    sandbox_mode="required",
+                )
+                pytest.fail("Expected VerifyRefusalError or SandboxUnavailable")
+            except (VerifyRefusalError, SandboxUnavailable):
+                pass
+
+            # Ensure Worktree was NEVER entered
+            assert mock_wt.call_count == 0

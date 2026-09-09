@@ -1,13 +1,19 @@
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from unittest import mock
+
 from jittest.action import run_action
 from jittest.diff import git_env
 from jittest.execute import Disposition
+from jittest.sandbox import SandboxPlan
 from jittest.verify import VerdictClass, verify_test
 
 
@@ -199,13 +205,17 @@ class SevenFixturesTest(unittest.TestCase):
         try:
             os.environ["JITTEST_BASE"] = base_sha
             os.environ["JITTEST_HEAD"] = head_sha
-            rc = run_action(
-                repo_path=self.repo,
-                policy="strict",
-                sandbox_override="required",
-                output_dir=out_dir,
-            )
-            self.assertEqual(rc, 1)
+            with (
+                mock.patch("jittest.action.plan_sandbox", return_value=SandboxPlan(backend="none", mode="required")),
+                mock.patch("jittest.verify.plan_sandbox", return_value=SandboxPlan(backend="none", mode="required")),
+            ):
+                rc = run_action(
+                    repo_path=self.repo,
+                    policy="strict",
+                    sandbox_override="required",
+                    output_dir=out_dir,
+                )
+                self.assertEqual(rc, 1)
         finally:
             if old_base:
                 os.environ["JITTEST_BASE"] = old_base

@@ -8,6 +8,7 @@ to the declared policy.
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import logging
@@ -19,8 +20,9 @@ from typing import Any
 
 from .diff import git_env
 from .github import fetch_pr_base_head, upsert_pr_comment
-from .sandbox import SandboxUnavailable
-from .verify import VerdictClass, verify_test
+from .sandbox import SandboxPlan, SandboxUnavailable
+from .sandbox import plan as plan_sandbox
+from .verify import RefusalReason, VerdictClass, make_refusal_receipt, verify_test
 
 logger = logging.getLogger("jittest.action")
 
@@ -186,6 +188,73 @@ def run_action(
             sbx_mode = "required"
     else:
         sbx_mode = "required" if trust in ("fork", "unknown") else "auto"
+
+    try:
+        sbx_plan = plan_sandbox(mode=sbx_mode, probe=False)
+    except SandboxUnavailable:
+        sbx_plan = SandboxPlan(backend="none", mode=sbx_mode)
+
+    if trust in ("fork", "unknown") and getattr(sbx_plan, "backend", "none") == "none":
+        print(
+            f"::error::jittest verify: sandbox backend unavailable for untrusted {trust} PR context; refused execution",
+            file=sys.stderr,
+        )
+        out_dir.mkdir(parents=True, exist_ok=True)
+        results = []
+        for test_rel in changed_tests:
+            test_path = repo / test_rel
+            posix_rel = Path(test_rel).as_posix()
+            path_digest = hashlib.sha256(posix_rel.encode("utf-8")).hexdigest()[:12]
+            out_artifact = out_dir / f"evidence-{test_path.stem}-{path_digest}.json"
+            ref_obj = RefusalReason(
+                code="sandbox_unavailable",
+                message=f"isolation required for untrusted {trust} context but no backend is available",
+                phase="plan",
+            )
+            with contextlib.suppress(Exception):
+                make_refusal_receipt(
+                    repo_path=repo,
+                    base_ref=base_sha,
+                    head_ref=head_sha,
+                    test_file_path=test_path,
+                    refusal=ref_obj,
+                    sbx_plan=sbx_plan,
+                    output_path=out_artifact,
+                )
+            results.append({
+                "file": test_rel,
+                "verdict": VerdictClass.INCONCLUSIVE,
+                "disposition": "refused_sandbox_unavailable",
+                "proven_catch": False,
+                "wall_clock_s": 0.0,
+                "artifact": str(out_artifact),
+            })
+
+        table_lines = [
+            "<!-- jittest-report -->",
+            "### 🛡️ `jittest verify` PR Verdict Summary",
+            "",
+            "**REFUSED: Isolation Required but Unavailable**",
+            "",
+            f"Untrusted `{trust}` PR execution requires an isolation backend (docker, podman, or bubblewrap). None was available on this runner.",
+            "",
+            "| Changed Test File | Base SHA | Head SHA | Verdict | Disposition | Duration | Artifact |",
+            "| :--- | :--- | :--- | :--- | :--- | :--- | :--- |",
+        ]
+        for r in results:
+            table_lines.append(
+                f"| `{r['file']}` | `{base_sha[:8]}` | `{head_sha[:8]}` | `{r['verdict']}` | `{r['disposition']}` | {r['wall_clock_s']:.1f}s | `{Path(r['artifact']).name}` |"
+            )
+        table_lines.append("")
+        table_lines.append(
+            f"**Total Changed Tests Evaluated**: {len(results)} | **Proven Catches**: 0 | **Policy**: `{policy_str}`"
+        )
+        comment_body = "\n".join(table_lines)
+        upsert_pr_comment(comment_body, pr_number=str(pr_number) if pr_number else None)
+
+        if policy_str in ("strict", "block-on-refusal"):
+            return 1
+        return 0  # advisory
 
     def _verify_one(test_rel: str) -> dict[str, Any]:
         test_path = repo / test_rel
