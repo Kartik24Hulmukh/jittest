@@ -52,6 +52,19 @@ class TestActionHelpers(unittest.TestCase):
         with patch.dict("os.environ", {"GITHUB_EVENT_PATH": ""}):
             self.assertEqual(get_trust_context(), "unknown")
 
+    def test_get_trust_context_internal_on_trusted_push(self):
+        # Non pull_request trigger events (push/workflow_dispatch/schedule/release)
+        # execute code already present in the trusted checkout; they must not be
+        # forced into the fork-safety 'unknown' bucket that upgrades sandbox-mode
+        # to 'required' and breaks maintainers own trusted push pipelines.
+        with patch.dict("os.environ", {"GITHUB_EVENT_PATH": "", "GITHUB_EVENT_NAME": "push"}):
+            self.assertEqual(get_trust_context(), "internal")
+
+    def test_get_trust_context_unknown_on_workflow_run(self):
+        # workflow_run (and other unmodeled events) stay unknown/fail-closed.
+        with patch.dict("os.environ", {"GITHUB_EVENT_PATH": "", "GITHUB_EVENT_NAME": "workflow_run"}):
+            self.assertEqual(get_trust_context(), "unknown")
+
     @patch("jittest.action.get_changed_files")
     @patch("jittest.action.upsert_pr_comment")
     def test_run_action_zero_test_changes(self, mock_comment, mock_diff):

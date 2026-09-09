@@ -84,6 +84,17 @@ def get_trust_context() -> str:
                     return "fork" if head_repo != base_repo else "internal"
         except Exception as exc:
             logger.warning("Could not read GITHUB_EVENT_PATH: %s", exc)
+    # Non pull_request trigger events (push, workflow_dispatch, schedule, release)
+    # execute code that is already present in the trusted repository checkout;
+    # unlike pull_request/pull_request_target, they cannot smuggle in untrusted
+    # fork content, so they are treated as internal rather than unknown. This
+    # keeps the fork-safety contract intact (any pull_request event is always
+    # resolved above by comparing head/base repo) while letting maintainers'
+    # own trusted push/dispatch/schedule pipelines honor an explicit non-required
+    # sandbox-mode instead of being force-upgraded to 'required'.
+    event_name = os.getenv("GITHUB_EVENT_NAME", "").strip().lower()
+    if event_name in ("push", "workflow_dispatch", "schedule", "release"):
+        return "internal"
     return "unknown"
 
 
