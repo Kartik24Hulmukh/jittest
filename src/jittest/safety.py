@@ -418,8 +418,11 @@ def check_candidate(code: str, max_bytes: int = 20000) -> CodeCheck:
                             "candidate that writes into the worktree can "
                             "corrupt the base/head comparison")
                     if not _rooted_in_temp(node):
-                        warnings.append(
-                            f"opens a computed path with mode `{mode}`")
+                        return CodeCheck(
+                            False,
+                            f"opens a computed path with mode `{mode}`; a "
+                            "candidate that writes into the worktree can "
+                            "corrupt the base/head comparison")
             if isinstance(func, ast.Attribute):
                 if func.attr in BANNED_ATTRS:
                     return CodeCheck(False, f"calls `{func.attr}`")

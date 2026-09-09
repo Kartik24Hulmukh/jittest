@@ -134,6 +134,31 @@ class TestWave3D1IsolationContract(unittest.TestCase):
                 res = verify_test(repo, "HEAD~1", "HEAD", test_file, sandbox_mode="required")
                 self.assertIsNotNone(res)
 
+    def test_container_mode_allows_option_c_trusted_image(self):
+        """Option C: docker/podman allows trusted image bypass even if dependency-bearing."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo = Path(tmpdir)
+            test_file = repo / "test_dep.py"
+            test_file.write_text("import pytest\ndef test_x(): assert True\n", encoding="utf-8")
+
+            docker_plan = SandboxPlan(backend="docker", image="jittest-pilot-requests:local")
+
+            with (
+                mock.patch("jittest.verify.resolve_revision", side_effect=["a" * 40, "b" * 40]),
+                mock.patch("jittest.verify.plan_sandbox", return_value=docker_plan),
+                mock.patch("jittest.verify.Worktree", _Worktree),
+                mock.patch("jittest.verify.provision_environment", return_value={
+                    "python_path": sys.executable,
+                    "lockfile_sha256": "abcdef" * 10,
+                    "has_project_dependencies": True,
+                    "provisioning": "option_c_trusted_image",
+                }),
+                mock.patch("jittest.verify.run_test", return_value=mock.Mock(outcome=Outcome.PASS, failure_kind=FailureKind.NONE, returncode=0, stdout="", stderr="", wall_clock_s=0.1)),
+            ):
+                # should NOT raise VerifyRefusalError due to option_c_trusted_image provisioning
+                res = verify_test(repo, "HEAD~1", "HEAD", test_file, sandbox_mode="required")
+                self.assertIsNotNone(res)
+
 
 class TestWave3D8ActionDefaultsAndHygiene(unittest.TestCase):
     def test_action_yaml_defaults(self):

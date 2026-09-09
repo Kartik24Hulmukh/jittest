@@ -47,6 +47,8 @@ CLOSED = [
     ("N12b", '\nimport os\nfrom pathlib import Path\ndef test_n12b():\n    Path("src/jittest/sitecustomize.py").touch()\n    os.utime("src/jittest/verify.py", (0, 0))\n    assert Path("src/jittest/sitecustomize.py").exists()\n'),
     # N12c: NEW: os.environ assignment is a Subscript store, not a Call
     ("N12c", '\nimport os\ndef test_n12c():\n    os.environ["JITTEST_FORCE_MINIRUNNER"] = "1"\n    assert os.environ["JITTEST_FORCE_MINIRUNNER"] == "1"\n'),
+    # N13: NEW: opens a computed path with mode `w`
+    ("N13", '\ndef test_n13():\n    path = "foo" + "bar"\n    with open(path, "w") as f:\n        f.write("test")\n'),
     # N14: NEW CLASS: read the source under test and assert on the fix. Zero banned constructs. Fails on head, passes on base.
     ("N14", '\ndef test_n14_regression():\n    src = open("src/jittest/verify.py").read()\n    assert "exit_code_for" not in src\n'),
     # N15: NEW CLASS: detect which arm you are on via .git and fail selectively
