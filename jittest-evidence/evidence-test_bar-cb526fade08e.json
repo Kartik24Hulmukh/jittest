@@ -18,16 +18,16 @@
   "interpreter_version": null,
   "resolved_versions": null,
   "provenance": {
-    "repo_path": "/tmp/tmpq6ybij8k",
-    "repo_canonical": "local:55425edae44b3d8e",
+    "repo_path": "/tmp/tmp4bg_mms5",
+    "repo_canonical": "local:7565683c56447725",
     "base_sha": "HEAD~1",
     "head_sha": "HEAD",
     "test_file_name": "test_bar.py",
     "test_file_sha256": "80522fb685ab0a2e18ae81fb263f211f8fd39d29b237e0823b8a1d888eab3a16",
-    "tool_commit_sha": "3d86845c11f59e83e5504da74923035bb74f3b33",
-    "tool_branch": "track/b-receipts",
+    "tool_commit_sha": "3103af51d830330d1e4f3d9b02e46bbb39718724",
+    "tool_branch": "main",
     "tool_dirty": true,
-    "tool_tree_sha": "3416d83660b0befb0b3bab6874a4bb67f5bc542e",
+    "tool_tree_sha": "0b0368ef7814cd40e67dc80574320927e464de26",
     "rel_path": "."
   },
   "sandbox": {
@@ -36,7 +36,9 @@
     "image": null,
     "isolated": false,
     "network_denied": false,
-    "notes": []
+    "notes": [],
+    "runtime_image": "",
+    "image_digest": ""
   },
   "base_execution": {
     "outcome": "NOTRUN",
@@ -57,7 +59,7 @@
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
-    "verifying_key": "d75fd3d53445d59a50de45b26f8ed474d72d761940f6ac30b428054b405c4595",
-    "value": "Yv/gMPkg12STOA79kC6FY72TltTS3dcPrv0in40JVghD6LahDfJO7pDtjtp1fLvrwprWCpZriKXYtqQqQxMTBw=="
+    "verifying_key": "684b3e24128121233f7e8115723c211ce1f0a242e8589358dd90f74318d65fd7",
+    "value": "9dwbyQ2ZkJae5DznSAvGPZkKuBc4QKKO5xayxnaLWAqFiQZ2iHTzZ/qY8b0P0qSU8gPO2peFE+4OECkqmJCRDw=="
   }
 }

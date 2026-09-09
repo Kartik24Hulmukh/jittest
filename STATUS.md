@@ -24,8 +24,8 @@
 | 29 doctor sandbox honesty | SHIPPED | `jittest doctor` prints `sandbox: NONE ... WILL REFUSE` |
 | 30 version drift job | SHIPPED; caught `CITATION.cff` 0.1.0 | `scripts/check_version_drift.py` |
 | 36 JSON Schema 2.1 | SHIPPED | `schemas/receipt-2.1.schema.json`, `tests/test_receipt_json_schema.py` |
-| 27 PRIVACY.md | SHIPPED (telemetry field extension still open) | `docs/PRIVACY.md` |
-| 18-23 Option C plumbing | PARTIAL: image + proof script; `[tool.jittest.runtime]` selection and D9 RUN record still open | `docker/pilot-requests/`, `scripts/prove_option_c.py` |
+| 27 PRIVACY.md + observability | SHIPPED: `refusal_code`, `sandbox_backend`, `sandbox_image_digest`, `wall_clock_s` per telemetry line; `wall_clock_s` + `phases` per report | `docs/PRIVACY.md`, `src/jittest/results.py`, `tests/test_phase2_observability_runtime.py` |
+| 18-23 Option C plumbing | SHIPPED (selection layer): Rule 1 digest validation, Rule 2 base-branch precedence, `plan(runtime_image=)`, Option C provisioning skip; `option-c-proof` workflow runs the proof on a daemon. **D9 RUN record still open** until that artifact says `RUN` | `src/jittest/sandbox.py`, `src/jittest/env.py`, `.github/workflows/option-c-proof.yml` |
 | 25 SLSA / Trusted Publishing | OPEN, requires founder approval to touch `release.yml` | - |
 | 32 render_status.py | OPEN | - |
 

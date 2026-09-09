@@ -48,6 +48,7 @@ _ENV = {
     "sandbox_mode": ("JITTEST_SANDBOX", str),
     "sandbox_backend": ("JITTEST_SANDBOX_BACKEND", str),
     "sandbox_image": ("JITTEST_SANDBOX_IMAGE", str),
+    "runtime_image": ("JITTEST_RUNTIME_IMAGE", str),
 }
 
 # Free-text options that are nevertheless not free: an unrecognised value here
@@ -98,6 +99,10 @@ class Config:
     sandbox_mode: str = "auto"
     sandbox_backend: str = ""
     sandbox_image: str = "python:3.13-slim"
+    # Option C trusted runtime image (docs/RUNTIME-IMAGES.md). Must be pinned
+    # by @sha256 digest (Rule 1); the base-branch pyproject value wins over
+    # anything the head branch declares (Rule 2, resolved in sandbox.load_runtime_image).
+    runtime_image: str = ""
     ignore: list[str] = field(default_factory=lambda: list(DEFAULT_IGNORES))
 
     def is_ignored(self, path: str) -> bool:

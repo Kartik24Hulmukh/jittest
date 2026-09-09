@@ -1,0 +1,47 @@
+name: option-c-proof
+
+# Defect D9: prove that a dependency-bearing candidate executes inside the
+# maintainer-pinned trusted runtime image on a REAL container daemon, with
+# network denied. The record is uploaded as an artifact; D9 is closed by a
+# record whose status is RUN, and by nothing else. Not a required check.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "docker/pilot-requests/**"
+      - "scripts/prove_option_c.py"
+      - "src/jittest/sandbox.py"
+      - "src/jittest/env.py"
+      - ".github/workflows/option-c-proof.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  prove:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Build the pilot runtime image locally (no registry push)
+        run: docker build -t jittest-pilot-requests:local docker/pilot-requests
+      - name: Record the image digest actually built
+        run: docker image inspect -f "{{.Id}}" jittest-pilot-requests:local | tee image-id.txt
+      - name: Run the Option C proof on the real daemon
+        env:
+          JITTEST_SANDBOX_BACKEND: docker
+        run: python scripts/prove_option_c.py --image jittest-pilot-requests:local --out option-c-proof.json
+      - name: Show the record
+        if: always()
+        run: cat option-c-proof.json || true
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: option-c-proof-${{ github.sha }}
+          path: |
+            option-c-proof.json
+            image-id.txt

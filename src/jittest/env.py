@@ -520,6 +520,32 @@ def provision_environment(
 
     # 2. Dependency-bearing check under isolation (Option D)
     is_isolated = sbx_plan is not None and getattr(sbx_plan, "backend", "none") in ("docker", "podman", "bubblewrap")
+    # Option C (docs/RUNTIME-IMAGES.md): when the maintainer pinned a trusted
+    # runtime image by digest on the base branch and a container engine is the
+    # selected backend, the dependencies are expected to be *inside that image*.
+    # Nothing is installed on the host, nothing is built from the candidate
+    # checkout, no network is touched: the image is the whole environment.
+    runtime_image = str(getattr(sbx_plan, "runtime_image", "") or "").strip()
+    option_c = (
+        is_isolated
+        and runtime_image
+        and "@sha256:" in runtime_image
+        and getattr(sbx_plan, "backend", "none") in ("docker", "podman")
+    )
+    if option_c:
+        return {
+            "venv_dir": "",
+            "python_path": "python",
+            "cached": False,
+            "cache_key": "",
+            "lockfile_sha256": "",
+            "exclude_newer_cutoff": "",
+            "interpreter_version": "",
+            "resolved_versions": [],
+            "provisioning": "option_c_trusted_image",
+            "runtime_image": runtime_image,
+            "image_digest": str(getattr(sbx_plan, "image_digest", "") or ""),
+        }
     if is_isolated and manifest.declared_dependencies:
         details = f"declared dependencies: {', '.join(manifest.declared_dependencies[:5])}"
         raise VerifyRefusalError(
