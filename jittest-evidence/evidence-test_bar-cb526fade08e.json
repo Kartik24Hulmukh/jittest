@@ -1,0 +1,63 @@
+{
+  "schema_version": "2.1",
+  "tool": "jittest verify",
+  "verdict": "inconclusive",
+  "verdict_text": "Inconclusive: verification refused because execution could not be completed safely.",
+  "proven_catch": false,
+  "catch_direction": "none",
+  "base_reproduced": false,
+  "base_failure_kind": "none",
+  "disposition": "refused_sandbox_unavailable",
+  "refusal": {
+    "code": "sandbox_unavailable",
+    "message": "isolation required for untrusted fork context but no backend is available",
+    "phase": "plan",
+    "details": ""
+  },
+  "exclude_newer_cutoff": null,
+  "interpreter_version": null,
+  "resolved_versions": null,
+  "provenance": {
+    "repo_path": "/tmp/tmpq6ybij8k",
+    "repo_canonical": "local:55425edae44b3d8e",
+    "base_sha": "HEAD~1",
+    "head_sha": "HEAD",
+    "test_file_name": "test_bar.py",
+    "test_file_sha256": "80522fb685ab0a2e18ae81fb263f211f8fd39d29b237e0823b8a1d888eab3a16",
+    "tool_commit_sha": "3d86845c11f59e83e5504da74923035bb74f3b33",
+    "tool_branch": "track/b-receipts",
+    "tool_dirty": true,
+    "tool_tree_sha": "3416d83660b0befb0b3bab6874a4bb67f5bc542e",
+    "rel_path": "."
+  },
+  "sandbox": {
+    "mode": "required",
+    "backend": "none",
+    "image": null,
+    "isolated": false,
+    "network_denied": false,
+    "notes": []
+  },
+  "base_execution": {
+    "outcome": "NOTRUN",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {}
+  },
+  "head_execution": {
+    "outcome": "NOTRUN",
+    "exit_code": -1,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "environment": {}
+  },
+  "rerun_agreement": true,
+  "wall_clock_s": 0.0,
+  "provider_cost_usd": 0.0,
+  "signature": {
+    "algorithm": "Ed25519",
+    "verifying_key": "d75fd3d53445d59a50de45b26f8ed474d72d761940f6ac30b428054b405c4595",
+    "value": "Yv/gMPkg12STOA79kC6FY72TltTS3dcPrv0in40JVghD6LahDfJO7pDtjtp1fLvrwprWCpZriKXYtqQqQxMTBw=="
+  }
+}

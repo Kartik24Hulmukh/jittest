@@ -131,20 +131,20 @@ class TestWave2D5ReceiptSemanticsAndProvenance(unittest.TestCase):
         self.assertTrue(res.schema_valid)
 
     def test_provenance_base_matching_and_mismatch(self):
-        res_ok = verify_receipt(self.signed, expected_base=self.base_sha[:8])
+        res_ok = verify_receipt(self.signed, expected_base=self.base_sha)
         self.assertTrue(res_ok[0])
         self.assertIn("PROVENANCE_MATCHED", res_ok[1])
 
-        res_fail = verify_receipt(self.signed, expected_base="99999999")
+        res_fail = verify_receipt(self.signed, expected_base="9" * 40)
         self.assertFalse(res_fail[0])
         self.assertIn("PROVENANCE_MISMATCH", res_fail[1])
 
     def test_provenance_head_matching_and_mismatch(self):
-        res_ok = verify_receipt(self.signed, expected_head=self.head_sha[:8])
+        res_ok = verify_receipt(self.signed, expected_head=self.head_sha)
         self.assertTrue(res_ok[0])
         self.assertIn("PROVENANCE_MATCHED", res_ok[1])
 
-        res_fail = verify_receipt(self.signed, expected_head="99999999")
+        res_fail = verify_receipt(self.signed, expected_head="9" * 40)
         self.assertFalse(res_fail[0])
         self.assertIn("PROVENANCE_MISMATCH", res_fail[1])
 

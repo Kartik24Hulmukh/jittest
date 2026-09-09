@@ -9,6 +9,7 @@ Typer, Click and Rich into somebody else's dependency graph.
     jittest outcome <hash> fixed_code
     jittest export corpus.jsonl
 """
+
 from __future__ import annotations
 
 import argparse
@@ -36,18 +37,20 @@ def _add_run_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("--base", default=os.getenv("JITTEST_BASE", "origin/main"))
     p.add_argument("--head", default=os.getenv("JITTEST_HEAD", "HEAD"))
     p.add_argument("--model", default=None)
-    p.add_argument("--candidates", type=int, default=None,
-                   help="candidate tests generated per target")
+    p.add_argument(
+        "--candidates", type=int, default=None, help="candidate tests generated per target"
+    )
     p.add_argument("--max-targets", type=int, default=None)
     p.add_argument("--risk-threshold", type=float, default=None)
     p.add_argument("--budget", type=float, default=None, help="hard USD cap")
     p.add_argument("--timeout", type=int, default=None, help="per test run, seconds")
-    p.add_argument("--reruns", type=int, default=None,
-                   help="flakiness reruns on head (default 2)")
-    p.add_argument("--latent", action="store_true",
-                   help="also report faults that fail on base too")
-    p.add_argument("--dry-run", action="store_true",
-                   help="run everything with a stub model: no API key, no cost")
+    p.add_argument("--reruns", type=int, default=None, help="flakiness reruns on head (default 2)")
+    p.add_argument("--latent", action="store_true", help="also report faults that fail on base too")
+    p.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="run everything with a stub model: no API key, no cost",
+    )
     p.add_argument(
         "--no-persist-candidates",
         action="store_false",
@@ -56,13 +59,24 @@ def _add_run_args(p: argparse.ArgumentParser) -> None:
         help="do not persist generated candidate source code to disk",
     )
     p.add_argument("--comment", action="store_true", help="upsert a PR comment")
-    p.add_argument("--fail-on-regression", action="store_true",
-                   help="exit 1 when a confident regression is found")
+    p.add_argument(
+        "--fail-on-regression",
+        action="store_true",
+        help="exit 1 when a confident regression is found",
+    )
     p.add_argument("--json", dest="as_json", action="store_true")
-    p.add_argument("--markdown", metavar="PATH", default=None,
-                   help="also write the markdown report to this file")
-    p.add_argument("--telemetry-json", metavar="PATH", default=None,
-                   help="write one JSON object per candidate to this file")
+    p.add_argument(
+        "--markdown",
+        metavar="PATH",
+        default=None,
+        help="also write the markdown report to this file",
+    )
+    p.add_argument(
+        "--telemetry-json",
+        metavar="PATH",
+        default=None,
+        help="write one JSON object per candidate to this file",
+    )
     p.add_argument("--quiet", action="store_true")
 
 
@@ -77,22 +91,28 @@ def build_parser() -> argparse.ArgumentParser:
     _add_run_args(sub.add_parser("run", help="analyse a diff"))
 
     oa = sub.add_parser(
-        "oracles",
-        help="classify the assertion strength of test code (no model, no cost)")
-    oa.add_argument("paths", nargs="*",
-                    help="test files or directories; omit to scan the diff")
+        "oracles", help="classify the assertion strength of test code (no model, no cost)"
+    )
+    oa.add_argument("paths", nargs="*", help="test files or directories; omit to scan the diff")
     oa.add_argument("--repo", default=".")
     oa.add_argument("--base", default=os.getenv("JITTEST_BASE", "origin/main"))
     oa.add_argument("--head", default=os.getenv("JITTEST_HEAD", "HEAD"))
-    oa.add_argument("--changed", action="store_true",
-                    help="scan only test files changed between --base and --head")
+    oa.add_argument(
+        "--changed",
+        action="store_true",
+        help="scan only test files changed between --base and --head",
+    )
     oa.add_argument("--json", dest="as_json", action="store_true")
-    oa.add_argument("--markdown", metavar="PATH", default=None,
-                    help="write the markdown report to this file")
-    oa.add_argument("--comment", action="store_true",
-                    help="upsert the report as a PR comment")
-    oa.add_argument("--fail-under", type=float, default=None,
-                    help="exit 1 when the strong-oracle rate is below this (0..1)")
+    oa.add_argument(
+        "--markdown", metavar="PATH", default=None, help="write the markdown report to this file"
+    )
+    oa.add_argument("--comment", action="store_true", help="upsert the report as a PR comment")
+    oa.add_argument(
+        "--fail-under",
+        type=float,
+        default=None,
+        help="exit 1 when the strong-oracle rate is below this (0..1)",
+    )
     oa.add_argument("--quiet", action="store_true")
 
     st = sub.add_parser("stats", help="summarise the local ledger")
@@ -102,8 +122,11 @@ def build_parser() -> argparse.ArgumentParser:
     ex = sub.add_parser("export", help="export the corpus as JSONL")
     ex.add_argument("out")
     ex.add_argument("--repo", default=".")
-    ex.add_argument("--with-source", action="store_true",
-                    help="include repo names and test code (off by default)")
+    ex.add_argument(
+        "--with-source",
+        action="store_true",
+        help="include repo names and test code (off by default)",
+    )
 
     oc = sub.add_parser("outcome", help="label what a human did with a finding")
     oc.add_argument("test_hash")
@@ -118,9 +141,13 @@ def build_parser() -> argparse.ArgumentParser:
     vf.add_argument("--repo", default=".", help="path to git repository or owner/repo")
     vf.add_argument("--base", default=None, help="base commit/ref")
     vf.add_argument("--head", default=None, help="head commit/ref")
-    vf.add_argument("--pr", default=None, help="PR number to resolve base and head SHAs automatically")
+    vf.add_argument(
+        "--pr", default=None, help="PR number to resolve base and head SHAs automatically"
+    )
     vf.add_argument("--test", "-t", required=True, help="path to test file")
-    vf.add_argument("--path", default=".", help="relative directory path within repo (for monorepos)")
+    vf.add_argument(
+        "--path", default=".", help="relative directory path within repo (for monorepos)"
+    )
     vf.add_argument("--output", "-o", default=None, help="path to output evidence JSON artifact")
     vf.add_argument(
         "--no-sandbox",
@@ -133,7 +160,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--signing-key",
         default=None,
         help="path to an Ed25519 private key (PKCS#8 PEM or raw 32-byte seed). "
-             "Created if absent; an unusable key is an error, never a silent fallback.",
+        "Created if absent; an unusable key is an error, never a silent fallback.",
     )
     vf.add_argument(
         "--sandbox-mode",
@@ -148,7 +175,7 @@ def build_parser() -> argparse.ArgumentParser:
     vr = sub.add_parser(
         "verify-receipt",
         help="verify the Ed25519 signature of an evidence artifact, offline, "
-             "using the public key carried inside it",
+        "using the public key carried inside it",
     )
     vr.add_argument("artifact", help="path to evidence JSON artifact")
     vr.add_argument(
@@ -158,9 +185,22 @@ def build_parser() -> argparse.ArgumentParser:
     )
     vr.add_argument("--expected-base", default=None, help="expected PR base commit SHA")
     vr.add_argument("--expected-head", default=None, help="expected PR head commit SHA")
-    vr.add_argument("--expected-test-sha256", default=None, help="expected test file source SHA-256")
-    vr.add_argument("--expected-repo", default=None, help="expected repository path or substring")
-    vr.add_argument("--strict-signer", action="store_true", help="require trusted signer (exit non-zero on unverified)")
+    vr.add_argument(
+        "--expected-test-sha256", default=None, help="expected test file source SHA-256"
+    )
+    vr.add_argument(
+        "--expected-repo", default=None, help="expected repository path, canonical identity, or URL"
+    )
+    vr.add_argument(
+        "--strict-signer",
+        action="store_true",
+        help="require trusted signer (exit non-zero on unverified)",
+    )
+    vr.add_argument(
+        "--require-confined",
+        action="store_true",
+        help="require execution inside a confined sandbox boundary",
+    )
     vr.add_argument("--json", dest="as_json", action="store_true")
 
     dr = sub.add_parser("doctor", help="check that this environment can run jittest")
@@ -177,20 +217,24 @@ def build_parser() -> argparse.ArgumentParser:
 
 def _cmd_run(args: argparse.Namespace) -> int:
     repo = Path(args.repo).resolve()
-    cfg = load_config(repo, overrides={
-        "model": args.model,
-        "candidates_per_target": args.candidates,
-        "max_targets": args.max_targets,
-        "risk_threshold": args.risk_threshold,
-        "budget_usd": args.budget,
-        "timeout_s": args.timeout,
-        "reruns": args.reruns,
-        "latent_mode": True if args.latent else None,
-        "fail_on_regression": True if args.fail_on_regression else None,
-        "persist_candidates": args.persist_candidates,
-    })
+    cfg = load_config(
+        repo,
+        overrides={
+            "model": args.model,
+            "candidates_per_target": args.candidates,
+            "max_targets": args.max_targets,
+            "risk_threshold": args.risk_threshold,
+            "budget_usd": args.budget,
+            "timeout_s": args.timeout,
+            "reruns": args.reruns,
+            "latent_mode": True if args.latent else None,
+            "fail_on_regression": True if args.fail_on_regression else None,
+            "persist_candidates": args.persist_candidates,
+        },
+    )
 
     from .github import pr_context, upsert_pr_comment
+
     pr_title, pr_body = pr_context()
 
     try:
@@ -207,10 +251,17 @@ def _cmd_run(args: argparse.Namespace) -> int:
         return 2
 
     emit = (lambda m: None) if args.quiet else (lambda m: print(f"  {m}", file=sys.stderr))
-    report = run_pipeline(repo, args.base, args.head, cfg, llm,
-                          pr_title=pr_title, pr_body=pr_body,
-                          pr_ref=os.getenv("JITTEST_PR_NUMBER", ""),
-                          on_event=emit)
+    report = run_pipeline(
+        repo,
+        args.base,
+        args.head,
+        cfg,
+        llm,
+        pr_title=pr_title,
+        pr_body=pr_body,
+        pr_ref=os.getenv("JITTEST_PR_NUMBER", ""),
+        on_event=emit,
+    )
 
     markdown = to_markdown(report)
     if args.as_json:
@@ -222,8 +273,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
         try:
             Path(args.markdown).write_text(markdown or "", encoding="utf-8")
         except OSError as exc:
-            print(f"  warning: could not write markdown to {args.markdown}: "
-                  f"{exc}", file=sys.stderr)
+            print(f"  warning: could not write markdown to {args.markdown}: {exc}", file=sys.stderr)
 
     if args.telemetry_json:
         # Side-channel output must never lose a finding that was already proven.
@@ -234,8 +284,10 @@ def _cmd_run(args: argparse.Namespace) -> int:
                 for tel in report.telemetry:
                     tfh.write(tel.as_jsonl() + "\n")
         except OSError as exc:
-            print(f"  warning: could not write telemetry to "
-                  f"{args.telemetry_json}: {exc}", file=sys.stderr)
+            print(
+                f"  warning: could not write telemetry to {args.telemetry_json}: {exc}",
+                file=sys.stderr,
+            )
 
     if args.comment:
         # Posting is the LAST step and the least important one: the analysis is
@@ -255,13 +307,11 @@ def _cmd_run(args: argparse.Namespace) -> int:
         # turn a completed analysis into a crash with a non-zero exit code.
         try:
             with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
-                fh.write(
-                    f"regressions={'true' if report.has_regression else 'false'}\n")
+                fh.write(f"regressions={'true' if report.has_regression else 'false'}\n")
                 fh.write(f"findings={len(report.findings)}\n")
                 fh.write(f"cost_usd={report.cost_usd:.4f}\n")
         except OSError as exc:
-            print(f"  warning: could not write GITHUB_OUTPUT: {exc}",
-                  file=sys.stderr)
+            print(f"  warning: could not write GITHUB_OUTPUT: {exc}", file=sys.stderr)
 
     if (args.fail_on_regression or cfg.fail_on_regression) and report.has_regression:
         return 1
@@ -289,13 +339,13 @@ def _cmd_oracles(args: argparse.Namespace) -> int:
         try:
             Path(args.markdown).write_text(markdown, encoding="utf-8")
         except OSError as exc:
-            print(f"  warning: could not write markdown to {args.markdown}: "
-                  f"{exc}", file=sys.stderr)
+            print(f"  warning: could not write markdown to {args.markdown}: {exc}", file=sys.stderr)
 
     if args.comment:
         # Same rule as `run`: the scan is already complete and printed, so a
         # GitHub failure must not turn a finished analysis into a red build.
         from .github import upsert_pr_comment
+
         try:
             status = upsert_pr_comment(markdown)
         except Exception as exc:
@@ -309,19 +359,23 @@ def _cmd_oracles(args: argparse.Namespace) -> int:
                 fh.write(f"oracle_tests={report.total}\n")
                 fh.write(f"oracle_strong={report.strong}\n")
                 fh.write(f"oracle_weak={report.weak}\n")
-                fh.write("oracle_strong_rate="
-                         f"{'' if rate is None else f'{rate:.4f}'}\n")
+                fh.write(f"oracle_strong_rate={'' if rate is None else f'{rate:.4f}'}\n")
         except OSError as exc:
-            print(f"  warning: could not write GITHUB_OUTPUT: {exc}",
-                  file=sys.stderr)
+            print(f"  warning: could not write GITHUB_OUTPUT: {exc}", file=sys.stderr)
 
     # A gate must never fire on an absence of evidence. `strong_rate` is None
     # when no test function was scanned at all, and "nothing was measured" is
     # not the same claim as "everything measured was weak".
-    if (args.fail_under is not None and report.strong_rate is not None
-            and report.strong_rate < args.fail_under):
-        print(f"jittest: strong-oracle rate {report.strong_rate:.2f} is below "
-              f"the required {args.fail_under:.2f}", file=sys.stderr)
+    if (
+        args.fail_under is not None
+        and report.strong_rate is not None
+        and report.strong_rate < args.fail_under
+    ):
+        print(
+            f"jittest: strong-oracle rate {report.strong_rate:.2f} is below "
+            f"the required {args.fail_under:.2f}",
+            file=sys.stderr,
+        )
         return 1
     return 0
 
@@ -346,8 +400,9 @@ def _cmd_export(args: argparse.Namespace) -> int:
     cfg = load_config(Path(args.repo))
     with Ledger(Path(args.repo) / cfg.ledger_path) as ledger:
         n = ledger.export_jsonl(args.out, anonymise=not args.with_source)
-    print(f"wrote {n} record(s) to {args.out} "
-          f"({'with source' if args.with_source else 'anonymised'})")
+    print(
+        f"wrote {n} record(s) to {args.out} ({'with source' if args.with_source else 'anonymised'})"
+    )
     return 0
 
 
@@ -367,8 +422,7 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
     def check(label: str, passed: bool, detail: str = "") -> None:
         nonlocal ok
         ok = ok and passed
-        print(f"  [{'ok  ' if passed else 'FAIL'}] {label}"
-              f"{(' - ' + detail) if detail else ''}")
+        print(f"  [{'ok  ' if passed else 'FAIL'}] {label}{(' - ' + detail) if detail else ''}")
 
     print(f"jittest {__version__} doctor")
     check("python >= 3.11", sys.version_info >= (3, 11), sys.version.split()[0])
@@ -378,39 +432,50 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
 
     inside = subprocess.run(
         ["git", "-C", str(repo), "rev-parse", "--is-inside-work-tree"],
-        capture_output=True, text=True, errors="replace")
+        capture_output=True,
+        text=True,
+        errors="replace",
+    )
     check("inside a git repository", inside.stdout.strip() == "true", str(repo))
 
     runner = detect_runner()
     using_pytest = "pytest" in " ".join(runner)
-    print(f"  [ok  ] test runner: "
-          f"{'pytest' if using_pytest else 'built-in mini-runner'}")
+    print(f"  [ok  ] test runner: {'pytest' if using_pytest else 'built-in mini-runner'}")
     if not using_pytest:
         print("         pytest is not importable here, so the oracle will use the")
         print("         stdlib fallback, which does not support fixtures.")
 
-    has_key = any(os.getenv(k) for k in
-                  ("JITTEST_API_KEY", "ANTHROPIC_API_KEY", "OPENAI_API_KEY"))
-    print(f"  [{'ok  ' if has_key else 'warn'}] model API key "
-          f"{'found' if has_key else 'NOT found - only --dry-run will work'}")
+    has_key = any(os.getenv(k) for k in ("JITTEST_API_KEY", "ANTHROPIC_API_KEY", "OPENAI_API_KEY"))
+    print(
+        f"  [{'ok  ' if has_key else 'warn'}] model API key "
+        f"{'found' if has_key else 'NOT found - only --dry-run will work'}"
+    )
     if not has_key:
         print("         `jittest oracles` needs no key and no network; it works now.")
 
     # Check whether the configured model has known pricing.
     from .llm import price_for
+
     model_name = cfg.model.split("/")[-1] if "/" in cfg.model else cfg.model
     price = price_for(model_name) or price_for(cfg.model)
     if price:
-        print(f"  [ok  ] model '{cfg.model}' is priced at "
-              f"${price[0]:.2f}/${price[1]:.2f} per Mtok — dollar cap active")
+        print(
+            f"  [ok  ] model '{cfg.model}' is priced at "
+            f"${price[0]:.2f}/${price[1]:.2f} per Mtok - dollar cap active"
+        )
     else:
-        print(f"  [warn] model '{cfg.model}' is unpriced — "
-              f"request-count ceiling will be enforced instead of a dollar cap")
-        print("         set JITTEST_MODEL_PRICE='<in>,<out>' (USD per "
-              "million tokens) to restore the dollar cap")
+        print(
+            f"  [warn] model '{cfg.model}' is unpriced - "
+            f"request-count ceiling will be enforced instead of a dollar cap"
+        )
+        print(
+            "         set JITTEST_MODEL_PRICE='<in>,<out>' (USD per "
+            "million tokens) to restore the dollar cap"
+        )
 
-    print(f"  [ok  ] model {cfg.model}, budget ${cfg.budget_usd:.2f}, "
-          f"max targets {cfg.max_targets}")
+    print(
+        f"  [ok  ] model {cfg.model}, budget ${cfg.budget_usd:.2f}, max targets {cfg.max_targets}"
+    )
     print(f"  [ok  ] ledger {repo / cfg.ledger_path}")
     print(f"  [ok  ] {len(cfg.ignore)} ignore pattern(s)")
     return 0 if ok else 1
@@ -428,7 +493,10 @@ def _cmd_verify(args: argparse.Namespace) -> int:
 
     test_file_part = test_spec.split("::", 1)[0]
     if not test_file_part.strip():
-        print("jittest verify: refused - test path is required before a pytest node ID", file=sys.stderr)
+        print(
+            "jittest verify: refused - test path is required before a pytest node ID",
+            file=sys.stderr,
+        )
         return 2
 
     # For local repositories, reject a directory immediately as an operational
@@ -439,7 +507,10 @@ def _cmd_verify(args: argparse.Namespace) -> int:
         if not local_test.is_absolute():
             local_test = repo / local_test
         if local_test.exists() and not local_test.is_file():
-            print(f"jittest verify: refused - test path is not a regular file: {local_test}", file=sys.stderr)
+            print(
+                f"jittest verify: refused - test path is not a regular file: {local_test}",
+                file=sys.stderr,
+            )
             return 2
 
     base_ref = args.base
@@ -490,7 +561,9 @@ def _cmd_verify(args: argparse.Namespace) -> int:
     if args.as_json:
         print(json.dumps(evidence, indent=2))
     else:
-        print(f"jittest verify: {evidence['verdict_text']} (disposition: {evidence['disposition']})")
+        print(
+            f"jittest verify: {evidence['verdict_text']} (disposition: {evidence['disposition']})"
+        )
         if out_path:
             print(f"Signed evidence written to: {out_path}")
 
@@ -499,12 +572,15 @@ def _cmd_verify(args: argparse.Namespace) -> int:
 
 def _cmd_verify_receipt(args: argparse.Namespace) -> int:
     from .receipt import verify_receipt
+
     artifact_path = Path(args.artifact).resolve()
     expected_signer = getattr(args, "expected_signer", None)
     expected_base = getattr(args, "expected_base", None)
     expected_head = getattr(args, "expected_head", None)
     expected_test_sha256 = getattr(args, "expected_test_sha256", None)
     expected_repo = getattr(args, "expected_repo", None)
+    strict_signer = bool(getattr(args, "strict_signer", False))
+    require_confined = bool(getattr(args, "require_confined", False))
 
     res = verify_receipt(
         artifact_path,
@@ -513,35 +589,64 @@ def _cmd_verify_receipt(args: argparse.Namespace) -> int:
         expected_head=expected_head,
         expected_test_sha256=expected_test_sha256,
         expected_repo=expected_repo,
+        strict_signer=strict_signer,
+        require_confined=require_confined,
     )
-    ok, reason = res[0], res[1]
 
-    if args.as_json:
+    if res.schema_status == "VALID_LEGACY" and not getattr(args, "as_json", False):
+        print(
+            "LEGACY: this receipt predates strict validation; it proves integrity, not execution trust."
+        )
+
+    # Exit code mapping according to specification:
+    # 0 ok
+    # 2 signature invalid
+    # 3 signer untrusted/unverified under --strict-signer (or expected_signer mismatch)
+    # 4 schema invalid/unsupported
+    # 5 semantic invalid
+    # 6 provenance mismatch/unresolvable
+    # 7 execution not confined under --require-confined
+    exit_code = 0
+    if not res.signature_valid:
+        exit_code = 2
+    elif res.schema_status in ("INVALID", "UNSUPPORTED"):
+        exit_code = 4
+    elif not res.semantic_valid:
+        exit_code = 5
+    elif res.provenance_status in ("MISMATCH", "UNRESOLVABLE"):
+        exit_code = 6
+    elif (
+        (strict_signer and res.signer_status != "TRUSTED")
+        or (expected_signer is not None and res.signer_status != "TRUSTED")
+        or (res.signer_status in ("UNTRUSTED", "INVALID_FORMAT"))
+    ):
+        exit_code = 3
+    elif require_confined and res.execution_trust != "CONFINED":
+        exit_code = 7
+
+    if getattr(args, "as_json", False):
         payload = {
-            "valid": ok and (res.signer_status != "UNTRUSTED"),
+            "valid": exit_code == 0,
             "signature_valid": res.signature_valid,
             "signer_status": res.signer_status,
-            "schema_valid": res.schema_valid,
-            "provenance_matched": res.provenance_matched,
-            "reason": reason,
+            "schema_status": res.schema_status,
+            "provenance_status": res.provenance_status,
+            "execution_trust": res.execution_trust,
+            "semantic_valid": res.semantic_valid,
+            "reason": res.reason,
             "artifact": str(artifact_path),
             "expected_signer": expected_signer,
         }
         print(json.dumps(payload, indent=2))
     else:
-        print(f"jittest verify-receipt: {reason}")
+        print(f"jittest verify-receipt: {res.reason}")
 
-    if not ok:
-        return 2
-    if getattr(args, "strict_signer", False) and res.signer_status != "TRUSTED":
-        return 3
-    if res.signer_status == "UNTRUSTED" or "SIGNER_UNTRUSTED" in reason:
-        return 3
-    return 0
+    return exit_code
 
 
 def _cmd_action(args: argparse.Namespace) -> int:
     from .action import run_action
+
     return run_action(repo_path=args.repo, pr_number=args.pr, sandbox_override=args.sandbox)
 
 

@@ -114,8 +114,8 @@ class SevenFixturesTest(unittest.TestCase):
         self.assertFalse(evidence["proven_catch"])
         self.assertEqual(exit_code, 1)
 
-    def test_fixture_4_inconclusive_both_fail(self):
-        """4. base FAIL -> head FAIL => inconclusive"""
+    def test_fixture_4_refuted_both_fail(self):
+        """4. base FAIL -> head FAIL => refuted"""
         base_sha = self._commit({
             "calc.py": "def add(a, b):\n    return a - b\n",
             "tests/test_calc.py": "from calc import add\ndef test_add():\n    assert add(2, 3) == 5\n"
@@ -132,7 +132,7 @@ class SevenFixturesTest(unittest.TestCase):
             test_file_path=self.repo / "tests" / "test_calc.py",
             sandbox_mode="off",
         )
-        self.assertEqual(evidence["verdict"], VerdictClass.INCONCLUSIVE)
+        self.assertEqual(evidence["verdict"], VerdictClass.REFUTED)
         self.assertEqual(evidence["disposition"], Disposition.HEAD_FAILED_BASE_FAILED_LATENT)
         self.assertFalse(evidence["proven_catch"])
         self.assertEqual(exit_code, 1)

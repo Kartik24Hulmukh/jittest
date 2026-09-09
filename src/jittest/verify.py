@@ -41,7 +41,7 @@ from .diff import git_env
 from .env import EnvSetupError, provision_environment
 from .execute import Disposition, FailureKind, Outcome, Worktree, resolve_revision, run_test
 from .github import fetch_pr_base_head
-from .receipt import sign_evidence
+from .receipt import get_repo_canonical, sign_evidence
 from .sandbox import plan as plan_sandbox
 
 __all__ = [
@@ -217,43 +217,6 @@ def _write_json_atomically(path: Path, payload: dict[str, Any]) -> None:
         temp_path.unlink(missing_ok=True)
 
 
-def get_repo_canonical(repo_path: Path | str) -> str:
-    """Derive a normalized canonical repository identity.
-
-    e.g. 'github.com/pallets/flask' from git remote 'origin'.
-    If no remote exists, returns 'local:<sha256(abs_path)[:16]>'.
-    """
-    p = Path(repo_path).resolve()
-    try:
-        res = subprocess.run(
-            ["git", "-C", str(p), "remote", "get-url", "origin"],
-            capture_output=True,
-            text=True,
-            errors="replace",
-            env=git_env(),
-        )
-        if res.returncode == 0 and res.stdout.strip():
-            url = res.stdout.strip()
-            # Normalize url: strip scheme (https://, http://, ssh://, git://)
-            url = re.sub(r"^[a-zA-Z0-9+_.-]+://", "", url)
-            if "@" in url:
-                url = url.split("@", 1)[1]
-            if ":" in url and "/" not in url.split(":", 1)[0]:
-                host_part, path_part = url.split(":", 1)
-                url = f"{host_part}/{path_part}"
-            if url.endswith(".git"):
-                url = url[:-4]
-            url = url.strip("/")
-            parts = url.split("/", 1)
-            url = f"{parts[0].lower()}/{parts[1]}" if len(parts) == 2 else url.lower()
-            return url
-    except Exception:
-        pass
-    path_str = str(p).replace("\\", "/").lower()
-    path_hash = hashlib.sha256(path_str.encode("utf-8")).hexdigest()[:16]
-    return f"local:{path_hash}"
-
-
 def make_refusal_receipt(
     repo_path: Path | str,
     base_ref: str = "HEAD~1",
@@ -400,7 +363,10 @@ def _verify_pass_to_pass(
         test_candidates = [
             f
             for f in sorted(common)
-            if (f.endswith(".py") and (Path(f).name.startswith("test_") or Path(f).name.endswith("_test.py")))
+            if (
+                f.endswith(".py")
+                and (Path(f).name.startswith("test_") or Path(f).name.endswith("_test.py"))
+            )
             and str(Path(f)) != str(Path(rel_test))
             and Path(f).name != Path(rel_test).name
         ]
@@ -671,7 +637,16 @@ def verify_test(
         base_failure_kind = "collection"
     elif base_run.outcome is Outcome.FAIL:
         out_err = base_run.stdout + "\n" + base_run.stderr
-        if any(err_kw in out_err for err_kw in ("ImportError", "ModuleNotFoundError", "SyntaxError", "PytestCollectionWarning", "CollectionError")):
+        if any(
+            err_kw in out_err
+            for err_kw in (
+                "ImportError",
+                "ModuleNotFoundError",
+                "SyntaxError",
+                "PytestCollectionWarning",
+                "CollectionError",
+            )
+        ):
             base_failure_kind = "collection"
         elif base_run.failure_kind == FailureKind.ASSERTION:
             base_failure_kind = "assertion"
@@ -685,6 +660,39 @@ def verify_test(
         base_failure_kind = "none"
     else:
         base_failure_kind = "none"
+
+    # Determine head_failure_kind (assertion | error | timeout | collection | none)
+    if head_err is not None or head_run1 is None:
+        head_failure_kind = "error"
+    elif head_run1.outcome is Outcome.TIMEOUT:
+        head_failure_kind = "timeout"
+    elif head_run1.outcome is Outcome.ERROR:
+        head_failure_kind = "collection"
+    elif head_run1.outcome is Outcome.FAIL:
+        out_err = head_run1.stdout + "\n" + head_run1.stderr
+        if any(
+            err_kw in out_err
+            for err_kw in (
+                "ImportError",
+                "ModuleNotFoundError",
+                "SyntaxError",
+                "PytestCollectionWarning",
+                "CollectionError",
+            )
+        ):
+            head_failure_kind = "collection"
+        elif head_run1.failure_kind == FailureKind.ASSERTION:
+            head_failure_kind = "assertion"
+        elif head_run1.failure_kind == FailureKind.ERROR:
+            head_failure_kind = "error"
+        elif "AssertionError" in out_err or "\nassert " in out_err:
+            head_failure_kind = "assertion"
+        else:
+            head_failure_kind = "error"
+    elif head_run1.outcome is Outcome.PASS:
+        head_failure_kind = "none"
+    else:
+        head_failure_kind = "none"
 
     base_reproduced = bool(base_run is not None and base_run.outcome is Outcome.PASS)
 
@@ -722,7 +730,9 @@ def verify_test(
             exit_code = 1
         elif head_run1.outcome in (Outcome.ERROR, Outcome.NOTRUN, Outcome.TIMEOUT):
             disposition = Disposition.HEAD_UNCOLLECTABLE_BASE_PASSED
-            verdict_class = VerdictClass.COLLECTION_CATCH  # Split collection catch from behavioral catch
+            verdict_class = (
+                VerdictClass.COLLECTION_CATCH
+            )  # Split collection catch from behavioral catch
             is_proven_catch = False  # NEVER count collection breakage as a behavioral catch
             exit_code = 1
         else:
@@ -735,7 +745,11 @@ def verify_test(
             # Candidate for reproduction_catch (bug fixed on head, caught at base)
             # Guard (a): The base failure must be an assertion failure or an exception from the code
             # under test during the test body, NOT a collection/import/syntax/env error.
-            if base_failure_kind == "collection" or base_run.outcome in (Outcome.ERROR, Outcome.TIMEOUT, Outcome.NOTRUN):
+            if base_failure_kind == "collection" or base_run.outcome in (
+                Outcome.ERROR,
+                Outcome.TIMEOUT,
+                Outcome.NOTRUN,
+            ):
                 disposition = Disposition.BASE_UNCOLLECTABLE
                 verdict_class = VerdictClass.INCONCLUSIVE
                 is_proven_catch = False
@@ -766,7 +780,10 @@ def verify_test(
                     exit_code = 0
         elif head_run1.outcome is Outcome.FAIL:
             disposition = Disposition.HEAD_FAILED_BASE_FAILED_LATENT
-            verdict_class = VerdictClass.INCONCLUSIVE
+            if base_failure_kind == "assertion" and head_failure_kind == "assertion":
+                verdict_class = VerdictClass.REFUTED
+            else:
+                verdict_class = VerdictClass.INCONCLUSIVE
             is_proven_catch = False
             exit_code = 1
         else:
@@ -796,6 +813,7 @@ def verify_test(
 
     base_exec_dict = {
         "outcome": base_run.outcome.name if base_run else "NOTRUN",
+        "failure_kind": base_failure_kind,
         "exit_code": base_run.returncode if base_run else -1,
         "stdout_sha256": _hash_str(base_run.stdout) if base_run else _hash_str(""),
         "stderr_sha256": _hash_str(base_run.stderr) if base_run else _hash_str(""),
@@ -804,6 +822,7 @@ def verify_test(
 
     head_exec_dict = {
         "outcome": head_run1.outcome.name if head_run1 else "NOTRUN",
+        "failure_kind": head_failure_kind,
         "exit_code": head_run1.returncode if head_run1 else -1,
         "stdout_sha256": _hash_str(head_run1.stdout) if head_run1 else _hash_str(""),
         "stderr_sha256": _hash_str(head_run1.stderr) if head_run1 else _hash_str(""),

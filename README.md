@@ -31,14 +31,14 @@ verdicts:
 
 | Verdict | Meaning |
 | --- | --- |
-| `proven_catch` | regression catch: test passes on base, fails on head — signed proof |
-| `reproduction_catch` | bug-fix proof: test fails on base, passes on head — signed proof |
+| `proven_catch` | regression catch: test passes on base, fails on head - signed proof |
+| `reproduction_catch` | bug-fix proof: test fails on base, passes on head - signed proof |
 | `collection_catch` | head could not collect or execute while base passed |
-| `refuted` | test fails on both — the claim did not hold |
-| `non_discriminating` | test passes on both — proves nothing about the change |
-| `inconclusive` | environment could not be restored safely — a loud refusal, never a guess |
+| `refuted` | test fails on both - the claim did not hold |
+| `non_discriminating` | test passes on both - proves nothing about the change |
+| `inconclusive` | environment could not be restored safely - a loud refusal, never a guess |
 
-Receipts are Ed25519-signed. Verification checks integrity and, when you supply `--expected-signer`, authenticity against a key you chose. Without `--expected-signer` jittest reports integrity only and exits non-zero.
+Receipts are Ed25519-signed. Verification validates signature integrity, signer authenticity, schema validity, provenance matching, and execution trust as five independent dimensions (`jittest verify-receipt`). Use `--strict-signer` to enforce trusted signers, `--require-confined` to require sandboxed execution, and `--json` for machine-readable output.
 
 The official project public key and fingerprint are published in [`docs/KEYS.md`](docs/KEYS.md); the receipt contract is in [`docs/SCHEMA.md`](docs/SCHEMA.md).
 

@@ -1,0 +1,44 @@
+{
+  "schema_version": "2.1",
+  "tool": "jittest verify",
+  "verdict": "proven_catch",
+  "proven_catch": true,
+  "disposition": "catching",
+  "provenance": {
+    "repo_path": "/workspace/repo",
+    "repo_canonical": "github.com/example/repo",
+    "base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "head_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "test_file_name": "test_example.py",
+    "test_file_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "tool_commit_sha": "dddddddddddddddddddddddddddddddddddddddd",
+    "rel_path": "."
+  },
+  "sandbox": {
+    "mode": "required",
+    "backend": "docker",
+    "image": "python:3.12-slim",
+    "confined": true
+  },
+  "base_execution": {
+    "outcome": "PASS",
+    "failure_kind": "none",
+    "exit_code": 0,
+    "stdout_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "stderr_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  },
+  "head_execution": {
+    "outcome": "PASS",
+    "failure_kind": "none",
+    "exit_code": 1,
+    "stdout_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "stderr_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "rerun_agreement": true,
+  "wall_clock_s": 1.5,
+  "signature": {
+    "algorithm": "Ed25519",
+    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
+    "value": "B0Dzxv4xR8I2ATNDFAh4y+jRHa/qpWEm7JHOmC2RsnykbTFyZG9hSb1mcgMYJGesC3Ab0nZonoPVqMtPP+oWCA=="
+  }
+}

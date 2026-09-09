@@ -310,6 +310,22 @@ def test_verify_cli_json_output_is_parseable_complete_receipt():
         assert file_payload["signature"]["algorithm"] == "Ed25519"
 
 
+def test_fail_fail_assertion_is_refuted():
+    with tempfile.TemporaryDirectory() as tmp:
+        repo, base_sha, head_sha, _ = create_synthetic_repo(Path(tmp))
+        fail_test = repo / "test_always_fails.py"
+        fail_test.write_text("def test_bad(): assert 1 == 2\n", encoding="utf-8")
+
+        res, code = verify_test(
+            repo_path=repo,
+            base_ref=base_sha,
+            head_ref=head_sha,
+            test_file_path=fail_test,
+            sandbox_mode="off",
+        )
+        assert res["verdict"] == VerdictClass.REFUTED
+        assert code == 1
+
 def test_refusal_receipt_has_no_success_fields():
     """Verify that refusal receipts strictly conform to schema 2.1 and have no success fields."""
     with tempfile.TemporaryDirectory() as tmp:
