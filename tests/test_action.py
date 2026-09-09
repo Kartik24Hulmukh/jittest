@@ -49,7 +49,9 @@ class TestActionHelpers(unittest.TestCase):
                 self.assertEqual(get_trust_context(), "fork")
 
     def test_get_trust_context_unknown_when_absent(self):
-        with patch.dict("os.environ", {"GITHUB_EVENT_PATH": ""}):
+        # Clear GITHUB_EVENT_NAME too: on a real runner the `push` event name
+        # leaks in and get_trust_context() correctly answers "internal".
+        with patch.dict("os.environ", {"GITHUB_EVENT_PATH": "", "GITHUB_EVENT_NAME": ""}):
             self.assertEqual(get_trust_context(), "unknown")
 
     def test_get_trust_context_internal_on_trusted_push(self):
