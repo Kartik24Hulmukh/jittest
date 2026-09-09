@@ -347,3 +347,58 @@ jobs:
           [ "${{ needs.build.result }}" = "success" ] || exit 1
           [ "${{ needs.consumer_action_e2e.result }}" = "success" ] || exit 1
           [ "${{ needs.mypy-safety.result }}" = "success" ] || exit 1
+
+  isolation-canaries:
+    # Proves the sandbox boundary is exercised on every green CI, not merely
+    # configured. Fails (never skips) when no backend is usable. Task 24.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Pull the default runtime image once
+        run: docker pull python:3.13-slim
+      - name: Canaries under docker (required, fail on skip)
+        env:
+          JITTEST_SANDBOX: required
+          JITTEST_SANDBOX_BACKEND: docker
+        run: python scripts/isolation_canaries.py
+      - name: Canaries under bubblewrap (best effort, reported not gated)
+        continue-on-error: true
+        env:
+          JITTEST_SANDBOX: required
+          JITTEST_SANDBOX_BACKEND: bubblewrap
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq bubblewrap
+          python scripts/isolation_canaries.py
+      - name: Doctor must report the sandbox honestly
+        run: |
+          pip install -e .
+          jittest doctor | tee doctor.log
+          grep -E "sandbox: (docker|podman|bubblewrap)" doctor.log
+
+  version-drift:
+    # 4-way version agreement (pyproject, __init__, CHANGELOG, CITATION). Task 30.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - run: python scripts/check_version_drift.py
+
+  schema-contract:
+    # schemas/receipt-2.1.schema.json must agree with receipt.py and validate
+    # a freshly signed receipt; the negative corpus must fail it. Task 36.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - run: pip install jsonschema pytest
+      - run: PYTHONPATH=src pytest -q tests/test_receipt_json_schema.py tests/test_cli_explain.py tests/test_version_drift.py -p no:cacheprovider

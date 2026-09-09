@@ -150,3 +150,13 @@ jittest executes code. Container and namespace isolation follows **Contract Opti
 ## Licence
 
 Apache-2.0.
+
+## Explain a receipt
+
+```bash
+jittest explain receipt.json            # verdict, five verification facts, one hint
+jittest explain receipt.json --json     # stable contract for agents and dashboards
+```
+
+Exit codes and hints: `docs/ERRORS.md`. JSON Schema: `schemas/receipt-2.1.schema.json`.
+Privacy: `docs/PRIVACY.md`. Integrations: `docs/INTEGRATIONS.md`.

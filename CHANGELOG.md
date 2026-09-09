@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- **`jittest explain <receipt>`** (new): plain-language rendering of the verdict and the five verification facts with a hint per exit code; `--json` is a stable contract (`explain_version: 1`). `docs/ERRORS.md` is the exit-code table.
+- **`schemas/receipt-2.1.schema.json`** (new): published JSON Schema (draft 2020-12) for receipts; `tests/test_receipt_json_schema.py` asserts it agrees with `receipt.py` and that the negative corpus fails it.
+- **`jittest doctor`** now reports the sandbox backend honestly (`sandbox: NONE ... WILL REFUSE`) instead of staying silent on unconfined machines.
+- **CI `isolation-canaries`** job: executes network/escape/control canaries inside the docker sandbox on every run and fails, never skips, when no backend is usable.
+- **CI `version-drift`** job (`scripts/check_version_drift.py`): 4-way version agreement. It immediately caught `CITATION.cff` at `0.1.0`; fixed to `0.3.5`.
+- **Option C plumbing**: `docker/pilot-requests/Dockerfile` (pinned pytest/requests/Flask runtime) and `scripts/prove_option_c.py`, which records `NOT_RUN` unless a real daemon executed the dependency-bearing candidate. D9 stays OPEN until that record says `RUN`.
+- `docs/PRIVACY.md`, `docs/INTEGRATIONS.md` added.
+
 ## 0.3.5 - 2026-08-21
 
 ### Verification State Machine — Reproduction Direction

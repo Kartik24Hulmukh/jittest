@@ -203,6 +203,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     vr.add_argument("--json", dest="as_json", action="store_true")
 
+    xp = sub.add_parser(
+        "explain",
+        help="explain a receipt in plain language: verdict, five verification facts, and "
+        "the one hint that unblocks a refusal",
+    )
+    xp.add_argument("artifact", help="path to evidence JSON artifact")
+    xp.add_argument("--expected-signer", default=None)
+    xp.add_argument("--strict-signer", action="store_true")
+    xp.add_argument("--require-confined", action="store_true")
+    xp.add_argument("--json", dest="as_json", action="store_true")
+
     dr = sub.add_parser("doctor", help="check that this environment can run jittest")
     dr.add_argument("--repo", default=".")
 
@@ -478,6 +489,20 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
     )
     print(f"  [ok  ] ledger {repo / cfg.ledger_path}")
     print(f"  [ok  ] {len(cfg.ignore)} ignore pattern(s)")
+
+    # Sandbox honesty. A green doctor on a machine that cannot confine anything
+    # is the lie this project exists to stop telling, so it is stated outright.
+    from .sandbox import detect_backend
+
+    backend = detect_backend()
+    if backend == "none":
+        print("  [warn] sandbox: NONE - no usable docker, podman or bubblewrap here")
+        print("         sandbox-mode 'required' (the Action default) WILL REFUSE to execute")
+        if sys.platform in ("win32", "darwin"):
+            print("         Windows/macOS have no bubblewrap: install Docker Desktop, or run")
+            print("         jittest in CI on ubuntu where the isolation-canaries job proves it")
+    else:
+        print(f"  [ok  ] sandbox: {backend} - candidates will be confined (network denied)")
     return 0 if ok else 1
 
 
@@ -644,6 +669,22 @@ def _cmd_verify_receipt(args: argparse.Namespace) -> int:
     return exit_code
 
 
+def _cmd_explain(args: argparse.Namespace) -> int:
+    from .explain import explain_receipt, render_text
+
+    info = explain_receipt(
+        Path(args.artifact).resolve(),
+        expected_signer=args.expected_signer,
+        strict_signer=bool(args.strict_signer),
+        require_confined=bool(args.require_confined),
+    )
+    if args.as_json:
+        print(json.dumps(info, indent=2, sort_keys=True))
+    else:
+        print(render_text(info))
+    return int(info["exit_code"])
+
+
 def _cmd_action(args: argparse.Namespace) -> int:
     from .action import run_action
 
@@ -660,6 +701,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_verify_receipt(args)
     if args.command == "action":
         return _cmd_action(args)
+    if args.command == "explain":
+        return _cmd_explain(args)
     if args.command == "oracles":
         return _cmd_oracles(args)
     if args.command == "stats":
