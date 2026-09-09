@@ -158,7 +158,7 @@ def _usable(binary: str, args: list[str]) -> bool:
     try:
         proc = subprocess.run(
             [binary, *args], capture_output=True, text=True,
-            errors="replace", timeout=3,
+            errors="replace", timeout=15,
         )
     except (OSError, subprocess.SubprocessError):
         return False
