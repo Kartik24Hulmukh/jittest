@@ -404,9 +404,10 @@ def check_candidate(code: str, max_bytes: int = 20000) -> CodeCheck:
                     # A hard-coded write target is the tamper vector: a
                     # candidate that rewrites a source file in the worktree
                     # can manufacture a base/head difference. A computed
-                    # path is how legitimate fixtures use scratch files
-                    # (temp dirs, paths derived from __file__), so that is
-                    # warned about rather than rejected.
+                    # Any computed write target can still be selected by an
+                    # untrusted test to rewrite the worktree.  Scratch files
+                    # must be rooted in a temporary directory; fail closed
+                    # rather than allowing a warning-only bypass.
                     hard = next(
                         (t for t in literals if not _looks_like_mode(t)),
                         None)
@@ -418,8 +419,11 @@ def check_candidate(code: str, max_bytes: int = 20000) -> CodeCheck:
                             "candidate that writes into the worktree can "
                             "corrupt the base/head comparison")
                     if not _rooted_in_temp(node):
-                        warnings.append(
-                            f"opens a computed path with mode `{mode}`")
+                        return CodeCheck(
+                            False,
+                            f"opens a computed path with mode `{mode}`; a "
+                            "candidate write target must be rooted in a "
+                            "temporary directory")
             if isinstance(func, ast.Attribute):
                 if func.attr in BANNED_ATTRS:
                     return CodeCheck(False, f"calls `{func.attr}`")
