@@ -13,7 +13,7 @@
   - D9 (Real container isolation status & Option D contract): **RUN** on a real docker daemon (GitHub Actions ubuntu-latest, run 34385649631, PR #179): dependency-bearing candidate (requests + Flask) executed inside the pinned pilot image with network denied, 2 passed - record in `docs/evidence/option-c-proof-D9-2026-09-09.json`. Still open: an end-to-end `jittest verify` on a third-party dependency-bearing repo via `[tool.jittest.runtime]` with a registry-published digest
   - D10 (Test file scope): DOCUMENTED (Mode A verifier evaluates PR-modified Python tests)
 - **Exact failing test or CI job**: None (All 26 GitHub Actions checks passed on PR #171; 784 local tests passing)
-- **Next step**: Secure 2 named maintainers for 14-day advisory SHA-pin trial; draft NLnet/Restack grant proposal.
+- **Next step**: Secure 2 named maintainers for 14-day advisory SHA-pin trial; draft NLnet/Restack grant proposal; design and threat-model Option B before implementation.
 
 ## Phase 2 progress (2026-09-09)
 
