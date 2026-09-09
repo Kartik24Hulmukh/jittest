@@ -66,6 +66,16 @@ class CandidateTelemetry:
     # and NEVER exported to telemetry.
     candidate_source_sha256: str = ""
     candidate_source_path: str = ""
+    # Phase-2 observability (task 27). Additive only. refusal_code is the
+    # machine-readable refusal taxonomy code (docs/ERRORS.md) or "";
+    # sandbox_backend / sandbox_image_digest restate the confinement actually
+    # used so a telemetry line can never imply isolation that did not happen;
+    # wall_clock_s is the oracle wall clock for this candidate. None of these
+    # ever carries candidate source text (docs/PRIVACY.md).
+    refusal_code: str = ""
+    sandbox_backend: str = ""
+    sandbox_image_digest: str = ""
+    wall_clock_s: float = 0.0
 
     def as_dict(self) -> dict:
         return {
@@ -84,6 +94,10 @@ class CandidateTelemetry:
             "parse_error": self.parse_error,
             "candidate_source_sha256": self.candidate_source_sha256,
             "candidate_source_path": self.candidate_source_path,
+            "refusal_code": self.refusal_code,
+            "sandbox_backend": self.sandbox_backend,
+            "sandbox_image_digest": self.sandbox_image_digest,
+            "wall_clock_s": round(float(self.wall_clock_s), 3),
         }
 
     def as_jsonl(self) -> str:
@@ -148,6 +162,10 @@ class Report:
         "backend": "none", "image": None, "isolated": False,
         "network_denied": False, "notes": [],
     })
+    # Phase-2 observability (task 27): total wall clock and per-phase timings
+    # in seconds. Local only; nothing here is transmitted anywhere.
+    wall_clock_s: float = 0.0
+    phases: dict = field(default_factory=lambda: {"run_total_s": 0.0, "oracle_s": 0.0})
 
     @property
     def has_regression(self) -> bool:
@@ -188,6 +206,8 @@ class Report:
             "rate_limited_candidates": self.rate_limited_candidates,
             "diff_status": self.diff_status,
             "sandbox": self.sandbox,
+            "wall_clock_s": round(float(self.wall_clock_s), 3),
+            "phases": {k: round(float(v), 3) for k, v in self.phases.items()},
             "has_regression": self.has_regression,
             "errors": self.errors,
             "telemetry": [t.as_dict() for t in self.telemetry],

@@ -1,0 +1,21 @@
+{
+  "proof": "option_c",
+  "defect": "D9",
+  "image": "jittest-pilot-requests:local",
+  "backend": "docker",
+  "status": "RUN",
+  "rc": 0,
+  "passed": true,
+  "wall_clock_s": 0.94,
+  "stdout_tail": "..                                                                       [100%]\n2 passed in 0.25s\n",
+  "stderr_tail": "",
+  "provenance": {
+    "workflow": "option-c-proof",
+    "run_url": "https://github.com/Kartik24Hulmukh/jittest/actions/runs/34385649631",
+    "runner": "ubuntu-latest (GitHub Actions), docker daemon",
+    "commit": "9537581 (PR #179)",
+    "image_id_built": "sha256:7b3e5d95cdc79c5ec3b58b876c464975af8e63b4b61edb25ec8e0c406d3d89a8",
+    "date": "2026-09-09"
+  },
+  "scope": "First real-daemon proof: a dependency-bearing candidate (requests + Flask) executed inside the pilot image under docker with network egress denied; both tests passed (2 passed). NOT yet: an end-to-end `jittest verify` on a third-party dependency-bearing repository through the [tool.jittest.runtime] selection layer with a registry-published @sha256 digest. The pilot image was built locally in the job and referenced by tag for the build step only."
+}

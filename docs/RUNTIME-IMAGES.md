@@ -45,6 +45,10 @@ export JITTEST_RUNTIME_IMAGE="ghcr.io/pallets/flask-test-runtime@sha256:e3b0c442
 
 ---
 
+## 3a. Implementation status
+
+Implemented in `src/jittest/sandbox.py`: `validate_image_ref` (Rule 1), `load_runtime_image` (Rule 2, base-branch precedence via `git show <base>:pyproject.toml`, env fallback), `image_digest` (Rule 4, local inspect, never pulls) and `plan(runtime_image=...)`. `env.provision_environment` skips host provisioning entirely when a digest-pinned image is selected on docker/podman (`provisioning: option_c_trusted_image`). An unpinned reference is emitted as `jittest: image_digest_required: ...`, recorded in `report.errors`, and ignored - the run continues under the stdlib-only Option-D contract. Defect D9 (a dependency-bearing candidate executed on a real daemon) is closed only by the `option-c-proof` workflow artifact reporting `"status": "RUN"`.
+
 ## 4. Security Invariants & Validation Rules
 
 To prevent candidate pull requests from hijacking the isolation environment:

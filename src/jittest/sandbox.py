@@ -58,15 +58,18 @@ were green because they never took the container path at all.
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 import sys
+import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 
 __all__ = [
     "SandboxUnavailable", "SandboxPlan", "detect_backend", "probe_backend",
     "plan", "MODES", "DEFAULT_IMAGE",
+    "validate_image_ref", "load_runtime_image", "image_digest",
 ]
 
 MODES = ("auto", "required", "off")
@@ -112,6 +115,13 @@ class SandboxPlan:
     image: str = DEFAULT_IMAGE
     notes: list[str] = field(default_factory=list)
     mode: str = "auto"
+    # Option C (docs/RUNTIME-IMAGES.md). ``runtime_image`` is the digest-pinned
+    # trusted image the maintainer declared on the base branch, or "" when the
+    # run is under the stdlib-only Option-D contract. ``image_digest`` is the
+    # digest the local engine actually reports for the image that will run -
+    # "" means "unknown here", never "trusted".
+    runtime_image: str = ""
+    image_digest: str = ""
 
     @property
     def isolated(self) -> bool:
@@ -130,6 +140,8 @@ class SandboxPlan:
             "isolated": self.isolated,
             "network_denied": self.network_denied,
             "notes": list(self.notes),
+            "runtime_image": self.runtime_image,
+            "image_digest": self.image_digest,
         }
 
 
@@ -300,7 +312,7 @@ def _host_python() -> str:
 
 
 def plan(mode: str, preferred: str = "", image: str = DEFAULT_IMAGE,
-         probe: bool = True) -> SandboxPlan:
+         probe: bool = True, runtime_image: str = "") -> SandboxPlan:
     """Decide how candidates will run, once per pipeline run.
 
     Called before any candidate executes so that a broken sandbox is a loud
@@ -310,9 +322,15 @@ def plan(mode: str, preferred: str = "", image: str = DEFAULT_IMAGE,
     mode = (mode or "auto").strip().lower()
     if mode not in MODES:
         mode = "auto"
+    runtime_image = (runtime_image or "").strip()
+    if runtime_image:
+        # Option C: a digest-pinned trusted image replaces the stock image for
+        # container backends. Callers validate the pin (validate_image_ref)
+        # before it gets here; an unpinned ref never reaches this line.
+        image = runtime_image
 
     if mode == "off":
-        return SandboxPlan(backend="none", image=image, mode="off", notes=[
+        return SandboxPlan(backend="none", image=image, runtime_image=runtime_image, mode="off", notes=[
             "sandbox disabled by configuration: candidate tests share the "
             "filesystem, network and user account of this runner. Do not use "
             "this setting on pull requests from outside collaborators."])
@@ -325,7 +343,7 @@ def plan(mode: str, preferred: str = "", image: str = DEFAULT_IMAGE,
                 "available. Install podman, docker or bubblewrap on this "
                 "runner, or set sandbox.mode to 'auto' and accept that "
                 "candidates run unconfined.")
-        return SandboxPlan(backend="none", image=image, mode=mode, notes=[
+        return SandboxPlan(backend="none", image=image, runtime_image=runtime_image, mode=mode, notes=[
             "no container or namespace backend found (looked for podman, "
             "docker, bubblewrap): candidates ran unconfined. Credentials were "
             "still withheld by the environment allowlist, but network egress "
@@ -345,7 +363,7 @@ def plan(mode: str, preferred: str = "", image: str = DEFAULT_IMAGE,
             # no reason to run unconfined when bwrap is right there.
             backend = "bubblewrap"
         else:
-            return SandboxPlan(backend="none", image=image, mode=mode, notes=[
+            return SandboxPlan(backend="none", image=image, runtime_image=runtime_image, mode=mode, notes=[
                 f"{backend} is available but the image {image!r} is not "
                 f"present locally; candidates ran unconfined rather than "
                 f"triggering an unannounced image pull mid-run. Run "
@@ -359,7 +377,7 @@ def plan(mode: str, preferred: str = "", image: str = DEFAULT_IMAGE,
                 raise SandboxUnavailable(
                     f"sandbox.mode is 'required' and {backend} is installed but "
                     f"not working: {detail}")
-            return SandboxPlan(backend="none", image=image, mode=mode, notes=[
+            return SandboxPlan(backend="none", image=image, runtime_image=runtime_image, mode=mode, notes=[
                 f"{backend} was found but did not work ({detail}); candidates "
                 f"ran unconfined. This is reported rather than retried because "
                 f"a sandbox that fails to start makes every candidate look "
@@ -370,7 +388,14 @@ def plan(mode: str, preferred: str = "", image: str = DEFAULT_IMAGE,
             if backend != "bubblewrap" else
             "candidates executed under bubblewrap namespaces with network "
             "egress denied and the host filesystem mounted read-only")
-    return SandboxPlan(backend=backend, image=image, mode=mode, notes=[note])
+    digest = image_digest(backend, image) if backend in ("docker", "podman") else ""
+    if runtime_image and backend in ("docker", "podman"):
+        note += f" inside the maintainer-pinned runtime image {runtime_image}"
+    elif runtime_image:
+        note += (" (a runtime image was pinned but the selected backend is not a"
+                 " container engine, so it was not used)")
+    return SandboxPlan(backend=backend, image=image, mode=mode, notes=[note],
+                       runtime_image=runtime_image, image_digest=digest)
 
 
 def wrap(argv: list[str], workdir: Path | str, env: dict[str, str],
@@ -602,3 +627,103 @@ def _wrap_bwrap(argv: list[str], workdir: Path, env: dict[str, str]) -> list[str
     bwrap_cmd.extend(inner_argv)
     return bwrap_cmd
 
+
+
+# --------------------------------------------------------------------------
+# Option C: maintainer-declared trusted runtime image (docs/RUNTIME-IMAGES.md)
+# --------------------------------------------------------------------------
+
+_DIGEST_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/:-]*@sha256:[0-9a-f]{64}$")
+
+
+def validate_image_ref(ref: str) -> tuple[bool, str]:
+    """Rule 1: a runtime image must be pinned by ``@sha256:<64 hex>``.
+
+    A moving tag would let whoever controls the registry choose the code that
+    executes a stranger's pull request. Returns ``(ok, error_text)``; the
+    error text is stable so ``jittest explain`` can point at it.
+    """
+    ref = (ref or "").strip()
+    if not ref:
+        return False, "image_digest_required: runtime image reference is empty"
+    if not _DIGEST_RE.match(ref):
+        return False, (
+            f"image_digest_required: runtime image {ref!r} is not pinned by "
+            "@sha256:<64 hex digits>; tags are refused because they move")
+    return True, ""
+
+
+def _runtime_image_from_toml(text: str) -> str:
+    try:
+        data = tomllib.loads(text)
+    except (tomllib.TOMLDecodeError, ValueError):
+        return ""
+    value = data.get("tool", {}).get("jittest", {}).get("runtime", {})
+    image = value.get("image", "") if isinstance(value, dict) else ""
+    return image.strip() if isinstance(image, str) else ""
+
+
+def load_runtime_image(repo: Path | str, base_rev: str | None) -> tuple[str, list[str]]:
+    """Rule 2: the *base branch* decides which runtime image is trusted.
+
+    Precedence: ``git show <base>:pyproject.toml`` ``[tool.jittest.runtime].image``
+    first (a head branch that edits the pin is exactly the attack the rule
+    exists for), then the checkout's pyproject.toml when no base revision is
+    known, then the ``JITTEST_RUNTIME_IMAGE`` environment variable. Returns
+    ``(image_or_empty, notes)``; never raises and never runs the candidate.
+    """
+    repo = Path(repo)
+    notes: list[str] = []
+    base_image = ""
+    base_seen = False
+    if base_rev:
+        try:
+            proc = subprocess.run(
+                ["git", "-C", str(repo), "show", f"{base_rev}:pyproject.toml"],
+                capture_output=True, text=True, errors="replace", timeout=10)
+        except (OSError, subprocess.SubprocessError):
+            proc = None
+        if proc is not None and proc.returncode == 0:
+            base_seen = True
+            base_image = _runtime_image_from_toml(proc.stdout)
+    head_image = ""
+    pyproject = repo / "pyproject.toml"
+    if pyproject.is_file():
+        try:
+            head_image = _runtime_image_from_toml(pyproject.read_text(encoding="utf-8", errors="replace"))
+        except OSError:
+            head_image = ""
+    if base_seen:
+        if head_image and head_image != base_image:
+            notes.append(
+                "runtime image: head branch modified [tool.jittest.runtime].image "
+                f"({head_image!r}); head value ignored per Rule 2, base branch value "
+                f"{base_image or '(none)'!r} governs")
+        if base_image:
+            return base_image, notes
+    elif head_image:
+        return head_image, notes
+    env_image = os.getenv("JITTEST_RUNTIME_IMAGE", "").strip()
+    if env_image:
+        notes.append("runtime image taken from JITTEST_RUNTIME_IMAGE")
+        return env_image, notes
+    return "", notes
+
+
+def image_digest(backend: str, image: str) -> str:
+    """The digest the local engine reports for ``image``. Never pulls, never raises.
+
+    Empty means "not observable here", which the report states as such; it is
+    never upgraded to a claim that the pinned digest was verified.
+    """
+    if backend not in ("docker", "podman") or not shutil.which(backend):
+        return ""
+    try:
+        proc = subprocess.run(
+            [backend, "image", "inspect", "-f", "{{.Id}}", image],
+            capture_output=True, text=True, errors="replace", timeout=5)
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    if proc.returncode != 0:
+        return ""
+    return proc.stdout.strip()

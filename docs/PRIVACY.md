@@ -13,6 +13,19 @@ price estimate, cache hit, wall clock. No source code, no diff text, no
 hostnames, no user names. You can delete the file at any time; nothing reads it
 except `jittest stats`.
 
+### Observability fields (Phase 2, task 27)
+
+Each telemetry line additionally carries, all local, all additive:
+
+| key | may contain | never contains |
+|---|---|---|
+| `refusal_code` | a code from `docs/ERRORS.md` (e.g. `dependency_bearing`) or `""` | free text from the candidate |
+| `sandbox_backend` | `docker`, `podman`, `bubblewrap` or `none` - what actually ran | a claim of isolation that did not happen |
+| `sandbox_image_digest` | the digest the local engine reported for the image, or `""` (unknown here) | a digest jittest did not observe itself |
+| `wall_clock_s` | the oracle wall clock for that candidate, seconds | anything else |
+
+The report adds `wall_clock_s` and `phases` (`run_total_s`, `oracle_s`). None of these fields is transmitted anywhere; `--telemetry-json` writes to the path you name and nothing else. Candidate source text stays on local disk under `.jittest/candidates/` and is referenced only by SHA-256.
+
 ## What a receipt contains
 
 A receipt (`docs/SCHEMA.md`, `schemas/receipt-2.1.schema.json`) carries:

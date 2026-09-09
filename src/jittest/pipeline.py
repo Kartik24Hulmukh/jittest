@@ -35,7 +35,7 @@ from .llm import (
 from .results import DISPOSITIONS, CandidateTelemetry, Finding, Report
 from .risk import RiskScore, rank
 from .safety import check_candidate
-from .sandbox import SandboxUnavailable
+from .sandbox import SandboxUnavailable, load_runtime_image, validate_image_ref
 from .sandbox import plan as sandbox_plan
 
 __all__ = ["Finding", "Report", "CandidateTelemetry", "run", "DISPOSITIONS",
@@ -71,6 +71,8 @@ def run(
         report.errors.append(str(exc))
         report.model_requests = llm.usage.calls
         report.duration_s = time.time() - started
+        report.wall_clock_s = report.duration_s
+        report.phases["run_total_s"] = report.duration_s
         return report
 
     if not diff_text.strip():
@@ -81,6 +83,8 @@ def run(
             "revision pair, not a result about the code.")
         report.model_requests = llm.usage.calls
         report.duration_s = time.time() - started
+        report.wall_clock_s = report.duration_s
+        report.phases["run_total_s"] = report.duration_s
         return report
 
     all_targets = extract_targets(diff_text, repo=repo, base=base, head=head)
@@ -126,19 +130,46 @@ def run(
                 report.errors.append("no changed Python functions or classes were extracted from diff.")
         report.model_requests = llm.usage.calls
         report.duration_s = time.time() - started
+        report.wall_clock_s = report.duration_s
+        report.phases["run_total_s"] = report.duration_s
         return report
 
 
+    # Option C (docs/RUNTIME-IMAGES.md): resolve the maintainer-pinned runtime
+    # image before planning. Rule 2 - the base branch decides; Rule 1 - an
+    # unpinned reference is refused loudly and ignored, never run as a tag.
+    runtime_image, rt_notes = load_runtime_image(repo, base)
+    if not runtime_image and cfg.runtime_image:
+        runtime_image = cfg.runtime_image.strip()
+    for note in rt_notes:
+        emit(note)
+    if runtime_image:
+        ok, err = validate_image_ref(runtime_image)
+        if not ok:
+            emit(f"jittest: {err}")
+            report.errors.append(err)
+            runtime_image = ""
+
     # Decided once up front: "required" raises rather than running unconfined.
     try:
-        sbx = sandbox_plan(cfg.sandbox_mode, cfg.sandbox_backend, cfg.sandbox_image)
+        sbx = sandbox_plan(cfg.sandbox_mode, cfg.sandbox_backend, cfg.sandbox_image,
+                           runtime_image=runtime_image)
     except SandboxUnavailable as exc:
         report.diff_status = "sandbox_unavailable"
         report.errors.append(str(exc))
         report.model_requests = llm.usage.calls
         report.duration_s = time.time() - started
+        report.wall_clock_s = report.duration_s
+        report.phases["run_total_s"] = report.duration_s
         return report
     report.sandbox = sbx.as_dict()
+
+    def tel(*args, **kwargs):
+        # Every telemetry line restates the confinement actually used.
+        kwargs.setdefault("sandbox_backend", sbx.backend)
+        kwargs.setdefault("sandbox_image_digest", sbx.image_digest)
+        _telemetry(*args, **kwargs)
+
     for note in sbx.notes:
         emit(note)
         if not sbx.isolated:
@@ -189,13 +220,13 @@ def run(
                         report.errors.append(f"rate limited: {exc}")
                         report.rate_limited_candidates += 1
                         _bump(report.discarded, "rate_limited")
-                        _telemetry(report, t, rs, attempt, "rate_limited",
+                        tel(report, t, rs, attempt, "rate_limited",
                                    check_reason=str(exc))
                         continue
                     except TimedOutError as exc:
                         report.errors.append(f"timed out: {exc}")
                         _bump(report.discarded, "timed_out")
-                        _telemetry(report, t, rs, attempt, "timed_out",
+                        tel(report, t, rs, attempt, "timed_out",
                                    check_reason=str(exc))
                         continue
                     except LLMError as exc:
@@ -206,7 +237,7 @@ def run(
                     code = strip_code_fence(raw)
                     if not code or P.NO_CANDIDATE in code:
                         _bump(report.discarded, "model_declined")
-                        _telemetry(report, t, rs, attempt, "model_declined")
+                        tel(report, t, rs, attempt, "model_declined")
                         remaining = cfg.candidates_per_target - attempt
                         if remaining > 0:
                             _bump(report.discarded, "model_declined_short_circuit", count=remaining)
@@ -224,7 +255,7 @@ def run(
                         digest = parse_failure_digest(code, exc)
                         sha256, cpath = persist_candidate_source(code or raw, candidate_dir=cfg.candidate_dir, run_id=run_id, enabled=cfg.persist_candidates)
                         _bump(report.discarded, "parse_failed")
-                        _telemetry(report, t, rs, attempt, "parse_failed",
+                        tel(report, t, rs, attempt, "parse_failed",
                                    parse_error=digest,
                                    candidate_source_sha256=sha256,
                                    candidate_source_path=cpath)
@@ -240,18 +271,21 @@ def run(
                         # rejections from the only completed run cannot be
                         # explained after the fact.
                         _bump(report.discarded, f"unsafe_or_invalid: {check.reason}")
-                        _telemetry(report, t, rs, attempt, "safety_rejected",
+                        tel(report, t, rs, attempt, "safety_rejected",
                                    check_reason=check.reason,
                                    candidate_source_sha256=sha256,
                                    candidate_source_path=cpath)
                         continue
 
+                    oracle_t0 = time.monotonic()
                     verdict = differential_check(
                         repo, base, head, code,
                         timeout_s=cfg.timeout_s, reruns=cfg.reruns,
                         head_workdir=head_dir, base_workdir=base_dir,
                         sbx=sbx,
                     )
+                    oracle_wall = time.monotonic() - oracle_t0
+                    report.phases["oracle_s"] = report.phases.get("oracle_s", 0.0) + oracle_wall
 
                     cand = Candidate(
                         repo=str(repo.name), pr=pr_ref, base_rev=base, head_rev=head,
@@ -266,8 +300,8 @@ def run(
                     if not verdict.is_catching:
                         _bump(report.discarded, verdict.reason)
                         disp = _disposition_from_verdict(verdict)
-                        _telemetry(report, t, rs, attempt, disp,
-                                   verdict=verdict,
+                        tel(report, t, rs, attempt, disp,
+                                   verdict=verdict, wall_clock_s=oracle_wall,
                                    candidate_source_sha256=sha256,
                                    candidate_source_path=cpath)
                         if verdict.latent and cfg.latent_mode:
@@ -325,8 +359,9 @@ def run(
                     finding.ledger_id = ledger.record(cand)
                     report.findings.append(finding)
                     found = True
-                    _telemetry(report, t, rs, attempt, "catching",
+                    tel(report, t, rs, attempt, "catching",
                                verdict=verdict, assessment=assessment,
+                               wall_clock_s=oracle_wall,
                                candidate_source_sha256=sha256,
                                candidate_source_path=cpath)
                     emit(f"  catching test found ({assessment.badge})")
@@ -338,6 +373,8 @@ def run(
         report.output_tokens = llm.usage.output_tokens
         report.model_requests = llm.usage.calls
         report.duration_s = time.time() - started
+        report.wall_clock_s = report.duration_s
+        report.phases["run_total_s"] = report.duration_s
         if report.model_requests == 0 and report.rate_limited_candidates > 0:
             report.diff_status = "rate_limited"
         if owns_ledger:

@@ -225,7 +225,9 @@ def persist_candidate_source(text: str, candidate_dir: Path | str | None = None,
 def _telemetry(report, target, rs, attempt, disposition,
                verdict=None, assessment=None,
                check_reason="", parse_error="",
-               candidate_source_sha256="", candidate_source_path="") -> None:
+               candidate_source_sha256="", candidate_source_path="",
+               refusal_code="", sandbox_backend="",
+               sandbox_image_digest="", wall_clock_s=0.0) -> None:
     """Emit one structured telemetry line and append to report.telemetry."""
     head_out = ""
     base_out = ""
@@ -264,6 +266,10 @@ def _telemetry(report, target, rs, attempt, disposition,
         parse_error=str(parse_error or "")[:300],
         candidate_source_sha256=candidate_source_sha256,
         candidate_source_path=candidate_source_path,
+        refusal_code=refusal_code,
+        sandbox_backend=sandbox_backend,
+        sandbox_image_digest=sandbox_image_digest,
+        wall_clock_s=wall_clock_s,
     )
     report.telemetry.append(tel)
     # Emit structured line to stderr (visible in workflow logs). This MUST NOT
