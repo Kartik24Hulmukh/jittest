@@ -2,12 +2,16 @@
 
 import json
 import os
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
 from jittest.action import get_trust_context, is_test_file, run_action
+from jittest.sandbox import SandboxPlan
 
 
 class TestActionHelpers(unittest.TestCase):
@@ -67,7 +71,9 @@ class TestActionHelpers(unittest.TestCase):
         mock_comment.return_value = "posted"
         mock_verify.return_value = ({"verdict": "proven_catch", "disposition": "catching", "proven_catch": True, "wall_clock_s": 1.0}, 0)
 
-        with tempfile.TemporaryDirectory() as tmpdir:
+        docker_plan = SandboxPlan(backend="docker", mode="required")
+
+        with tempfile.TemporaryDirectory() as tmpdir, patch("jittest.action.plan_sandbox", return_value=docker_plan):
             test_file = Path(tmpdir) / "tests" / "test_foo.py"
             test_file.parent.mkdir(parents=True, exist_ok=True)
             test_file.write_text("def test_dummy(): pass\n", encoding="utf-8")
@@ -151,7 +157,9 @@ class TestActionHelpers(unittest.TestCase):
         mock_diff.return_value = ["tests/test_foo.py"]
         mock_comment.return_value = "posted"
 
-        with tempfile.TemporaryDirectory() as tmpdir:
+        docker_plan = SandboxPlan(backend="docker", mode="required")
+
+        with tempfile.TemporaryDirectory() as tmpdir, patch("jittest.action.plan_sandbox", return_value=docker_plan):
             test_file = Path(tmpdir) / "tests" / "test_foo.py"
             test_file.parent.mkdir(parents=True, exist_ok=True)
             test_file.write_text("def test_dummy(): pass\n", encoding="utf-8")
@@ -173,4 +181,62 @@ class TestActionHelpers(unittest.TestCase):
             self.assertEqual(run_action(repo_path=tmpdir, policy="advisory"), 0)
             self.assertEqual(run_action(repo_path=tmpdir, policy="strict"), 1)
             self.assertEqual(run_action(repo_path=tmpdir, policy="block-on-refusal"), 1)
+
+
+    @patch("jittest.action.get_changed_files")
+    @patch("jittest.action.upsert_pr_comment")
+    def test_fork_context_backend_none_emits_error_and_refuses_advisory(self, mock_comment, mock_diff):
+        mock_diff.return_value = ["tests/test_bar.py"]
+        mock_comment.return_value = "posted"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_file = Path(tmpdir) / "tests" / "test_bar.py"
+            test_file.parent.mkdir(parents=True, exist_ok=True)
+            test_file.write_text("def test_x(): pass\n", encoding="utf-8")
+            out_dir = Path(tmpdir) / "artifacts"
+
+            with patch("jittest.action.get_trust_context", return_value="fork"), \
+                 patch("jittest.action.plan_sandbox", return_value=SandboxPlan(backend="none", mode="required")):
+                exit_code = run_action(repo_path=tmpdir, policy="advisory", output_dir=str(out_dir))
+
+            self.assertEqual(exit_code, 0)
+            mock_comment.assert_called_once()
+            comment_text = mock_comment.call_args[0][0]
+            self.assertIn("REFUSED", comment_text)
+            self.assertIn("refused_sandbox_unavailable", comment_text)
+
+            # Check that refusal receipt was written
+            receipt_files = list(out_dir.glob("*.json"))
+            self.assertEqual(len(receipt_files), 1)
+            data = json.loads(receipt_files[0].read_text(encoding="utf-8"))
+            self.assertEqual(data["verdict"], "inconclusive")
+            self.assertEqual(data["proven_catch"], False)
+            self.assertEqual(data["disposition"], "refused_sandbox_unavailable")
+            self.assertIsNotNone(data["refusal"])
+            self.assertEqual(data["refusal"]["code"], "sandbox_unavailable")
+
+    @patch("jittest.action.get_changed_files")
+    @patch("jittest.action.upsert_pr_comment")
+    def test_fork_context_backend_none_strict_and_block_on_refusal_exit_1(self, mock_comment, mock_diff):
+        mock_diff.return_value = ["tests/test_bar.py"]
+        mock_comment.return_value = "posted"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_file = Path(tmpdir) / "tests" / "test_bar.py"
+            test_file.parent.mkdir(parents=True, exist_ok=True)
+            test_file.write_text("def test_x(): pass\n", encoding="utf-8")
+
+            with patch("jittest.action.get_trust_context", return_value="fork"), \
+                 patch("jittest.action.plan_sandbox", return_value=SandboxPlan(backend="none", mode="required")):
+                self.assertEqual(run_action(repo_path=tmpdir, policy="strict"), 1)
+                self.assertEqual(run_action(repo_path=tmpdir, policy="block-on-refusal"), 1)
+
+    def test_fork_context_cannot_downshift_via_env(self):
+        with (
+            tempfile.TemporaryDirectory() as tmpdir,
+            patch.dict(os.environ, {"JITTEST_SANDBOX_MODE": "off"}),
+            patch("jittest.action.get_trust_context", return_value="fork"),
+            patch("jittest.action.get_changed_files", return_value=[]),
+            patch("jittest.action.upsert_pr_comment"),
+        ):
+            code = run_action(repo_path=tmpdir, sandbox_override=None)
+            self.assertEqual(code, 0)
 

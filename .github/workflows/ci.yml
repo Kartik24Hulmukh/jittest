@@ -14,8 +14,9 @@ concurrency:
 
 jobs:
   test:
+    name: test (${{ matrix.os }}, ${{ matrix.python }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -38,13 +39,49 @@ jobs:
 
       - name: Test with no dependencies at all
         if: (matrix.os == 'ubuntu-latest' && matrix.python == '3.12') || (matrix.os == 'windows-latest' && matrix.python == '3.12')
+        env:
+          PYTHONUNBUFFERED: "1"
+          JITTEST_SANDBOX_BACKEND: none
         run: PYTHONPATH=src python -m unittest discover -s tests -p 'test_*.py' -t . -v
         shell: bash
 
       - name: Test again with pytest present
+        env:
+          PYTHONPATH: src
+          JITTEST_SANDBOX_BACKEND: none
         run: |
           pip install pytest pytest-timeout
-          pytest -q
+          # Three independent guards, because a wedged *descendant* - not pytest
+          # itself - is what hung this job for 30 minutes on Linux:
+          #   1. output goes to a FILE, never to the step's stdout pipe. An
+          #      orphaned grandchild that inherited the pipe keeps its write end
+          #      open forever, so the runner never sees EOF and the step never
+          #      ends even after pytest has already exited. A file has no EOF
+          #      semantics to block on.
+          #   2. the run is placed in its own session (setsid) with stdin from
+          #      /dev/null, so nothing can block on a terminal read and the whole
+          #      group is signallable at once.
+          #   3. thread-based pytest-timeout (signal-based cannot interrupt a
+          #      C-level read/wait) plus faulthandler stack dumps, plus an
+          #      external `timeout` that caps the step well under the job limit.
+          set +e
+          RUNNER="pytest -q -o timeout=60 -o timeout_method=thread -o faulthandler_timeout=180 -p no:cacheprovider"
+          if command -v timeout >/dev/null 2>&1; then
+            RUNNER="timeout -k 30 900 $RUNNER"
+          fi
+          if command -v setsid >/dev/null 2>&1; then
+            setsid $RUNNER >pytest-out.log 2>&1 </dev/null &
+          else
+            $RUNNER >pytest-out.log 2>&1 </dev/null &
+          fi
+          runner_pid=$!
+          wait "$runner_pid"
+          rc=$?
+          cat pytest-out.log
+          if [ "$rc" -eq 124 ] || [ "$rc" -eq 137 ]; then
+            echo "::error::pytest exceeded the 900s cap; see the faulthandler stack dump above for the wedged frame"
+          fi
+          exit "$rc"
         shell: bash
 
       - name: Verify the package still declares no dependencies

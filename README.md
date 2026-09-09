@@ -125,7 +125,7 @@ jobs:
 
 ## Security & Isolation
 
-jittest executes code. Container isolation follows **Contract Option D** (Restricted support: containers execute stdlib-only candidate tests; dependency-bearing tests refuse cleanly with `isolation contract cannot import project dependencies in container mode`). Provisioning environment is scrubbed of CI secrets (`GITHUB_TOKEN`, `*_SECRET`, `*_KEY`), but runs on the runner before the sandbox wrap. For the complete isolation contract, host-provisioning threat model, and verified daemon status, see [`docs/ISOLATION.md`](docs/ISOLATION.md).
+jittest executes code. Container and namespace isolation follows **Contract Option D** (Restricted support: containers execute stdlib-only candidate tests; dependency-bearing tests refuse cleanly with `isolation contract cannot import project dependencies in container mode`). Discovery is purely static AST/text inspection (`discover_manifest`) with zero candidate code execution. Preflight checks and package installer commands are wrapped inside the isolation boundary with minimal allowlisted environment (`PATH`, `HOME=/tmp/jt-home`, `PYTHONDONTWRITEBYTECODE`, `PYTHONNOUSERSITE`, `PYTHONSAFEPATH`, `LANG`). CI secrets (`GITHUB_TOKEN`, `*_SECRET`, `*_KEY`) are never exposed to candidate execution. For the complete isolation contract, threat model, and verified daemon status, see [`docs/ISOLATION.md`](docs/ISOLATION.md).
 
 `jittest verify --allow-unconfined` (alias of `--no-sandbox`) is for non-production debugging only.
 

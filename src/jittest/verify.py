@@ -24,6 +24,7 @@ Evidence Receipt Schema Notes:
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import logging
@@ -32,6 +33,7 @@ import re
 import subprocess
 import tempfile
 import time
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -46,6 +48,9 @@ __all__ = [
     "verify_test",
     "VerdictClass",
     "VerifyRefusalError",
+    "RefusalReason",
+    "make_refusal_receipt",
+    "get_repo_canonical",
     "exit_code_for",
     "catch_direction_for",
 ]
@@ -53,8 +58,39 @@ __all__ = [
 logger = logging.getLogger("jittest.verify")
 
 
+@dataclass
+class RefusalReason:
+    code: str
+    message: str = ""
+    phase: str = "provision"
+    details: str = ""
+
+    def to_dict(self) -> dict[str, str]:
+        return {
+            "code": self.code,
+            "message": self.message or self.code,
+            "phase": self.phase,
+            "details": self.details,
+        }
+
+
 class VerifyRefusalError(ValueError):
     """A clean refusal for unusable verify inputs."""
+
+    def __init__(self, message: str | RefusalReason, reason: RefusalReason | None = None) -> None:
+        if isinstance(message, RefusalReason):
+            self.reason = message
+            super().__init__(message.message or message.code)
+        elif reason is not None:
+            self.reason = reason
+            super().__init__(str(message))
+        else:
+            msg_str = str(message)
+            code = msg_str
+            if code.startswith("refused:"):
+                code = code[len("refused:") :]
+            self.reason = RefusalReason(code=code, message=msg_str)
+            super().__init__(msg_str)
 
 
 class VerdictClass:
@@ -179,6 +215,111 @@ def _write_json_atomically(path: Path, payload: dict[str, Any]) -> None:
         os.replace(temp_path, path)
     finally:
         temp_path.unlink(missing_ok=True)
+
+
+def make_refusal_receipt(
+    repo_path: Path | str,
+    base_ref: str = "HEAD~1",
+    head_ref: str = "HEAD",
+    test_file_path: Path | str | None = None,
+    refusal: RefusalReason | dict[str, Any] | str = "sandbox_unavailable",
+    sbx_plan: Any = None,
+    signing_key_path: Path | str | None = None,
+    output_path: Path | str | None = None,
+    rel_path: str = ".",
+) -> dict[str, Any]:
+    """Generate and Ed25519-sign a schema 2.1 refusal receipt for unexecutable/untrusted runs."""
+    repo = Path(repo_path).resolve()
+    if isinstance(refusal, str):
+        ref_obj = RefusalReason(code=refusal, message=refusal, phase="plan")
+    elif isinstance(refusal, dict):
+        ref_obj = RefusalReason(
+            code=refusal.get("code", "unknown"),
+            message=refusal.get("message", ""),
+            phase=refusal.get("phase", "plan"),
+            details=refusal.get("details", ""),
+        )
+    elif isinstance(refusal, RefusalReason):
+        ref_obj = refusal
+    else:
+        ref_obj = RefusalReason(code="unknown", message=str(refusal), phase="plan")
+
+    test_file_name = ""
+    test_file_sha = _hash_str("")
+    if test_file_path is not None:
+        t_path = Path(test_file_path)
+        test_file_name = t_path.name
+        if t_path.exists() and t_path.is_file():
+            with contextlib.suppress(Exception):
+                test_file_sha = _hash_str(t_path.read_text(encoding="utf-8"))
+
+    tool_root = Path(__file__).resolve().parent.parent.parent
+    tool_commit_sha = _get_git_sha(tool_root, "HEAD")
+    tool_branch = _get_git_branch(tool_root)
+    tool_dirty = _get_git_dirty(tool_root)
+    tool_tree_sha = _get_git_sha(tool_root, "HEAD^{tree}")
+
+    resolved_base = resolve_revision(repo, base_ref) or base_ref
+    resolved_head = resolve_revision(repo, head_ref) or head_ref
+    repo_canonical = get_repo_canonical(repo)
+
+    if sbx_plan is None:
+        sbx_plan = plan_sandbox("auto", probe=False)
+
+    disposition_val = f"refused_{ref_obj.code}"
+
+    receipt: dict[str, Any] = {
+        "schema_version": "2.1",
+        "tool": "jittest verify",
+        "verdict": VerdictClass.INCONCLUSIVE,
+        "verdict_text": verdict_text_for(VerdictClass.INCONCLUSIVE),
+        "proven_catch": False,
+        "catch_direction": "none",
+        "base_reproduced": False,
+        "base_failure_kind": "none",
+        "disposition": disposition_val,
+        "refusal": ref_obj.to_dict(),
+        "exclude_newer_cutoff": None,
+        "interpreter_version": None,
+        "resolved_versions": None,
+        "provenance": {
+            "repo_path": re.sub(r"^[a-zA-Z]:/[Uu]sers/[^/]+", "<USER_DIR>", str(repo).replace("\\", "/")),
+            "repo_canonical": repo_canonical,
+            "base_sha": resolved_base,
+            "head_sha": resolved_head,
+            "test_file_name": test_file_name,
+            "test_file_sha256": test_file_sha,
+            "tool_commit_sha": tool_commit_sha,
+            "tool_branch": tool_branch,
+            "tool_dirty": tool_dirty,
+            "tool_tree_sha": tool_tree_sha,
+            "rel_path": str(rel_path).replace("\\", "/"),
+        },
+        "sandbox": sbx_plan.as_dict() if hasattr(sbx_plan, "as_dict") else {},
+        "base_execution": {
+            "outcome": "NOTRUN",
+            "exit_code": -1,
+            "stdout_sha256": _hash_str(""),
+            "stderr_sha256": _hash_str(""),
+            "environment": {},
+        },
+        "head_execution": {
+            "outcome": "NOTRUN",
+            "exit_code": -1,
+            "stdout_sha256": _hash_str(""),
+            "stderr_sha256": _hash_str(""),
+            "environment": {},
+        },
+        "rerun_agreement": True,
+        "wall_clock_s": 0.0,
+        "provider_cost_usd": 0.0,
+    }
+
+    signed = sign_evidence(receipt, key_path=signing_key_path)
+    if output_path is not None:
+        out_p = Path(output_path).resolve()
+        _write_json_atomically(out_p, signed)
+    return signed
 
 
 def _verify_pass_to_pass(
@@ -392,6 +533,16 @@ def verify_test(
 
     sbx_plan = plan_sandbox(mode=effective_sandbox_mode, probe=True)
 
+    if effective_sandbox_mode == "required" and getattr(sbx_plan, "backend", "none") == "none":
+        raise VerifyRefusalError(
+            RefusalReason(
+                code="sandbox_unavailable",
+                message="sandbox isolation required but unavailable",
+                phase="plan",
+                details="; ".join(getattr(sbx_plan, "notes", []) or []),
+            )
+        )
+
     # A silently degraded sandbox is more dangerous than an explicitly disabled one:
     # nobody chose it, so nobody knows to compensate. The artifact already records
     # this in sandbox.notes; say it out loud too.
@@ -415,13 +566,9 @@ def verify_test(
     try:
         with Worktree(repo_path, resolved_base) as base_dir:
             base_workdir = base_dir / rel_path if rel_path != "." else base_dir
-            base_env_info = provision_environment(base_workdir, resolved_base, repo_path)
-            if getattr(sbx_plan, "backend", None) in ("docker", "podman") and base_env_info.get(
-                "has_project_dependencies"
-            ):
-                raise VerifyRefusalError(
-                    "isolation contract cannot import project dependencies in container mode"
-                )
+            base_env_info = provision_environment(base_workdir, resolved_base, repo_path, sbx_plan=sbx_plan)
+            if getattr(sbx_plan, "backend", None) in ("docker", "podman", "bubblewrap") and base_env_info.get("has_project_dependencies"):
+                raise VerifyRefusalError("isolation contract cannot import project dependencies in container mode")
             base_python = base_env_info.get("python_path")
             base_run = run_test(
                 base_workdir,
@@ -442,13 +589,9 @@ def verify_test(
     try:
         with Worktree(repo_path, resolved_head) as head_dir:
             head_workdir = head_dir / rel_path if rel_path != "." else head_dir
-            head_env_info = provision_environment(head_workdir, resolved_head, repo_path)
-            if getattr(sbx_plan, "backend", None) in ("docker", "podman") and head_env_info.get(
-                "has_project_dependencies"
-            ):
-                raise VerifyRefusalError(
-                    "isolation contract cannot import project dependencies in container mode"
-                )
+            head_env_info = provision_environment(head_workdir, resolved_head, repo_path, sbx_plan=sbx_plan)
+            if getattr(sbx_plan, "backend", None) in ("docker", "podman", "bubblewrap") and head_env_info.get("has_project_dependencies"):
+                raise VerifyRefusalError("isolation contract cannot import project dependencies in container mode")
             head_python = head_env_info.get("python_path")
             head_run1 = run_test(
                 head_workdir,
@@ -696,15 +839,12 @@ def verify_test(
         "base_reproduced": base_reproduced,
         "base_failure_kind": base_failure_kind,
         "disposition": disposition.value if hasattr(disposition, "value") else str(disposition),
-        "exclude_newer_cutoff": base_env_info.get("exclude_newer_cutoff")
-        if base_env_info
-        else None,
+        "refusal": None,
+        "exclude_newer_cutoff": base_env_info.get("exclude_newer_cutoff") if base_env_info else None,
         "interpreter_version": base_env_info.get("interpreter_version") if base_env_info else None,
         "resolved_versions": base_env_info.get("resolved_versions") if base_env_info else None,
         "provenance": {
-            "repo_path": re.sub(
-                r"^[a-zA-Z]:/[Uu]sers/[^/]+", "<USER_DIR>", str(repo_path).replace("\\", "/")
-            ),
+            "repo_path": re.sub(r"^[a-zA-Z]:/[Uu]sers/[^/]+", "<USER_DIR>", str(repo_path).replace("\\", "/")),
             "repo_canonical": get_repo_canonical(repo_path),
             "base_sha": resolved_base,
             "head_sha": resolved_head,

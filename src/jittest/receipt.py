@@ -137,25 +137,24 @@ def get_or_create_signing_key(key_path: Path | str | None = None) -> bytes:
             asked for a specific key; falling back to a different one would silently
             change who signed the receipt.
     """
-    if key_path is None:
-        env_key = os.getenv("JITTEST_SIGNING_KEY_PATH")
-        key_path = Path(env_key) if env_key else _DEFAULT_KEY_PATH
+    if key_path is not None:
+        key_path = Path(key_path).expanduser().resolve()
     else:
-        key_path = Path(key_path)
+        env_p = os.getenv("JITTEST_SIGNING_KEY_PATH")
+        if env_p and env_p.strip():
+            key_path = Path(env_p.strip()).expanduser().resolve()
+        else:
+            key_path = _DEFAULT_KEY_PATH.resolve()
+
     key_path.parent.mkdir(parents=True, exist_ok=True)
 
     if key_path.exists():
         if _is_posix():
-            try:
-                mode = key_path.stat().st_mode
-                if mode & 0o077:
-                    raise SigningKeyError(
-                        f"signing key {key_path} is group/world readable (mode: {oct(stat.S_IMODE(mode))}); "
-                        "refusing to sign with insecure key permissions"
-                    )
-            except OSError as exc:
-                if isinstance(exc, SigningKeyError):
-                    raise
+            st_mode = key_path.stat().st_mode
+            if stat.S_IMODE(st_mode) & 0o077:
+                raise SigningKeyError(
+                    f"signing key {key_path} is group- or world-readable (mode {oct(stat.S_IMODE(st_mode))}); permissions must be 0600 or stricter"
+                )
         try:
             data = key_path.read_bytes()
         except OSError as exc:
@@ -163,11 +162,17 @@ def get_or_create_signing_key(key_path: Path | str | None = None) -> bytes:
         return _seed_from_pem(data)
 
     seed = os.urandom(_ed25519.SEED_SIZE)
-    key_path.write_bytes(_seed_to_pem(seed))
-    # Windows and some mounted filesystems do not support POSIX modes. The key is
-    # still written; permissions simply follow the platform default.
-    with contextlib.suppress(OSError):
-        key_path.chmod(0o600)
+    if _is_posix():
+        flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+        fd = os.open(str(key_path), flags, 0o600)
+        with os.fdopen(fd, "wb") as f:
+            f.write(_seed_to_pem(seed))
+    else:
+        key_path.write_bytes(_seed_to_pem(seed))
+        # Windows and some mounted filesystems do not support POSIX modes. The key is
+        # still written; permissions simply follow the platform default.
+        with contextlib.suppress(OSError):
+            key_path.chmod(0o600)
     return seed
 
 
