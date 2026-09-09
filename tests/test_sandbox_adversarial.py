@@ -153,9 +153,15 @@ def test_kill_tree_kills_container_by_name():
     # would signal the init group and take the whole job down).
     mock_proc = mock.MagicMock()
     mock_proc.pid = 4242
-    with mock.patch("subprocess.run") as mock_sub, \
-            mock.patch.object(_os, "killpg", create=True), \
-            mock.patch.object(_os, "getpgid", create=True, return_value=4242):
+    import contextlib as _ctx
+    # Only patch the process-group calls where they exist: creating them on
+    # Windows would send _kill_tree down a POSIX-only path that platform does
+    # not have (no signal.SIGKILL there).
+    group_patches = _ctx.ExitStack()
+    if posix_groups:
+        group_patches.enter_context(mock.patch("os.killpg"))
+        group_patches.enter_context(mock.patch("os.getpgid", return_value=4242))
+    with group_patches, mock.patch("subprocess.run") as mock_sub:
         mock_sub.return_value = mock.MagicMock(returncode=0, stdout="")
         _kill_tree(mock_proc, container_name="jittest-1234", backend="docker")
 

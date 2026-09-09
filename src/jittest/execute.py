@@ -590,7 +590,9 @@ def _kill_tree(
 
     try:
         if hasattr(os, "killpg") and hasattr(os, "getpgid"):
-            os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+            # SIGKILL does not exist on Windows; the group path is POSIX-only,
+            # but stay defensive so a stub platform degrades instead of raising.
+            os.killpg(os.getpgid(proc.pid), getattr(signal, "SIGKILL", signal.SIGTERM))
             return
     except OSError:
         # Covers ProcessLookupError: the group is already gone, which is the
