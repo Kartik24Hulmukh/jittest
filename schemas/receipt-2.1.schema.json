@@ -1,0 +1,319 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Kartik24Hulmukh/jittest/blob/main/schemas/receipt-2.1.schema.json",
+  "title": "JitTest verification receipt (schema 2.1)",
+  "description": "Ed25519-signed differential test-execution receipt emitted by `jittest verify`. The signature covers the canonical JSON (sorted keys, compact separators) of every top-level field except `signature`. Mirrors REQUIRED_TOP_LEVEL and REQUIRED_PROVENANCE in src/jittest/receipt.py; tests/test_receipt_json_schema.py asserts they stay in agreement.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tool",
+    "verdict",
+    "proven_catch",
+    "disposition",
+    "provenance",
+    "sandbox",
+    "base_execution",
+    "head_execution",
+    "rerun_agreement",
+    "wall_clock_s",
+    "signature"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "2.1"
+    },
+    "tool": {
+      "const": "jittest verify"
+    },
+    "verdict": {
+      "enum": [
+        "proven_catch",
+        "reproduction_catch",
+        "collection_catch",
+        "refuted",
+        "non_discriminating",
+        "inconclusive"
+      ]
+    },
+    "proven_catch": {
+      "type": "boolean",
+      "description": "true iff verdict is proven_catch or reproduction_catch"
+    },
+    "disposition": {
+      "type": "string"
+    },
+    "refusal": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "repo_path",
+        "base_sha",
+        "head_sha",
+        "test_file_name",
+        "test_file_sha256",
+        "tool_commit_sha",
+        "rel_path"
+      ],
+      "properties": {
+        "repo_path": {
+          "type": "string"
+        },
+        "repo_canonical": {
+          "type": "string"
+        },
+        "base_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "head_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "test_file_name": {
+          "type": "string"
+        },
+        "test_file_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "tool_commit_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "tool_branch": {
+          "type": "string"
+        },
+        "tool_dirty": {
+          "type": "boolean"
+        },
+        "tool_tree_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "rel_path": {
+          "type": "string"
+        }
+      }
+    },
+    "sandbox": {
+      "type": "object",
+      "required": [
+        "backend",
+        "isolated",
+        "network_denied"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "auto",
+            "required",
+            "off"
+          ]
+        },
+        "backend": {
+          "enum": [
+            "none",
+            "docker",
+            "podman",
+            "bubblewrap"
+          ]
+        },
+        "image": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "isolated": {
+          "type": "boolean"
+        },
+        "network_denied": {
+          "type": "boolean"
+        },
+        "confined": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "base_execution": {
+      "type": "object",
+      "required": [
+        "outcome",
+        "exit_code",
+        "stdout_sha256",
+        "stderr_sha256"
+      ],
+      "properties": {
+        "outcome": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "ERROR",
+            "TIMEOUT",
+            "NOTRUN"
+          ]
+        },
+        "failure_kind": {
+          "enum": [
+            "assertion",
+            "error",
+            "timeout",
+            "collection",
+            "import",
+            "none"
+          ]
+        },
+        "exit_code": {
+          "type": "integer"
+        },
+        "stdout_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "stderr_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "environment": {
+          "type": "object"
+        }
+      }
+    },
+    "head_execution": {
+      "type": "object",
+      "required": [
+        "outcome",
+        "exit_code",
+        "stdout_sha256",
+        "stderr_sha256"
+      ],
+      "properties": {
+        "outcome": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "ERROR",
+            "TIMEOUT",
+            "NOTRUN"
+          ]
+        },
+        "failure_kind": {
+          "enum": [
+            "assertion",
+            "error",
+            "timeout",
+            "collection",
+            "import",
+            "none"
+          ]
+        },
+        "exit_code": {
+          "type": "integer"
+        },
+        "stdout_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "stderr_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "environment": {
+          "type": "object"
+        }
+      }
+    },
+    "rerun_agreement": {
+      "type": "boolean"
+    },
+    "wall_clock_s": {
+      "type": "number",
+      "minimum": 0
+    },
+    "provider_cost_usd": {
+      "type": "number",
+      "minimum": 0
+    },
+    "signature": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "properties": {
+        "algorithm": {
+          "const": "Ed25519"
+        },
+        "verifying_key": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "public_key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "verifying_key"
+          ]
+        },
+        {
+          "required": [
+            "public_key"
+          ]
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "verdict": {
+            "enum": [
+              "proven_catch",
+              "reproduction_catch"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "proven_catch": {
+            "const": true
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "proven_catch": {
+            "const": false
+          }
+        }
+      }
+    }
+  ]
+}
