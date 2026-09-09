@@ -1,6 +1,6 @@
 # Hardening Loop Status
 
-- **Current main SHA**: b528185e01c773614905c00f747a11aa9920d250
+- **Current main SHA**: c6a7382d9cdc2fc833879324bbc747f1b0060f87
 - **Defect Status**:
   - D3 (Path containment in verify.py): CLOSED & MERGED in PR #167
   - D4 (Signer prefix floor in receipt.py): CLOSED & MERGED in PR #167
@@ -27,6 +27,6 @@
 | 27 PRIVACY.md + observability | SHIPPED: `refusal_code`, `sandbox_backend`, `sandbox_image_digest`, `wall_clock_s` per telemetry line; `wall_clock_s` + `phases` per report | `docs/PRIVACY.md`, `src/jittest/results.py`, `tests/test_phase2_observability_runtime.py` |
 | 18-23 Option C plumbing | SHIPPED (selection layer): Rule 1 digest validation, Rule 2 base-branch precedence, `plan(runtime_image=)`, Option C provisioning skip; `option-c-proof` workflow runs the proof on a daemon. **D9 RUN record still open** until that artifact says `RUN` | `src/jittest/sandbox.py`, `src/jittest/env.py`, `.github/workflows/option-c-proof.yml` |
 | 25 SLSA / Trusted Publishing | OPEN, requires founder approval to touch `release.yml` | - |
-| 32 render_status.py | OPEN | - |
+| 32 render_status.py | SHIPPED | `scripts/render_status.py`, `tests/test_render_status.py` |
 
 D9 proof status: **RUN** (`docs/evidence/option-c-proof-D9-2026-09-09.json`, produced by the `option-c-proof` workflow on a real docker daemon). What that record proves: a dependency-bearing candidate ran inside the pinned pilot image, unprivileged, network denied, and passed. What it does not yet prove: a full `jittest verify` of a third-party dependency-bearing repository through the Option C selection layer against a registry-published digest. Nothing in this section claims more than the record says.

@@ -29,11 +29,11 @@
 - **Host Signing Separation**: The Ed25519 signing key is held strictly by the host process. Signing occurs exclusively on the host after the container exits. Key paths (default `~/.jittest/verify_ed25519.pem` or `JITTEST_SIGNING_KEY_PATH`) are never mounted into containers or passed in environment variables, and POSIX key permissions must be 0600 or stricter.
 - **Process Hygiene**: Containers are assigned unique identifiers (`jittest-<uuid4>`). On timeout, the container is killed by name (`docker kill <name>`) and verified removed (`docker ps -a --filter name=`).
 
-## 3. Container Daemon Status (D9 - Open)
+## 3. Container Daemon Status (D9 - Real-Daemon Proof RUN)
 
-- **Defect D9 Status**: **OPEN** (no real-daemon dependency-bearing isolation proof).
-- **Current Verification**: CI validates stdlib-only container execution and honest refusal of dependency-bearing repositories.
-- **Open Operational Gate**: There is no proof of real container daemon isolation executing a dependency-bearing candidate suite end-to-end. Container-native provisioning (trusted image pinning by digest, i.e. Option C) is owned by Track C and remains open until verified against a real daemon.
+- **Defect D9 Status**: **RUN** on a real docker daemon (GitHub Actions `ubuntu-latest`, commit `9537581` in PR #179, Option C pilot image): dependency-bearing candidate (requests + Flask) executed inside the pinned pilot image with `--network none`, 2 passed. Record in `docs/evidence/option-c-proof-D9-2026-09-09.json`.
+- **Current Verification**: Validated on real docker daemon; pilot image built and executed with network denied and unprivileged containment.
+- **Scope Caveat**: An end-to-end `jittest verify` on a third-party dependency-bearing repository through the `[tool.jittest.runtime]` selection layer with a registry-published digest remains the next hardening milestone.
 
 ## 4. GitHub Action Sandbox Resolution & Operational Boundaries (D8)
 
