@@ -139,33 +139,55 @@ def test_timeout_child_spawner_cleaned_up():
 
 def test_kill_tree_kills_container_by_name():
     """Unit test for container process tree killing and cleanup."""
+    import os as _os
+    import signal as _signal
     from unittest import mock
 
     from jittest.execute import _kill_tree
 
+    posix_groups = hasattr(_os, "killpg") and hasattr(_os, "getpgid")
+
+    # Phase 1: the container branch. os.killpg/os.getpgid are patched here too,
+    # so the test can never signal a real process group of the host running it
+    # (a MagicMock pid coerces to 1 via __index__, which on a privileged runner
+    # would signal the init group and take the whole job down).
     mock_proc = mock.MagicMock()
-    with mock.patch("subprocess.run") as mock_sub:
+    mock_proc.pid = 4242
+    with mock.patch("subprocess.run") as mock_sub, \
+            mock.patch.object(_os, "killpg", create=True), \
+            mock.patch.object(_os, "getpgid", create=True, return_value=4242):
         mock_sub.return_value = mock.MagicMock(returncode=0, stdout="")
         _kill_tree(mock_proc, container_name="jittest-1234", backend="docker")
 
         calls = [c[0][0] for c in mock_sub.call_args_list]
         assert ["docker", "kill", "jittest-1234"] in calls
         assert any("ps" in c and "name=jittest-1234" in str(c) for c in calls)
-        # On POSIX, _kill_tree signals the whole process group and returns
-        # before ever touching proc.kill; assert that path instead.
-        import os as _os
-        if hasattr(_os, "killpg") and hasattr(_os, "getpgid"):
-            mock_sub.reset_mock()
-            with mock.patch("os.killpg") as mock_killpg, \
-                    mock.patch("os.getpgid", return_value=4242):
-                _kill_tree(mock_proc)
-                mock_killpg.assert_called_once()
-                sig = mock_killpg.call_args[0][1]
-                assert int(sig) == int(__import__("signal").SIGKILL)
-                assert mock_killpg.call_args[0][0] == 4242
-                mock_proc.kill.assert_not_called()
-        else:
-            mock_proc.kill.assert_called_once()
+
+    # Phase 2: the process-group branch, on a *fresh* mock so that nothing from
+    # phase 1 can be mistaken for behaviour of this call.
+    proc2 = mock.MagicMock()
+    proc2.pid = 4242
+    if posix_groups:
+        with mock.patch("os.killpg") as mock_killpg, \
+                mock.patch("os.getpgid", return_value=4242):
+            _kill_tree(proc2)
+            mock_killpg.assert_called_once()
+            assert mock_killpg.call_args[0][0] == 4242
+            assert int(mock_killpg.call_args[0][1]) == int(_signal.SIGKILL)
+            # On POSIX the group signal is the whole story: the direct kill is
+            # only the fallback for platforms without process groups.
+            proc2.kill.assert_not_called()
+
+        # ...and when the group is already gone, the direct kill is the fallback.
+        proc3 = mock.MagicMock()
+        proc3.pid = 4242
+        with mock.patch("os.killpg", side_effect=ProcessLookupError()), \
+                mock.patch("os.getpgid", return_value=4242):
+            _kill_tree(proc3)
+            proc3.kill.assert_called_once()
+    else:
+        _kill_tree(proc2)
+        proc2.kill.assert_called_once()
 
 
 def test_run_process_detached_child_does_not_deadlock():
