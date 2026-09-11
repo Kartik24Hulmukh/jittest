@@ -77,16 +77,13 @@ def run_file(path: Path) -> int:
     back afterwards, so calling run_file from inside a pytest session does not
     pollute the surrounding installation.
     """
-    sentinel = object()
-    previous = sys.modules.get("pytest", sentinel)
+    previous = {name: sys.modules[name] for name in ("pytest",) if name in sys.modules}
     shim.install()
     try:
         return _run_file(path)
     finally:
-        if previous is sentinel:
-            sys.modules.pop("pytest", None)
-        else:
-            sys.modules["pytest"] = previous
+        sys.modules.pop("pytest", None)
+        sys.modules.update(previous)
 
 
 def _run_file(path: Path) -> int:

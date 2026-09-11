@@ -71,21 +71,31 @@ def test_cannot_import():
     assert nothing() == 1
 '''
 
-FLAKY_TEST = '''\
-import os
+# The parent test process owns scratch storage across candidate subprocesses.
+# TemporaryDirectory removes it at process shutdown; each checkout has its own
+# counter, even when two checkout paths have the same basename.
+_FLAKY_SCRATCH = tempfile.TemporaryDirectory(prefix="jittest-flaky-")
 
-_COUNTER = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".flaky_counter")
+FLAKY_TEST = '''\
+import hashlib
+import os
+import tempfile
+
+_KEY = hashlib.sha256(os.fsencode(os.path.realpath(os.getcwd()))).hexdigest()
 
 
 def test_alternates():
     n = 0
-    if os.path.exists(_COUNTER):
-        with open(_COUNTER) as fh:
+    if os.path.exists(os.path.join(tempfile.gettempdir(), _SCRATCH_NAME, _KEY)):
+        with open(os.path.join(tempfile.gettempdir(), _SCRATCH_NAME, _KEY)) as fh:
             n = int(fh.read() or 0)
-    with open(_COUNTER, "w") as fh:
-        fh.write(str(n + 1))
+    # Keep the write explicitly temp-rooted for N13. A completed fail/pass
+    # pair resets parity; the parent owns cleanup of the actual scratch file.
+    with open(os.path.join(tempfile.gettempdir(), _SCRATCH_NAME, _KEY), "w") as fh:
+        fh.write(str((n + 1) % 2))
     assert n % 2 == 1
-'''
+'''.replace("_SCRATCH_NAME", repr(Path(_FLAKY_SCRATCH.name).name))
+
 
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess:

@@ -211,7 +211,7 @@ def run_action(
             file=sys.stderr,
         )
         out_dir.mkdir(parents=True, exist_ok=True)
-        results = []
+        results: list[dict[str, Any]] = []
         for test_rel in changed_tests:
             test_path = repo / test_rel
             posix_rel = Path(test_rel).as_posix()
@@ -322,7 +322,7 @@ def run_action(
                 "artifact": "",
             }
 
-    results: list[dict[str, Any]] = [_verify_one(t) for t in changed_tests]
+    results = [_verify_one(t) for t in changed_tests]
 
     refusal_tests: list[dict[str, Any]] = [
         r for r in results if r["disposition"] in REFUSAL_DISPOSITIONS or r["verdict"] == VerdictClass.INCONCLUSIVE

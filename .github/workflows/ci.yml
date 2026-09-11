@@ -106,7 +106,7 @@ jobs:
           python-version: "3.12"
       - run: pip install ruff mypy
       - run: ruff check src tests
-      - run: mypy src/jittest --ignore-missing-imports || true
+      - run: mypy src/jittest --ignore-missing-imports
       - name: Assert no absolute local user paths in shipped files
         run: |
           python - <<'PY'

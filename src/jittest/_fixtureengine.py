@@ -10,6 +10,7 @@ import asyncio
 import inspect
 import tempfile
 import traceback
+from collections.abc import Callable
 from pathlib import Path
 
 from . import _pytestshim as shim
@@ -192,7 +193,7 @@ class _FixtureState:
                 deps[dep] = shim.FixtureRequest(
                     fixturename=name, scope=fixture.scope,
                     has_param=has_param,
-                    param_value=override[1] if has_param else None)
+                    param_value=override[1] if has_param and override is not None else None)
                 continue
             deps[dep] = self.resolve(dep, registry, param_overrides,
                                      (*stack, name))
@@ -201,12 +202,13 @@ class _FixtureState:
             raise _FixtureLookupError(
                 f"async fixture '{name}' is not supported by the mini-runner; "
                 "install pytest")
+        finalize: Callable[[], object]
         if inspect.isgeneratorfunction(fixture.fn):
             gen = fixture.fn(**deps)
             value = next(gen)
             request = deps.get("request")
 
-            def finalize(gen=gen, request=request):
+            def finalize_generator(gen=gen, request=request):
                 if request is not None:
                     for fin in reversed(request._finalizers):
                         fin()
@@ -217,15 +219,18 @@ class _FixtureState:
                     return
                 raise RuntimeError(
                     f"yield fixture '{name}' yielded more than once")
+            finalize = finalize_generator
         else:
             value = fixture.fn(**deps)
             request = deps.get("request")
 
-            def finalize(request=request):
+            def finalize_request(request=request):
                 if request is not None:
                     for fin in reversed(request._finalizers):
                         fin()
                     request._finalizers.clear()
+
+            finalize = finalize_request
 
         self._values[key] = value
         if self._bucket(fixture.scope) == "function":
