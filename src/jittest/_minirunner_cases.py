@@ -48,7 +48,7 @@ def _parametrize_layers(fn) -> list:
     marks = found if isinstance(found, list) else [found]
     for m in marks:
         if getattr(m, "name", None) == "parametrize":
-            args = getattr(m, "args", ())
+            args: tuple = getattr(m, "args", ())
             if len(args) >= 2:
                 layers.append((args[0], list(args[1]),
                                getattr(m, "kwargs", {}).get("ids")))
@@ -155,7 +155,7 @@ def _skip_reason(marks: list) -> str | None:
         if name == "skip":
             return getattr(m, "kwargs", {}).get("reason") or "skipped"
         if name == "skipif":
-            args = getattr(m, "args", ())
+            args: tuple = getattr(m, "args", ())
             if args and args[0]:
                 return getattr(m, "kwargs", {}).get("reason") or "skipif"
     return None
@@ -164,7 +164,7 @@ def _skip_reason(marks: list) -> str | None:
 def _xfail_mark(marks: list):
     for m in marks:
         if getattr(m, "name", None) == "xfail":
-            args = getattr(m, "args", ())
+            args: tuple = getattr(m, "args", ())
             if args and not args[0]:
                 continue  # xfail(condition=False) means: run normally
             return m
@@ -225,7 +225,7 @@ def _make_method_cases(cls, class_marks: list,
         method = getattr(cls, method_name)
         marks = [*_marks_of(cls), *class_marks, *_marks_of(method)]
         if is_testcase:
-            def run(kwargs, cls=cls, method_name=method_name):
+            def run_testcase(kwargs, cls=cls, method_name=method_name):
                 instance = cls(method_name)
                 set_up = getattr(instance, "setUp", None)
                 tear_down = getattr(instance, "tearDown", None)
@@ -237,7 +237,7 @@ def _make_method_cases(cls, class_marks: list,
                     if tear_down is not None:
                         _call(tear_down)
 
-            cases.append(_Case(f"{cls.__name__}.{method_name}", run,
+            cases.append(_Case(f"{cls.__name__}.{method_name}", run_testcase,
                                list(autouse), marks, {}))
             continue
 

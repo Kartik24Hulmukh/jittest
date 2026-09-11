@@ -547,10 +547,6 @@ def provision_environment(
             "image_digest": str(getattr(sbx_plan, "image_digest", "") or ""),
         }
     if is_isolated and manifest.declared_dependencies:
-        import os
-        if os.environ.get("JITTEST_OPTION_B") == "1" or getattr(sbx_plan, "option_b", False):
-            from .option_b import run_option_b_provisioning
-            return run_option_b_provisioning(worktree, manifest.declared_dependencies, sbx_plan)
         details = f"declared dependencies: {', '.join(manifest.declared_dependencies[:5])}"
         raise VerifyRefusalError(
             RefusalReason(

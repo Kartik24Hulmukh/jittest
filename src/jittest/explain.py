@@ -103,8 +103,10 @@ def explain_receipt(
         require_confined=require_confined,
     )
     raw = _load(path)
-    prov = raw.get("provenance") if isinstance(raw.get("provenance"), dict) else {}
-    sbx = raw.get("sandbox") if isinstance(raw.get("sandbox"), dict) else {}
+    raw_prov = raw.get("provenance")
+    raw_sbx = raw.get("sandbox")
+    prov = raw_prov if isinstance(raw_prov, dict) else {}
+    sbx = raw_sbx if isinstance(raw_sbx, dict) else {}
     verdict = raw.get("verdict")
     return {
         "explain_version": 1,

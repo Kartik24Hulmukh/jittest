@@ -1,6 +1,6 @@
 # Hardening Loop Status
 
-- **Current main SHA**: eb91a6669a140ee54a844cb6d1654bcdfae9d14d
+- **Audited main SHA (before PR #184)**: 5ffc54b452fbc9aa4dd08a64571c9476939032b6
 - **Defect Status**:
   - D3 (Path containment in verify.py): CLOSED & MERGED in PR #167
   - D4 (Signer prefix floor in receipt.py): CLOSED & MERGED in PR #167
@@ -12,8 +12,8 @@
   - D8 (Action defaults & artifact hygiene): CLOSED (action.yml default restored to required; fork-aware safety preserved in action.py)
   - D9 (Real container isolation status & Option D contract): **RUN** on a real docker daemon (GitHub Actions ubuntu-latest, run 34385649631, PR #179): dependency-bearing candidate (requests + Flask) executed inside the pinned pilot image with network denied, 2 passed - record in `docs/evidence/option-c-proof-D9-2026-09-09.json`. Still open: an end-to-end `jittest verify` on a third-party dependency-bearing repo via `[tool.jittest.runtime]` with a registry-published digest
   - D10 (Test file scope): DOCUMENTED (Mode A verifier evaluates PR-modified Python tests)
-- **Exact failing test or CI job**: None (All 26 GitHub Actions checks passed on PR #171; 784 local tests passing)
-- **Next step**: Secure 2 named maintainers for 14-day advisory SHA-pin trial; draft NLnet/Restack grant proposal.
+- **Validation status**: PR #184 fixes the N13-incompatible flaky fixture using parent-owned temporary scratch storage and full-checkout identity. Local Python 3.13 validation: 880 pytest tests passed (1 skipped, 131 subtests passed), 731 dependency-free unittest tests passed (12 skipped); focused subprocess/fixture/explain coverage passed 50 tests. Full-package mypy and Ruff pass. Cross-platform CI must pass on the updated PR head before merge; older PR results are not evidence for this head.
+- **Next step**: Secure 2 named maintainers for 14-day advisory SHA-pin trial; draft NLnet/Restack grant proposal; design and threat-model Option B before implementation.
 
 ## Phase 2 progress (2026-09-09)
 
