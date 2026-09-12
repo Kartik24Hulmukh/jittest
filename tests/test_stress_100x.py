@@ -13,7 +13,12 @@ import json
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-import pytest
+try:
+    import pytest
+except ModuleNotFoundError as exc:  # dependency-free unittest discovery
+    import unittest
+
+    raise unittest.SkipTest("requires pytest; exercised by the pytest CI lane") from exc
 
 from jittest import integrity, outputguard, provision, readiness
 

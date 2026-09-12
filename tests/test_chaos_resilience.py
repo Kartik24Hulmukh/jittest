@@ -11,7 +11,12 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 
-import pytest
+try:
+    import pytest
+except ModuleNotFoundError as exc:  # dependency-free unittest discovery
+    import unittest
+
+    raise unittest.SkipTest("requires pytest; exercised by the pytest CI lane") from exc
 
 from jittest import provision
 
@@ -83,7 +88,7 @@ def test_engine_explosion_at_phase2_create_refuses_and_destroys_phase1(tmp_path)
 def test_inspect_digest_connection_failure_refuses_no_host_fallback(tmp_path):
     repo, wh, plan = _setup(tmp_path)
     engine = ChaosEngine(fail_at="inspect")
-    with pytest.raises((provision.ProvisioningRefusal, ConnectionError)):
+    with pytest.raises(provision.ProvisioningRefusal):
         provision.provision_in_sandbox(repo, plan, _adapter(engine), wh)
     assert engine.created == [], "no container may be created when digests cannot be verified"
 
@@ -102,7 +107,7 @@ def test_empty_wheelhouse_refused_before_phase2(tmp_path):
 def test_destroy_failure_still_refuses_honestly(tmp_path):
     repo, wh, plan = _setup(tmp_path)
     engine = ChaosEngine(fail_at="destroy")
-    with pytest.raises((provision.ProvisioningRefusal, RuntimeError)):  # never silent success
+    with pytest.raises(provision.ProvisioningRefusal):  # never silent success
         provision.provision_in_sandbox(repo, plan, _adapter(engine), wh)
 
 
