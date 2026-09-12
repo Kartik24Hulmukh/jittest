@@ -70,3 +70,31 @@ Do NOT promote to GA on this commit alone; see docs/PREMORTEM-2026-09-12.md.
 - Suite on this head: 775 tests, 0 failures, 0 errors, 6 skipped; ruff clean; mypy clean (43 files).
 - GA label unchanged: **hardened release candidate, NOT GA** until the registry-live job carries
   raw green evidence, the cross-platform matrix is green on the new head, and P2 gates land.
+
+## 2026-09-12 round 3 (wave-100x correction + stress/chaos battery)
+- Red-team correction: the "successful" v0.4.0 release was green only because
+  `.github/workflows/release.yml` masked the test gate with `|| true`. The honest
+  suite on main had 2 real failures: version drift (pyproject 0.4.0 vs
+  __init__/CHANGELOG/CITATION 0.3.5). The published PyPI 0.4.0 wheel reports
+  `__version__ == "0.3.5"`.
+- Fixed: all four version declarations agree at 0.4.0; `|| true` removed -
+  the release gate is fail-closed again; CHANGELOG 0.4.0 entry added.
+- New: tests/test_stress_100x.py (6 tests: 200 parallel provisioning jobs with
+  byte-identical manifests and zero container leaks, 200-job refusal storm,
+  50-job between-phase digest drift, 400 parallel integrity records with
+  single-bit drift detection, 100 parallel output-guard scans with zero false
+  accepts, readiness determinism at 100x).
+- New: tests/test_chaos_resilience.py (11 tests: engine detonated at phase-1
+  create, phase-2 create, digest inspect, destroy; empty wheelhouse; five
+  adversarial requirement vectors refused pre-container; 200-job mixed
+  honest/evil storm with 100% decision accuracy).
+- New: docs/PREMORTEM-WAVE100X-2026-09-12.md (failure modes 11-15, each with an
+  executed guard) and YANK-REASONS.md (0.4.0 must be yanked on PyPI; release
+  0.4.1 with fixed version sources; never reuse the v0.4.0 tag).
+- Gates in this workspace: ruff clean (src/tests/scripts/eval), mypy clean on
+  the five P0 modules (full-package mypy needs optional dep `litellm`,
+  pre-existing, unchanged). The full pytest suite runs green on this branch
+  (module-entrypoint + hardening version tests included).
+- GA label unchanged: hardened release candidate, NOT GA until the
+  registry-live job and cross-platform matrix run green on the PR head and
+  0.4.0 is yanked. This workspace still has no Docker/Podman daemon.
