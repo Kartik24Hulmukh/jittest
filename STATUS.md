@@ -30,3 +30,32 @@
 | 32 render_status.py | SHIPPED | `scripts/render_status.py`, `tests/test_render_status.py` |
 
 D9 proof status: **RUN** (`docs/evidence/option-c-proof-D9-2026-09-09.json`, produced by the `option-c-proof` workflow on a real docker daemon). What that record proves: a dependency-bearing candidate ran inside the pinned pilot image, unprivileged, network denied, and passed. What it does not yet prove: a full `jittest verify` of a third-party dependency-bearing repository through the Option C selection layer against a registry-published digest. Nothing in this section claims more than the record says.
+
+## Handoff gap closure (2026-09-12, this workspace)
+
+The 2026-09-12 production-readiness handoff listed five P0 release blockers.
+Four of them are now implemented in pure-python, fail-closed form and covered
+by tests/test_p0_gates.py (24 tests). Executed in this workspace on top of
+commit 85a1534: full dependency-free unittest suite 758 tests, 0 failures,
+0 errors, 6 skipped (42 s); Ruff clean over src/tests/scripts/eval; mypy
+clean on the four new modules.
+
+- P0-1 two-phase provisioning: src/jittest/provision.py (ProvisioningRefusal,
+  ArtifactPin, ProvisionManifest, provision_in_sandbox, engine adapter seam,
+  phase-1 network=fetch destroyed then phase-2 network=none; no host fallback).
+- P0-3 deterministic readiness: src/jittest/readiness.py (missing direct
+  dependency, lock/specifier drift, ABI/platform incompatibility, host-only
+  packages).
+- P0-4 output trust boundary: src/jittest/outputguard.py (symlink/fifo/
+  socket/device/hardlink/traversal/unicode-collision/oversized/undeclared
+  refusal; protected-tree immutability snapshot).
+- P0-5 receipt integrity: src/jittest/integrity.py (canonical schema
+  integrity-1.0 with source/image/deps/policy/command/exit/output hashes,
+  refusal reason, explicit incomplete/non-reproducible states, compare_runs).
+- Stress: 100 concurrent provisioning jobs, unique temp dirs, cleanup
+  asserted (tests/test_p0_gates.py::TestStressConcurrency).
+
+Still open (unchanged, still GA blockers): P0-2 real registry E2E on a live
+Docker/Podman daemon (no container engine exists in this workspace), P1
+macOS/Windows coverage and OIDC publish rehearsal, P2 named maintainers/SLOs.
+Do NOT promote to GA on this commit alone; see docs/PREMORTEM-2026-09-12.md.
