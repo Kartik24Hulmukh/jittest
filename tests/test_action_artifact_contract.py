@@ -1,8 +1,11 @@
 import unittest
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 def _read(path):
-    with open(path, encoding="utf-8") as handle:
+    with open(REPO_ROOT / path, encoding="utf-8") as handle:
         return handle.read()
 
 

@@ -1,0 +1,36 @@
+{
+  "schema": "jittest-evidence-1.0",
+  "session": "2026-09-12-round2",
+  "base_head": "a4032612bf8a0943048cb0074e7a6f815941ba0e",
+  "previous": {},
+  "unittest": {
+    "tests": 775,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 6,
+    "seconds": 38.8,
+    "cwd_independent": true
+  },
+  "ruff": "clean over src, tests, scripts, eval",
+  "mypy": "clean, 43 source files",
+  "new_work": {
+    "p0_2_registry": "src/jittest/registry.py implements authoritative RepoDigests verification; 14 tests in tests/test_registry_repodigests.py; provision.EngineAdapter gained optional inspect_repo_digests seam wired fail-closed (missing_repo_digests / digest_mismatch refuse before any container is created)",
+    "windows_fix": "tests/test_p0_gates.py no longer calls os.mkfifo unconditionally; fifo/socket node creation guarded by capability probes and _is_special classification pinned via synthetic mode bits (fixes the 3 windows CI failures on a403261)",
+    "live_proof_job": "option-c-proof.yml gains registry-live job: scripts/verify_registry_live.py resolves linux/amd64 digest from registry-1.docker.io, pulls by digest on the real daemon, verifies RepoDigests via jittest.registry; NOT_RUN exits 1 so absence of a daemon can never masquerade as proof"
+  },
+  "artifact_sha256": {
+    "src/jittest/registry.py": "acf9351faf1062409f8cccb8d46662dbd2883ee7e80af68e8bee05e61f584bca",
+    "tests/test_registry_repodigests.py": "53a0784a6a0b872d6ec7f935d86b02e9136f7d97827dbdaedf4ee2b550286a61",
+    "scripts/verify_registry_live.py": "5b2b30f38dacc0c1825508ac2eb4bf43627f87a8c6876fd1589114eaa91e4d5c",
+    "tests/test_p0_gates.py": "2b33af5d5de6009009ce440f21126ef9a84588a117c39eb43f25368f8d1b40d6",
+    "src/jittest/provision.py": "cd910d1b0b19da6f437e19fd2c372c49ca16d7c976236e677af07966802c3bc8",
+    ".github/workflows/option-c-proof.yml": "fa29ee259ebf8186f171162d61203cf95ce65dc1a7a9242857988c81396cc0e8"
+  },
+  "verified_ref_example": "docker.io/library/python@sha256:2fe5997d249a808b8eeea52c58a1dbffbba28754dc11699ef5c029f2d818ce79 (linux/amd64 of python:3.12-slim index sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea, resolved 2026-09-12 from Docker Hub)",
+  "open_ga_blockers": [
+    "P0-2 raw CI evidence: registry-live job must run green on ubuntu-latest daemon (this workspace has no docker/podman: `which docker podman` empty)",
+    "P1 OIDC trusted-publishing rehearsal; macOS/Windows acceptance on the new head",
+    "P2 named maintainers, incident commander, SLOs, rollback rehearsal",
+    "rotate the PAT embedded in task context; publish via OIDC only"
+  ]
+}
