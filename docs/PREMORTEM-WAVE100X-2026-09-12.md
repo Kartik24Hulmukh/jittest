@@ -24,8 +24,10 @@ branch, and the drift job is fail-closed in CI.
 **Failure**: engine explodes at phase-2 create; the phase-1 network-enabled
 container survives as a quiet egress channel.
 **Guard (executed)**: `tests/test_chaos_resilience.py` detonates the engine
-at every seam and asserts every created container id is destroyed on every
-refusal path.
+at every seam. Healthy cleanup destroys each acquired container; destroy
+failure is an unresolved resource requiring reconciliation, not evidence of
+zero leaks. See `HARDENING-CONTINUATION.md` for the corrected ownership
+contract and paired-failure regressions.
 
 ## FM-14: Between-phase digest drift (TOCTOU on the image pin)
 **Failure**: the digest verified at phase 1 is not the digest running at

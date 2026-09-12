@@ -3,8 +3,8 @@
 The engine is detonated at every seam - create phase 1, create phase 2,
 digest inspection, wheelhouse freeze, destroy - and adversarial
 requirement vectors are fired at the gate. The invariant: the system
-refuses honestly, never falls back to the host, and never leaks a
-container.
+refuses honestly and never falls back to the host. A failed destroy
+remains unresolved; it is not evidence of successful resource release.
 """
 
 from __future__ import annotations
