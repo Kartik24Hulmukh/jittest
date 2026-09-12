@@ -4,7 +4,6 @@ Runs jittest verify across 5 real Flask manifest profiles from r2b-bug-packet-ma
 using candidate catching tests and publishes 5/5 proven_catch signed evidence artifacts to docs/evidence/v0.2/.
 """
 
-import sys
 from pathlib import Path
 
 from jittest.receipt import verify_receipt

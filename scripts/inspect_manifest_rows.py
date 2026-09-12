@@ -4,7 +4,8 @@ import json
 from pathlib import Path
 
 MANIFEST_FILE = Path("phase-c-benchmark-manifest.json")
-data = json.load(open(MANIFEST_FILE, encoding="utf-8"))
+with MANIFEST_FILE.open(encoding="utf-8") as fh:
+    data = json.load(fh)
 rows = data if isinstance(data, list) else data.get("rows", data.get("benchmarks", []))
 
 print(f"Loaded {len(rows)} rows from {MANIFEST_FILE}")

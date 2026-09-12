@@ -43,7 +43,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import subprocess
 import sys
 import tempfile
@@ -52,7 +51,7 @@ from pathlib import Path
 from typing import Any
 
 from jittest.diff import git_env
-from jittest.verify import VerdictClass, verify_test
+from jittest.verify import verify_test
 
 # Crossed-arm donor pairings: each instance_id maps to the donor instance_id
 # whose gold patch will be applied (donor must share the same repo field).
@@ -145,13 +144,10 @@ def _apply_patch(repo_path: Path, patch_text: str) -> bool:
     Uses NamedTemporaryFile instead of the deprecated mktemp() to avoid
     TOCTOU race conditions. The temp file is deleted in a finally block.
     """
-    tmp = tempfile.NamedTemporaryFile(
-        mode="wb", suffix=".patch", delete=False
-    )
-    try:
+    with tempfile.NamedTemporaryFile(mode="wb", suffix=".patch", delete=False) as tmp:
         tmp.write(patch_text.encode("utf-8"))
         tmp.flush()
-        tmp.close()
+    try:
         res = subprocess.run(
             ["git", "-C", str(repo_path), "apply", "--3way", "--ignore-whitespace", tmp.name],
             capture_output=True,

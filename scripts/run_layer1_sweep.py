@@ -494,10 +494,7 @@ def main():
     start_all = time.time()
 
     is_ci = bool(os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS"))
-    if is_ci:
-        workers = min(args.workers, 2)
-    else:
-        workers = min(args.workers, os.cpu_count() or 4)
+    workers = min(args.workers, 2) if is_ci else min(args.workers, os.cpu_count() or 4)
 
     print(f"Launching ThreadPoolExecutor with {workers} workers (timeout={args.timeout}s)...")
 

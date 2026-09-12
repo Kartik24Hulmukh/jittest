@@ -75,9 +75,9 @@ def is_src_file(f: str) -> bool:
     if not f_norm.endswith(".py"):
         return False
     parts = f_norm.split("/")
-    if parts[0] in ("tests", "testing", "test", "docs", "doc", "examples", "benchmarks", "scripts"):
-        return False
-    return True
+    return parts[0] not in (
+        "tests", "testing", "test", "docs", "doc", "examples", "benchmarks", "scripts"
+    )
 
 
 def find_bug_rows(repo_name: str, config: dict[str, Any], limit: int = 5) -> list[dict[str, Any]]:

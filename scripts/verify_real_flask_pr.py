@@ -8,7 +8,6 @@ Test file: tests/test_basic.py
 Evidence saved to docs/evidence/pr/flask_pr_evidence.json
 """
 
-import sys
 from pathlib import Path
 
 from jittest.receipt import verify_receipt

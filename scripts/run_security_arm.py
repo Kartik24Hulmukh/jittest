@@ -16,7 +16,6 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from jittest.diff import git_env
 from jittest.receipt import verify_receipt
 
 

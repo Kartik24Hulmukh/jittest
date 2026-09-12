@@ -9,7 +9,6 @@ Generates one signed evidence JSON artifact for each of the four verdict quadran
 Artifacts are saved under docs/evidence/quadrants/.
 """
 
-import sys
 import tempfile
 from pathlib import Path
 
