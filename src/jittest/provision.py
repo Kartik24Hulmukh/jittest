@@ -60,12 +60,18 @@ class ProvisionManifest:
 
 @dataclass(frozen=True)
 class EngineAdapter:
-    """Injectable container-engine seam (docker/podman in CI, fakes in tests)."""
+    """Injectable container-engine seam (docker/podman in CI, fakes in tests).
+
+    ``inspect_repo_digests`` is optional but authoritative: when the engine
+    exposes it, provisioning requires the pinned digest to appear in the
+    engine's RepoDigests array. A local image Id is never sufficient proof.
+    """
 
     name: str
     inspect_digest: Callable[[str], str]
     create: Callable[[dict], str]
     destroy: Callable[[str], None]
+    inspect_repo_digests: Callable[[str], Sequence[str]] | None = None
 
 
 def validate_digest(digest: str) -> None:
@@ -132,6 +138,14 @@ def provision_in_sandbox(repo: Path, plan: Mapping, engine: EngineAdapter, wheel
     image = plan["image"]
     expected = plan["image_digest"]
     validate_digest(expected)
+    if engine.inspect_repo_digests is not None:
+        repo_digests = list(engine.inspect_repo_digests(image))
+        if not repo_digests:
+            raise ProvisioningRefusal(
+                "missing_repo_digests: engine returned no authoritative RepoDigests"
+            )
+        if not any(d.partition("@")[2] == expected for d in repo_digests):
+            raise ProvisioningRefusal("digest_mismatch: authoritative RepoDigests lack the pin")
     authoritative = engine.inspect_digest(image)
     if authoritative != expected:
         raise ProvisioningRefusal("digest_mismatch: authoritative RepoDigests differ from pin")

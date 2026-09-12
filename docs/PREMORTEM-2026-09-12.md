@@ -54,3 +54,20 @@ id-token), and never commit tokens or local evidence.
 - macOS/Windows acceptance runs (Linux-only execution here).
 - Named-maintainer SLOs, incident command and rollback rehearsal.
 These remain GA blockers per the handoff promotion rule.
+
+## Round-2 additions (same day, CI-driven)
+
+9. **Platform-specific test pre-mortem missed Windows.** `test_symlink_fifo_hardlink_refused`
+called `os.mkfifo` unconditionally; all three windows-latest legs of CI failed on
+head `a403261`, blocking the merge. Guarding rule now: any OS-specific node
+creation in a gate test must go through a capability probe, and the fail-closed
+classification (`outputguard._is_special`) must additionally be pinned from
+synthetic mode bits so the guard stays asserted where the node cannot be created.
+Regression pinned in `tests/test_p0_gates.py`.
+
+10. **"Digest verified" without RepoDigests is the spoofing hole.** Provisioning
+accepted an engine whose `inspect_digest` matched the pin even when the engine
+had no authoritative RepoDigests (exactly what a retagged local image produces).
+`EngineAdapter.inspect_repo_digests` is now wired fail-closed: empty RepoDigests
+or a missing pinned digest refuse BEFORE any container is created. Regression
+pinned; live verification happens in the new `registry-live` CI job.

@@ -59,3 +59,14 @@ Still open (unchanged, still GA blockers): P0-2 real registry E2E on a live
 Docker/Podman daemon (no container engine exists in this workspace), P1
 macOS/Windows coverage and OIDC publish rehearsal, P2 named maintainers/SLOs.
 Do NOT promote to GA on this commit alone; see docs/PREMORTEM-2026-09-12.md.
+
+## 2026-09-12 round 2 (CI-driven fixes + P0-2 close-out)
+- Fixed the windows-latest CI failures on head a403261: gate test no longer calls
+  os.mkfifo unconditionally; special-node classification pinned portably.
+- Added `src/jittest/registry.py` (authoritative RepoDigests verification,
+  fail-closed) + 14 tests; wired into provisioning via `EngineAdapter.inspect_repo_digests`.
+- Added `registry-live` job to `.github/workflows/option-c-proof.yml` executing P0-2 on a
+  real daemon (resolve platform digest from the registry, pull by digest, verify RepoDigests).
+- Suite on this head: 775 tests, 0 failures, 0 errors, 6 skipped; ruff clean; mypy clean (43 files).
+- GA label unchanged: **hardened release candidate, NOT GA** until the registry-live job carries
+  raw green evidence, the cross-platform matrix is green on the new head, and P2 gates land.

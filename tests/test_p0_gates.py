@@ -8,6 +8,8 @@ fallback.
 
 import os
 import shutil
+import socket
+import stat as stat_module
 import tempfile
 import threading
 import unittest
@@ -20,19 +22,46 @@ from src.jittest.readiness import ReadinessRefusal
 from src.jittest.verify import VerifyRefusalError
 
 GOOD_DIGEST = "sha256:" + "ab" * 32
+
+
+def _make_fifo(path: Path) -> bool:
+    """Create a FIFO; False on platforms without os.mkfifo (Windows)."""
+    mkfifo = getattr(os, "mkfifo", None)
+    if mkfifo is None:
+        return False
+    mkfifo(path)
+    return True
+
+
+def _make_socket(path: Path) -> bool:
+    """Bind a Unix-domain socket; False where socket.AF_UNIX is unavailable."""
+    af_unix = getattr(socket, "AF_UNIX", None)
+    if af_unix is None:
+        return False
+    sock = socket.socket(af_unix, socket.SOCK_STREAM)
+    try:
+        sock.bind(str(path))
+    finally:
+        sock.close()
+    return True
+
 OTHER_DIGEST = "sha256:" + "cd" * 32
 
 
 class FakeEngine:
-    def __init__(self, digest=GOOD_DIGEST, fail_phase=None, destroys=None):
+    def __init__(self, digest=GOOD_DIGEST, fail_phase=None, destroys=None, repo_digests=None):
         self.digest = digest
         self.fail_phase = fail_phase
         self.created = []
         self.destroyed = destroys if destroys is not None else []
         self.specs = []
+        self.repo_digests = repo_digests
 
     def inspect_digest(self, image):
         return self.digest
+
+    def inspect_repo_digests(self, image):
+        return list(self.repo_digests)
 
     def create(self, spec):
         self.specs.append(spec)
@@ -53,6 +82,9 @@ def make_engine(**kw):
         inspect_digest=fake.inspect_digest,
         create=fake.create,
         destroy=fake.destroy,
+        inspect_repo_digests=(
+            fake.inspect_repo_digests if fake.repo_digests is not None else None
+        ),
     ), fake
 
 
@@ -134,6 +166,29 @@ class TestProvisioningContract(unittest.TestCase):
     def test_provisioning_refusal_is_verify_refusal(self):
         self.assertTrue(issubclass(ProvisioningRefusal, VerifyRefusalError))
 
+    def test_missing_repo_digests_refused_before_any_container(self):
+        repo, wheel = make_repo(self.tmp)
+        engine, fake = make_engine(repo_digests=[])
+        with self.assertRaises(ProvisioningRefusal) as ctx:
+            provision.provision_in_sandbox(repo, self.plan(), engine, wheel)
+        self.assertIn("missing_repo_digests", str(ctx.exception))
+        self.assertEqual(fake.created, [])
+
+    def test_repo_digest_mismatch_refused_before_any_container(self):
+        repo, wheel = make_repo(self.tmp)
+        engine, fake = make_engine(repo_digests=["docker.io/library/python@" + OTHER_DIGEST])
+        with self.assertRaises(ProvisioningRefusal) as ctx:
+            provision.provision_in_sandbox(repo, self.plan(), engine, wheel)
+        self.assertIn("digest_mismatch", str(ctx.exception))
+        self.assertEqual(fake.created, [])
+
+    def test_authoritative_repo_digests_allow_provisioning(self):
+        repo, wheel = make_repo(self.tmp)
+        engine, fake = make_engine(repo_digests=["docker.io/library/python@" + GOOD_DIGEST])
+        man = provision.provision_in_sandbox(repo, self.plan(), engine, wheel)
+        self.assertEqual(man.image_digest, GOOD_DIGEST)
+        self.assertEqual(fake.destroyed, fake.created)
+
 
 class TestOutputTrustBoundary(unittest.TestCase):
     def setUp(self):
@@ -156,14 +211,25 @@ class TestOutputTrustBoundary(unittest.TestCase):
         target = self.tmp / "secret"
         target.write_text("x", encoding="utf-8")
         os.symlink(target, ev / "link")
-        os.mkfifo(ev / "pipe")
+        made_fifo = _make_fifo(ev / "pipe")
+        made_socket = _make_socket(ev / "sock")
         os.link(target, ev / "hard")
         scan = outputguard.scan_output_tree(ev)
         self.assertFalse(scan.ok)
         joined = ";".join(scan.violations)
         self.assertIn("symlink:", joined)
-        self.assertIn("fifo:", joined)
         self.assertIn("hardlink:", joined)
+        if made_fifo:
+            self.assertIn("fifo:", joined)
+        if made_socket:
+            self.assertIn("socket:", joined)
+        # Special-node classification is asserted from synthetic mode bits too,
+        # so the fifo/socket guards stay pinned on platforms (Windows) that
+        # cannot create those node types in a test.
+        self.assertEqual(outputguard._is_special(stat_module.S_IFIFO | 0o644), "fifo")
+        self.assertEqual(outputguard._is_special(stat_module.S_IFSOCK | 0o644), "socket")
+        self.assertEqual(outputguard._is_special(stat_module.S_IFBLK | 0o644), "block_device")
+        self.assertEqual(outputguard._is_special(stat_module.S_IFCHR | 0o644), "char_device")
         with self.assertRaises(OutputTrustRefusal):
             scan.raise_if_bad()
 
