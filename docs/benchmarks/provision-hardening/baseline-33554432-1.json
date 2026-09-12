@@ -1,0 +1,24 @@
+{
+  "python": "3.14.6",
+  "platform": "Linux-6.8.0-139-generic-x86_64-with-glibc2.41",
+  "jobs": 64,
+  "workers": 32,
+  "seed": 186,
+  "wheel_bytes": 33554432,
+  "seconds": 1.9164021979959216,
+  "throughput_jobs_s": 33.395912437863004,
+  "peak_traced_bytes": 1074101872,
+  "manifest_sha256": "eaf5de3495971bd9a0dae88efe82d147ba6908be6a74b4a4295fdbd7ee8b7d07",
+  "correct_jobs": 64,
+  "service_ms": {
+    "p50": 799.9232444999507,
+    "p95": 1016.6495056531858,
+    "p99": 1271.2154126878877
+  },
+  "queue_inclusive_ms": {
+    "p50": 1199.602741497074,
+    "p95": 1697.1194819012453,
+    "p99": 1718.106609569877
+  },
+  "scope": "fake engine, warm cache, tracemalloc enabled; not RSS or live container latency"
+}

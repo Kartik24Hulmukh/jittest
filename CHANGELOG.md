@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.4.0 - 2026-09-12
+
+### Production hardening wave (fail-closed release gates)
+
+- **Release gate is fail-closed again**: removed `|| true` from the release
+  workflow test step; a failing suite can never again be silently published
+  (this is what manufactured the green-looking v0.4.0 build with version drift).
+- **Version drift fixed everywhere**: `pyproject.toml`, `src/jittest/__init__.py`,
+  `CHANGELOG.md` and `CITATION.cff` now agree at 0.4.0; the published
+  `jittest==0.4.0` artifact reporting `__version__ == "0.3.5"` is the defect
+  this release corrects. Yank 0.4.0 on PyPI (see YANK-REASONS.md) and consume
+  0.4.1+.
+- **P0 gates** (handoff 2026-09-12): two-phase provisioning (`provision.py`),
+  deterministic readiness (`readiness.py`), output trust boundary
+  (`outputguard.py`), receipt integrity schema (`integrity.py`), registry
+  RepoDigests verification (`registry.py`) - all fail-closed, all tested.
+- **Wave-100x stress & chaos batteries**: `tests/test_stress_100x.py`
+  (200-400x parallel determinism, refusal storms, digest drift, integrity,
+  output-guard) and `tests/test_chaos_resilience.py` (engine explosions at
+  every seam, adversarial requirement vectors, mixed honest/evil storms).
+
 ## Unreleased
 
 - **`python -m jittest`** (new `src/jittest/__main__.py`): the module entrypoint now works from a checkout (`PYTHONPATH=src`) and from environments whose scripts directory is not on `PATH`; it shares `cli.main`, so exit codes and refusal semantics are identical to the console script. Covered by `tests/test_module_entrypoint.py`.

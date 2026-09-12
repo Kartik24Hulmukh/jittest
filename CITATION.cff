@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use jittest in research, please cite the underlying method (preferred-citation) as well as this software."
 title: "jittest: an open-source implementation of Just-in-Time Catching Test generation"
-version: 0.3.5
+version: 0.4.0
 license: Apache-2.0
 type: software
 repository-code: "https://github.com/Kartik24Hulmukh/jittest"

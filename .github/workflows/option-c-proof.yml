@@ -3,7 +3,7 @@ name: option-c-proof
 # Defect D9: prove that a dependency-bearing candidate executes inside the
 # maintainer-pinned trusted runtime image on a REAL container daemon, with
 # network denied. The record is uploaded as an artifact; D9 is closed by a
-# record whose status is RUN, and by nothing else. Not a required check.
+# record whose status is RUN, and by nothing else. Required for hardening promotion.
 
 on:
   workflow_dispatch:
@@ -13,6 +13,10 @@ on:
       - "scripts/prove_option_c.py"
       - "src/jittest/sandbox.py"
       - "src/jittest/env.py"
+      - "src/jittest/provision.py"
+      - "scripts/verify_registry_live.py"
+      - "tests/test_provision_boundaries.py"
+      - "tests/test_sandbox_adversarial.py"
       - ".github/workflows/option-c-proof.yml"
 
 permissions:
@@ -35,6 +39,22 @@ jobs:
         env:
           JITTEST_SANDBOX_BACKEND: docker
         run: python scripts/prove_option_c.py --image jittest-pilot-requests:local --out option-c-proof.json
+      - name: Real-daemon descendant cleanup must execute (no skipped proof)
+        env:
+          JITTEST_E2E_DOCKER: "1"
+          JITTEST_SANDBOX_BACKEND: docker
+          PYTHONPATH: src
+        run: |
+          python -m pip install pytest pytest-timeout
+          docker pull python:3.13-slim
+          python -m pytest tests/test_sandbox_adversarial.py::test_timeout_child_spawner_cleaned_up --timeout=90 --junitxml=descendant-cleanup.xml
+          python - <<'PY'
+          import xml.etree.ElementTree as ET
+          root = ET.parse("descendant-cleanup.xml").getroot()
+          cases = list(root.iter("testcase"))
+          if len(cases) != 1 or any(c.find(tag) is not None for c in cases for tag in ("skipped", "failure", "error")):
+              raise SystemExit("Real-daemon cleanup proof must run and pass, never skip")
+          PY
       - name: Show the record
         if: always()
         run: cat option-c-proof.json || true
@@ -45,6 +65,7 @@ jobs:
           path: |
             option-c-proof.json
             image-id.txt
+            descendant-cleanup.xml
   registry-live:
     # P0-2 gate: authoritative RepoDigests verification against the REAL
     # registry + REAL daemon. Required by the 2026-09-12 handoff promotion
