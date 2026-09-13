@@ -1,0 +1,602 @@
+[
+  {
+    "number": 200,
+    "title": "fix(verify): wire BASE runtime pins and close missing-BASE HEAD trust fallback",
+    "state": "closed",
+    "merged_at": "2026-09-13T17:09:23Z"
+  },
+  {
+    "number": 197,
+    "title": "fix(verify): contain preparation paths and repair subproject execution",
+    "state": "closed",
+    "merged_at": "2026-09-13T16:46:20Z"
+  },
+  {
+    "number": 196,
+    "title": "fix(verify): enforce boundaries and sign observations for every execution phase",
+    "state": "closed",
+    "merged_at": "2026-09-13T16:32:50Z"
+  },
+  {
+    "number": 195,
+    "title": "fix(release): keep manual dispatch dry even when targeting a tag",
+    "state": "closed",
+    "merged_at": "2026-09-13T14:30:38Z"
+  },
+  {
+    "number": 193,
+    "title": "fix(release): make workflow_dispatch a true dry run (tag-guard publish)",
+    "state": "closed",
+    "merged_at": "2026-09-13T14:12:38Z"
+  },
+  {
+    "number": 192,
+    "title": "feat(verify): wire P0 readiness, output guard and integrity record onto the public verify path",
+    "state": "closed",
+    "merged_at": "2026-09-13T15:49:50Z"
+  },
+  {
+    "number": 191,
+    "title": "release: 0.4.1 integrity re-release (supersedes yanked 0.4.0)",
+    "state": "closed",
+    "merged_at": "2026-09-13T13:54:11Z"
+  },
+  {
+    "number": 190,
+    "title": "fix(ci): repair main \u2014 report cited unreachable pre-rebase SHA (anti-fabrication lint)",
+    "state": "closed",
+    "merged_at": "2026-09-13T13:34:20Z"
+  },
+  {
+    "number": 189,
+    "title": "fix(outputguard): fail-closed scans, bounded inspection and safe snapshots",
+    "state": "closed",
+    "merged_at": "2026-09-13T13:18:11Z"
+  },
+  {
+    "number": 188,
+    "title": "fix(release): synchronize 0.4.0 version declarations",
+    "state": "closed",
+    "merged_at": null
+  },
+  {
+    "number": 187,
+    "title": "build(deps): bump the actions group across 1 directory with 4 updates",
+    "state": "closed",
+    "merged_at": "2026-09-13T13:18:35Z"
+  },
+  {
+    "number": 186,
+    "title": "fix(provision): deterministic cleanup, typed refusals, bounded memory + release gates",
+    "state": "closed",
+    "merged_at": "2026-09-13T13:15:56Z"
+  },
+  {
+    "number": 185,
+    "title": "feat(p0): fail-closed provisioning, output boundary, integrity, readiness gates",
+    "state": "closed",
+    "merged_at": "2026-09-12T20:10:07Z"
+  },
+  {
+    "number": 184,
+    "title": "fix: remove nonfunctional Option B spike",
+    "state": "closed",
+    "merged_at": "2026-09-11T18:39:40Z"
+  },
+  {
+    "number": 183,
+    "title": "fix: close computed-path writes and allow Option C verify",
+    "state": "closed",
+    "merged_at": null
+  },
+  {
+    "number": 182,
+    "title": "fix(docs): correct fabricated PR #172/#173/#175/#176 merge SHAs in ANTIGRAVITY-RESULT.md (anti-fabrication lint regression on main)",
+    "state": "closed",
+    "merged_at": "2026-09-09T19:15:59Z"
+  },
+  {
+    "number": 181,
+    "title": "fix(docs): correct 4 fabricated PR merge SHAs in ANTIGRAVITY-RESULT.md",
+    "state": "closed",
+    "merged_at": "2026-09-09T19:11:37Z"
+  },
+  {
+    "number": 180,
+    "title": "fix(sandbox)+feat: 15s daemon probe timeout, Task 32 render_status.py",
+    "state": "closed",
+    "merged_at": null
+  },
+  {
+    "number": 179,
+    "title": "feat(phase2): telemetry observability fields + Option C runtime-image selection layer (tasks 27, 18-23)",
+    "state": "closed",
+    "merged_at": "2026-09-09T18:17:06Z"
+  },
+  {
+    "number": 178,
+    "title": "fix(ci): clear GITHUB_EVENT_NAME in test_get_trust_context_unknown_when_absent",
+    "state": "closed",
+    "merged_at": "2026-09-09T18:15:34Z"
+  },
+  {
+    "number": 177,
+    "title": "feat(phase2): explain, receipt-2.1 JSON Schema, isolation canaries, version drift, Option C image",
+    "state": "closed",
+    "merged_at": null
+  },
+  {
+    "number": 176,
+    "title": "fix(action): trust push/workflow_dispatch/schedule/release as internal (fixes consumer_action_e2e CI failure)",
+    "state": "closed",
+    "merged_at": "2026-09-09T16:08:33Z"
+  },
+  {
+    "number": 175,
+    "title": "docs(runtime): Option C trusted runtime image specification and Option B provisioning design",
+    "state": "closed",
+    "merged_at": "2026-09-09T07:21:00Z"
+  },
+  {
+    "number": 174,
+    "title": "build(deps): bump softprops/action-gh-release from 3.0.2 to 3.0.3",
+    "state": "closed",
+    "merged_at": "2026-09-09T07:20:57Z"
+  },
+  {
+    "number": 173,
+    "title": "J2: strict receipt verification, schema 2.1, and verdict reconciliation",
+    "state": "closed",
+    "merged_at": "2026-09-09T07:30:38Z"
+  },
+  {
+    "number": 172,
+    "title": "feat(isolation): Track A - Isolation & Preflight Confinement (J1 tasks 1-9)",
+    "state": "closed",
+    "merged_at": "2026-09-09T06:46:53Z"
+  },
+  {
+    "number": 171,
+    "title": "fix: restore required Action default; do not claim D1/D2/D9 closed",
+    "state": "closed",
+    "merged_at": "2026-09-03T16:48:52Z"
+  },
+  {
+    "number": 170,
+    "title": "docs(isolation): document Option D contract, D2 boundary, and D9 daemon proof status",
+    "state": "closed",
+    "merged_at": "2026-09-03T15:35:56Z"
+  },
+  {
+    "number": 169,
+    "title": "fix(isolation): close defects D1, D2, and D8 (Option D container refusal, sanitized installer env, action defaults)",
+    "state": "closed",
+    "merged_at": "2026-09-03T15:03:25Z"
+  },
+  {
+    "number": 168,
+    "title": "fix(schema): close defects D7 and D5 (contract honesty, 6 verdicts, semantics and provenance verification)",
+    "state": "closed",
+    "merged_at": "2026-09-03T13:49:43Z"
+  },
+  {
+    "number": 167,
+    "title": "fix(trust-path): close defects D3, D4, and D6",
+    "state": "closed",
+    "merged_at": "2026-09-03T13:22:45Z"
+  },
+  {
+    "number": 166,
+    "title": "Fix alpha Action artifact and quickstart contracts",
+    "state": "closed",
+    "merged_at": "2026-09-01T09:23:36Z"
+  },
+  {
+    "number": 165,
+    "title": "Merge audited P0 verify hardening",
+    "state": "closed",
+    "merged_at": "2026-08-31T19:16:28Z"
+  },
+  {
+    "number": 163,
+    "title": "[WIP] Refactor verify handling to validate test specifications",
+    "state": "closed",
+    "merged_at": null
+  },
+  {
+    "number": 162,
+    "title": "Implement P0 verify hardening: repo-relative test resolution, clean refusals, required CI isolation, and atomic receipts",
+    "state": "closed",
+    "merged_at": null
+  },
+  {
+    "number": 161,
+    "title": "build(deps): bump the actions group across 1 directory with 4 updates",
+    "state": "closed",
+    "merged_at": null
+  },
+  {
+    "number": 160,
+    "title": "fix(wo27): close WO-26 correctly",
+    "state": "closed",
+    "merged_at": "2026-08-26T07:39:13Z"
+  },
+  {
+    "number": 159,
+    "title": "fix(cleanup): resolve bounded cleanup items",
+    "state": "closed",
+    "merged_at": "2026-08-26T07:01:54Z"
+  },
+  {
+    "number": 158,
+    "title": "fix(safety): close 22/23 adversarial payloads from E2 hardening",
+    "state": "closed",
+    "merged_at": "2026-08-25T19:29:32Z"
+  },
+  {
+    "number": 157,
+    "title": "feat(dogfood): add signed receipts and documentation for defect D-1",
+    "state": "closed",
+    "merged_at": "2026-08-23T18:31:37Z"
+  },
+  {
+    "number": 156,
+    "title": "chore(hygiene): move WO reports to docs/reports, redact paths, update path lint",
+    "state": "closed",
+    "merged_at": "2026-08-23T14:55:36Z"
+  },
+  {
+    "number": 155,
+    "title": "ci(workflows): align action pins across wo17 workflows with ci.yml",
+    "state": "closed",
+    "merged_at": "2026-08-23T12:55:36Z"
+  },
+  {
+    "number": 154,
+    "title": "fix(test): guard pytest import in test_exit_code_invariant.py for zero-dependency CI",
+    "state": "closed",
+    "merged_at": "2026-08-23T12:08:24Z"
+  },
+  {
+    "number": 153,
+    "title": "fix(lint): redact absolute local paths from WO-22-REPORT.md",
+    "state": "closed",
+    "merged_at": "2026-08-23T12:08:26Z"
+  },
+  {
+    "number": 152,
+    "title": "build(deps): bump softprops/action-gh-release from 2.2.1 to 3.0.2",
+    "state": "closed",
+    "merged_at": "2026-08-23T10:29:48Z"
+  },
+  {
+    "number": 151,
+    "title": "build(deps): bump the actions group with 4 updates",
+    "state": "closed",
+    "merged_at": "2026-08-23T10:29:19Z"
+  },
+  {
+    "number": 150,
+    "title": "WO-22 D13: disclose provenance of swebench_lite_20_results.json",
+    "state": "closed",
+    "merged_at": "2026-08-23T10:10:40Z"
+  },
+  {
+    "number": 149,
+    "title": "WO-22 D12: add wo17-smoke.yml smoke test workflow; raise gauntlet timeout to 30 min",
+    "state": "closed",
+    "merged_at": "2026-08-23T10:10:41Z"
+  },
+  {
+    "number": 148,
+    "title": "WO-22 D14: git clean -xfd in _reset_repo; git add -A in _commit_all",
+    "state": "closed",
+    "merged_at": "2026-08-23T10:10:40Z"
+  },
+  {
+    "number": 147,
+    "title": "WO-22 D10: replace tempfile.mktemp() with NamedTemporaryFile + finally cleanup",
+    "state": "closed",
+    "merged_at": "2026-08-23T10:09:52Z"
+  },
+  {
+    "number": 146,
+    "title": "WO-22 D9: fix _find_source_file_for_comment for flask/requests; prefer test_ basenames; remove test-file fallback",
+    "state": "closed",
+    "merged_at": "2026-08-23T10:08:38Z"
+  },
+  {
+    "number": 145,
+    "title": "WO-22 D8: git apply --3way for arm C; donor_patch_applied field; FCR denominator disclosure",
+    "state": "closed",
+    "merged_at": "2026-08-23T10:08:27Z"
+  },
+  {
+    "number": 144,
+    "title": "WO-22 D7: extract _clone_url helper with .git suffix and regression tests",
+    "state": "closed",
+    "merged_at": "2026-08-23T10:08:18Z"
+  },
+  {
+    "number": 143,
+    "title": "WO-21 D6: apply test_patch to base_ref; use PASS_TO_PASS for p2p; donor solution only for crossed",
+    "state": "closed",
+    "merged_at": "2026-08-23T10:11:13Z"
+  },
+  {
+    "number": 142,
+    "title": "WO-20 D5: add definitions and per-row CSV to recount.py; write RECOUNT-RECONCILIATION.md",
+    "state": "closed",
+    "merged_at": "2026-08-23T10:12:20Z"
+  },
+  {
+    "number": 141,
+    "title": "WO-20 D3: implement pre-registered WO-17 arms A-E; move security arms to security-arms.yml",
+    "state": "closed",
+    "merged_at": "2026-08-23T10:11:39Z"
+  },
+  {
+    "number": 140,
+    "title": "WO-20 D4: fix FAIL_TO_PASS JSON parse and test_file_path repo-relative resolution",
+    "state": "closed",
+    "merged_at": null
+  },
+  {
+    "number": 139,
+    "title": "WO-20 D1: extract pure functions exit_code_for/catch_direction_for; rewrite invariant test",
+    "state": "closed",
+    "merged_at": "2026-08-23T10:12:01Z"
+  },
+  {
+    "number": 138,
+    "title": "WO-20 D2: correct YANK-REASONS.md to list actual yanked PyPI releases",
+    "state": "closed",
+    "merged_at": "2026-08-23T10:12:10Z"
+  },
+  {
+    "number": 137,
+    "title": "WO-19 P6: WO-17 benchmark instance runner and 100-job gauntlet matrix workflow",
+    "state": "closed",
+    "merged_at": "2026-08-23T10:26:49Z"
+  },
+  {
+    "number": 136,
+    "title": "WO-19 P5: security posture hardening, CodeQL, dependabot, advisory draft, and yank rationale",
+    "state": "closed",
+    "merged_at": "2026-08-23T10:16:23Z"
+  },
+  {
+    "number": 135,
+    "title": "WO-19 P4: enforce derived numbers with recount tool and no-number-drift CI",
+    "state": "closed",
+    "merged_at": "2026-08-23T10:15:55Z"
+  },
+  {
+    "number": 134,
+    "title": "WO-19 P3: finish withdrawal and rename swebench_lite pilot with provenance disclaimer",
+    "state": "closed",
+    "merged_at": "2026-08-23T10:15:33Z"
+  },
+  {
+    "number": 133,
+    "title": "WO-19 P2: fail closed on collection_catch and enforce exit code invariant",
+    "state": "closed",
+    "merged_at": "2026-08-23T10:15:09Z"
+  },
+  {
+    "number": 132,
+    "title": "WO-19 P1: land 0.3.5 corrections onto main",
+    "state": "closed",
+    "merged_at": "2026-08-23T10:14:39Z"
+  },
+  {
+    "number": 131,
+    "title": "fix(audit): 0.3.5 corrections \u2014 withdraw mislabeled package, restore fail-closed fallback, enforce honest counts",
+    "state": "closed",
+    "merged_at": null
+  },
+  {
+    "number": 130,
+    "title": "release: 0.3.4 \u2014 trust boundaries, expected-signer verification, and CI action isolation",
+    "state": "closed",
+    "merged_at": "2026-08-20T17:44:05Z"
+  },
+  {
+    "number": 129,
+    "title": "release: 0.3.3 \u2014 security release for forgeable receipts",
+    "state": "closed",
+    "merged_at": "2026-08-17T15:13:29Z"
+  },
+  {
+    "number": 128,
+    "title": "fix(receipt): Ed25519 in every install; remove forgeable HMAC fallback",
+    "state": "closed",
+    "merged_at": "2026-08-16T21:07:33Z"
+  },
+  {
+    "number": 127,
+    "title": "build(deps): bump actions/checkout from 4.2.2 to 7.0.1",
+    "state": "closed",
+    "merged_at": null
+  },
+  {
+    "number": 126,
+    "title": "build(deps): bump softprops/action-gh-release from 2.2.1 to 3.0.2",
+    "state": "closed",
+    "merged_at": null
+  },
+  {
+    "number": 125,
+    "title": "build(deps): bump actions/setup-python from 5.4.0 to 7.0.0",
+    "state": "closed",
+    "merged_at": null
+  },
+  {
+    "number": 124,
+    "title": "build(deps): bump actions/upload-artifact from 4.6.1 to 7.0.1",
+    "state": "closed",
+    "merged_at": null
+  },
+  {
+    "number": 123,
+    "title": "build(deps): bump actions/download-artifact from 4.1.9 to 8.0.1",
+    "state": "closed",
+    "merged_at": null
+  },
+  {
+    "number": 122,
+    "title": "eval: add layer-1b modern cohort manifest and sweep evidence (ENV-FIDELITY-1)",
+    "state": "closed",
+    "merged_at": "2026-08-15T21:00:12Z"
+  },
+  {
+    "number": 121,
+    "title": "ci: restrict release workflow to semver tags and ignore floating v0",
+    "state": "closed",
+    "merged_at": "2026-08-14T21:34:00Z"
+  },
+  {
+    "number": 120,
+    "title": "release: v0.3.2 documentation and reproducibility patch",
+    "state": "closed",
+    "merged_at": "2026-08-14T20:33:15Z"
+  },
+  {
+    "number": 119,
+    "title": "ci: add verbose flag to pip install in install-smoke workflow",
+    "state": "closed",
+    "merged_at": "2026-08-14T07:42:31Z"
+  },
+  {
+    "number": 118,
+    "title": "feat(eval): layer-1 verifier sweep on frozen 83-row cohort with signed receipts",
+    "state": "closed",
+    "merged_at": "2026-08-13T20:02:10Z"
+  },
+  {
+    "number": 117,
+    "title": "feat(verify): v0.3.1 production hardening, action pinning, codeowners & schema 2.0 contract",
+    "state": "closed",
+    "merged_at": "2026-08-12T19:07:27Z"
+  },
+  {
+    "number": 116,
+    "title": "feat(verify): v0.3.0 github action, four-quadrant proof, keys guide & provenance fix",
+    "state": "closed",
+    "merged_at": "2026-08-12T17:34:21Z"
+  },
+  {
+    "number": 115,
+    "title": "feat(verify): v0.2.1 loud environments, preflight checks & signed receipt honesty fix",
+    "state": "closed",
+    "merged_at": "2026-08-12T05:21:55Z"
+  },
+  {
+    "number": 114,
+    "title": "VERIFY v0.2 \u2014 Real-Repo Environments, Sandbox by Default, Signed Receipts",
+    "state": "closed",
+    "merged_at": "2026-08-11T14:23:56Z"
+  },
+  {
+    "number": 113,
+    "title": "EVIDENCE-LAYER PIVOT: jittest verify MVP + launch docs",
+    "state": "closed",
+    "merged_at": "2026-08-11T11:30:56Z"
+  },
+  {
+    "number": 112,
+    "title": "Phase D scaffolding (unvalidated) \u2014 mock harness, do not merge",
+    "state": "closed",
+    "merged_at": null
+  },
+  {
+    "number": 111,
+    "title": "feat(eval): Phase C evaluation benchmark preregistration (zero spend)",
+    "state": "closed",
+    "merged_at": null
+  },
+  {
+    "number": 110,
+    "title": "eval: preserve sanitized exploratory W1-R6 diagnostic",
+    "state": "closed",
+    "merged_at": "2026-08-06T14:20:51Z"
+  },
+  {
+    "number": 109,
+    "title": "fix: harden evaluation accounting and candidate retention",
+    "state": "closed",
+    "merged_at": "2026-08-06T06:22:06Z"
+  },
+  {
+    "number": 108,
+    "title": "fix(w5): persist candidates outside target repo, scope by run_id, log write failures",
+    "state": "closed",
+    "merged_at": "2026-08-05T12:33:38Z"
+  },
+  {
+    "number": 107,
+    "title": "eval: record fp-ladder-w1r3 run artifact and log for n=2",
+    "state": "closed",
+    "merged_at": "2026-08-05T12:00:03Z"
+  },
+  {
+    "number": 106,
+    "title": "feat(w5): persist candidate source to run-scoped local directory and add sha256/path to telemetry",
+    "state": "closed",
+    "merged_at": "2026-08-05T11:27:59Z"
+  },
+  {
+    "number": 105,
+    "title": "fix(meter): select dominant failure by max count, populate telemetry_disposition_breakdown",
+    "state": "closed",
+    "merged_at": "2026-08-05T10:51:42Z"
+  },
+  {
+    "number": 104,
+    "title": "eval(artifacts): add W1-R2 fp-ladder n=3 run artifact and log",
+    "state": "closed",
+    "merged_at": "2026-08-04T20:08:52Z"
+  },
+  {
+    "number": 103,
+    "title": "fix(pricing): add gemini-3.6-flash rates and derive output tokens as total minus prompt",
+    "state": "closed",
+    "merged_at": "2026-08-04T20:03:30Z"
+  },
+  {
+    "number": 102,
+    "title": "fix(meter): count request attempts, track rate_limited candidates, and make ladder throttle-aware",
+    "state": "closed",
+    "merged_at": "2026-08-04T19:42:17Z"
+  },
+  {
+    "number": 101,
+    "title": "eval(flask): record W1-R fp-ladder run for gemini-3.6-flash",
+    "state": "closed",
+    "merged_at": "2026-08-04T19:03:39Z"
+  },
+  {
+    "number": 100,
+    "title": "eval(flask): record fp-ladder run for gemini-3.6-flash",
+    "state": "closed",
+    "merged_at": "2026-08-04T15:12:12Z"
+  },
+  {
+    "number": 99,
+    "title": "fix(llm): retry RemoteDisconnected and transport errors in HTTPLLM (_post)",
+    "state": "closed",
+    "merged_at": "2026-08-03T01:32:09Z"
+  },
+  {
+    "number": 98,
+    "title": "feat(eval): a controlled ladder that can refute the risk-gate hypothesis (fp_ladder)",
+    "state": "closed",
+    "merged_at": "2026-08-02T18:57:46Z"
+  },
+  {
+    "number": 97,
+    "title": "fix(eval): an undefined bucket name, and a bucket name that contradicted its own artifact (Defects 75, 76)",
+    "state": "closed",
+    "merged_at": "2026-08-02T18:36:05Z"
+  }
+]

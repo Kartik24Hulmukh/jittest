@@ -1,0 +1,57 @@
+{
+  "invariants": {
+    "chaos": {
+      "degraded_all_503": true,
+      "deterministic_recovery": true,
+      "healthy_before": true,
+      "recovered_all_200": true
+    },
+    "concurrency": {
+      "distinct_digests": 1,
+      "jobs": 2000,
+      "spans_closed": 2000,
+      "unhandled_panics": 0,
+      "workers": 64
+    }
+  },
+  "results": [
+    {
+      "iterations": 2000,
+      "max_ms": 0.024587,
+      "name": "integrity.canonical_json",
+      "p50_ms": 0.009939,
+      "p95_ms": 0.015348,
+      "p99_ms": 0.016,
+      "rss_delta_kb": 0,
+      "seed": 20260913,
+      "throughput_ops_s": 63475.923,
+      "wall_s": 0.031508
+    },
+    {
+      "iterations": 2000,
+      "max_ms": 0.022989,
+      "name": "integrity.sha256_bytes",
+      "p50_ms": 0.010584,
+      "p95_ms": 0.016391,
+      "p99_ms": 0.017051,
+      "rss_delta_kb": 0,
+      "seed": 20260913,
+      "throughput_ops_s": 61230.96,
+      "wall_s": 0.032663
+    },
+    {
+      "iterations": 500,
+      "max_ms": 0.632968,
+      "name": "prod.readyz",
+      "p50_ms": 0.11285,
+      "p95_ms": 0.174172,
+      "p99_ms": 0.281371,
+      "rss_delta_kb": 0,
+      "seed": 20260913,
+      "throughput_ops_s": 6925.46,
+      "wall_s": 0.072197
+    }
+  ],
+  "schema": "jittest.bench/1",
+  "seed": 20260913
+}
