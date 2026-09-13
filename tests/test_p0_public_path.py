@@ -96,15 +96,15 @@ class EnforcementErrors(_Tmp):
     def test_readiness_exception_refuses_when_required(self):
         self.env(JITTEST_READINESS="required")
         (self.tmp / "requirements.txt").write_text("flask", encoding="utf-8")
-        with mock.patch("jittest.readiness.evaluate_readiness", side_effect=RuntimeError("broken")):
-            with self.assertRaises(V.VerifyRefusalError):
-                V._readiness_block(self.tmp, {})
+        with (mock.patch("jittest.readiness.evaluate_readiness", side_effect=RuntimeError("broken")),
+              self.assertRaises(V.VerifyRefusalError)):
+            V._readiness_block(self.tmp, {})
 
     def test_output_exception_refuses_when_required(self):
         self.env(JITTEST_OUTPUT_GUARD="required")
-        with mock.patch("jittest.outputguard.scan_output_tree", side_effect=RuntimeError("broken")):
-            with self.assertRaises(V.VerifyRefusalError):
-                V._output_guard_block(self.tmp)
+        with (mock.patch("jittest.outputguard.scan_output_tree", side_effect=RuntimeError("broken")),
+              self.assertRaises(V.VerifyRefusalError)):
+            V._output_guard_block(self.tmp)
 
     def test_oversized_requirements_are_not_silently_truncated(self):
         self.env(JITTEST_READINESS="required")
