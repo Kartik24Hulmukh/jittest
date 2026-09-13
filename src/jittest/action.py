@@ -20,7 +20,7 @@ from typing import Any
 
 from .diff import git_env
 from .github import fetch_pr_base_head, upsert_pr_comment
-from .sandbox import SandboxPlan, SandboxUnavailable
+from .sandbox import SandboxPlan, SandboxUnavailable, load_runtime_image, validate_image_ref
 from .sandbox import plan as plan_sandbox
 from .verify import RefusalReason, VerdictClass, make_refusal_receipt, verify_test
 
@@ -200,8 +200,18 @@ def run_action(
     else:
         sbx_mode = "required" if trust in ("fork", "unknown") else "auto"
 
+    runtime_image, runtime_notes = load_runtime_image(repo, base_sha)
+    for note in runtime_notes:
+        logger.warning("%s", note)
+    if runtime_image and not validate_image_ref(runtime_image)[0]:
+        # This preliminary availability check never executes a candidate.
+        # verify_test independently refuses the invalid BASE pin per test,
+        # preserving refusal reporting and the selected Action policy.
+        # Generic Action refusals currently do not emit a signed artifact.
+        runtime_image = ""
     try:
-        sbx_plan = plan_sandbox(mode=sbx_mode, probe=False)
+        sbx_plan = plan_sandbox(mode=sbx_mode, probe=False,
+                               runtime_image=runtime_image)
     except SandboxUnavailable:
         sbx_plan = SandboxPlan(backend="none", mode=sbx_mode)
 

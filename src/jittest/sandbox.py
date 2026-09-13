@@ -658,7 +658,11 @@ def _runtime_image_from_toml(text: str) -> str:
         data = tomllib.loads(text)
     except (tomllib.TOMLDecodeError, ValueError):
         return ""
-    value = data.get("tool", {}).get("jittest", {}).get("runtime", {})
+    value = data
+    for key in ("tool", "jittest", "runtime"):
+        if not isinstance(value, dict):
+            return ""
+        value = value.get(key, {})
     image = value.get("image", "") if isinstance(value, dict) else ""
     return image.strip() if isinstance(image, str) else ""
 
@@ -701,8 +705,10 @@ def load_runtime_image(repo: Path | str, base_rev: str | None) -> tuple[str, lis
                 f"{base_image or '(none)'!r} governs")
         if base_image:
             return base_image, notes
-    elif head_image:
+    elif not base_rev and head_image:
         return head_image, notes
+    elif base_rev and head_image:
+        notes.append("runtime image: BASE config unavailable; HEAD image ignored per Rule 2")
     env_image = os.getenv("JITTEST_RUNTIME_IMAGE", "").strip()
     if env_image:
         notes.append("runtime image taken from JITTEST_RUNTIME_IMAGE")

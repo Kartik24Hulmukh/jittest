@@ -52,6 +52,7 @@ from .execute import (
 from .execution_paths import contained_execution_path, relative_execution_path
 from .github import fetch_pr_base_head
 from .receipt import get_repo_canonical, sign_evidence
+from .sandbox import load_runtime_image, validate_image_ref
 from .sandbox import plan as plan_sandbox
 
 __all__ = [
@@ -788,7 +789,20 @@ def verify_test(
     if effective_sandbox_mode == "off":
         logger.warning("WARNING: Sandbox disabled. Candidate tests will run unconfined.")
 
-    sbx_plan = plan_sandbox(mode=effective_sandbox_mode, probe=True)
+    # Only maintainer-controlled BASE configuration may select executable images.
+    runtime_image, runtime_notes = load_runtime_image(repo_path, resolved_base)
+    for note in runtime_notes:
+        logger.warning("%s", note)
+    if runtime_image:
+        valid, _ = validate_image_ref(runtime_image)
+        if not valid:
+            raise VerifyRefusalError(RefusalReason(
+                code="image_digest_required",
+                message="BASE runtime image must be pinned by @sha256:<64 hex digits>",
+                phase="plan",
+            ))
+    sbx_plan = plan_sandbox(mode=effective_sandbox_mode, probe=True,
+                           runtime_image=runtime_image)
 
     if effective_sandbox_mode == "required" and getattr(sbx_plan, "backend", "none") == "none":
         raise VerifyRefusalError(

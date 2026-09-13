@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Public verify and Action preplanning now honor maintainer BASE runtime-image
+  pins. Public verify refuses malformed/unpinned image references before
+  provisioning. Missing/unreadable BASE configuration never trusts a HEAD pin;
+  operator environment fallback remains supported. Non-table TOML configuration
+  is handled without crashing the loader. Target image inventory and full
+  dependency compatibility remain release blockers (issue #198).
+
 ## 0.4.1 - 2026-09-13
 
 ### Integrity re-release (supersedes the yanked 0.4.0 artifact)
