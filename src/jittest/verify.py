@@ -452,6 +452,145 @@ def _verify_pass_to_pass(
         return False
 
 
+# --- P0 state-machine wiring (policy -> readiness -> run -> output guard -> integrity) ---
+# These helpers put the previously library-only P0 modules on the public
+# `jittest verify` path. Default posture is OBSERVE (record findings in the
+# signed receipt); set JITTEST_READINESS=required / JITTEST_OUTPUT_GUARD=required
+# to make them fail-closed refusals. Enforcement is opt-in until live-daemon
+# evidence exists, so that an honest observation never becomes a false refusal.
+
+READINESS_ENV = "JITTEST_READINESS"
+OUTPUT_GUARD_ENV = "JITTEST_OUTPUT_GUARD"
+_ENFORCING = ("required", "enforce", "1", "true")
+
+
+def _p0_mode(var: str) -> str:
+    return (os.environ.get(var) or "observe").strip().lower()
+
+
+def _readiness_block(workdir: Path | str, env_info: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Cheap host-side readiness preflight. No execution of candidate code."""
+    mode = _p0_mode(READINESS_ENV)
+    try:
+        from .readiness import evaluate_readiness
+    except Exception:  # pragma: no cover - import guard
+        return None
+    wd = Path(workdir)
+    source = None
+    for name in ("requirements.txt", "requirements-dev.txt"):
+        candidate = wd / name
+        try:
+            if candidate.is_file():
+                source = candidate
+                break
+        except OSError:
+            continue
+    if source is None:
+        return None
+    try:
+        text = source.read_text(encoding="utf-8", errors="replace")[:200_000]
+    except OSError as exc:
+        return {"evaluated": False, "mode": mode, "reason": f"requirements_unreadable:{type(exc).__name__}"}
+    lock_text = None
+    lock = wd / "requirements.lock"
+    try:
+        if lock.is_file():
+            lock_text = lock.read_text(encoding="utf-8", errors="replace")[:200_000]
+    except OSError:
+        lock_text = None
+    resolved = (env_info or {}).get("resolved_versions") or {}
+    target = set(resolved) if isinstance(resolved, dict) else set()
+    try:
+        report = evaluate_readiness(text, target, lock_text=lock_text)
+    except Exception as exc:  # never let a preflight crash a verification
+        return {"evaluated": False, "mode": mode, "reason": f"readiness_error:{type(exc).__name__}"}
+    block = {
+        "evaluated": True,
+        "mode": mode,
+        "source": source.name,
+        "ok": bool(report.ok),
+        "problems": list(report.problems)[:50],
+    }
+    if not report.ok and mode in _ENFORCING:
+        raise VerifyRefusalError(
+            RefusalReason(
+                code="environment_not_ready",
+                message="target runtime cannot satisfy declared dependencies",
+                phase="readiness",
+                details="; ".join(list(report.problems)[:10]),
+            )
+        )
+    return block
+
+
+def _output_guard_block(workdir: Path | str) -> dict[str, Any] | None:
+    """Inspect the quiescent candidate tree after execution has stopped."""
+    mode = _p0_mode(OUTPUT_GUARD_ENV)
+    try:
+        from .outputguard import OutputLimits, scan_output_tree
+    except Exception:  # pragma: no cover - import guard
+        return None
+    try:
+        limits = OutputLimits(max_bytes=2 * 1024 * 1024 * 1024, max_files=200_000, max_entries=200_000)
+        scan = scan_output_tree(workdir, limits=limits)
+    except Exception as exc:
+        return {"scanned": False, "mode": mode, "reason": f"scan_error:{type(exc).__name__}"}
+    block = {
+        "scanned": True,
+        "mode": mode,
+        "ok": bool(scan.ok),
+        "files": int(scan.files),
+        "total_bytes": int(scan.total_bytes),
+        "violations": list(scan.violations)[:50],
+    }
+    if not scan.ok and mode in _ENFORCING:
+        raise VerifyRefusalError(
+            RefusalReason(
+                code="output_boundary_violation",
+                message="candidate output tree violated the export boundary",
+                phase="export",
+                details="; ".join(list(scan.violations)[:10]),
+            )
+        )
+    return block
+
+
+def _integrity_block(
+    *,
+    test_code: str,
+    sandbox_dict: dict[str, Any],
+    env_info: dict[str, Any] | None,
+    command: list[str],
+    exit_code: int,
+    output_material: str,
+    incomplete: bool,
+    non_reproducible: bool,
+) -> dict[str, Any] | None:
+    """integrity-1.0 binding, attached additively to the signed receipt."""
+    try:
+        from .integrity import build_integrity_record, canonical_json
+    except Exception:  # pragma: no cover - import guard
+        return None
+    try:
+        resolved = (env_info or {}).get("resolved_versions") or {}
+        record = build_integrity_record(
+            source_bytes=test_code.encode("utf-8", "replace"),
+            image_digest=str(sandbox_dict.get("image_digest") or sandbox_dict.get("image") or ""),
+            dependencies_text=canonical_json(resolved),
+            policy_text=canonical_json(sandbox_dict),
+            command=command,
+            exit_code=int(exit_code),
+            output_bytes=output_material.encode("utf-8", "replace"),
+            incomplete=bool(incomplete),
+            non_reproducible=bool(non_reproducible),
+        )
+    except Exception as exc:
+        return {"schema_version": "integrity-1.0", "error": f"integrity_error:{type(exc).__name__}"}
+    payload = record.to_dict()
+    payload["record_digest"] = record.digest()
+    return payload
+
+
 def verify_test(
     repo_path: Path | str,
     base_ref: str | None = None,
@@ -559,6 +698,10 @@ def verify_test(
 
     rel_test = test_path.relative_to(repo_path)
 
+    # P0 state-machine observations (readiness preflight / output boundary guard)
+    readiness_block: dict[str, Any] | None = None
+    output_guard_block: dict[str, Any] | None = None
+
     # 1. ALWAYS provision and execute BASE first (never short-circuit)
     base_run = None
     base_env_info = None
@@ -569,6 +712,7 @@ def verify_test(
             base_env_info = provision_environment(base_workdir, resolved_base, repo_path, sbx_plan=sbx_plan)
             if getattr(sbx_plan, "backend", None) in ("docker", "podman", "bubblewrap") and base_env_info.get("has_project_dependencies") and base_env_info.get("provisioning") != "option_c_trusted_image":
                 raise VerifyRefusalError("isolation contract cannot import project dependencies in container mode")
+            readiness_block = _readiness_block(base_workdir, base_env_info)
             base_python = base_env_info.get("python_path")
             base_run = run_test(
                 base_workdir,
@@ -602,6 +746,8 @@ def verify_test(
                 rel_test_path=rel_test,
                 node_id=node_id,
             )
+            # Quiescent tree, descendants stopped: guarded export inspection.
+            output_guard_block = _output_guard_block(head_workdir)
     except EnvSetupError as exc:
         head_err = exc
 
@@ -863,6 +1009,24 @@ def verify_test(
         "wall_clock_s": wall_clock_s,
         "provider_cost_usd": 0.0,
     }
+
+    # Additive, optional P0 blocks (schema 2.1 permits extra top-level objects).
+    if readiness_block is not None:
+        evidence_dict["readiness"] = readiness_block
+    if output_guard_block is not None:
+        evidence_dict["output_guard"] = output_guard_block
+    integrity_block = _integrity_block(
+        test_code=test_code,
+        sandbox_dict=evidence_dict["sandbox"] if isinstance(evidence_dict.get("sandbox"), dict) else {},
+        env_info=base_env_info,
+        command=["jittest", "verify", resolved_base, resolved_head, str(rel_test).replace(chr(92), "/")],
+        exit_code=exit_code,
+        output_material=str(base_exec_dict["stdout_sha256"]) + str(head_exec_dict["stdout_sha256"]),
+        incomplete=(base_run is None or head_run1 is None),
+        non_reproducible=(not rerun_agreement),
+    )
+    if integrity_block is not None:
+        evidence_dict["integrity"] = integrity_block
 
     if base_err is not None or head_err is not None:
         err_msgs = []
