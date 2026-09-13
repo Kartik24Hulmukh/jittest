@@ -47,7 +47,26 @@ export JITTEST_RUNTIME_IMAGE="ghcr.io/pallets/flask-test-runtime@sha256:e3b0c442
 
 ## 3a. Implementation status
 
-Implemented in `src/jittest/sandbox.py`: `validate_image_ref` (Rule 1), `load_runtime_image` (Rule 2, base-branch precedence via `git show <base>:pyproject.toml`, env fallback), `image_digest` (Rule 4, local inspect, never pulls) and `plan(runtime_image=...)`. `env.provision_environment` skips host provisioning entirely when a digest-pinned image is selected on docker/podman (`provisioning: option_c_trusted_image`). An unpinned reference is emitted as `jittest: image_digest_required: ...`, recorded in `report.errors`, and ignored - the run continues under the stdlib-only Option-D contract. Defect D9 (a dependency-bearing candidate executed on a real daemon) is closed only by the `option-c-proof` workflow artifact reporting `"status": "RUN"`.
+**Unreleased public-path hardening:** `verify` now passes the resolved BASE
+runtime pin to sandbox planning. The Action availability precheck uses the same
+BASE policy, and each test is independently validated by `verify`. Invalid pins
+refuse verification before provisioning (`image_digest_required`); advisory
+Action policy may still return success while reporting the refusal. If BASE has
+no pyproject file (or cannot be read), HEAD is **not** a trusted fallback. Only
+an explicitly supplied operator environment value can fill that gap. With no
+BASE revision at all, the standalone loader retains checkout configuration.
+
+The digest in the examples above is a placeholder, not a published runnable
+image. Use an image you built and validated, pinned to its actual registry digest.
+
+**Not a production-completeness claim:** the public Option C environment currently
+has no image-bound package inventory. Required readiness therefore refuses
+third-party requirements whose presence cannot be established. Name-presence
+readiness does not establish PEP 508/version/extras/ABI compatibility. These
+remaining blockers are tracked in issue #198. Wrapper-only Docker proofs are not
+a dependency-bearing public CLI end-to-end proof. The legacy research pipeline
+still records invalid-pin errors and continues under the stdlib-only contract;
+public verification instead refuses invalid pins.
 
 ## 4. Security Invariants & Validation Rules
 
