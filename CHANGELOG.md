@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.4.1 - 2026-09-13
+
+### Integrity re-release (supersedes the yanked 0.4.0 artifact)
+
+- **Why 0.4.1 exists**: the `jittest==0.4.0` wheel on PyPI was built by a
+  release workflow whose test gate was masked by `|| true`; it reports
+  `__version__ == "0.3.5"` and predates the output-boundary hardening below.
+  0.4.1 is the first release cut from a `main` whose full cross-platform
+  matrix is a *required* merge gate (see "Process"). See `YANK-REASONS.md`.
+- **Output trust boundary hardened** (PR #189, code commit
+  `e7d28f7140af6c74685f17f11ad02d2b84751fbb`, merge
+  `3ec9aa0e966d18e3a707f51805a3fda22986cb46`): root symlinks are inspected
+  before path resolution; evidence walks fail closed on entry/byte budget
+  overflow instead of silently truncating; hardlinks, FIFOs and other
+  non-regular files are refused; protected-tree snapshots stream hashes with
+  `hashlib.file_digest` (reproducible benchmark `scripts/bench_outputguard.py`:
+  ~20x lower peak traced allocation, identical digests).
+- **Two-phase provisioning made deterministic** (PR #186, merge
+  `e3b73972ba61473cdbbe29b4a4a2bb521a9f48a7`): ownership-scoped container
+  contexts destroy every acquired container on any failure path; typed
+  refusals; image digests re-inspected immediately before phase 2 (TOCTOU
+  guard); editable/VCS/`file://` requirement vectors rejected before any
+  container exists; bounded memory on manifest construction.
+- **CI action pins bumped** (dependabot PR #187, merge
+  `3dc9a0451e0fd6d5d2d367a5357335c6430d9efa`): checkout, setup-python,
+  upload-artifact, codeql-action.
+- **Anti-fabrication lint kept honest** (PR #190, merge
+  `3421b4b55ef553716331557f9279221f19bcf050`): a report cited a pre-rebase
+  SHA that was unreachable after #189 was rebased; the lint caught it on
+  `main`, and the report now cites reachable commits only.
+
+### Process
+
+- Two PRs were merged on 2026-09-13 while their test matrices were still red,
+  because only the late-materialising `ci` aggregate context was required.
+  Branch protection on `main` now requires all nine `test (os, py)` matrix
+  cells plus `lint`, `version-drift` and `build`, and `enforce_admins` is
+  enabled so token holders cannot bypass a red matrix.
+
+### Not changed
+
+- No new features. The CLI, receipt schema 2.1, exit codes and the Action
+  contract are identical to the intended 0.4.0 tree.
+
 ## 0.4.0 - 2026-09-12
 
 ### Production hardening wave (fail-closed release gates)
