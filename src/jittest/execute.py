@@ -61,6 +61,7 @@ from enum import StrEnum
 from pathlib import Path
 
 from .diff import git_env
+from .execution_paths import contained_execution_path
 from .redact import redact
 from .sandbox import SandboxPlan
 from .sandbox import wrap as sandbox_wrap
@@ -617,7 +618,7 @@ def run_test(workdir: Path, test_code: str, timeout_s: int = 120,
     workdir = Path(workdir)
     token = uuid.uuid4().hex[:8]
     if rel_test_path:
-        target_dir = (workdir / rel_test_path).parent
+        target_dir = contained_execution_path(workdir, rel_test_path).parent
         target_dir.mkdir(parents=True, exist_ok=True)
         candidate = target_dir / f"{CANDIDATE_PREFIX}{token}.py"
     else:
