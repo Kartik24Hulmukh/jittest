@@ -109,7 +109,7 @@ README's official-key receipt example independently verified with signer TRUSTED
 
 Baseline on main: **922 passed, 2 failed, 1 skipped, 131 subtests passed** in 237.40 s. Both failures are version consistency tests. First candidate full run (13 new regression methods collected before four more methods were added): **935 passed, 2 failed, 1 skipped, 135 subtests passed** in 237.94 s; same two version failures, no other failures. The complete 17-method new test module passed dependency-free under `PYTHONPATH=src python -S -m unittest tests.test_outputguard_boundaries -v` (17 tests, 0.096 s). A fresh full run with all 17 methods and an isolated composition with PR #186 were started separately; report their final results explicitly rather than relabeling the earlier 13-method run.
 
-PR delivery: [#189](https://github.com/Kartik24Hulmukh/jittest/pull/189). First code head `a7ce15e9982ab7fb60487325a8a3d98a3599d40b`. Review #186 and this PR together, then run the exact combined merge head through CI. Neither PR has been merged by this audit.
+PR delivery: [#189](https://github.com/Kartik24Hulmukh/jittest/pull/189). Code commit `e7d28f7140af6c74685f17f11ad02d2b84751fbb` (rebased onto `main` after #186 merged as `e3b73972ba61473cdbbe29b4a4a2bb521a9f48a7`; the original pre-rebase code head `a7ce15e` is no longer reachable from any branch, which is why the SHA below is the rebased one). The rebased head runs the full remote matrix in CI before merge.
 
 ### Follow-up P0 findings (not repaired in this scoped patch)
 
@@ -119,7 +119,7 @@ The toy bug-fix probe returned `reproduction_catch` in 13.33 s; the unchanged-ba
 
 ### Composition test completed
 
-An isolated detached worktree at PR #186 head `8722586d6d3924257255e4dde9ec88d613822929` accepted a clean cherry-pick of this patch's code commit `a7ce15e9982ab7fb60487325a8a3d98a3599d40b`, producing local composition `853c1f9` (not pushed or merged). Complete pytest: **965 passed, 1 skipped, 143 subtests passed in 244.00 s**. Version drift check passed (0.4.0 in all four checked locations); repository Ruff and configured mypy (43 files) passed. Outputguard source and all 17 regression methods were byte-identical in both worktrees. This establishes local compatibility of the two proposals, not green remote CI or confined E2E for the composition.
+An isolated detached worktree at PR #186 head `8722586d6d3924257255e4dde9ec88d613822929` accepted a clean cherry-pick of this patch's pre-rebase code commit (`a7ce15e`, now rebased as `e7d28f7140af6c74685f17f11ad02d2b84751fbb`), producing local composition `853c1f9` (not pushed or merged). Complete pytest: **965 passed, 1 skipped, 143 subtests passed in 244.00 s**. Version drift check passed (0.4.0 in all four checked locations); repository Ruff and configured mypy (43 files) passed. Outputguard source and all 17 regression methods were byte-identical in both worktrees. This establishes local compatibility of the two proposals, not green remote CI or confined E2E for the composition.
 
 Stress repeat: the 100-independent-job / 16-thread scan regression was executed ten additional times, all **1,000/1,000** scan outcomes correct (17.99 s including ten pytest process startups). This is filesystem helper concurrency, not container throughput.
 
