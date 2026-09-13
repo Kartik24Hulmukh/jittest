@@ -98,3 +98,18 @@ Do NOT promote to GA on this commit alone; see docs/PREMORTEM-2026-09-12.md.
 - GA label unchanged: hardened release candidate, NOT GA until the
   registry-live job and cross-platform matrix run green on the PR head and
   0.4.0 is yanked. This workspace still has no Docker/Podman daemon.
+
+
+## Session 2026-09-13 (PR triage + main repair + release prep)
+
+| Item | State | Evidence |
+|---|---|---|
+| #186 provision hardening | MERGED | `e3b73972ba61473cdbbe29b4a4a2bb521a9f48a7` |
+| #188 version sync | CLOSED (superseded by #186) | - |
+| #189 outputguard fail-closed | MERGED (rebased) | `3ec9aa0e966d18e3a707f51805a3fda22986cb46` |
+| #187 dependabot actions pins | MERGED | `3dc9a0451e0fd6d5d2d367a5357335c6430d9efa` |
+| #190 repair red `main` (anti-fabrication lint) | MERGED with 29/29 checks green | `3421b4b55ef553716331557f9279221f19bcf050` |
+| Branch protection | TIGHTENED: 13 required contexts (ci, lint, version-drift, build, 9 matrix cells), strict, enforce_admins=true | repo settings |
+| 0.4.1 release | THIS PR bumps 4 declarations + CHANGELOG; tag `v0.4.1` only after `ci` is green on the merge commit; PyPI 0.4.0 must be yanked by a maintainer (`YANK-REASONS.md`) | - |
+
+**Still open before GA**: registry-live proof on a real daemon at the release head; OIDC trusted-publishing rehearsal on the `pypi` environment; wiring `provision_in_sandbox` / `evaluate_readiness` / outputguard into the default `jittest verify` state machine; two named maintainers + SLOs; five design-partner advisory trials.
