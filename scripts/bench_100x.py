@@ -63,13 +63,16 @@ def concurrency_invariant(jobs: int = 2000, workers: int = 64) -> dict:
     digests = set()
     lock = threading.Lock()
     panics = []
+    completed = 0
 
     def job(_i):
+        nonlocal completed
         try:
             with tracer.span("integrity.digest"):
                 digest = integrity.sha256_bytes(integrity.canonical_json(fixed).encode())
             with lock:
                 digests.add(digest)
+                completed += 1
         except BaseException as exc:  # chaos must never surface as a panic
             with lock:
                 panics.append(type(exc).__name__)
@@ -77,7 +80,7 @@ def concurrency_invariant(jobs: int = 2000, workers: int = 64) -> dict:
     with ThreadPoolExecutor(max_workers=workers) as pool:
         list(pool.map(job, range(jobs)))
     return {"jobs": jobs, "workers": workers, "distinct_digests": len(digests),
-            "unhandled_panics": len(panics), "spans_closed": len(tracer.finished)}
+            "unhandled_panics": len(panics), "spans_closed": completed, "spans_retained": len(tracer.finished)}
 
 
 def chaos_probe_storm(iterations: int = 500) -> dict:

@@ -125,3 +125,45 @@ Historical 2,000-span/zero-RSS-growth prose is NOT a leak proof. New bounded
 history deliberately retains only the newest spans; exporter is authoritative.
 The concurrently authored premortem is historical evidence, not an independent
 review performed by this agent. This report's limitations supersede its GA tone.
+
+
+### Verification follow-up
+
+Combined targeted suite: **50 passed, zero skipped/failures/errors**, including
+real optional OpenTelemetry SDK export and a regression proving completed-span
+counts differ from retained-history length. Dependency-free production unit
+lane: 31 passed / 1 optional-SDK skip (32 tests, before accounting test added).
+Combined ruff and mypy are green (50 source modules). Local wheel built and
+installed to an isolated target; readiness smoke passed. `wheel-smoke.json`
+records its SHA-256 and source; this is not the published PyPI artifact.
+
+GitGuardian incident **37238730** flags a synthetic URL string in a redaction
+test from commit f464c5a. It is not a real credential. An explanation requesting
+authorized false-positive review was posted; the check is NOT bypassed, history
+was NOT rewritten, and no all-green/merge-readiness claim is made while it fails.
+The actual supplied token was never written to repo files; rotate it after work
+because it was exposed in the task conversation.
+
+
+### Final local full-suite result
+
+Fresh combined collection at source 49bc16f: **1201 passed, 1 skipped,
+0 failures, 0 errors / 1202 collected**, 247.082 seconds; `final.xml`.
+The skip is the real Docker child-spawner test, NOT a pass. The subsequent
+benchmark-accounting test and concurrent synthetic-fixture string adjustment
+were verified by a fresh **50/50** targeted suite (`final-targeted.xml`); no
+production source changed after the full run began. All shipped-source lint
+checks remain green. A second concurrent commit adjusted how the synthetic
+query fixture is constructed; it was merged without discarding work. The
+historical scanner finding still needs authorized resolution if it persists.
+
+Thus executed local tests are green, but this is NOT 100% executed E2E and NOT
+a GA release. Remote CI must independently pass at the final head. No merge
+will be forced while required checks fail or are pending.
+
+
+A concurrent writer later rewrote the shared branch to cb4514c (removing the
+historical synthetic-fixture occurrence). I did not perform that force push.
+Its tree matched the previously verified production source exactly; the six
+remaining evidence/accounting-file changes were reapplied on top as a normal
+fast-forward commit, avoiding reintroducing the rewritten history.

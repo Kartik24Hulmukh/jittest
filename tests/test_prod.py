@@ -209,3 +209,12 @@ class IntegrationHardeningTests(unittest.TestCase):
         logger = JsonLogger(stream=io.StringIO())
         record = logger.record("info", "request", data={"items": [{"authorization": "secret"}]})
         self.assertEqual(record["data"]["items"][0]["authorization"], "[REDACTED]")
+
+
+class BenchmarkAccountingTests(unittest.TestCase):
+    def test_completed_spans_not_confused_with_retention(self):
+        from scripts.bench_100x import concurrency_invariant
+        result = concurrency_invariant(jobs=1100, workers=8)
+        self.assertEqual(result["spans_closed"], 1100)
+        self.assertEqual(result["spans_retained"], 1024)
+        self.assertEqual(result["unhandled_panics"], 0)
