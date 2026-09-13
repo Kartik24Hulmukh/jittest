@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+_No changes yet._
+
+## 0.4.0 - 2026-09-13
+
 - **`python -m jittest`** (new `src/jittest/__main__.py`): the module entrypoint now works from a checkout (`PYTHONPATH=src`) and from environments whose scripts directory is not on `PATH`; it shares `cli.main`, so exit codes and refusal semantics are identical to the console script. Covered by `tests/test_module_entrypoint.py`.
 - **Repo-wide lint gate**: `ruff check` in CI now also covers `scripts/`, `eval/`, `run_acceptance_verification.py` and `run_v02_gate.py`. Fixed the 11 findings this surfaced: unused imports (`sys`, `os`, `VerdictClass`, `git_env`), two unclosed manifest file handles (`inspect_control_diffs.py`, `inspect_manifest_rows.py`), an unclosed patch temp file in `scripts/run_instance.py`, and two simplifications.
 - **Observability without telemetry (task 27)**: every `--telemetry-json` line now carries `refusal_code`, `sandbox_backend`, `sandbox_image_digest` and `wall_clock_s`; the report carries `wall_clock_s` and `phases` (`run_total_s`, `oracle_s`). Additive only, local only, never candidate source (`docs/PRIVACY.md`).
