@@ -1,0 +1,56 @@
+[
+  {
+    "variant": "baseline",
+    "repeat": 0,
+    "jobs": 32,
+    "workers": 8,
+    "bytes_per_file": 8388608,
+    "seconds": 0.12882793880999088,
+    "peak_python_bytes": 67365652
+  },
+  {
+    "variant": "baseline",
+    "repeat": 1,
+    "jobs": 32,
+    "workers": 8,
+    "bytes_per_file": 8388608,
+    "seconds": 0.10134392138570547,
+    "peak_python_bytes": 67217384
+  },
+  {
+    "variant": "baseline",
+    "repeat": 2,
+    "jobs": 32,
+    "workers": 8,
+    "bytes_per_file": 8388608,
+    "seconds": 0.10765673406422138,
+    "peak_python_bytes": 67215450
+  },
+  {
+    "variant": "candidate",
+    "repeat": 0,
+    "jobs": 32,
+    "workers": 8,
+    "bytes_per_file": 8388608,
+    "seconds": 0.1160782016813755,
+    "peak_python_bytes": 3268597
+  },
+  {
+    "variant": "candidate",
+    "repeat": 1,
+    "jobs": 32,
+    "workers": 8,
+    "bytes_per_file": 8388608,
+    "seconds": 0.18484891764819622,
+    "peak_python_bytes": 3268645
+  },
+  {
+    "variant": "candidate",
+    "repeat": 2,
+    "jobs": 32,
+    "workers": 8,
+    "bytes_per_file": 8388608,
+    "seconds": 0.10600380320101976,
+    "peak_python_bytes": 3267525
+  }
+]
