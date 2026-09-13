@@ -32,3 +32,23 @@ are not currently exported into the CLI refusal receipt.
 
 Tracked follow-up: issue #194 remains open for precise readiness semantics,
 phase-specific integrity/completeness and real-daemon public-path evidence.
+
+
+## Host-side execution path boundary
+
+Candidate preparation happens before the sandbox starts. `verify --path` must
+therefore be repository-relative: absolute, drive-qualified and parent-traversal
+paths are refused with `unsafe_execution_path` (phase `prepare`). Each fresh BASE,
+HEAD, rerun and health/probe checkout checks the selected directory before
+provisioning. Symlink and available Windows junction detection are fail-closed;
+paths must remain inside the checkout. A missing selected directory also refuses.
+
+Candidate tests must belong to the selected subproject. Their runner paths are
+relative to that subproject, while receipt provenance remains repository-relative.
+Unchanged health tests outside the subproject are not used as health evidence.
+`run_test` independently checks its candidate path before creating directories or
+writing code, protecting callers outside the public verification command too.
+
+These checks require a quiescent checkout. They do **not** prevent an independent
+host process racing directory replacement, provide OS confinement, validate target
+dependencies, or change readiness's name-presence-only semantics.

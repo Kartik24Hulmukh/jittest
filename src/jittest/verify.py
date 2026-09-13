@@ -49,6 +49,7 @@ from .execute import (
     resolve_revision,
     run_test,
 )
+from .execution_paths import contained_execution_path, relative_execution_path
 from .github import fetch_pr_base_head
 from .receipt import get_repo_canonical, sign_evidence
 from .sandbox import plan as plan_sandbox
@@ -385,6 +386,10 @@ def _verify_pass_to_pass(
             and Path(f).name != Path(rel_test).name
         ]
         for f in test_candidates:
+            # Git paths are repository-relative; the runner uses the selected root.
+            if not Path(f).is_relative_to(Path(rel_path)):
+                continue
+            health_test = Path(f).relative_to(Path(rel_path))
             b_blob = subprocess.run(
                 ["git", "-C", str(repo_path), "rev-parse", f"{resolved_base}:{f}"],
                 capture_output=True,
@@ -409,7 +414,7 @@ def _verify_pass_to_pass(
                 ).stdout
                 if content.strip():
                     with Worktree(repo_path, resolved_base) as b_dir:
-                        b_workdir = b_dir / rel_path if str(rel_path) != "." else b_dir
+                        b_workdir = contained_execution_path(b_dir, rel_path, directory=True)
                         b_res = _run_guarded_phase(
                             b_workdir,
                             content,
@@ -418,11 +423,11 @@ def _verify_pass_to_pass(
                             phase="pass_to_pass_base", revision=resolved_base,
                             env_info=base_env_info, records=phase_records,
                             python_path=base_python,
-                            rel_test_path=f,
+                            rel_test_path=health_test,
                         )
                         if b_res.outcome is Outcome.PASS:
                             with Worktree(repo_path, resolved_head) as h_dir:
-                                h_workdir = h_dir / rel_path if str(rel_path) != "." else h_dir
+                                h_workdir = contained_execution_path(h_dir, rel_path, directory=True)
                                 h_res = _run_guarded_phase(
                                     h_workdir,
                                     content,
@@ -431,7 +436,7 @@ def _verify_pass_to_pass(
                                     phase="pass_to_pass_head", revision=resolved_head,
                                     env_info=head_env_info, records=phase_records,
                                     python_path=head_python,
-                                    rel_test_path=f,
+                                    rel_test_path=health_test,
                                 )
                                 if h_res.outcome is Outcome.PASS:
                                     return True
@@ -444,7 +449,7 @@ def _verify_pass_to_pass(
     probe_code = "def test_jittest_pass_to_pass_probe():\n    assert 1 + 1 == 2\n"
     try:
         with Worktree(repo_path, resolved_base) as b_dir:
-            b_workdir = b_dir / rel_path if str(rel_path) != "." else b_dir
+            b_workdir = contained_execution_path(b_dir, rel_path, directory=True)
             b_res = _run_guarded_phase(
                 b_workdir,
                 probe_code,
@@ -458,7 +463,7 @@ def _verify_pass_to_pass(
                 return False
 
         with Worktree(repo_path, resolved_head) as h_dir:
-            h_workdir = h_dir / rel_path if str(rel_path) != "." else h_dir
+            h_workdir = contained_execution_path(h_dir, rel_path, directory=True)
             h_res = _run_guarded_phase(
                 h_workdir,
                 probe_code,
@@ -765,6 +770,15 @@ def verify_test(
     if not resolved_head:
         raise VerifyRefusalError(f"head revision not found: {head_ref}")
 
+    rel_path = str(relative_execution_path(rel_path))
+    selected_root = repo_path / rel_path
+    if not test_path.is_relative_to(selected_root):
+        raise VerifyRefusalError(RefusalReason(
+            code="unsafe_execution_path",
+            message="candidate test is outside the selected subproject", phase="prepare",
+        ))
+    execution_test = test_path.relative_to(selected_root)
+
     # Sandbox plan setup
     if sandbox_mode is not None:
         effective_sandbox_mode = sandbox_mode.strip().lower()
@@ -811,7 +825,7 @@ def verify_test(
     base_err = None
     try:
         with Worktree(repo_path, resolved_base) as base_dir:
-            base_workdir = base_dir / rel_path if rel_path != "." else base_dir
+            base_workdir = contained_execution_path(base_dir, rel_path, directory=True)
             base_env_info = provision_environment(base_workdir, resolved_base, repo_path, sbx_plan=sbx_plan)
             if getattr(sbx_plan, "backend", None) in ("docker", "podman", "bubblewrap") and base_env_info.get("has_project_dependencies") and base_env_info.get("provisioning") != "option_c_trusted_image":
                 raise VerifyRefusalError("isolation contract cannot import project dependencies in container mode")
@@ -824,7 +838,7 @@ def verify_test(
                 phase="base", revision=resolved_base,
                 env_info=base_env_info, records=phase_records,
                 python_path=base_python,
-                rel_test_path=rel_test,
+                rel_test_path=execution_test,
                 node_id=node_id,
             )
     except EnvSetupError as exc:
@@ -836,7 +850,7 @@ def verify_test(
     head_err = None
     try:
         with Worktree(repo_path, resolved_head) as head_dir:
-            head_workdir = head_dir / rel_path if rel_path != "." else head_dir
+            head_workdir = contained_execution_path(head_dir, rel_path, directory=True)
             head_env_info = provision_environment(head_workdir, resolved_head, repo_path, sbx_plan=sbx_plan)
             if getattr(sbx_plan, "backend", None) in ("docker", "podman", "bubblewrap") and head_env_info.get("has_project_dependencies") and head_env_info.get("provisioning") != "option_c_trusted_image":
                 raise VerifyRefusalError("isolation contract cannot import project dependencies in container mode")
@@ -849,7 +863,7 @@ def verify_test(
                 phase="head", revision=resolved_head,
                 env_info=head_env_info, records=phase_records,
                 python_path=head_python,
-                rel_test_path=rel_test,
+                rel_test_path=execution_test,
                 node_id=node_id,
             )
     except EnvSetupError as exc:
@@ -862,7 +876,7 @@ def verify_test(
     if head_run1 and head_run1.outcome is Outcome.FAIL and reruns > 1 and not head_err:
         try:
             with Worktree(repo_path, resolved_head) as head_dir:
-                head_workdir = head_dir / rel_path if rel_path != "." else head_dir
+                head_workdir = contained_execution_path(head_dir, rel_path, directory=True)
                 head_python = head_env_info.get("python_path") if head_env_info else None
                 head_run2 = _run_guarded_phase(
                     head_workdir,
@@ -872,7 +886,7 @@ def verify_test(
                     phase="head_rerun_2", revision=resolved_head,
                     env_info=head_env_info, records=phase_records,
                     python_path=head_python,
-                    rel_test_path=rel_test,
+                    rel_test_path=execution_test,
                     node_id=node_id,
                 )
                 head_runs.append(head_run2)
