@@ -100,3 +100,25 @@ def test_action_preplan_uses_base_pin(tmp_path, monkeypatch):
     with mock.patch.object(A, "get_trust_context", return_value="internal"), mock.patch.object(A, "plan_sandbox", side_effect=Planned) as plan, pytest.raises(Planned):
         A.run_action(repo, pr_number=1, output_dir=tmp_path / "artifacts")
     assert plan.call_args.kwargs["runtime_image"] == PIN
+
+
+@pytest.mark.parametrize("policy, expected", [("advisory", 0), ("strict", 1), ("block-on-refusal", 1)])
+def test_action_invalid_pin_reports_refusal_without_candidate_execution(tmp_path, monkeypatch, policy, expected):
+    repo, _, _, test = create_synthetic_repo(tmp_path)
+    base = _image(repo, "python:latest")
+    test.write_text("def test_changed():\n    assert True\n")
+    _git(repo, "add", ".")
+    _git(repo, "commit", "-m", "changed test")
+    head = _git(repo, "rev-parse", "HEAD")
+    monkeypatch.setenv("JITTEST_BASE", base)
+    monkeypatch.setenv("JITTEST_HEAD", head)
+    monkeypatch.delenv("JITTEST_RUNTIME_IMAGE", raising=False)
+    out = tmp_path / "artifacts"
+    with mock.patch.object(A, "get_trust_context", return_value="internal"), mock.patch.object(A, "plan_sandbox", return_value=S.SandboxPlan(backend="none")) as plan, mock.patch.object(A, "upsert_pr_comment") as comment, mock.patch.object(V, "provision_environment") as provision:
+        rc = A.run_action(repo, pr_number=1, sandbox_override="off", policy=policy, output_dir=out)
+    assert rc == expected
+    assert plan.call_args.kwargs["runtime_image"] == ""
+    provision.assert_not_called()
+    assert "ENV_SETUP_FAILED" in comment.call_args.args[0]
+    # Document the current evidence gap rather than asserting an absent receipt.
+    assert not list(out.glob("*.json"))

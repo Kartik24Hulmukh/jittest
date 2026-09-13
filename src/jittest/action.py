@@ -206,7 +206,8 @@ def run_action(
     if runtime_image and not validate_image_ref(runtime_image)[0]:
         # This preliminary availability check never executes a candidate.
         # verify_test independently refuses the invalid BASE pin per test,
-        # preserving signed refusal artifacts and the selected Action policy.
+        # preserving refusal reporting and the selected Action policy.
+        # Generic Action refusals currently do not emit a signed artifact.
         runtime_image = ""
     try:
         sbx_plan = plan_sandbox(mode=sbx_mode, probe=False,
