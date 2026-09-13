@@ -30,6 +30,7 @@ import json
 import logging
 import os
 import re
+import stat
 import subprocess
 import tempfile
 import time
@@ -468,42 +469,82 @@ def _p0_mode(var: str) -> str:
     return (os.environ.get(var) or "observe").strip().lower()
 
 
+def _p0_error(mode: str, *, readiness: bool, reason: str) -> dict[str, Any]:
+    """Observation may degrade; explicit enforcement must never fail open."""
+    code = "environment_not_ready" if readiness else "output_boundary_violation"
+    phase = "readiness" if readiness else "export"
+    if mode in _ENFORCING:
+        raise VerifyRefusalError(RefusalReason(code=code, message=reason, phase=phase))
+    return {"evaluated" if readiness else "scanned": False, "mode": mode, "reason": reason}
+
+
+def _read_readiness_file(path: Path) -> str | None:
+    """Bounded, no-follow read of a quiescent worktree's optional manifest.
+
+    Refuse special nodes before opening (including FIFOs), and compare the
+    descriptor identity to lstat. This is not a live-writer sandbox primitive.
+    """
+    try:
+        expected = path.lstat()
+    except FileNotFoundError:
+        return None
+    limit = 200_000
+    if not stat.S_ISREG(expected.st_mode) or expected.st_nlink != 1:
+        raise ValueError("requirements_not_regular_single_link")
+    if expected.st_size > limit:
+        raise ValueError("requirements_too_large")
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0)
+    flags |= getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
+    fd = os.open(path, flags)
+    try:
+        with os.fdopen(fd, "rb") as handle:
+            fd = -1
+            before = os.fstat(handle.fileno())
+            def identity(entry: os.stat_result) -> tuple[int, ...]:
+                return (entry.st_dev, entry.st_ino, entry.st_mode, entry.st_nlink,
+                        entry.st_size, entry.st_mtime_ns, entry.st_ctime_ns)
+            if identity(before) != identity(expected):
+                raise ValueError("requirements_changed")
+            data = handle.read(limit + 1)
+            if len(data) > limit:
+                raise ValueError("requirements_too_large")
+            if (identity(before) != identity(os.fstat(handle.fileno()))
+                    or identity(before) != identity(path.lstat())):
+                raise ValueError("requirements_changed")
+            return data.decode("utf-8", errors="strict")
+    finally:
+        if fd != -1:
+            os.close(fd)
+
+
 def _readiness_block(workdir: Path | str, env_info: dict[str, Any] | None) -> dict[str, Any] | None:
-    """Cheap host-side readiness preflight. No execution of candidate code."""
+    """Dependency-presence observation, not a complete resolver/ABI proof."""
     mode = _p0_mode(READINESS_ENV)
     try:
-        from .readiness import evaluate_readiness
-    except Exception:  # pragma: no cover - import guard
-        return None
-    wd = Path(workdir)
-    source = None
-    for name in ("requirements.txt", "requirements-dev.txt"):
-        candidate = wd / name
-        try:
-            if candidate.is_file():
-                source = candidate
+        from .readiness import evaluate_readiness, parse_requirements
+
+        wd = Path(workdir)
+        source = None
+        text = None
+        for name in ("requirements.txt", "requirements-dev.txt"):
+            text = _read_readiness_file(wd / name)
+            if text is not None:
+                source = wd / name
                 break
-        except OSError:
-            continue
-    if source is None:
-        return None
-    try:
-        text = source.read_text(encoding="utf-8", errors="replace")[:200_000]
-    except OSError as exc:
-        return {"evaluated": False, "mode": mode, "reason": f"requirements_unreadable:{type(exc).__name__}"}
-    lock_text = None
-    lock = wd / "requirements.lock"
-    try:
-        if lock.is_file():
-            lock_text = lock.read_text(encoding="utf-8", errors="replace")[:200_000]
-    except OSError:
-        lock_text = None
-    resolved = (env_info or {}).get("resolved_versions") or {}
-    target = set(resolved) if isinstance(resolved, dict) else set()
-    try:
+        if source is None:
+            return None
+        lock_text = _read_readiness_file(wd / "requirements.lock")
+        resolved = (env_info or {}).get("resolved_versions") or []
+        # provision_environment returns pip-freeze lines, not a version mapping.
+        if isinstance(resolved, dict):
+            target = set(resolved)
+        elif isinstance(resolved, list) and all(isinstance(line, str) for line in resolved):
+            target = {req.name for req in parse_requirements("\n".join(resolved))}
+        else:
+            raise ValueError("invalid_resolved_versions")
         report = evaluate_readiness(text, target, lock_text=lock_text)
-    except Exception as exc:  # never let a preflight crash a verification
-        return {"evaluated": False, "mode": mode, "reason": f"readiness_error:{type(exc).__name__}"}
+    except Exception as exc:
+        return _p0_error(mode, readiness=True, reason=f"readiness_error:{type(exc).__name__}")
     block = {
         "evaluated": True,
         "mode": mode,
@@ -528,13 +569,13 @@ def _output_guard_block(workdir: Path | str) -> dict[str, Any] | None:
     mode = _p0_mode(OUTPUT_GUARD_ENV)
     try:
         from .outputguard import OutputLimits, scan_output_tree
-    except Exception:  # pragma: no cover - import guard
-        return None
+    except Exception as exc:  # pragma: no cover - import guard
+        return _p0_error(mode, readiness=False, reason=f"scan_import_error:{type(exc).__name__}")
     try:
         limits = OutputLimits(max_bytes=2 * 1024 * 1024 * 1024, max_files=200_000, max_entries=200_000)
         scan = scan_output_tree(workdir, limits=limits)
     except Exception as exc:
-        return {"scanned": False, "mode": mode, "reason": f"scan_error:{type(exc).__name__}"}
+        return _p0_error(mode, readiness=False, reason=f"scan_error:{type(exc).__name__}")
     block = {
         "scanned": True,
         "mode": mode,

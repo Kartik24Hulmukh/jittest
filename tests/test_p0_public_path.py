@@ -86,6 +86,60 @@ class OutputGuard(_Tmp):
         self.assertIsNotNone(V._output_guard_block(self.tmp / "nope"))
 
 
+class EnforcementErrors(_Tmp):
+    def test_freeze_list_is_actual_provisioner_contract(self):
+        self.env(JITTEST_READINESS="required")
+        (self.tmp / "requirements.txt").write_text("Flask==3.0.0", encoding="utf-8")
+        block = V._readiness_block(self.tmp, {"resolved_versions": ["Flask==3.0.0"]})
+        self.assertTrue(block["ok"])
+
+    def test_readiness_exception_refuses_when_required(self):
+        self.env(JITTEST_READINESS="required")
+        (self.tmp / "requirements.txt").write_text("flask", encoding="utf-8")
+        with mock.patch("jittest.readiness.evaluate_readiness", side_effect=RuntimeError("broken")):
+            with self.assertRaises(V.VerifyRefusalError):
+                V._readiness_block(self.tmp, {})
+
+    def test_output_exception_refuses_when_required(self):
+        self.env(JITTEST_OUTPUT_GUARD="required")
+        with mock.patch("jittest.outputguard.scan_output_tree", side_effect=RuntimeError("broken")):
+            with self.assertRaises(V.VerifyRefusalError):
+                V._output_guard_block(self.tmp)
+
+    def test_oversized_requirements_are_not_silently_truncated(self):
+        self.env(JITTEST_READINESS="required")
+        (self.tmp / "requirements.txt").write_bytes(b"#" * 200_001)
+        with self.assertRaises(V.VerifyRefusalError):
+            V._readiness_block(self.tmp, {})
+
+    def test_symlink_requirements_refuse_without_reading_target(self):
+        self.env(JITTEST_READINESS="required")
+        target = self.tmp / "secret"
+        target.write_text("", encoding="utf-8")
+        try:
+            (self.tmp / "requirements.txt").symlink_to(target)
+        except (OSError, NotImplementedError):
+            self.skipTest("symlink creation unavailable")
+        with self.assertRaises(V.VerifyRefusalError):
+            V._readiness_block(self.tmp, {})
+
+    def test_fifo_requirements_refuse_without_opening(self):
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("FIFO unsupported")
+        self.env(JITTEST_READINESS="required")
+        os.mkfifo(self.tmp / "requirements.txt")
+        with self.assertRaises(V.VerifyRefusalError):
+            V._readiness_block(self.tmp, {})
+
+    def test_observe_records_error_without_claiming_ok(self):
+        self.env(JITTEST_OUTPUT_GUARD="observe")
+        with mock.patch("jittest.outputguard.scan_output_tree", side_effect=RuntimeError("secret")):
+            block = V._output_guard_block(self.tmp)
+        self.assertFalse(block["scanned"])
+        self.assertNotIn("ok", block)
+        self.assertNotIn("secret", str(block))
+
+
 def _integ(**over):
     kw = dict(
         test_code="def test_x():\\n    assert True",
