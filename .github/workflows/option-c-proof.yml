@@ -11,6 +11,8 @@ on:
     paths:
       - "docker/pilot-requests/**"
       - "scripts/prove_option_c.py"
+      - "scripts/prove_phase_boundaries.py"
+      - "src/jittest/verify.py"
       - "src/jittest/sandbox.py"
       - "src/jittest/env.py"
       - "src/jittest/provision.py"
@@ -55,6 +57,8 @@ jobs:
           if len(cases) != 1 or any(c.find(tag) is not None for c in cases for tag in ("skipped", "failure", "error")):
               raise SystemExit("Real-daemon cleanup proof must run and pass, never skip")
           PY
+      - name: Public verify per-phase enforcement on the real daemon
+        run: python scripts/prove_phase_boundaries.py --out phase-boundaries-proof.json
       - name: Show the record
         if: always()
         run: cat option-c-proof.json || true
@@ -66,6 +70,7 @@ jobs:
             option-c-proof.json
             image-id.txt
             descendant-cleanup.xml
+            phase-boundaries-proof.json
   registry-live:
     # P0-2 gate: authoritative RepoDigests verification against the REAL
     # registry + REAL daemon. Required by the 2026-09-12 handoff promotion
