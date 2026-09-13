@@ -105,12 +105,14 @@ def build_integrity_record(
 
 def compare_runs(first: IntegrityRecord, second: IntegrityRecord) -> dict[str, Any]:
     """Reproducibility comparison for repeated identical runs."""
-    same = first.digest() == second.digest()
+    first_digest, second_digest = first.digest(), second.digest()
+    first_payload, second_payload = first.to_dict(), second.to_dict()
+    same = first_digest == second_digest
     return {
         "reproducible": same,
-        "first_digest": first.digest(),
-        "second_digest": second.digest(),
+        "first_digest": first_digest,
+        "second_digest": second_digest,
         "differences": sorted(
-            key for key in first.to_dict() if first.to_dict()[key] != second.to_dict()[key]
+            key for key in first_payload if first_payload[key] != second_payload[key]
         ),
     }
