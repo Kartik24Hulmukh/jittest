@@ -1,0 +1,7 @@
+{
+  "filename": "jittest-0.4.0-py3-none-any.whl",
+  "sha256": "19e545368cca8af8c074c36fee4e41da56fc87cf0d776c65ccc70c4703992132",
+  "pypi_digest_matches": true,
+  "runtime_init": "\"\"\"jittest - just-in-time catching tests for pull requests.\n\nThe open-source reference implementation of Just-in-Time catching test\ngeneration, the method published by Meta in 2026 (arXiv 2601.22832).\n\nA catching test is not a test that passes. It is a test that PASSES on the\nbase commit and FAILS on the head commit, proving the change broke something.\nThat distinction is the whole product.\n\"\"\"\nfrom __future__ import annotations\n\n__version__ = \"0.3.5\"\n__all__ = [\"__version__\"]\n",
+  "outputguard_matches_audited_main": true
+}

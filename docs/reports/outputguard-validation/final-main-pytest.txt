@@ -1,0 +1,45 @@
+........................................................................ [  7%]
+..................................................................... [ 14%]
+........................................................................ [ 22%]
+........................................................................ [ 30%]
+...........................................................................................................F............... [ 43%]
+........................................................................ [ 50%]
+............................................................................................................................................ [ 65%]
+........................................................................ [ 73%]
+................................................................................................s.............................. [ 86%]
+...............................................................................................F...........................    [100%]
+=================================== FAILURES ===================================
+________ TestVersionConsistency.test_runtime_version_matches_pyproject _________
+
+self = <tests.test_hardening.TestVersionConsistency testMethod=test_runtime_version_matches_pyproject>
+
+    def test_runtime_version_matches_pyproject(self):
+        import jittest
+    
+        declared = self._pyproject_version()
+        self.assertIsNotNone(declared, "no version found in pyproject.toml")
+>       self.assertEqual(jittest.__version__, declared)
+E       AssertionError: '0.3.5' != '0.4.0'
+E       - 0.3.5
+E       + 0.4.0
+
+tests/test_hardening.py:301: AssertionError
+_____________________ VersionDriftTest.test_versions_agree _____________________
+
+self = <tests.test_version_drift.VersionDriftTest testMethod=test_versions_agree>
+
+    def test_versions_agree(self):
+        script = Path(__file__).resolve().parent.parent / "scripts" / "check_version_drift.py"
+        proc = subprocess.run([sys.executable, str(script)], capture_output=True, text=True)
+>       self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+E       AssertionError: 1 != 0 :   pyproject.toml                                0.4.0
+E         src/jittest/__init__.py                       0.3.5
+E         CHANGELOG.md (first numbered heading)         0.3.5
+E         CITATION.cff                                  0.3.5
+E       FAIL: version drift, saw ['0.3.5', '0.4.0']
+
+tests/test_version_drift.py:11: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_hardening.py::TestVersionConsistency::test_runtime_version_matches_pyproject
+FAILED tests/test_version_drift.py::VersionDriftTest::test_versions_agree - A...
+2 failed, 939 passed, 1 skipped, 135 subtests passed in 241.97s (0:04:01)

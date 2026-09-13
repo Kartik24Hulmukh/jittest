@@ -86,3 +86,45 @@ python -m pytest --timeout=60
 ```
 
 New tests use stdlib unittest and capability-skip POSIX-only checks; the full OS matrix still must run on the PR head. Repository-configured mypy does not check all untyped function bodies. A failing main baseline must not be hidden by excluding unrelated failures from the final validation record.
+
+## Additional measured evidence
+
+### Published wheel inspection (downloaded, not executed)
+
+PyPI wheel `jittest-0.4.0-py3-none-any.whl`, SHA-256
+`19e545368cca8af8c074c36fee4e41da56fc87cf0d776c65ccc70c4703992132`,
+matched PyPI's advertised digest. ZIP inspection found metadata version **0.4.0** but runtime `__version__ = "0.3.5"`. Its `outputguard.py` is byte-identical to audited main, so the inspected helper defects are present in that distribution. Digest matching establishes download integrity, not trusted provenance. Raw metadata inspection: `outputguard-wheel-audit.json`.
+
+### Memory experiment
+
+32 snapshot jobs, eight threads, one shared quiescent 8 MiB regular file, three trials per variant. Median peak **Python-traced** allocation: baseline **64.10 MiB**, patched **3.12 MiB** (~20.6x lower). Median wall time: **0.108 s → 0.116 s** (not a speed improvement). All 32 file-content hashes and sizes matched in each trial. This is a warm-cache synthetic allocation benchmark, not RSS, production throughput, or a 100x product result. Additional checks and directory records deliberately change snapshot semantics. Raw first-run results: `outputguard-benchmark.json`; recompute from repository root with `python scripts/bench_outputguard.py` (requires baseline commit in local history).
+
+### Actual CLI probes
+
+A new local toy Git repository with correct addition at base and subtraction at head produced `proven_catch`, PASS → assertion FAIL, rerun agreement true, signed schema 2.1 receipt, in **6.45 s**. This used **explicit `--no-sandbox`** on code authored for this diagnostic only; tool tree was dirty due to test evidence/generated benchmark files. It is not a third-party or confined proof. Receipt verification returned valid signature/schema, signer UNVERIFIED, provenance NOT_CHECKED, execution UNCONFINED. Rechecking with `--require-confined` refused (exit **7**). `--sandbox-mode required` refused before execution because no usable backend exists.
+
+README's official-key receipt example independently verified with signer TRUSTED and legacy schema valid, but execution UNCONFINED and provenance NOT_CHECKED. Signed integrity must not be conflated with confined execution.
+
+### Full-suite provenance
+
+Baseline on main: **922 passed, 2 failed, 1 skipped, 131 subtests passed** in 237.40 s. Both failures are version consistency tests. First candidate full run (13 new regression methods collected before four more methods were added): **935 passed, 2 failed, 1 skipped, 135 subtests passed** in 237.94 s; same two version failures, no other failures. The complete 17-method new test module passed dependency-free under `PYTHONPATH=src python -S -m unittest tests.test_outputguard_boundaries -v` (17 tests, 0.096 s). A fresh full run with all 17 methods and an isolated composition with PR #186 were started separately; report their final results explicitly rather than relabeling the earlier 13-method run.
+
+PR delivery: [#189](https://github.com/Kartik24Hulmukh/jittest/pull/189). First code head `a7ce15e9982ab7fb60487325a8a3d98a3599d40b`. Review #186 and this PR together, then run the exact combined merge head through CI. Neither PR has been merged by this audit.
+
+### Follow-up P0 findings (not repaired in this scoped patch)
+
+`readiness.check_lock_drift("requests>=2.0", "requests==2.32.0")` reports drift even though that pin satisfies the range: it compares strings, not PEP 440 semantics. `check_platform_compat` checks OS/architecture substrings but ignores CPython tags: a cp310/cp310 manylinux x86_64 wheel is accepted on this CPython 3.14 x86_64 host. `parse_requirements("-r other.txt")` produces a fake package named `-r` instead of interpreting or explicitly refusing includes. Before wiring readiness into production, either use a reviewed standards-compliant parser behind an explicit dependency boundary or adopt a narrow canonical manifest and refuse unsupported syntax; do not expand ad-hoc regular expressions and call it resolver parity.
+
+The toy bug-fix probe returned `reproduction_catch` in 13.33 s; the unchanged-base control returned `non_discriminating` in 7.99 s. Both were explicitly unconfined diagnostics, not production proofs. These and the tamper probe complement the initial regression probe. Tampering with receipt text is rejected with invalid signature (exit 2). Remote PR #189 Linux/Python 3.11 raw job log confirms its full suite's only failures were the two existing version tests; that is not a green PR. Other in-progress matrix jobs cannot be treated as passed.
+
+### Composition test completed
+
+An isolated detached worktree at PR #186 head `8722586d6d3924257255e4dde9ec88d613822929` accepted a clean cherry-pick of this patch's code commit `a7ce15e9982ab7fb60487325a8a3d98a3599d40b`, producing local composition `853c1f9` (not pushed or merged). Complete pytest: **965 passed, 1 skipped, 143 subtests passed in 244.00 s**. Version drift check passed (0.4.0 in all four checked locations); repository Ruff and configured mypy (43 files) passed. Outputguard source and all 17 regression methods were byte-identical in both worktrees. This establishes local compatibility of the two proposals, not green remote CI or confined E2E for the composition.
+
+Stress repeat: the 100-independent-job / 16-thread scan regression was executed ten additional times, all **1,000/1,000** scan outcomes correct (17.99 s including ten pytest process startups). This is filesystem helper concurrency, not container throughput.
+
+### Final standalone full run
+
+With all 17 new methods collected: **939 passed, 2 failed, 1 skipped, 135 subtests passed in 241.97 s**. Both failures remain the baseline runtime/version-drift tests. No other failures. Raw baseline, initial candidate, final standalone, combined and dependency-free logs are committed under `docs/reports/outputguard-validation/`. No tests were excluded to make the standalone result green.
+
+**Recommended merge sequence:** review/merge #186 first (with current merge-head checks), then update #189 against that main and rerun remote matrix + non-skippable real-daemon proofs. The local combined run is encouraging evidence, not permission to bypass branch protections or declare GA.

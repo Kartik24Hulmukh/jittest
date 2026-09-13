@@ -1,0 +1,22 @@
+test_concurrent_independent_scans (tests.test_outputguard_boundaries.OutputBoundaryTests.test_concurrent_independent_scans) ... ok
+test_declared_nested_output_and_zero_budget (tests.test_outputguard_boundaries.OutputBoundaryTests.test_declared_nested_output_and_zero_budget) ... ok
+test_directory_budget (tests.test_outputguard_boundaries.OutputBoundaryTests.test_directory_budget) ... ok
+test_disappearing_entry_is_typed_refusal (tests.test_outputguard_boundaries.OutputBoundaryTests.test_disappearing_entry_is_typed_refusal) ... ok
+test_file_budget_stops_early (tests.test_outputguard_boundaries.OutputBoundaryTests.test_file_budget_stops_early) ... ok
+test_invalid_limits (tests.test_outputguard_boundaries.OutputBoundaryTests.test_invalid_limits) ... ok
+test_nested_directories_are_not_hardlinks (tests.test_outputguard_boundaries.OutputBoundaryTests.test_nested_directories_are_not_hardlinks) ... ok
+test_root_symlink_refuses (tests.test_outputguard_boundaries.OutputBoundaryTests.test_root_symlink_refuses) ... ok
+test_snapshot_detects_empty_directory_change (tests.test_outputguard_boundaries.OutputBoundaryTests.test_snapshot_detects_empty_directory_change) ... ok
+test_snapshot_detects_mode_change (tests.test_outputguard_boundaries.OutputBoundaryTests.test_snapshot_detects_mode_change) ... ok
+test_snapshot_fifo_refuses_without_blocking (tests.test_outputguard_boundaries.OutputBoundaryTests.test_snapshot_fifo_refuses_without_blocking) ... ok
+test_snapshot_hardlink_refuses (tests.test_outputguard_boundaries.OutputBoundaryTests.test_snapshot_hardlink_refuses) ... ok
+test_snapshot_refuses_symlink_without_reading_target (tests.test_outputguard_boundaries.OutputBoundaryTests.test_snapshot_refuses_symlink_without_reading_target) ... ok
+test_snapshot_rejects_missing_root (tests.test_outputguard_boundaries.OutputBoundaryTests.test_snapshot_rejects_missing_root) ... ok
+test_snapshot_streams_without_read_bytes (tests.test_outputguard_boundaries.OutputBoundaryTests.test_snapshot_streams_without_read_bytes) ... ok
+test_snapshot_walk_failure_is_typed (tests.test_outputguard_boundaries.OutputBoundaryTests.test_snapshot_walk_failure_is_typed) ... ok
+test_walk_error_refuses (tests.test_outputguard_boundaries.OutputBoundaryTests.test_walk_error_refuses) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.096s
+
+OK
