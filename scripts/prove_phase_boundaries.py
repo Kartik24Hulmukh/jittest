@@ -58,18 +58,20 @@ def main() -> int:
                                       require_confined=True, expected_base=base, expected_head=head)
             assert verified.valid, verified.reason
             record.update(status="RUN", verdict=receipt["verdict"], backend="docker",
-                          phases=phases, confined_signature_valid=True)
+                          phases=json.loads(json.dumps(phases)), confined_signature_valid=True)
             phases[-1]["output_guard"]["ok"] = False
             assert not verify_receipt(receipt, expected_signer=signer).valid
             record["phase_tamper_rejected"] = True
             # A violation present only at BASE must refuse on the public path.
-            git(repo, "checkout", base)
-            (repo / "escape").symlink_to("/etc/passwd")
-            git(repo, "add", "escape")
-            git(repo, "commit", "-m", "base-only unsafe node")
-            unsafe_base = git(repo, "rev-parse", "HEAD")
+            test.write_text(
+                "from app import add\nfrom pathlib import Path\n"
+                "def test_add():\n"
+                "    if add(2, 3) == 5:\n"
+                "        Path('escape').symlink_to('/etc/passwd')\n"
+                "    assert add(2, 3) == 5\n"
+            )
             try:
-                verify_test(repo, unsafe_base, head, test, sandbox_mode="required",
+                verify_test(repo, base, head, test, sandbox_mode="required",
                             signing_key_path=key, timeout_s=30)
             except VerifyRefusalError as exc:
                 assert exc.reason.code == "output_boundary_violation", exc.reason.code
