@@ -531,7 +531,7 @@ def _readiness_block(workdir: Path | str, env_info: dict[str, Any] | None) -> di
             if text is not None:
                 source = wd / name
                 break
-        if source is None:
+        if source is None or text is None:
             return None
         lock_text = _read_readiness_file(wd / "requirements.lock")
         resolved = (env_info or {}).get("resolved_versions") or []
