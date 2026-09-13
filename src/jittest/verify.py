@@ -503,13 +503,13 @@ def _read_readiness_file(path: Path) -> str | None:
             def identity(entry: os.stat_result) -> tuple[int, ...]:
                 return (entry.st_dev, entry.st_ino, entry.st_mode, entry.st_nlink,
                         entry.st_size, entry.st_mtime_ns, entry.st_ctime_ns)
-            if identity(before) != identity(expected):
+            if identity(before)[:5] != identity(expected)[:5]:
                 raise ValueError("requirements_changed")
             data = handle.read(limit + 1)
             if len(data) > limit:
                 raise ValueError("requirements_too_large")
             if (identity(before) != identity(os.fstat(handle.fileno()))
-                    or identity(before) != identity(path.lstat())):
+                    or identity(expected) != identity(path.lstat())):
                 raise ValueError("requirements_changed")
             return data.decode("utf-8", errors="strict")
     finally:

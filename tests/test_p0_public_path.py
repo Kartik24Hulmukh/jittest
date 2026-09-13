@@ -87,6 +87,26 @@ class OutputGuard(_Tmp):
 
 
 class EnforcementErrors(_Tmp):
+    def test_descriptor_timestamp_representation_does_not_false_refuse(self):
+        # Simulate consistent descriptor timestamps differing from path stat.
+        from types import SimpleNamespace
+
+        from jittest.outputguard import snapshot_tree
+
+        path = self.tmp / "requirements.txt"
+        path.write_text("flask", encoding="utf-8")
+        original = os.fstat
+        def descriptor(fd):
+            entry = original(fd)
+            fields = {name: getattr(entry, name) for name in (
+                "st_dev", "st_ino", "st_mode", "st_nlink", "st_size",
+                "st_mtime_ns", "st_ctime_ns")}
+            fields["st_ctime_ns"] += 100
+            return SimpleNamespace(**fields)
+        with mock.patch("os.fstat", side_effect=descriptor):
+            self.assertEqual(V._read_readiness_file(path), "flask")
+            self.assertIn("requirements.txt", snapshot_tree(self.tmp))
+
     def test_freeze_list_is_actual_provisioner_contract(self):
         self.env(JITTEST_READINESS="required")
         (self.tmp / "requirements.txt").write_text("Flask==3.0.0", encoding="utf-8")

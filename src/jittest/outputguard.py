@@ -32,17 +32,24 @@ def _sha(path: Path, expected: os.stat_result) -> str:
             fd = -1  # the handle owns it now
             before = os.fstat(handle.fileno())
             if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1
-                    or _identity(before) != _identity(expected)):
+                    or _file_identity(before) != _file_identity(expected)):
                 raise OutputTrustRefusal("protected_tree_changed_during_scan")
             digest = hashlib.file_digest(handle, "sha256").hexdigest()
             after = os.fstat(handle.fileno())
             if (_identity(before) != _identity(after)
-                    or _identity(after) != _identity(path.lstat())):
+                    or _identity(expected) != _identity(path.lstat())):
                 raise OutputTrustRefusal("protected_tree_changed_during_scan")
             return digest
     finally:
         if fd != -1:
             os.close(fd)
+
+
+def _file_identity(entry: os.stat_result) -> tuple[int, ...]:
+    # Compare identity across stat APIs; timestamps are compared within each
+    # API below. Windows path stat and descriptor stat can represent timestamps
+    # differently, so cross-API timestamp equality produces false refusals.
+    return (entry.st_dev, entry.st_ino, entry.st_mode, entry.st_nlink, entry.st_size)
 
 
 def _identity(entry: os.stat_result) -> tuple[int, ...]:
