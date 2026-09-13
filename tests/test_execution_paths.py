@@ -2,7 +2,12 @@
 from pathlib import Path
 from unittest import mock
 
-import pytest
+try:
+    import pytest
+except ModuleNotFoundError as exc:  # dependency-free unittest discovery
+    import unittest
+
+    raise unittest.SkipTest("requires pytest; exercised in the pytest CI leg") from exc
 
 from jittest import execute, verify
 from tests.test_verify import create_synthetic_repo
