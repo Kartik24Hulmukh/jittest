@@ -40,7 +40,15 @@ from typing import Any
 
 from .diff import git_env
 from .env import EnvSetupError, provision_environment
-from .execute import Disposition, FailureKind, Outcome, Worktree, resolve_revision, run_test
+from .execute import (
+    Disposition,
+    FailureKind,
+    Outcome,
+    RunResult,
+    Worktree,
+    resolve_revision,
+    run_test,
+)
 from .github import fetch_pr_base_head
 from .receipt import get_repo_canonical, sign_evidence
 from .sandbox import plan as plan_sandbox
@@ -333,6 +341,9 @@ def _verify_pass_to_pass(
     head_python: str | Path | None,
     sbx_plan: Any,
     timeout_s: int = 30,
+    phase_records: list[dict[str, Any]] | None = None,
+    base_env_info: dict[str, Any] | None = None,
+    head_env_info: dict[str, Any] | None = None,
 ) -> bool:
     """PASS_TO_PASS guard: verify that the test environment is healthy and capable of executing tests.
 
@@ -341,6 +352,8 @@ def _verify_pass_to_pass(
        at least one unmodified test passes at both base and head.
     2. In all cases, a clean passing assertion probe executes and passes at both base and head.
     """
+    if phase_records is None:
+        phase_records = []
     try:
         res_b = subprocess.run(
             ["git", "-C", str(repo_path), "ls-tree", "-r", "--name-only", resolved_base],
@@ -397,27 +410,33 @@ def _verify_pass_to_pass(
                 if content.strip():
                     with Worktree(repo_path, resolved_base) as b_dir:
                         b_workdir = b_dir / rel_path if str(rel_path) != "." else b_dir
-                        b_res = run_test(
+                        b_res = _run_guarded_phase(
                             b_workdir,
                             content,
                             timeout_s=timeout_s,
                             sbx=sbx_plan,
+                            phase="pass_to_pass_base", revision=resolved_base,
+                            env_info=base_env_info, records=phase_records,
                             python_path=base_python,
                             rel_test_path=f,
                         )
                         if b_res.outcome is Outcome.PASS:
                             with Worktree(repo_path, resolved_head) as h_dir:
                                 h_workdir = h_dir / rel_path if str(rel_path) != "." else h_dir
-                                h_res = run_test(
+                                h_res = _run_guarded_phase(
                                     h_workdir,
                                     content,
                                     timeout_s=timeout_s,
                                     sbx=sbx_plan,
+                                    phase="pass_to_pass_head", revision=resolved_head,
+                                    env_info=head_env_info, records=phase_records,
                                     python_path=head_python,
                                     rel_test_path=f,
                                 )
                                 if h_res.outcome is Outcome.PASS:
                                     return True
+    except VerifyRefusalError:
+        raise
     except Exception as exc:
         logger.debug("Error checking pre-existing tests in pass_to_pass guard: %s", exc)
 
@@ -426,11 +445,13 @@ def _verify_pass_to_pass(
     try:
         with Worktree(repo_path, resolved_base) as b_dir:
             b_workdir = b_dir / rel_path if str(rel_path) != "." else b_dir
-            b_res = run_test(
+            b_res = _run_guarded_phase(
                 b_workdir,
                 probe_code,
                 timeout_s=timeout_s,
                 sbx=sbx_plan,
+                phase="probe_base", revision=resolved_base,
+                env_info=base_env_info, records=phase_records,
                 python_path=base_python,
             )
             if b_res.outcome is not Outcome.PASS:
@@ -438,16 +459,20 @@ def _verify_pass_to_pass(
 
         with Worktree(repo_path, resolved_head) as h_dir:
             h_workdir = h_dir / rel_path if str(rel_path) != "." else h_dir
-            h_res = run_test(
+            h_res = _run_guarded_phase(
                 h_workdir,
                 probe_code,
                 timeout_s=timeout_s,
                 sbx=sbx_plan,
+                phase="probe_head", revision=resolved_head,
+                env_info=head_env_info, records=phase_records,
                 python_path=head_python,
             )
             if h_res.outcome is not Outcome.PASS:
                 return False
         return True
+    except VerifyRefusalError:
+        raise
     except Exception as exc:
         logger.warning("Pass-to-pass probe execution failed: %s", exc)
         return False
@@ -596,6 +621,44 @@ def _output_guard_block(workdir: Path | str) -> dict[str, Any] | None:
     return block
 
 
+def _run_guarded_phase(
+    workdir: Path | str,
+    test_code: str,
+    *,
+    phase: str,
+    revision: str,
+    env_info: dict[str, Any] | None,
+    records: list[dict[str, Any]],
+    **run_kwargs: Any,
+) -> RunResult:
+    """Apply policy around each execution; observations are signed by the caller.
+
+    Output inspection assumes the runner's quiescent-tree contract. It does not
+    establish confinement for an unconfined execution or replace descendant cleanup.
+    """
+    record: dict[str, Any] = {"phase": phase, "revision": revision,
+                              "test_sha256": _hash_str(test_code),
+                              "dependencies_sha256": _hash_str(json.dumps(
+                                  (env_info or {}).get("resolved_versions") or [],
+                                  sort_keys=True, separators=(",", ":")))}
+    records.append(record)
+    try:
+        record["readiness"] = _readiness_block(workdir, env_info) or {
+            "evaluated": False, "mode": _p0_mode(READINESS_ENV),
+            "reason": "no_supported_requirements_manifest",
+        }
+        result = run_test(Path(workdir), test_code, **run_kwargs)
+        record.update(outcome=result.outcome.name, exit_code=result.returncode,
+                      stdout_sha256=_hash_str(result.stdout),
+                      stderr_sha256=_hash_str(result.stderr))
+        record["output_guard"] = _output_guard_block(workdir)
+        return result
+    except VerifyRefusalError as exc:
+        # Preserve typed policy refusals, including through health-probe fallbacks.
+        record["refusal"] = exc.reason.to_dict()
+        raise
+
+
 def _integrity_block(
     *,
     test_code: str,
@@ -740,8 +803,7 @@ def verify_test(
     rel_test = test_path.relative_to(repo_path)
 
     # P0 state-machine observations (readiness preflight / output boundary guard)
-    readiness_block: dict[str, Any] | None = None
-    output_guard_block: dict[str, Any] | None = None
+    phase_records: list[dict[str, Any]] = []
 
     # 1. ALWAYS provision and execute BASE first (never short-circuit)
     base_run = None
@@ -753,13 +815,14 @@ def verify_test(
             base_env_info = provision_environment(base_workdir, resolved_base, repo_path, sbx_plan=sbx_plan)
             if getattr(sbx_plan, "backend", None) in ("docker", "podman", "bubblewrap") and base_env_info.get("has_project_dependencies") and base_env_info.get("provisioning") != "option_c_trusted_image":
                 raise VerifyRefusalError("isolation contract cannot import project dependencies in container mode")
-            readiness_block = _readiness_block(base_workdir, base_env_info)
             base_python = base_env_info.get("python_path")
-            base_run = run_test(
+            base_run = _run_guarded_phase(
                 base_workdir,
                 test_code,
                 timeout_s=timeout_s,
                 sbx=sbx_plan,
+                phase="base", revision=resolved_base,
+                env_info=base_env_info, records=phase_records,
                 python_path=base_python,
                 rel_test_path=rel_test,
                 node_id=node_id,
@@ -778,17 +841,17 @@ def verify_test(
             if getattr(sbx_plan, "backend", None) in ("docker", "podman", "bubblewrap") and head_env_info.get("has_project_dependencies") and head_env_info.get("provisioning") != "option_c_trusted_image":
                 raise VerifyRefusalError("isolation contract cannot import project dependencies in container mode")
             head_python = head_env_info.get("python_path")
-            head_run1 = run_test(
+            head_run1 = _run_guarded_phase(
                 head_workdir,
                 test_code,
                 timeout_s=timeout_s,
                 sbx=sbx_plan,
+                phase="head", revision=resolved_head,
+                env_info=head_env_info, records=phase_records,
                 python_path=head_python,
                 rel_test_path=rel_test,
                 node_id=node_id,
             )
-            # Quiescent tree, descendants stopped: guarded export inspection.
-            output_guard_block = _output_guard_block(head_workdir)
     except EnvSetupError as exc:
         head_err = exc
 
@@ -801,11 +864,13 @@ def verify_test(
             with Worktree(repo_path, resolved_head) as head_dir:
                 head_workdir = head_dir / rel_path if rel_path != "." else head_dir
                 head_python = head_env_info.get("python_path") if head_env_info else None
-                head_run2 = run_test(
+                head_run2 = _run_guarded_phase(
                     head_workdir,
                     test_code,
                     timeout_s=timeout_s,
                     sbx=sbx_plan,
+                    phase="head_rerun_2", revision=resolved_head,
+                    env_info=head_env_info, records=phase_records,
                     python_path=head_python,
                     rel_test_path=rel_test,
                     node_id=node_id,
@@ -953,6 +1018,8 @@ def verify_test(
                     head_python=head_python,
                     sbx_plan=sbx_plan,
                     timeout_s=min(timeout_s, 30),
+                    phase_records=phase_records,
+                    base_env_info=base_env_info, head_env_info=head_env_info,
                 )
                 if not pass_to_pass_ok:
                     disposition = Disposition.BASE_REPRODUCTION_FAILED
@@ -1052,10 +1119,13 @@ def verify_test(
     }
 
     # Additive, optional P0 blocks (schema 2.1 permits extra top-level objects).
-    if readiness_block is not None:
-        evidence_dict["readiness"] = readiness_block
-    if output_guard_block is not None:
-        evidence_dict["output_guard"] = output_guard_block
+    evidence_dict["verification_phases"] = phase_records
+    # Preserve legacy aliases with their original, explicitly limited scope.
+    for phase_record in phase_records:
+        if phase_record["phase"] == "base" and phase_record.get("readiness", {}).get("reason") != "no_supported_requirements_manifest":
+            evidence_dict["readiness"] = phase_record["readiness"]
+        if phase_record["phase"] == "head" and "output_guard" in phase_record:
+            evidence_dict["output_guard"] = phase_record["output_guard"]
     integrity_block = _integrity_block(
         test_code=test_code,
         sandbox_dict=evidence_dict["sandbox"] if isinstance(evidence_dict.get("sandbox"), dict) else {},
