@@ -583,10 +583,10 @@ def _read_readiness_file(path: Path) -> str | None:
 
 
 def _readiness_block(workdir: Path | str, env_info: dict[str, Any] | None) -> dict[str, Any] | None:
-    """Dependency-presence observation, not a complete resolver/ABI proof."""
+    """Conservative version-aware check, not a complete resolver/ABI proof."""
     mode = _p0_mode(READINESS_ENV)
     try:
-        from .readiness import evaluate_readiness, parse_requirements
+        from .readiness import evaluate_readiness, normalize_name, parse_requirements
 
         wd = Path(workdir)
         source = None
@@ -599,14 +599,40 @@ def _readiness_block(workdir: Path | str, env_info: dict[str, Any] | None) -> di
         if source is None or text is None:
             return None
         lock_text = _read_readiness_file(wd / "requirements.lock")
-        resolved = (env_info or {}).get("resolved_versions") or []
-        # provision_environment returns pip-freeze lines, not a version mapping.
+        # Enforce only a conservative, explicit subset. The legacy evaluator is
+        # not a full PEP 440/508 resolver; do not turn unsupported input into GO.
+        requirements = parse_requirements(text, strict=True)
+        locks = parse_requirements(lock_text, strict=True) if lock_text is not None else []
+        release = r"[0-9]+(?:\.[0-9]+)*"
+        clause = rf"(?:==|!=|>=|<=|>|<){release}"
+        for req in requirements + locks:
+            if req.marker or req.extras or req.url:
+                raise ValueError("unsupported_requirement_semantics")
+            if req.specifier and not re.fullmatch(rf"{clause}(?:,{clause})*", req.specifier):
+                raise ValueError("unsupported_version_specifier")
+        resolved = (env_info or {}).get("resolved_versions")
+        if resolved is None:
+            resolved = []
+        target: dict[str, str] = {}
         if isinstance(resolved, dict):
-            target = set(resolved)
+            entries = list(resolved.items())
         elif isinstance(resolved, list) and all(isinstance(line, str) for line in resolved):
-            target = {req.name for req in parse_requirements("\n".join(resolved))}
+            entries = []
+            for req in parse_requirements("\n".join(resolved), strict=True):
+                if req.marker or req.extras or req.url or not re.fullmatch(rf"=={release}", req.specifier):
+                    raise ValueError("unsupported_inventory_entry")
+                entries.append((req.name, req.specifier[2:]))
         else:
             raise ValueError("invalid_resolved_versions")
+        for name, version in entries:
+            if not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", name):
+                raise ValueError("invalid_inventory_name")
+            if not isinstance(version, str) or not re.fullmatch(release, version):
+                raise ValueError("unsupported_inventory_version")
+            name = normalize_name(name)
+            if name in target and target[name] != version:
+                raise ValueError("conflicting_inventory_versions")
+            target[name] = version
         report = evaluate_readiness(text, target, lock_text=lock_text)
     except Exception as exc:
         return _p0_error(mode, readiness=True, reason=f"readiness_error:{type(exc).__name__}")

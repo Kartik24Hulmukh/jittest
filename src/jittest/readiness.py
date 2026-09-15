@@ -206,7 +206,7 @@ class ReadinessReport:
             raise ReadinessRefusal("readiness_failed: " + "; ".join(self.problems))
 
 
-def parse_requirements(text: str) -> list:
+def parse_requirements(text: str, *, strict: bool = False) -> list:
     """Parse a PEP 508 subset. Names are PEP 503 normalised; order preserved."""
     out = []
     buffer = ""
@@ -219,9 +219,13 @@ def parse_requirements(text: str) -> list:
             continue
         line, buffer = buffer + line, ""
         if line.startswith("-"):
+            if strict:
+                raise ValueError("unsupported_requirement_directive")
             continue
         match = REQ_LINE_RE.match(line)
         if not match:
+            if strict:
+                raise ValueError("unsupported_requirement_syntax")
             continue
         specs = [op + val for op, val in _SPEC_RE.findall(match.group("spec") or "")]
         extras = (match.group("extras") or "").split(",")
@@ -234,6 +238,8 @@ def parse_requirements(text: str) -> list:
                 url=(match.group("url") or "").strip(),
             )
         )
+    if strict and buffer:
+        raise ValueError("unterminated_requirement_continuation")
     return out
 
 
