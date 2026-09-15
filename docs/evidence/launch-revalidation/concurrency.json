@@ -1,0 +1,34 @@
+{
+  "scope": "synthetic canonical metadata, 100 configured workers vs 1; not full verify capacity; service latency excludes queue delay; RSS is process high-water, not sampled floor/ceiling",
+  "seed": 20260916,
+  "python": "3.14.6",
+  "runs": [
+    {
+      "workers": 1,
+      "jobs": 10000,
+      "elapsed_s": 0.20204542204737663,
+      "errors": [],
+      "p50_ms": 0.00471,
+      "p95_ms": 0.00697,
+      "p99_ms": 0.00964,
+      "throughput_ops_s": 49493.82123419332,
+      "process_rss_high_water_before_kib": 26672,
+      "process_rss_high_water_after_kib": 30768,
+      "result_digest": "b6872a1e096b95ea7231966c353060aa452abab6963ad8cce60275360b70841e"
+    },
+    {
+      "workers": 100,
+      "jobs": 10000,
+      "elapsed_s": 0.49117811396718025,
+      "errors": [],
+      "p50_ms": 0.01048,
+      "p95_ms": 0.0146,
+      "p99_ms": 0.02059,
+      "throughput_ops_s": 20359.21331924041,
+      "process_rss_high_water_before_kib": 30768,
+      "process_rss_high_water_after_kib": 30768,
+      "result_digest": "b6872a1e096b95ea7231966c353060aa452abab6963ad8cce60275360b70841e"
+    }
+  ],
+  "deterministic": true
+}
