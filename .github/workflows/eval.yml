@@ -128,7 +128,7 @@ jobs:
           [ -z "$LIMIT" ] || ARGS+=(--limit "$LIMIT")
           [ -z "$BUDGET" ] || ARGS+=(--budget "$BUDGET")
           [ -z "$PROJECTS" ] || ARGS+=(--projects "$PROJECTS")
-          python eval/run_bugsinpy.py "${ARGS[@]}" 2>&1 | tee bugsinpy-run.log
+          python eval/run_bugsinpy.py --bugsinpy /tmp/BugsInPy --out results.json "${ARGS[@]}" 2>&1 | tee bugsinpy-run.log
 
       - name: Upload results
         if: always()
