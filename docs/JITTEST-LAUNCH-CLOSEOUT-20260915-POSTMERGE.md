@@ -6,7 +6,7 @@
 
 | Item | Verified value |
 |---|---|
-| PR #212 | **Merged (squash)** at 31/31 checks success, mergeable_state `clean`, exact tested head `de49934c6e7ff2f70e67764a5ed844de01c525de` |
+| PR #212 | **Merged (squash)** at 31/31 checks success, mergeable_state `clean`, exact tested head `de49934c (squash-merged PR #212 head; branch commits not retained on main)` |
 | New protected `main` | `ba4cd9bcc62edd3e7c7a7d6befa69b20905de5d9` |
 | Merged branch | `fix/public-readiness-version-boundary` deleted |
 | Full launch gate on `main` (`PYTHONPATH=src scripts/launch_gate.py --full`) | **All 7 gates pass** (ruff, version_drift, release_mapping, workflow_cli_contract, receipts_recompute, soak_evidence, tests) |
