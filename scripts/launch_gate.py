@@ -1,0 +1,229 @@
+#!/usr/bin/env python3
+"""Single-command launch go/no-go gate for the September 16-17, 2026 window.
+
+Aggregates every launch-critical check into one deterministic JSON report so
+that "is main launchable right now?" has exactly one answer and one digest:
+
+  * static gates   - ruff, version drift, release-to-artifact mapping
+  * product gates  - offline Ed25519 verification of every committed receipt
+                     (the product must be able to recompute its own evidence)
+  * evidence gates - committed 100k-op soak evidence must still satisfy the
+                     leak-gate contract it claims to satisfy
+  * test gates     - focused launch suites (or the full suite with --full)
+  * honesty gate   - ga_ready is *derived* from the open GA blockers, never
+                     hand-set; a green run with open blockers is LAUNCH_OK
+                     but never GA.
+
+Run from checkout: PYTHONPATH=src python scripts/launch_gate.py --json out.json
+Exit code 0 = all gates pass, 1 = at least one gate failed.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+SRC = ROOT / "src"
+sys.path.insert(0, str(SRC))
+
+from jittest.integrity import canonical_json  # noqa: E402
+
+LAUNCH_WINDOW = "2026-09-16/2026-09-17"
+
+# Open GA blockers. ga_ready is derived from this list being empty, so the only
+# way to flip it is to close the issues and delete the rows in the same PR.
+GA_BLOCKERS = [
+    {"issue": 73, "title": "real catch-rate / FPR / USD-per-PR evaluation"},
+    {"issue": 198, "title": "Option C public-path wiring + trusted runtime inventory"},
+    {"issue": 199, "title": "protected publication of post-0.4.1 guarantees"},
+]
+
+FOCUSED_SUITES = [
+    "tests/test_memory_soak.py",
+    "tests/test_stress_100x.py",
+    "tests/test_chaos_resilience.py",
+    "tests/test_prod_observability.py",
+    "tests/test_phase_boundaries.py",
+    "tests/test_cli_refusal_edges.py",
+    "tests/test_receipt_json_schema.py",
+    "tests/test_version_drift.py",
+    "tests/test_cli_explain.py",
+    "tests/test_anti_fabrication_lint.py",
+    "tests/test_launch_gate.py",
+]
+
+RECEIPT_DIRS = ["docs/evidence/quadrants", "docs/evidence/pr"]
+
+# Receipts the product is *expected* to refuse. Found by this gate on 2026-09-15:
+# the legacy 2.0 showcase receipt records base_execution NOTRUN yet claims
+# non_discriminating (which requires PASS on both revisions). jittest correctly
+# refuses it (exit 5, semantic_invalid). We pin that fail-closed behaviour here
+# instead of hiding the receipt; regeneration is tracked in the launch doc.
+KNOWN_REFUSED_RECEIPTS = {
+    "docs/evidence/quadrants/non_discriminating_evidence.json": "semantic_invalid",
+}
+SOAK_EVIDENCE = "docs/evidence/memory-soak-20260916.json"
+
+
+def _run(cmd: list[str], timeout: int = 1800) -> tuple[int, str]:
+    proc = subprocess.run(
+        cmd, cwd=ROOT, capture_output=True, text=True, timeout=timeout, check=False
+    )
+    return proc.returncode, (proc.stdout + proc.stderr)[-4000:]
+
+
+def gate_ruff() -> dict:
+    code, out = _run([sys.executable, "-m", "ruff", "check", "src", "tests", "scripts", "eval"])
+    return {"ok": code == 0, "detail": out.strip().splitlines()[-1:] if out else []}
+
+
+def gate_script(name: str) -> dict:
+    code, out = _run([sys.executable, f"scripts/{name}"])
+    return {"ok": code == 0, "detail": out.strip().splitlines()[-1:]}
+
+
+def classify_receipt(rel: str, code: int, payload: dict) -> dict:
+    """Pure classification of one verify-receipt result against expectations."""
+    sig = bool(payload.get("signature_valid"))
+    valid = bool(payload.get("valid")) and code == 0
+    expected_refusal = KNOWN_REFUSED_RECEIPTS.get(rel)
+    if expected_refusal is None:
+        ok = sig and valid
+        expectation = "valid"
+    else:
+        # Fail-closed proof: signature intact, semantics rejected, non-zero exit.
+        ok = sig and not valid and payload.get("semantic_valid") is False and code != 0
+        expectation = f"refused:{expected_refusal}"
+    return {
+        "artifact": rel,
+        "expectation": expectation,
+        "signature_valid": sig,
+        "valid": valid,
+        "ok": ok,
+    }
+
+
+def gate_receipts(root: Path = ROOT) -> dict:
+    # The product must be able to recompute every receipt it publishes, offline,
+    # and must refuse the ones it is documented to refuse.
+    results = []
+    for rel in RECEIPT_DIRS:
+        for path in sorted((root / rel).glob("*.json")):
+            code, out = _run(
+                [sys.executable, "-m", "jittest", "verify-receipt", str(path), "--json"]
+            )
+            try:
+                payload = json.loads(out[out.index("{") :])
+            except (ValueError, json.JSONDecodeError):
+                payload = {}
+            results.append(classify_receipt(str(path.relative_to(root)), code, payload))
+    ok = bool(results) and all(r["ok"] for r in results)
+    return {"ok": ok, "receipts": results}
+
+
+def check_soak_evidence(doc: dict) -> dict:
+    """Pure check of committed soak evidence against the leak-gate contract."""
+    problems = []
+    limit = doc.get("leak_slope_limit_kib_per_1k_ops")
+    slope = doc.get("leak_slope_kib_per_1k_ops")
+    if not isinstance(limit, int | float) or not isinstance(slope, int | float):
+        problems.append("slope or limit missing")
+    elif slope > limit:
+        problems.append(f"leak slope {slope} exceeds limit {limit}")
+    if doc.get("leak_suspected") is not False:
+        problems.append("leak_suspected is not false")
+    if doc.get("errors") != 0:
+        problems.append(f"errors={doc.get('errors')!r}")
+    if doc.get("distinct_digests") != 1 or doc.get("deterministic") is not True:
+        problems.append("soak run is not deterministic")
+    if doc.get("total_ops", 0) < 100_000:
+        problems.append("fewer than 100k ops")
+    if doc.get("seed") != 20260916:
+        problems.append("unexpected seed")
+    return {"ok": not problems, "problems": problems}
+
+
+def gate_soak_evidence(root: Path = ROOT) -> dict:
+    path = root / SOAK_EVIDENCE
+    if not path.exists():
+        return {"ok": False, "problems": [f"{SOAK_EVIDENCE} missing"]}
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return {"ok": False, "problems": [f"invalid JSON: {exc}"]}
+    result = check_soak_evidence(doc)
+    result["artifact"] = SOAK_EVIDENCE
+    return result
+
+
+def gate_tests(full: bool) -> dict:
+    cmd = [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider"]
+    if not full:
+        cmd += [p for p in FOCUSED_SUITES if (ROOT / p).exists()]
+    code, out = _run(cmd, timeout=3600)
+    summary = [ln for ln in out.strip().splitlines() if "passed" in ln or "failed" in ln]
+    return {"ok": code == 0, "mode": "full" if full else "focused", "summary": summary[-1:]}
+
+
+def derive_ga_ready(blockers: list[dict]) -> bool:
+    return not blockers
+
+
+def build_report(gates: dict, blockers: list[dict]) -> dict:
+    all_ok = all(g["ok"] for g in gates.values())
+    ga_ready = derive_ga_ready(blockers)
+    if not all_ok:
+        decision = "NO_GO"
+    elif ga_ready:
+        decision = "GO_GA"
+    else:
+        decision = "GO_LAUNCH_NOT_GA"
+    stable = {
+        "kind": "launch_gate",
+        "launch_window": LAUNCH_WINDOW,
+        "gates": gates,
+        "ga_blockers": blockers,
+        "ga_ready": ga_ready,
+        "decision": decision,
+    }
+    stable["digest"] = hashlib.sha256(canonical_json(stable).encode("utf-8")).hexdigest()
+    return stable
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--full", action="store_true", help="run the full pytest suite")
+    ap.add_argument("--skip-tests", action="store_true", help="skip the pytest gate")
+    ap.add_argument("--json", type=Path, help="write the report here")
+    args = ap.parse_args(argv)
+
+    started = time.time()
+    gates = {
+        "ruff": gate_ruff(),
+        "version_drift": gate_script("check_version_drift.py"),
+        "release_mapping": gate_script("check_release_mapping.py"),
+        "receipts_recompute": gate_receipts(),
+        "soak_evidence": gate_soak_evidence(),
+    }
+    if not args.skip_tests:
+        gates["tests"] = gate_tests(args.full)
+    report = build_report(gates, GA_BLOCKERS)
+    report["volatile"] = {"elapsed_s": round(time.time() - started, 1), "python": sys.version}
+
+    for name, gate in gates.items():
+        print(f"  [{'ok  ' if gate['ok'] else 'FAIL'}] {name}")
+    print(f"decision: {report['decision']}  ga_ready: {report['ga_ready']}")
+    print(f"digest:   {report['digest']}")
+    if args.json:
+        args.json.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return 0 if report["decision"] != "NO_GO" else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
