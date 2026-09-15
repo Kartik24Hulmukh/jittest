@@ -43,6 +43,37 @@ class SoakMemoryTest(unittest.TestCase):
         self.assertIn("not a container", report["scope_note"])
         self.assertNotIn("ga_ready", report)
 
+    def test_single_page_floor_step_is_not_a_leak(self):
+        # Regression for the CI flake that blocked PR #209: one 4 KiB page
+        # migration over 240 ops fits as ~33 KiB/1k-ops -- far above the
+        # slope limit -- but the absolute retained growth is one page.
+        xs = [0.12, 0.18, 0.24]
+        ys = [65072.0, 65076.0, 65076.0]
+        slope = soak_memory.least_squares_slope(xs, ys)
+        self.assertGreater(slope, soak_memory.LEAK_SLOPE_LIMIT_KIB)
+        growth = max(0.0, ys[-1] - min(ys))
+        self.assertFalse(soak_memory.leak_verdict(
+            slope, soak_memory.LEAK_SLOPE_LIMIT_KIB, growth,
+            soak_memory.NOISE_ALLOWANCE_KIB))
+
+    def test_real_leak_above_noise_allowance_is_still_flagged(self):
+        # Sensitivity is preserved: at the committed 100k-op evidence scale a
+        # true 1 KiB/1k-ops leak retains ~100 KiB >> the 16 KiB allowance.
+        self.assertTrue(soak_memory.leak_verdict(
+            slope=2.0, slope_limit=1.0, floor_growth=100.0,
+            noise_allowance=soak_memory.NOISE_ALLOWANCE_KIB))
+
+    def test_sub_limit_slope_is_never_a_leak_even_with_growth(self):
+        self.assertFalse(soak_memory.leak_verdict(
+            slope=0.5, slope_limit=1.0, floor_growth=1000.0,
+            noise_allowance=soak_memory.NOISE_ALLOWANCE_KIB))
+
+    def test_report_carries_growth_and_allowance_fields(self):
+        report = soak_memory.soak(segments=3, ops=60)
+        self.assertIn("floor_growth_kib", report)
+        self.assertEqual(report["noise_allowance_kib"],
+                         soak_memory.NOISE_ALLOWANCE_KIB)
+
     def test_cli_writes_json_evidence_and_exits_zero(self):
         # CLI serialization is not a live RSS stability test: a single 4 KiB
         # allocator page over 240 ops can exceed the production slope limit.
