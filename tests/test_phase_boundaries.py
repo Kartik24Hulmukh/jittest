@@ -106,3 +106,95 @@ def test_required_preexisting_test_output_cannot_be_swallowed(tmp_path):
     with mock.patch.dict(os.environ, {"JITTEST_OUTPUT_GUARD": "required"}), mock.patch.object(V, "run_test", return_value=RunResult(Outcome.PASS)), mock.patch.object(V, "_output_guard_block", side_effect=V.VerifyRefusalError(V.RefusalReason(code="output_boundary_violation"))), pytest.raises(V.VerifyRefusalError) as exc:
         V._verify_pass_to_pass(repo, revision, revision, ".", test.name, None, None, None)
     assert exc.value.reason.code == "output_boundary_violation"
+
+
+def test_refusal_preserves_completed_and_failed_phase_history(tmp_path):
+    import pytest
+    with pytest.raises(V.VerifyRefusalError) as caught:
+        _run(tmp_path, readiness=3)
+    records = caught.value.verification_phases
+    assert [r["phase"] for r in records] == ["base", "head", "head_rerun_2"]
+    assert records[0]["outcome"] == "PASS"
+    assert records[1]["outcome"] == "FAIL"
+    assert records[2]["refused"] is True
+    assert "outcome" not in records[2]
+
+
+def test_refusal_phase_export_omits_untrusted_diagnostics():
+    import json
+    raw = [{"phase": "base", "revision": "a" * 40, "outcome": "PASS",
+            "stdout_sha256": "b" * 64, "stdout": "SECRET_TOKEN",
+            "readiness": {"details": "https://user:SECRET_TOKEN@example.com"},
+            "refusal": {"details": "SECRET_TOKEN"}, "exit_code": 0}]
+    safe = V._refusal_phase_history(raw)
+    assert "SECRET_TOKEN" not in json.dumps(safe)
+    assert safe[0]["refused"] is True
+    assert safe == V._refusal_phase_history(safe)
+    raw[0]["revision"] = "mutated"
+    assert safe[0]["revision"] == "a" * 40
+
+
+def test_cli_writes_signed_refusal_history(tmp_path, capsys):
+    import json
+
+    from jittest.cli import main
+    from jittest.receipt import verify_receipt
+
+    repo, base, head, test = create_synthetic_repo(tmp_path)
+    artifact = tmp_path / "refusal.json"
+    calls = []
+    def execute(*args, **kwargs):
+        calls.append(True)
+        return RunResult(Outcome.PASS, returncode=0, stdout="SECRET_OUTPUT")
+    def preflight(*args):
+        if calls:
+            raise V.VerifyRefusalError(V.RefusalReason(code="environment_not_ready"))
+        return {"evaluated": True, "ok": True}
+    with mock.patch.object(V, "provision_environment", return_value={}), mock.patch.object(V, "run_test", side_effect=execute), mock.patch.object(V, "_readiness_block", side_effect=preflight), mock.patch.object(V, "_output_guard_block", return_value={}):
+        rc = main(["verify", "--repo", str(repo), "--base", base, "--head", head,
+                   "--test", str(test), "--no-sandbox", "--output", str(artifact),
+                   "--signing-key", str(tmp_path / "key"), "--json"])
+    assert rc == 2
+    receipt = json.loads(artifact.read_text())
+    assert receipt == json.loads(capsys.readouterr().out)
+    assert receipt["proven_catch"] is False
+    assert receipt["verification_phases"][0]["outcome"] == "PASS"
+    assert receipt["verification_phases"][1]["refused"] is True
+    assert "SECRET_OUTPUT" not in artifact.read_text()
+    result = verify_receipt(artifact)
+    assert result.signature_valid
+    assert result.schema_status == "VALID"
+    receipt["verification_phases"][0]["outcome"] = "FAIL"
+    artifact.write_text(json.dumps(receipt))
+    assert not verify_receipt(artifact).signature_valid
+
+
+def test_head_provision_refusal_retains_completed_base(tmp_path):
+    import pytest
+    repo, base, head, test = create_synthetic_repo(tmp_path)
+    refusal = V.VerifyRefusalError(V.RefusalReason(code="dependency_bearing"))
+    with mock.patch.object(V, "provision_environment", side_effect=[{}, refusal]), mock.patch.object(V, "run_test", return_value=RunResult(Outcome.PASS, returncode=0)), mock.patch.object(V, "_readiness_block", return_value={}), mock.patch.object(V, "_output_guard_block", return_value={}), pytest.raises(V.VerifyRefusalError) as caught:
+        V.verify_test(repo, base, head, test, no_sandbox=True)
+    assert len(caught.value.verification_phases) == 1
+    assert caught.value.verification_phases[0]["phase"] == "base"
+    assert caught.value.verification_phases[0]["outcome"] == "PASS"
+    assert caught.value.sandbox_plan is not None
+
+
+def test_cli_refusal_signing_failure_does_not_fallback(tmp_path, capsys):
+    from jittest.cli import main
+    from jittest.receipt import SigningKeyError
+
+    repo, base, head, test = create_synthetic_repo(tmp_path)
+    artifact = tmp_path / "refusal.json"
+    refusal = V.VerifyRefusalError(V.RefusalReason(code="environment_not_ready"))
+    refusal.verification_phases = [{"phase": "base", "refused": True}]
+    with mock.patch.object(V, "verify_test", side_effect=refusal), mock.patch.object(V, "make_refusal_receipt", side_effect=SigningKeyError("invalid key")):
+        rc = main(["verify", "--repo", str(repo), "--base", base, "--head", head,
+                   "--test", str(test), "--output", str(artifact), "--json"])
+    assert rc == 2
+    assert not artifact.exists()
+    output = capsys.readouterr()
+    assert not output.out
+    assert "cannot write refusal evidence" in output.err
+    assert "Traceback" not in output.err
