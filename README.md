@@ -8,7 +8,7 @@ tells you what actually happened, with a signed, recomputable receipt. If it
 cannot prove anything, it says so. Proof or silence.
 
 [![CI](https://github.com/Kartik24Hulmukh/jittest/actions/workflows/ci.yml/badge.svg)](https://github.com/Kartik24Hulmukh/jittest/actions)
-[![PyPI](https://img.shields.io/badge/PyPI-v0.3.4-blue)](https://pypi.org/project/jittest/)
+[![PyPI](https://img.shields.io/badge/PyPI-v0.4.1-blue)](https://pypi.org/project/jittest/)
 [![license](https://img.shields.io/badge/license-Apache--2.0-lightgrey)](LICENSE)
 ![dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)
 
@@ -45,7 +45,7 @@ The official project public key and fingerprint are published in [`docs/KEYS.md`
 ## Try it in 60 seconds — no keys, no setup
 
 > [!IMPORTANT]
-> The published package on PyPI is `0.3.4`. Code on `main` is an unpublished alpha release candidate. `pip install jittest` installs `0.3.4`, not this development SHA. Evaluate development changes by exact commit SHA.
+> The published package on PyPI is `0.4.1` (tag `v0.4.1`, source `ef08ddbc`; wheel SHA-256 `d33eaa33…`, verified byte-identical to the tag — see [docs/RELEASE-ARTIFACTS.md](docs/RELEASE-ARTIFACTS.md)). Code on `main` is an unpublished candidate: the per-phase boundaries (#196), path containment (#197), BASE pin wiring (#200) and `jittest.prod` observability (#201) are **not** in any published artifact. `pip install jittest` installs `0.4.1`, not this development SHA. Evaluate development changes by exact commit SHA.
 
 ```bash
 pip install jittest
@@ -113,7 +113,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: Kartik24Hulmukh/jittest@v0.3.4
+      - uses: Kartik24Hulmukh/jittest@v0.4.1
         with:
           sandbox-mode: "required"
           policy: "advisory" # executes and reports without blocking the build
@@ -133,7 +133,7 @@ jittest executes code. Container and namespace isolation follows **Contract Opti
 
 - Python projects today.
 - **Advisory only**: Mode A verifier is an advisory reporter, not a blocking production merge gate.
-- **Release status**: The published package on PyPI is `0.3.4`. Version `0.3.5` on `main` is an unreleased alpha candidate.
+- **Release status**: The published package on PyPI is `0.4.1` (`v0.4.1` = `ef08ddbc`). `main` is ahead of it and unreleased; see [docs/RELEASE-ARTIFACTS.md](docs/RELEASE-ARTIFACTS.md) for the verified source-to-artifact mapping and what is not yet shipped.
 - Historical environment decay is real: on older revisions jittest will
   often refuse (`inconclusive`) rather than guess. That is the feature.
 - This release line is the **verifier**. The original generation pipeline

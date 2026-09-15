@@ -10,8 +10,9 @@ pip install jittest
 
 No dependencies are pulled in. Python 3.11+ and `git` are the only requirements.
 
-> The current public package and immutable Action tag are `0.3.4`. The `0.3.5`
-> source on `main` is a release candidate until its release gates pass. Evaluate
+> The current public package and immutable Action tag are `0.4.1` (source
+> `ef08ddbc`; see `RELEASE-ARTIFACTS.md`). The source on `main` is a release
+> candidate until its release gates pass. Evaluate
 > an unreleased candidate only by an exact commit SHA—never by mutable `main` or
 > a floating major tag.
 
@@ -90,7 +91,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: Kartik24Hulmukh/jittest@v0.3.4
+      - uses: Kartik24Hulmukh/jittest@v0.4.1
         with:
           sandbox-mode: "required"
           policy: "advisory"
