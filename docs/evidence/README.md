@@ -24,6 +24,9 @@ The four-quadrant demo artifacts showcase signed evidence for all potential test
 3. **`non_discriminating_evidence.json`**:
    - Verdict: `non_discriminating` (`head_passed`)
    - Recompute Command: `jittest verify-receipt docs/evidence/quadrants/non_discriminating_evidence.json`
+   - **Known-refused (2026-09-15):** this legacy 2.0 receipt records `base_execution: NOTRUN` yet claims
+     `non_discriminating`; the CLI correctly refuses it (exit 5, `semantic_invalid`). It is kept as a
+     fail-closed regression fixture pinned by `scripts/launch_gate.py`; regeneration is tracked separately.
 
 4. **`inconclusive_evidence.json`**:
    - Verdict: `inconclusive` (`head_uncollectable`)
