@@ -241,8 +241,10 @@ class TestActionHelpers(unittest.TestCase):
 
             with patch("jittest.action.get_trust_context", return_value="fork"), \
                  patch("jittest.action.plan_sandbox", return_value=SandboxPlan(backend="none", mode="required")):
-                self.assertEqual(run_action(repo_path=tmpdir, policy="strict"), 1)
-                self.assertEqual(run_action(repo_path=tmpdir, policy="block-on-refusal"), 1)
+                out_dir = Path(tmpdir) / "artifacts"
+                self.assertEqual(run_action(repo_path=tmpdir, policy="strict", output_dir=out_dir), 1)
+                self.assertEqual(run_action(repo_path=tmpdir, policy="block-on-refusal", output_dir=out_dir), 1)
+                self.assertEqual(len(list(out_dir.glob("*.json"))), 1)
 
     def test_fork_context_cannot_downshift_via_env(self):
         with (

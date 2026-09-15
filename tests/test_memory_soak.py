@@ -1,9 +1,11 @@
 """Continuous-run memory soak harness: determinism, leak detection, honesty."""
+
 import json
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 import soak_memory  # noqa: E402
@@ -42,14 +44,34 @@ class SoakMemoryTest(unittest.TestCase):
         self.assertNotIn("ga_ready", report)
 
     def test_cli_writes_json_evidence_and_exits_zero(self):
-        with tempfile.TemporaryDirectory() as td:
+        # CLI serialization is not a live RSS stability test: a single 4 KiB
+        # allocator page over 240 ops can exceed the production slope limit.
+        # Keep the real pipeline, but give this unit test a controlled sensor.
+        with (
+            tempfile.TemporaryDirectory() as td,
+            patch.object(soak_memory, "rss_kib", return_value=65072),
+        ):
             out = Path(td) / "evidence" / "soak.json"
-            code = soak_memory.main(["--segments", "4", "--ops", "60",
-                                     "--out", str(out)])
+            code = soak_memory.main(["--segments", "4", "--ops", "60", "--out", str(out)])
             self.assertEqual(code, 0)
             payload = json.loads(out.read_text())
             self.assertFalse(payload["leak_suspected"])
             self.assertEqual(payload["kind"], "continuous_run_memory_soak")
+
+    def test_cli_writes_failure_evidence_when_sensor_grows(self):
+        # Exercise the real slope/CLI path; never relax the production threshold.
+        with (
+            tempfile.TemporaryDirectory() as td,
+            patch.object(soak_memory, "rss_kib", side_effect=range(65072, 66072)),
+        ):
+            out = Path(td) / "leak.json"
+            code = soak_memory.main(["--segments", "4", "--ops", "60", "--out", str(out)])
+            self.assertEqual(code, 1)
+            payload = json.loads(out.read_text())
+            self.assertTrue(payload["leak_suspected"])
+            self.assertGreater(
+                payload["leak_slope_kib_per_1k_ops"], soak_memory.LEAK_SLOPE_LIMIT_KIB
+            )
 
 
 if __name__ == "__main__":
