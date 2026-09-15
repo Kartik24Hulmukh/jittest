@@ -1,0 +1,58 @@
+{
+  "invariants": {
+    "chaos": {
+      "degraded_all_503": true,
+      "deterministic_recovery": true,
+      "healthy_before": true,
+      "recovered_all_200": true
+    },
+    "concurrency": {
+      "distinct_digests": 1,
+      "jobs": 2000,
+      "spans_closed": 2000,
+      "spans_retained": 1024,
+      "unhandled_panics": 0,
+      "workers": 64
+    }
+  },
+  "results": [
+    {
+      "iterations": 2000,
+      "max_ms": 0.026446,
+      "name": "integrity.canonical_json",
+      "p50_ms": 0.009947,
+      "p95_ms": 0.01055,
+      "p99_ms": 0.013959,
+      "rss_delta_kb": 0,
+      "seed": 20260913,
+      "throughput_ops_s": 65583.819,
+      "wall_s": 0.030495
+    },
+    {
+      "iterations": 2000,
+      "max_ms": 2.349995,
+      "name": "integrity.sha256_bytes",
+      "p50_ms": 0.010692,
+      "p95_ms": 0.01125,
+      "p99_ms": 0.014834,
+      "rss_delta_kb": 0,
+      "seed": 20260913,
+      "throughput_ops_s": 58743.516,
+      "wall_s": 0.034046
+    },
+    {
+      "iterations": 500,
+      "max_ms": 5.517114,
+      "name": "prod.readyz",
+      "p50_ms": 0.13965,
+      "p95_ms": 0.22478,
+      "p99_ms": 0.548638,
+      "rss_delta_kb": 0,
+      "seed": 20260913,
+      "throughput_ops_s": 5734.748,
+      "wall_s": 0.087188
+    }
+  ],
+  "schema": "jittest.bench/1",
+  "seed": 20260913
+}

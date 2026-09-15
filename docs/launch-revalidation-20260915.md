@@ -95,3 +95,19 @@ or assume an inaccessible signing key is the only blocker.
 
 The user definition of done (all roadmap work, sustained production 100x,
 complete real chaos recovery, merged launch-ready GA release) is NOT met.
+
+## Post-change microbenchmark (same script; not a causal improvement claim)
+
+| Workload | P50 ms | P95 ms | P99 ms | Throughput ops/s |
+|---|---:|---:|---:|---:|
+| Canonical JSON | 0.009947 | 0.010550 | 0.013959 | 65583.819 |
+| SHA256 + canonical JSON | 0.010692 | 0.011250 | 0.014834 | 58743.516 |
+| readyz | 0.139650 | 0.224780 | 0.548638 | 5734.748 |
+
+Canonical-JSON P50 delta: +0.000038 ms; P95: -0.007719 ms;
+P99: -0.007882 ms; throughput: +42925.935 ops/s. RSS high-water delta was
+0 KiB in each microbenchmark before and after. Runtime pipeline code is
+unchanged, so scheduling noise rather than this validation-only fix explains
+performance differences. No production RAM ceiling measurement exists.
+The shuffled concurrency harness is included alongside the data; run from repo
+root with `python docs/evidence/launch-revalidation/run_concurrency.py`.
