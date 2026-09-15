@@ -389,6 +389,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: python scripts/check_version_drift.py
+      - run: python scripts/check_release_mapping.py
 
   schema-contract:
     # schemas/receipt-2.1.schema.json must agree with receipt.py and validate
