@@ -1,6 +1,6 @@
 {
   "decision": "GO_LAUNCH_NOT_GA",
-  "digest": "5f6dde326fb36f0378b7cc92d2abe9c91732d7d8a5fdcde1c3dd2b72b53d6fa0",
+  "digest": "244e0ac71e23ed643e6ce86676f16e9031aeffce08d2ad2154b4b41f618439e4",
   "ga_blockers": [
     {
       "issue": 73,
@@ -84,12 +84,18 @@
         "ok: version 0.4.1 agrees in 4 places"
       ],
       "ok": true
+    },
+    "workflow_cli_contract": {
+      "detail": [
+        "workflow-cli-contract: 16 invocations checked, 0 violating"
+      ],
+      "ok": true
     }
   },
   "kind": "launch_gate",
   "launch_window": "2026-09-16/2026-09-17",
   "volatile": {
-    "elapsed_s": 7.5,
+    "elapsed_s": 7.3,
     "python": "3.14.6 (main, Jun 24 2026, 04:50:39) [GCC 14.2.0]"
   }
 }

@@ -127,8 +127,13 @@ jobs:
           ARGS=()
           [ -z "$LIMIT" ] || ARGS+=(--limit "$LIMIT")
           [ -z "$BUDGET" ] || ARGS+=(--budget "$BUDGET")
-          [ -z "$PROJECTS" ] || ARGS+=(--projects "$PROJECTS")
-          python eval/run_bugsinpy.py "${ARGS[@]}" 2>&1 | tee bugsinpy-run.log
+          # The script takes a repeatable --project, not a comma list (defect 3 of
+          # PR #208; pinned by scripts/check_workflow_cli_contract.py).
+          IFS=',' read -ra PROJECT_LIST <<< "$PROJECTS"
+          for project in "${PROJECT_LIST[@]}"; do
+            [ -z "$project" ] || ARGS+=(--project "$project")
+          done
+          python eval/run_bugsinpy.py --bugsinpy /tmp/BugsInPy --out results.json "${ARGS[@]}" 2>&1 | tee bugsinpy-run.log
 
       - name: Upload results
         if: always()
