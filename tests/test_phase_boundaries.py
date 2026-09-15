@@ -167,3 +167,34 @@ def test_cli_writes_signed_refusal_history(tmp_path, capsys):
     receipt["verification_phases"][0]["outcome"] = "FAIL"
     artifact.write_text(json.dumps(receipt))
     assert not verify_receipt(artifact).signature_valid
+
+
+def test_head_provision_refusal_retains_completed_base(tmp_path):
+    import pytest
+    repo, base, head, test = create_synthetic_repo(tmp_path)
+    refusal = V.VerifyRefusalError(V.RefusalReason(code="dependency_bearing"))
+    with mock.patch.object(V, "provision_environment", side_effect=[{}, refusal]), mock.patch.object(V, "run_test", return_value=RunResult(Outcome.PASS, returncode=0)), mock.patch.object(V, "_readiness_block", return_value={}), mock.patch.object(V, "_output_guard_block", return_value={}), pytest.raises(V.VerifyRefusalError) as caught:
+        V.verify_test(repo, base, head, test, no_sandbox=True)
+    assert len(caught.value.verification_phases) == 1
+    assert caught.value.verification_phases[0]["phase"] == "base"
+    assert caught.value.verification_phases[0]["outcome"] == "PASS"
+    assert caught.value.sandbox_plan is not None
+
+
+def test_cli_refusal_signing_failure_does_not_fallback(tmp_path, capsys):
+    from jittest.cli import main
+    from jittest.receipt import SigningKeyError
+
+    repo, base, head, test = create_synthetic_repo(tmp_path)
+    artifact = tmp_path / "refusal.json"
+    refusal = V.VerifyRefusalError(V.RefusalReason(code="environment_not_ready"))
+    refusal.verification_phases = [{"phase": "base", "refused": True}]
+    with mock.patch.object(V, "verify_test", side_effect=refusal), mock.patch.object(V, "make_refusal_receipt", side_effect=SigningKeyError("invalid key")):
+        rc = main(["verify", "--repo", str(repo), "--base", base, "--head", head,
+                   "--test", str(test), "--output", str(artifact), "--json"])
+    assert rc == 2
+    assert not artifact.exists()
+    output = capsys.readouterr()
+    assert not output.out
+    assert "cannot write refusal evidence" in output.err
+    assert "Traceback" not in output.err
