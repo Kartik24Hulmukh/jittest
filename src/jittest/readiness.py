@@ -168,13 +168,11 @@ def evaluate_marker(marker: str, env: dict | None = None) -> bool:
     if "(" in text or ")" in text:
         raise UnsupportedMarker(text)
     result = None
-    pending = "or"
     for or_part in re.split(r"\bor\b", text):
         and_value = True
         for and_part in re.split(r"\band\b", or_part):
             and_value = and_value and _eval_marker_clause(and_part, environment)
         result = and_value if result is None else (result or and_value)
-        pending = "or"
     return bool(result)
 
 
