@@ -89,6 +89,8 @@ class VerifyRefusalError(ValueError):
     """A clean refusal for unusable verify inputs."""
 
     def __init__(self, message: str | RefusalReason, reason: RefusalReason | None = None) -> None:
+        self.verification_phases: list[dict[str, Any]] = []
+        self.sandbox_plan: Any = None
         if isinstance(message, RefusalReason):
             self.reason = message
             super().__init__(message.message or message.code)
@@ -228,6 +230,34 @@ def _write_json_atomically(path: Path, payload: dict[str, Any]) -> None:
         temp_path.unlink(missing_ok=True)
 
 
+def _refusal_phase_history(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Export only bounded metadata, never test output, paths or policy details.
+
+    This deliberately omits free-text readiness/output-guard diagnostics, which
+    may contain filenames or dependency URLs controlled by the tested project.
+    """
+    result: list[dict[str, Any]] = []
+    for record in records:
+        safe: dict[str, Any] = {}
+        for key in ("revision", "test_sha256", "dependencies_sha256",
+                    "stdout_sha256", "stderr_sha256"):
+            value = record.get(key)
+            if isinstance(value, str) and re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", value):
+                safe[key] = value
+        phase = record.get("phase")
+        if isinstance(phase, str) and re.fullmatch(r"[a-z0-9_]{1,64}", phase):
+            safe["phase"] = phase
+        outcome = record.get("outcome")
+        if outcome in ("PASS", "FAIL", "ERROR", "TIMEOUT", "NOTRUN"):
+            safe["outcome"] = outcome
+        code = record.get("exit_code")
+        if type(code) is int:
+            safe["exit_code"] = code
+        safe["refused"] = "refusal" in record or record.get("refused") is True
+        result.append(safe)
+    return result
+
+
 def make_refusal_receipt(
     repo_path: Path | str,
     base_ref: str = "HEAD~1",
@@ -238,6 +268,7 @@ def make_refusal_receipt(
     signing_key_path: Path | str | None = None,
     output_path: Path | str | None = None,
     rel_path: str = ".",
+    verification_phases: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Generate and Ed25519-sign a schema 2.1 refusal receipt for unexecutable/untrusted runs."""
     repo = Path(repo_path).resolve()
@@ -325,6 +356,9 @@ def make_refusal_receipt(
         "wall_clock_s": 0.0,
         "provider_cost_usd": 0.0,
     }
+
+    if verification_phases is not None:
+        receipt["verification_phases"] = _refusal_phase_history(verification_phases)
 
     signed = sign_evidence(receipt, key_path=signing_key_path)
     if output_path is not None:
@@ -662,6 +696,8 @@ def _run_guarded_phase(
     except VerifyRefusalError as exc:
         # Preserve typed policy refusals, including through health-probe fallbacks.
         record["refusal"] = exc.reason.to_dict()
+        exc.verification_phases = _refusal_phase_history(records)
+        exc.sandbox_plan = run_kwargs.get("sbx")
         raise
 
 
@@ -855,6 +891,10 @@ def verify_test(
                 rel_test_path=execution_test,
                 node_id=node_id,
             )
+    except VerifyRefusalError as exc:
+        exc.verification_phases = _refusal_phase_history(phase_records)
+        exc.sandbox_plan = sbx_plan
+        raise
     except EnvSetupError as exc:
         base_err = exc
 
@@ -880,6 +920,10 @@ def verify_test(
                 rel_test_path=execution_test,
                 node_id=node_id,
             )
+    except VerifyRefusalError as exc:
+        exc.verification_phases = _refusal_phase_history(phase_records)
+        exc.sandbox_plan = sbx_plan
+        raise
     except EnvSetupError as exc:
         head_err = exc
 

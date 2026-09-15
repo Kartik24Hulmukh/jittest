@@ -508,7 +508,7 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
 
 def _cmd_verify(args: argparse.Namespace) -> int:
     from .sandbox import SandboxUnavailable
-    from .verify import VerifyRefusalError, verify_test
+    from .verify import VerifyRefusalError, make_refusal_receipt, verify_test
 
     repo = Path(args.repo).resolve() if Path(args.repo).exists() else args.repo
     test_spec = args.test
@@ -579,7 +579,27 @@ def _cmd_verify(args: argparse.Namespace) -> int:
         # written, and the reason is stated in one line rather than a traceback.
         print(f"jittest verify: cannot sign evidence - {exc}", file=sys.stderr)
         return 2
-    except (VerifyRefusalError, SandboxUnavailable, OSError, ValueError) as exc:
+    except VerifyRefusalError as exc:
+        print(f"jittest verify: refused - {exc}", file=sys.stderr)
+        # Input/planning refusals keep the existing no-artifact contract. Once
+        # execution has started, preserve its safe phase history in a signed
+        # refusal, without changing the API's typed-exception contract.
+        if exc.verification_phases and isinstance(repo, Path):
+            try:
+                evidence = make_refusal_receipt(
+                    repo_path=repo, base_ref=base_ref, head_ref=head_ref,
+                    test_file_path=local_test, refusal=exc.reason,
+                    sbx_plan=exc.sandbox_plan, signing_key_path=args.signing_key,
+                    output_path=out_path, rel_path=args.path,
+                    verification_phases=exc.verification_phases,
+                )
+                if args.as_json:
+                    print(json.dumps(evidence, indent=2))
+            except (SigningKeyError, OSError, ValueError) as receipt_exc:
+                print(f"jittest verify: cannot write refusal evidence - {receipt_exc}",
+                      file=sys.stderr)
+        return 2
+    except (SandboxUnavailable, OSError, ValueError) as exc:
         print(f"jittest verify: refused - {exc}", file=sys.stderr)
         return 2
 
