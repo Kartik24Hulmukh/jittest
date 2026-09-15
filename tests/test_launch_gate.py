@@ -70,6 +70,12 @@ class SoakEvidenceContract(unittest.TestCase):
                     )["ok"]
                 )
 
+    def test_huge_json_integer_refuses_without_float_overflow(self):
+        for field in ["leak_slope_limit_kib_per_1k_ops", "leak_slope_kib_per_1k_ops"]:
+            with self.subTest(field=field):
+                doc = json.loads(json.dumps(dict(GOOD_SOAK, **{field: 10**400})))
+                self.assertFalse(launch_gate.check_soak_evidence(doc)["ok"])
+
     def test_malformed_counts_and_top_level_refuse_without_crash(self):
         for doc in [None, [], "bad", 1]:
             self.assertFalse(launch_gate.check_soak_evidence(doc)["ok"])

@@ -108,6 +108,17 @@ class InvocationTests(unittest.TestCase):
         inv = checker.extract_invocations(step)[0]
         self.assertEqual(inv["flags"], {"--bugsinpy": "/tmp/b", "--out": "results.json"})
 
+    def test_explicit_out_without_value_never_falls_back_to_default(self):
+        for suffix in ["--out", "--out=", "--out --dry-run"]:
+            with self.subTest(suffix=suffix):
+                inv = checker.extract_invocations(
+                    "python scripts/x.py --bugsinpy /tmp/b " + suffix
+                )[0]
+                problems = checker.check_invocation(
+                    inv, checker.parse_argparse_contract(SCRIPT), "eval-results.json"
+                )
+                self.assertIn("--out explicitly supplied without a value", problems)
+
     def test_comments_and_non_repo_scripts_are_ignored(self):
         self.assertEqual(
             checker.extract_invocations("# python scripts/x.py --a\npython -m pytest\n"), []

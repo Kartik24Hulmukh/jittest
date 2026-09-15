@@ -139,7 +139,7 @@ def check_soak_evidence(doc: dict) -> dict:
     # Evidence cannot choose its own acceptance threshold. bool is an int in
     # Python, and JSON's permissive decoder accepts NaN/Infinity: reject both.
     def finite_number(value):
-        return type(value) in (int, float) and math.isfinite(value)
+        return type(value) is int or (type(value) is float and math.isfinite(value))
 
     if not finite_number(limit) or limit != 1.0:
         problems.append("leak slope limit must be the launch policy value 1.0")

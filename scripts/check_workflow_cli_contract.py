@@ -156,7 +156,9 @@ def check_invocation(inv: dict, contract: dict, later_step_text: str) -> list[st
         if flag not in contract["options"]:
             problems.append(f"unknown flag {flag} (script does not define it)")
     if "--out" in contract["options"]:
-        effective = inv["flags"].get("--out") or contract["defaults"].get("--out")
+        if "--out" in inv["flags"] and inv["flags"]["--out"] in (None, ""):
+            problems.append("--out explicitly supplied without a value")
+        effective = inv["flags"].get("--out", contract["defaults"].get("--out"))
         consumed = set(JSON_TOKEN_RE.findall(later_step_text))
         if effective and consumed and effective not in consumed:
             problems.append(
