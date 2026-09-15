@@ -42,7 +42,7 @@ LAUNCH_WINDOW = "2026-09-16/2026-09-17"
 GA_BLOCKERS = [
     {"issue": 73, "title": "real catch-rate / FPR / USD-per-PR evaluation"},
     {"issue": 198, "title": "Option C public-path wiring + trusted runtime inventory"},
-    {"issue": 199, "title": "protected publication of post-0.4.1 guarantees"},
+    {"issue": 206, "title": "regenerate semantically invalid non_discriminating receipt"},
 ]
 
 FOCUSED_SUITES = [
@@ -91,15 +91,17 @@ def gate_script(name: str) -> dict:
 
 def classify_receipt(rel: str, code: int, payload: dict) -> dict:
     """Pure classification of one verify-receipt result against expectations."""
-    sig = bool(payload.get("signature_valid"))
-    valid = bool(payload.get("valid")) and code == 0
+    payload = payload if isinstance(payload, dict) else {}
+    sig = payload.get("signature_valid") is True
+    valid = payload.get("valid") is True and code == 0
     expected_refusal = KNOWN_REFUSED_RECEIPTS.get(rel)
     if expected_refusal is None:
-        ok = sig and valid
+        ok = sig and valid and payload.get("semantic_valid") is True
         expectation = "valid"
     else:
-        # Fail-closed proof: signature intact, semantics rejected, non-zero exit.
-        ok = sig and not valid and payload.get("semantic_valid") is False and code != 0
+        # Fail-closed proof: signature intact, explicit semantic refusal (exit 5).
+        ok = (sig and payload.get("valid") is False
+              and payload.get("semantic_valid") is False and code == 5)
         expectation = f"refused:{expected_refusal}"
     return {
         "artifact": rel,
@@ -180,7 +182,10 @@ def gate_soak_evidence(root: Path = ROOT) -> dict:
 def gate_tests(full: bool) -> dict:
     cmd = [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider"]
     if not full:
-        cmd += [p for p in FOCUSED_SUITES if (ROOT / p).exists()]
+        missing = [p for p in FOCUSED_SUITES if not (ROOT / p).is_file()]
+        if missing:
+            return {"ok": False, "mode": "focused", "missing_suites": missing}
+        cmd += FOCUSED_SUITES
     code, out = _run(cmd, timeout=3600)
     summary = [ln for ln in out.strip().splitlines() if "passed" in ln or "failed" in ln]
     return {"ok": code == 0, "mode": "full" if full else "focused", "summary": summary[-1:]}
@@ -191,7 +196,7 @@ def derive_ga_ready(blockers: list[dict]) -> bool:
 
 
 def build_report(gates: dict, blockers: list[dict]) -> dict:
-    all_ok = all(g["ok"] for g in gates.values())
+    all_ok = bool(gates) and all(g.get("ok") is True for g in gates.values())
     ga_ready = derive_ga_ready(blockers)
     if not all_ok:
         decision = "NO_GO"
@@ -229,6 +234,9 @@ def main(argv: list[str] | None = None) -> int:
     }
     if not args.skip_tests:
         gates["tests"] = gate_tests(args.full)
+    else:
+        gates["tests"] = {"ok": False, "mode": "skipped",
+                          "detail": ["tests are required for launch approval"]}
     report = build_report(gates, GA_BLOCKERS)
     report["volatile"] = {"elapsed_s": round(time.time() - started, 1), "python": sys.version}
 
