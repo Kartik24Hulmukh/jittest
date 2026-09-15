@@ -63,7 +63,7 @@ def least_squares_slope(xs, ys):
     denom = sum((x - mx) ** 2 for x in xs)
     if denom == 0:
         return 0.0
-    return sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / denom
+    return sum((x - mx) * (y - my) for x, y in zip(xs, ys, strict=True)) / denom
 
 
 def run_segment(index, ops, rng_seed):
@@ -79,7 +79,7 @@ def run_segment(index, ops, rng_seed):
         blob = canonical_json(_refusal_phase_history(RECORDS))
         latencies.append((time.perf_counter() - start) * 1000.0)
         if 'secret-canary' in blob:
-            raise AssertionError('redaction regression: canary leaked at op %d' % i)
+            raise AssertionError(f'redaction regression: canary leaked at op {i}')
         digest.update(blob.encode('utf-8'))
         sample = rss_kib()
         if sample is not None and (floor is None or sample < floor):
