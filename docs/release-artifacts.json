@@ -1,0 +1,53 @@
+{
+  "published": {
+    "artifacts": [
+      {
+        "filename": "jittest-0.4.1-py3-none-any.whl",
+        "kind": "bdist_wheel",
+        "sha256": "d33eaa33cc24d0be2dd9dad5975ca4d3c6e3fb8640f008cea6988e7b6a8b6b95",
+        "uploaded_utc": "2026-09-13T14:05:06Z"
+      },
+      {
+        "filename": "jittest-0.4.1.tar.gz",
+        "kind": "sdist",
+        "sha256": "1e133d4b135ccbc6914f3342cf86df12463b0dc9f5098fd409764ab1aae496a3",
+        "uploaded_utc": "2026-09-13T14:05:08Z"
+      }
+    ],
+    "install_smoke": {
+      "command": "python -m venv v && v/bin/pip install --no-deps jittest-0.4.1-py3-none-any.whl && v/bin/jittest --version",
+      "stdout": "jittest 0.4.1"
+    },
+    "not_included": [
+      "PR #196 per-phase verification boundaries (_run_guarded_phase)",
+      "PR #197 execution path containment (execution_paths.py)",
+      "PR #200 BASE runtime pin wiring",
+      "PR #201 jittest.prod probes/logging/tracing/benchmarks"
+    ],
+    "released_at_utc": "2026-09-13T14:05:23Z",
+    "source_sha": "ef08ddbca551f5d3201cc3e839d1995202bb1934",
+    "source_to_wheel_check": {
+      "method": "sha256 of every jittest/*.py in the wheel compared with src/jittest/*.py of the tag tarball",
+      "mismatched": 0,
+      "missing": 0,
+      "tag_modules": 43,
+      "wheel_modules": 43
+    },
+    "tag": "v0.4.1",
+    "version": "0.4.1"
+  },
+  "schema": "jittest.release-artifacts/1",
+  "unreleased_main": {
+    "head_at_verification": "d7708f2c0b717669c5a0b78d92dbd443d4b91393",
+    "note": "main is ahead of v0.4.1; guarantees from #196/#197/#200/#201 are NOT in any published artifact until a protected release gate cuts a new tag."
+  },
+  "verified_against": {
+    "github_release": "https://github.com/Kartik24Hulmukh/jittest/releases/tag/v0.4.1",
+    "github_tag_api": "https://api.github.com/repos/Kartik24Hulmukh/jittest/tags",
+    "pypi_json": "https://pypi.org/pypi/jittest/0.4.1/json"
+  },
+  "verified_at_utc": "2026-09-15T09:20:00Z",
+  "yanked": [
+    "0.4.0"
+  ]
+}
