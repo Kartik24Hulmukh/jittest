@@ -23,6 +23,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import subprocess
 import sys
 import time
@@ -130,21 +131,35 @@ def gate_receipts(root: Path = ROOT) -> dict:
 def check_soak_evidence(doc: dict) -> dict:
     """Pure check of committed soak evidence against the leak-gate contract."""
     problems = []
+    if not isinstance(doc, dict):
+        return {"ok": False, "problems": ["soak evidence must be an object"]}
     limit = doc.get("leak_slope_limit_kib_per_1k_ops")
     slope = doc.get("leak_slope_kib_per_1k_ops")
-    if not isinstance(limit, int | float) or not isinstance(slope, int | float):
-        problems.append("slope or limit missing")
-    elif slope > limit:
-        problems.append(f"leak slope {slope} exceeds limit {limit}")
+
+    # Evidence cannot choose its own acceptance threshold. bool is an int in
+    # Python, and JSON's permissive decoder accepts NaN/Infinity: reject both.
+    def finite_number(value):
+        return type(value) in (int, float) and math.isfinite(value)
+
+    if not finite_number(limit) or limit != 1.0:
+        problems.append("leak slope limit must be the launch policy value 1.0")
+    if not finite_number(slope):
+        problems.append("slope missing or non-finite")
+    elif slope > 1.0:
+        problems.append(f"leak slope {slope} exceeds limit 1.0")
     if doc.get("leak_suspected") is not False:
         problems.append("leak_suspected is not false")
-    if doc.get("errors") != 0:
+    if type(doc.get("errors")) is not int or doc["errors"] != 0:
         problems.append(f"errors={doc.get('errors')!r}")
-    if doc.get("distinct_digests") != 1 or doc.get("deterministic") is not True:
+    if (
+        type(doc.get("distinct_digests")) is not int
+        or doc["distinct_digests"] != 1
+        or doc.get("deterministic") is not True
+    ):
         problems.append("soak run is not deterministic")
-    if doc.get("total_ops", 0) < 100_000:
-        problems.append("fewer than 100k ops")
-    if doc.get("seed") != 20260916:
+    if type(doc.get("total_ops")) is not int or doc["total_ops"] < 100_000:
+        problems.append("fewer than 100k ops or invalid operation count")
+    if type(doc.get("seed")) is not int or doc["seed"] != 20260916:
         problems.append("unexpected seed")
     return {"ok": not problems, "problems": problems}
 
