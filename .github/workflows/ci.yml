@@ -84,6 +84,10 @@ jobs:
           exit "$rc"
         shell: bash
 
+      - name: Assert tests did not pollute evidence
+        if: always()
+        run: python scripts/check_evidence_clean.py
+
       - name: Verify the package still declares no dependencies
         run: |
           python - <<'PY'

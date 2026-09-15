@@ -208,6 +208,7 @@ def main(argv: list[str] | None = None) -> int:
         "ruff": gate_ruff(),
         "version_drift": gate_script("check_version_drift.py"),
         "release_mapping": gate_script("check_release_mapping.py"),
+        "workflow_cli_contract": gate_script("check_workflow_cli_contract.py"),
         "receipts_recompute": gate_receipts(),
         "soak_evidence": gate_soak_evidence(),
     }

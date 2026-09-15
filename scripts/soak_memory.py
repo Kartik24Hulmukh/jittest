@@ -33,6 +33,14 @@ OPS_PER_SEGMENT = 2500
 # KiB retained per 1000 ops above which we call it a leak. 1 KiB/1000 ops over
 # a 24h continuous run at 10k ops/s would be ~ 860 MiB/day: clearly fatal.
 LEAK_SLOPE_LIMIT_KIB = 1.0
+# RSS floors are page-quantized (4 KiB pages). On short runs a single page
+# migration produces an arbitrarily large spurious slope: the CI flake on
+# PR #209 saw one 4 KiB step over 240 ops fitted as ~33 KiB/1k ops. A leak
+# is therefore only called when the fitted slope exceeds the limit AND the
+# retained floor grew by more than this absolute allowance (4 pages). At the
+# committed 100k-op evidence scale a true 1 KiB/1k-ops leak retains ~100 KiB
+# and is still caught; page-level noise never is.
+NOISE_ALLOWANCE_KIB = 16.0
 
 RECORDS = [
     {'phase': 'base', 'revision': 'a' * 40, 'outcome': 'PASS',
@@ -66,6 +74,12 @@ def least_squares_slope(xs, ys):
     return sum((x - mx) * (y - my) for x, y in zip(xs, ys, strict=True)) / denom
 
 
+def leak_verdict(slope, slope_limit, floor_growth, noise_allowance):
+    # Pure leak decision: a super-limit fitted slope alone is not enough,
+    # because page quantization makes tiny floor steps fit as huge slopes.
+    return bool(slope > slope_limit and floor_growth > noise_allowance)
+
+
 def run_segment(index, ops, rng_seed):
     # One deterministic segment: returns (digest, latencies_ms, rss_floor).
     digest = hashlib.sha256()
@@ -88,7 +102,8 @@ def run_segment(index, ops, rng_seed):
 
 
 def soak(segments=SEGMENTS, ops=OPS_PER_SEGMENT, seed=SEED,
-         slope_limit=LEAK_SLOPE_LIMIT_KIB):
+         slope_limit=LEAK_SLOPE_LIMIT_KIB,
+         noise_allowance=NOISE_ALLOWANCE_KIB):
     # Continuous-run soak. Pure function of (segments, ops, seed).
     gc.collect()
     started = time.time()
@@ -118,6 +133,7 @@ def soak(segments=SEGMENTS, ops=OPS_PER_SEGMENT, seed=SEED,
     # Drop the first segment: interpreter/import warmup inflates the fit.
     fit_xs, fit_floors = (xs[1:], floors[1:]) if len(xs) > 2 else (xs, floors)
     slope = least_squares_slope(fit_xs, fit_floors)
+    floor_growth = max(0.0, fit_floors[-1] - min(fit_floors)) if fit_floors else 0.0
     elapsed = time.time() - started
     total_ops = segments * ops
     report = {
@@ -148,7 +164,10 @@ def soak(segments=SEGMENTS, ops=OPS_PER_SEGMENT, seed=SEED,
         },
         'leak_slope_kib_per_1k_ops': slope,
         'leak_slope_limit_kib_per_1k_ops': slope_limit,
-        'leak_suspected': bool(slope > slope_limit),
+        'floor_growth_kib': floor_growth,
+        'noise_allowance_kib': noise_allowance,
+        'leak_suspected': leak_verdict(slope, slope_limit, floor_growth,
+                                       noise_allowance),
         'deterministic': len(set(digests)) == 1 and errors == 0,
         'platform': platform.platform(),
         'python': sys.version.split()[0],
@@ -163,9 +182,12 @@ def main(argv=None):
     parser.add_argument('--segments', type=int, default=SEGMENTS)
     parser.add_argument('--ops', type=int, default=OPS_PER_SEGMENT)
     parser.add_argument('--seed', type=int, default=SEED)
+    parser.add_argument('--noise-allowance-kib', type=float,
+                        default=NOISE_ALLOWANCE_KIB)
     parser.add_argument('--out', default='')
     args = parser.parse_args(argv)
-    report = soak(segments=args.segments, ops=args.ops, seed=args.seed)
+    report = soak(segments=args.segments, ops=args.ops, seed=args.seed,
+                  noise_allowance=args.noise_allowance_kib)
     text = json.dumps(report, indent=2, sort_keys=True)
     if args.out:
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)
