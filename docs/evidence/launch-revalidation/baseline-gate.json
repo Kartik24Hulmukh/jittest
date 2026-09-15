@@ -1,0 +1,101 @@
+{
+  "decision": "GO_LAUNCH_NOT_GA",
+  "digest": "3d24542b484a9ec13f7c5cc296969934c4563746a8b795d5b45f564510d0ab0b",
+  "ga_blockers": [
+    {
+      "issue": 73,
+      "title": "real catch-rate / FPR / USD-per-PR evaluation"
+    },
+    {
+      "issue": 198,
+      "title": "Option C public-path wiring + trusted runtime inventory"
+    },
+    {
+      "issue": 199,
+      "title": "protected publication of post-0.4.1 guarantees"
+    }
+  ],
+  "ga_ready": false,
+  "gates": {
+    "receipts_recompute": {
+      "ok": true,
+      "receipts": [
+        {
+          "artifact": "docs/evidence/quadrants/inconclusive_evidence.json",
+          "expectation": "valid",
+          "ok": true,
+          "signature_valid": true,
+          "valid": true
+        },
+        {
+          "artifact": "docs/evidence/quadrants/non_discriminating_evidence.json",
+          "expectation": "refused:semantic_invalid",
+          "ok": true,
+          "signature_valid": true,
+          "valid": false
+        },
+        {
+          "artifact": "docs/evidence/quadrants/proven_catch_evidence.json",
+          "expectation": "valid",
+          "ok": true,
+          "signature_valid": true,
+          "valid": true
+        },
+        {
+          "artifact": "docs/evidence/quadrants/refuted_evidence.json",
+          "expectation": "valid",
+          "ok": true,
+          "signature_valid": true,
+          "valid": true
+        },
+        {
+          "artifact": "docs/evidence/pr/flask_pr_evidence.json",
+          "expectation": "valid",
+          "ok": true,
+          "signature_valid": true,
+          "valid": true
+        }
+      ]
+    },
+    "release_mapping": {
+      "detail": [
+        "ok: 11 release-mapping checks agree"
+      ],
+      "ok": true
+    },
+    "ruff": {
+      "detail": [
+        "All checks passed!"
+      ],
+      "ok": true
+    },
+    "soak_evidence": {
+      "artifact": "docs/evidence/memory-soak-20260916.json",
+      "ok": true,
+      "problems": []
+    },
+    "tests": {
+      "mode": "focused",
+      "ok": true,
+      "summary": []
+    },
+    "version_drift": {
+      "detail": [
+        "ok: version 0.4.1 agrees in 4 places"
+      ],
+      "ok": true
+    },
+    "workflow_cli_contract": {
+      "detail": [
+        "workflow-cli-contract: 17 invocations checked, 0 violating"
+      ],
+      "ok": true
+    }
+  },
+  "kind": "launch_gate",
+  "launch_window": "2026-09-16/2026-09-17",
+  "volatile": {
+    "elapsed_s": 6.8,
+    "python": "3.14.6 (main, Jun 24 2026, 04:50:39) [GCC 14.2.0]"
+  }
+}

@@ -6,6 +6,7 @@ import importlib.util
 import json
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parent.parent
 SPEC = importlib.util.spec_from_file_location("launch_gate", ROOT / "scripts" / "launch_gate.py")
@@ -139,6 +140,52 @@ class GaReadyIsDerivedNotDeclared(unittest.TestCase):
         for row in launch_gate.GA_BLOCKERS:
             self.assertIsInstance(row["issue"], int)
             self.assertTrue(row["title"])
+
+
+class FailClosedLaunchEvidence(unittest.TestCase):
+    def test_receipt_flags_must_be_json_booleans(self):
+        good = {"signature_valid": True, "valid": True, "semantic_valid": True}
+        for field in good:
+            for value in ["true", "false", 1, 0, None, [], {}]:
+                with self.subTest(field=field, value=value):
+                    self.assertFalse(launch_gate.classify_receipt(
+                        "x.json", 0, dict(good, **{field: value}))["ok"])
+
+    def test_non_object_receipt_refuses(self):
+        for payload in [None, [], "bad", True, 42]:
+            self.assertFalse(launch_gate.classify_receipt("x.json", 0, payload)["ok"])
+
+    def test_expected_refusal_requires_explicit_false_and_semantic_exit(self):
+        rel = next(iter(launch_gate.KNOWN_REFUSED_RECEIPTS))
+        good = {"signature_valid": True, "valid": False, "semantic_valid": False}
+        for code in [0, 1, 2, -9]:
+            self.assertFalse(launch_gate.classify_receipt(rel, code, good)["ok"])
+        for value in [None, "false", 0, True]:
+            self.assertFalse(launch_gate.classify_receipt(
+                rel, 5, dict(good, valid=value))["ok"])
+
+    def test_empty_or_truthy_gate_set_never_approves(self):
+        for gates in [{}, {"x": {}}, {"x": {"ok": "false"}}, {"x": {"ok": 1}}]:
+            self.assertEqual(launch_gate.build_report(gates, [])["decision"], "NO_GO")
+
+    def test_missing_focused_suite_refuses_before_execution(self):
+        with (
+            patch.object(launch_gate, "FOCUSED_SUITES", ["tests/does_not_exist.py"]),
+            patch.object(launch_gate, "_run") as run,
+        ):
+            result = launch_gate.gate_tests(False)
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["missing_suites"], ["tests/does_not_exist.py"])
+        run.assert_not_called()
+
+    def test_skip_tests_is_diagnostic_not_launch_approval(self):
+        with patch.object(launch_gate, "gate_ruff", return_value={"ok": True}), \
+             patch.object(launch_gate, "gate_script", return_value={"ok": True}), \
+             patch.object(launch_gate, "gate_receipts", return_value={"ok": True}), \
+             patch.object(launch_gate, "gate_soak_evidence", return_value={"ok": True}), \
+             patch.object(launch_gate, "gate_tests") as tests:
+            self.assertEqual(launch_gate.main(["--skip-tests"]), 1)
+        tests.assert_not_called()
 
 
 if __name__ == "__main__":

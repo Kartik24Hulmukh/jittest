@@ -1,0 +1,5 @@
+{
+  "receipt_string_flags_accepted": true,
+  "empty_gate_decision": "GO_GA",
+  "missing_focused_suites_silently_filtered": true
+}
