@@ -50,6 +50,47 @@ class SoakEvidenceContract(unittest.TestCase):
     def test_missing_fields_fail_closed(self):
         self.assertFalse(launch_gate.check_soak_evidence({})["ok"])
 
+    def test_evidence_cannot_relax_policy_threshold(self):
+        for limit in [1000, float("inf"), float("nan"), True, "1.0", None, -1]:
+            with self.subTest(limit=limit):
+                doc = dict(GOOD_SOAK, leak_slope_limit_kib_per_1k_ops=limit)
+                self.assertFalse(launch_gate.check_soak_evidence(doc)["ok"])
+        self.assertFalse(
+            launch_gate.check_soak_evidence(
+                dict(GOOD_SOAK, leak_slope_limit_kib_per_1k_ops=1000, leak_slope_kib_per_1k_ops=999)
+            )["ok"]
+        )
+
+    def test_nonfinite_and_boolean_slopes_refuse(self):
+        for slope in [float("nan"), float("inf"), -float("inf"), False, True, "0"]:
+            with self.subTest(slope=slope):
+                self.assertFalse(
+                    launch_gate.check_soak_evidence(
+                        dict(GOOD_SOAK, leak_slope_kib_per_1k_ops=slope)
+                    )["ok"]
+                )
+
+    def test_huge_json_integer_refuses_without_float_overflow(self):
+        for field in ["leak_slope_limit_kib_per_1k_ops", "leak_slope_kib_per_1k_ops"]:
+            with self.subTest(field=field):
+                doc = json.loads(json.dumps(dict(GOOD_SOAK, **{field: 10**400})))
+                self.assertFalse(launch_gate.check_soak_evidence(doc)["ok"])
+
+    def test_malformed_counts_and_top_level_refuse_without_crash(self):
+        for doc in [None, [], "bad", 1]:
+            self.assertFalse(launch_gate.check_soak_evidence(doc)["ok"])
+        for field, values in {
+            "errors": [False, "0", None],
+            "distinct_digests": [True, "1", None],
+            "total_ops": ["100000", None, float("inf"), True],
+            "seed": ["20260916", 20260916.0, None],
+        }.items():
+            for value in values:
+                with self.subTest(field=field, value=value):
+                    self.assertFalse(
+                        launch_gate.check_soak_evidence(dict(GOOD_SOAK, **{field: value}))["ok"]
+                    )
+
 
 class ReceiptClassification(unittest.TestCase):
     def test_regular_receipt_must_be_valid(self):

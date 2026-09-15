@@ -1,7 +1,7 @@
 # jittest — Launch Go/No-Go Gate (window: 2026-09-16 / 2026-09-17)
 
 **Decision at `main` after PR #205 (`f3c3746`): `GO_LAUNCH_NOT_GA` — ship the launch, do not announce GA.**
-Report: `docs/evidence/launch-gate-20260916.json` (digest `244e0ac71e23ed64…` (7 gates, incl. `workflow_cli_contract`)). Reproduce:
+Report: `docs/evidence/launch-gate-20260916.json` (digest `3d24542b484a9ec13…` (7 gates, incl. `workflow_cli_contract`)). Reproduce:
 
 ```bash
 PYTHONPATH=src python scripts/launch_gate.py --json /tmp/gate.json   # add --full for the 1200+ test suite
@@ -66,7 +66,7 @@ Shipped `scripts/check_workflow_cli_contract.py` (stdlib only, runs in the no-de
 CI cell): every `python eval/*.py|scripts/*.py` line in every workflow is checked against
 the script's `argparse` contract read via `ast` — required flags must be literal (not
 conditionally appended), unknown flags fail, and `--out` must match what later steps of
-the same job upload/assert. 16 invocations across 7 workflows are covered; it is the 7th
+the same job upload/assert. 17 invocations are covered; it is the 7th
 gate in `launch_gate.py`.
 
 On the unfixed tree it reports exactly three defects for `eval/run_bugsinpy.py`: the two
@@ -77,3 +77,17 @@ died. The workflow now splits the input into repeated `--project` flags.
 Also observed (not fixed here): running the test suite rewrites the tracked file
 `jittest-evidence/evidence-test_bar-cb526fade08e.json` (test pollution of committed
 evidence) — tracked separately.
+
+
+## Continuation review
+Independent Copilot review requested on #211 found an oversized JSON integer
+overflow in the new finite-number check; fixed with int/float-specific handling
+and a 10**400 regression. Also reject explicitly valueless --out rather than
+silently substituting its default. The post-suite evidence guard is intentional:
+the real writer in test_action now uses temporary output; other cited calls mock
+verify_test and do not write receipts. Full suite and guard passed locally.
+
+Gate digests identify report content, not the source tree or a signature. Record
+the exact commit SHA alongside each run. #199 is closed for mapping/documentation;
+its static gate row still represents *unpublished post-0.4.1 guarantees*, not live
+GitHub issue state. Do not infer GA from this historical checklist.
