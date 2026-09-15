@@ -1,6 +1,11 @@
 """Public readiness must never silently discard compatibility constraints."""
 
-import pytest
+import unittest
+
+try:
+    import pytest
+except ImportError:
+    raise unittest.SkipTest("requires pytest; zero-dependency discovery supported") from None
 
 from jittest.verify import VerifyRefusalError, _readiness_block, _run_guarded_phase
 
@@ -76,3 +81,39 @@ def test_required_refusal_prevents_execution(tmp_path, monkeypatch):
                            env_info={"resolved_versions": ["flask==2"]}, records=records)
     assert len(exc.value.verification_phases) == 1
     assert records[0]["refusal"]["code"] == "environment_not_ready"
+
+
+def test_cli_real_version_conflict_emits_signed_refusal(tmp_path, monkeypatch, capsys):
+    import json
+
+    from jittest.cli import main
+    from jittest.execute import Outcome, RunResult
+    from jittest.receipt import verify_receipt
+    from tests.test_verify import _git, create_synthetic_repo
+
+    repo, base, head, test = create_synthetic_repo(tmp_path)
+    (repo / "requirements.txt").write_text("flask>=3", encoding="utf-8")
+    _git(repo, "add", "requirements.txt")
+    _git(repo, "commit", "-m", "HEAD requires a newer dependency")
+    head = _git(repo, "rev-parse", "HEAD")
+    monkeypatch.setenv("JITTEST_READINESS", "required")
+    monkeypatch.setattr("jittest.verify.provision_environment",
+                        lambda *a, **kw: {"resolved_versions": ["Flask==2.0"]})
+    calls = []
+    def execute(*args, **kwargs):
+        calls.append(True)
+        return RunResult(Outcome.PASS, returncode=0, stdout="PRIVATE_OUTPUT")
+    monkeypatch.setattr("jittest.verify.run_test", execute)
+    artifact = tmp_path / "refusal.json"
+    rc = main(["verify", "--repo", str(repo), "--base", base, "--head", head,
+               "--test", str(test), "--no-sandbox", "--output", str(artifact),
+               "--signing-key", str(tmp_path / "test-only-key"), "--json"])
+    assert rc == 2
+    assert len(calls) == 1  # BASE ran; incompatible HEAD never executed.
+    receipt = json.loads(artifact.read_text())
+    assert receipt == json.loads(capsys.readouterr().out)
+    assert receipt["verification_phases"][0]["outcome"] == "PASS"
+    assert receipt["verification_phases"][1]["refused"] is True
+    assert receipt["proven_catch"] is False
+    assert "PRIVATE_OUTPUT" not in artifact.read_text()
+    assert verify_receipt(receipt).signature_valid is True
