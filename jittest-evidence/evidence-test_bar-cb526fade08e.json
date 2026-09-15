@@ -18,16 +18,16 @@
   "interpreter_version": null,
   "resolved_versions": null,
   "provenance": {
-    "repo_path": "/tmp/tmp_su5myd8",
-    "repo_canonical": "local:4096c687da783019",
+    "repo_path": "/tmp/tmpm6alm6oz",
+    "repo_canonical": "local:c36dfbd658bbad2b",
     "base_sha": "HEAD~1",
     "head_sha": "HEAD",
     "test_file_name": "test_bar.py",
     "test_file_sha256": "80522fb685ab0a2e18ae81fb263f211f8fd39d29b237e0823b8a1d888eab3a16",
-    "tool_commit_sha": "a5329ac22202150af6cdb4e0f3305a77702cebc9",
-    "tool_branch": "harden/output-boundary-sept2026",
+    "tool_commit_sha": "568f1d8a8801905423af7f30a0dbc86559e43945",
+    "tool_branch": "harden/jittest-prod",
     "tool_dirty": false,
-    "tool_tree_sha": "178ad2da4f82b9deb80d82a46c3b334ad2583ad0",
+    "tool_tree_sha": "f81cf48f3a2ca14a0224cfd5e9892b033f6b29ad",
     "rel_path": "."
   },
   "sandbox": {
@@ -59,7 +59,7 @@
   "provider_cost_usd": 0.0,
   "signature": {
     "algorithm": "Ed25519",
-    "verifying_key": "211889e80308f9c532db0770f18a43eb04065ddcbbb6696ae9f3ebfc61ec2c5a",
-    "value": "F0nL25PCbRZKUIRkcHXtdRabkhDBjynuWUk01iaQ8M+IeIcvOBVPx2D/alhV2Qo5PwV0GOPvzTtaSbIJ8SQsAA=="
+    "verifying_key": "38d4cd5280822990e02a5032848d09dfbbd29f46dd1090457d3016d600175ef3",
+    "value": "7Ba5FoH6NrygG7uiB7UloK3bPy4FAV1EJQcElRlTby5NZtxrZ7nt/Fs2Fupc5QwOtmicWHgUCOxxZlQgAgSfCw=="
   }
 }

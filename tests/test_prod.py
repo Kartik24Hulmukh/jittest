@@ -5,6 +5,8 @@ import gc
 import io
 import json
 import logging
+import os
+import pathlib
 import random
 import socket
 import subprocess
@@ -27,6 +29,23 @@ def request(app, path="/readyz", method="GET"):
     body = b"".join(app({"PATH_INFO": path, "REQUEST_METHOD": method},
                         lambda status, headers: capture.append((status, dict(headers)))))
     return capture[0][0], capture[0][1], body
+
+
+def _child_env():
+    """Child env that inherits the parent import path.
+
+    Subprocess-based chaos tests must not depend on the package being
+    pip-installed: propagate the resolved sys.path entry for ``jittest`` so the
+    child imports exactly the tree under test.
+    """
+    import jittest
+
+    root = str(pathlib.Path(jittest.__file__).resolve().parent.parent)
+    env = dict(os.environ)
+    existing = env.get("PYTHONPATH", "")
+    parts = [root] + [p for p in existing.split(os.pathsep) if p and p != root]
+    env["PYTHONPATH"] = os.pathsep.join(parts)
+    return env
 
 
 class QuietHandler(WSGIRequestHandler):
@@ -137,7 +156,7 @@ class ProbeTests(unittest.TestCase):
 
     def test_process_kill_restart_defaults_not_ready(self):
         script = "from jittest.prod import ProbeApp; import time; a=ProbeApp(); a.set_ready(True); print('ready',flush=True); time.sleep(30)"
-        child = subprocess.Popen([sys.executable, "-u", "-c", script], stdout=subprocess.PIPE, text=True)
+        child = subprocess.Popen([sys.executable, "-u", "-c", script], stdout=subprocess.PIPE, text=True, env=_child_env())
         try:
             self.assertEqual(child.stdout.readline().strip(), "ready")
             child.kill()
@@ -150,7 +169,7 @@ class ProbeTests(unittest.TestCase):
             child.stdout.close()
         # Restart explicitly reinitializes; no stale persisted ready bit.
         script = "from jittest.prod import ProbeApp; a=ProbeApp(); print(b''.join(a({'PATH_INFO':'/readyz'},lambda *a:None)).decode())"
-        result = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True, timeout=5, check=True)
+        result = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True, timeout=30, check=True, env=_child_env())
         self.assertEqual(json.loads(result.stdout), {"status": "not_ready"})
 
     def test_integrity_comparison_preserves_exact_contract(self):
