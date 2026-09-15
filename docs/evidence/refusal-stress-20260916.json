@@ -1,0 +1,41 @@
+{
+  "latency_scope": "metadata transform+hash only; excludes queue and injected delay",
+  "python": "3.14.6",
+  "results": [
+    {
+      "completed": 10000,
+      "digests": [
+        "ae35294d9255dcb4b760461cc1cd923f80d701a319d73ba90166feb695b33e2a"
+      ],
+      "errors": [],
+      "jobs": 10000,
+      "p50_ms": 0.021789,
+      "p95_ms": 0.03862,
+      "p99_ms": 0.05471,
+      "rss_ceiling_kib": 56956,
+      "rss_floor_kib": 37500,
+      "throughput_jobs_s": 7969.09,
+      "wall_s": 1.254848,
+      "workers": 1
+    },
+    {
+      "completed": 10000,
+      "digests": [
+        "ae35294d9255dcb4b760461cc1cd923f80d701a319d73ba90166feb695b33e2a"
+      ],
+      "errors": [],
+      "jobs": 10000,
+      "p50_ms": 0.032894,
+      "p95_ms": 0.066135,
+      "p99_ms": 0.088073,
+      "rss_ceiling_kib": 56948,
+      "rss_floor_kib": 55356,
+      "throughput_jobs_s": 10412.677,
+      "wall_s": 0.960368,
+      "workers": 100
+    }
+  ],
+  "rss_scope": "whole process sampled every 5ms; includes executor/future allocations",
+  "schema": "jittest.refusal-stress/1",
+  "seed": 20260916
+}
