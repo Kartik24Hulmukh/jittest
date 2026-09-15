@@ -1,0 +1,36 @@
+{
+  "python": "3.14.6",
+  "platform": "Linux-6.8.0-87-generic-x86_64-with-glibc2.41",
+  "git_sha": "f464c5aa928b6184568361fed71d7f6758bf47dc",
+  "method": "service latency includes tracemalloc; excludes queue wait; fixed-seed integrity build+compare microbenchmark, NOT end-to-end SaaS capacity",
+  "runs": [
+    {
+      "jobs": 100,
+      "workers": 1,
+      "seed": 20260913,
+      "p50_ms": 0.208071,
+      "p95_ms": 0.372741,
+      "p99_ms": 0.613752,
+      "throughput_jobs_s": 2744.596813293709,
+      "elapsed_s": 0.03643522411584854,
+      "tracemalloc_peak_bytes": 581899,
+      "retained_bytes_including_results": 192706,
+      "rss_max_kib_linux": 23068,
+      "result_sha256": "0c9532bf688789536eed9dc6b46625b74d951b3bb986b3f29d79bf4a07faab30"
+    },
+    {
+      "jobs": 10000,
+      "workers": 32,
+      "seed": 20260913,
+      "p50_ms": 0.431651,
+      "p95_ms": 86.234771,
+      "p99_ms": 125.900136,
+      "throughput_jobs_s": 1682.5268356510214,
+      "elapsed_s": 5.943441607058048,
+      "tracemalloc_peak_bytes": 19308161,
+      "retained_bytes_including_results": 2377967,
+      "rss_max_kib_linux": 116104,
+      "result_sha256": "ed2515dd50bfc03c15d874baf78c82a5e4964bb6f573521889604e72f691d210"
+    }
+  ]
+}

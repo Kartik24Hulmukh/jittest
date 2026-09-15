@@ -1,0 +1,7 @@
+{
+  "source_sha": "49bc16f",
+  "wheel": "jittest-0.4.1-py3-none-any.whl",
+  "sha256": "78b833eddfbda1f6af3b0927998779d82398255af89b8abba7a7833597c51eb3",
+  "smoke_returncode": 0,
+  "scope": "locally built artifact; NOT published PyPI mapping"
+}
