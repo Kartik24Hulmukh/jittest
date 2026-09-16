@@ -100,16 +100,34 @@ class ReceiptClassification(unittest.TestCase):
         self.assertFalse(launch_gate.classify_receipt("x.json", 5, dict(good, valid=False))["ok"])
 
     def test_known_refused_receipt_must_stay_refused(self):
-        rel = "docs/evidence/quadrants/non_discriminating_evidence.json"
+        # The allowlist is empty since the #206 regeneration; exercise the
+        # mechanism with a synthetic pin so a future documented refusal still works.
+        rel = "docs/evidence/quadrants/synthetic_refused.json"
         refused = {"signature_valid": True, "valid": False, "semantic_valid": False}
-        self.assertTrue(launch_gate.classify_receipt(rel, 5, refused)["ok"])
-        # If someone silently makes it pass, the gate must notice.
         accepted = {"signature_valid": True, "valid": True, "semantic_valid": True}
-        self.assertFalse(launch_gate.classify_receipt(rel, 0, accepted)["ok"])
-        # A tampered signature is never acceptable, refused or not.
-        self.assertFalse(
-            launch_gate.classify_receipt(rel, 5, dict(refused, signature_valid=False))["ok"]
-        )
+        with patch.dict(launch_gate.KNOWN_REFUSED_RECEIPTS, {rel: "semantic_invalid"}):
+            self.assertTrue(launch_gate.classify_receipt(rel, 5, refused)["ok"])
+            # If someone silently makes it pass, the gate must notice.
+            self.assertFalse(launch_gate.classify_receipt(rel, 0, accepted)["ok"])
+            # A tampered signature is never acceptable, refused or not.
+            self.assertFalse(
+                launch_gate.classify_receipt(rel, 5, dict(refused, signature_valid=False))["ok"]
+            )
+
+    def test_regenerated_showcase_receipt_is_expected_valid(self):
+        # Issue #206: the non_discriminating showcase receipt was regenerated as a
+        # schema 2.1 receipt (base PASS / head PASS) and must no longer be pinned.
+        rel = "docs/evidence/quadrants/non_discriminating_evidence.json"
+        self.assertNotIn(rel, launch_gate.KNOWN_REFUSED_RECEIPTS)
+        accepted = {"signature_valid": True, "valid": True, "semantic_valid": True}
+        self.assertTrue(launch_gate.classify_receipt(rel, 0, accepted)["ok"])
+        refused = {"signature_valid": True, "valid": False, "semantic_valid": False}
+        self.assertFalse(launch_gate.classify_receipt(rel, 5, refused)["ok"])
+        receipt = json.loads((launch_gate.ROOT / rel).read_text(encoding="utf-8"))
+        self.assertEqual(receipt["schema_version"], "2.1")
+        self.assertEqual(receipt["verdict"], "non_discriminating")
+        self.assertEqual(receipt["base_execution"]["outcome"], "PASS")
+        self.assertEqual(receipt["head_execution"]["outcome"], "PASS")
 
 
 class GaReadyIsDerivedNotDeclared(unittest.TestCase):
@@ -156,13 +174,14 @@ class FailClosedLaunchEvidence(unittest.TestCase):
             self.assertFalse(launch_gate.classify_receipt("x.json", 0, payload)["ok"])
 
     def test_expected_refusal_requires_explicit_false_and_semantic_exit(self):
-        rel = next(iter(launch_gate.KNOWN_REFUSED_RECEIPTS))
+        rel = "docs/evidence/quadrants/synthetic_refused.json"
         good = {"signature_valid": True, "valid": False, "semantic_valid": False}
-        for code in [0, 1, 2, -9]:
-            self.assertFalse(launch_gate.classify_receipt(rel, code, good)["ok"])
-        for value in [None, "false", 0, True]:
-            self.assertFalse(launch_gate.classify_receipt(
-                rel, 5, dict(good, valid=value))["ok"])
+        with patch.dict(launch_gate.KNOWN_REFUSED_RECEIPTS, {rel: "semantic_invalid"}):
+            for code in [0, 1, 2, -9]:
+                self.assertFalse(launch_gate.classify_receipt(rel, code, good)["ok"])
+            for value in [None, "false", 0, True]:
+                self.assertFalse(launch_gate.classify_receipt(
+                    rel, 5, dict(good, valid=value))["ok"])
 
     def test_empty_or_truthy_gate_set_never_approves(self):
         for gates in [{}, {"x": {}}, {"x": {"ok": "false"}}, {"x": {"ok": 1}}]:
