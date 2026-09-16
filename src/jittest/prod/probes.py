@@ -50,20 +50,35 @@ def healthz() -> ProbeResult:
     return ProbeResult("ok", 200, {"process": "alive"})
 
 
+_REGISTRY_LOCK = threading.RLock()
 _READY_CHECKS: list[tuple[str, Callable[[], None]]] = []
 
 
 def register_readiness_check(name: str, fn: Callable[[], None]) -> None:
-    for idx, (existing_name, _) in enumerate(_READY_CHECKS):
-        if existing_name == name:
-            _READY_CHECKS[idx] = (name, fn)
-            return
-    _READY_CHECKS.append((name, fn))
+    """Idempotent, lock-protected registration (replace-by-name, insertion order kept).
+
+    Chaos premortem #4: orchestrators re-register checks while /readyz is being
+    served. Index-based replacement racing an unregister that rebinds the module
+    global could raise IndexError inside a handler thread. All mutation is now
+    in-place under one reentrant lock and readers take an immutable snapshot.
+    """
+    with _REGISTRY_LOCK:
+        for idx, (existing_name, _) in enumerate(_READY_CHECKS):
+            if existing_name == name:
+                _READY_CHECKS[idx] = (name, fn)
+                return
+        _READY_CHECKS.append((name, fn))
 
 
 def unregister_readiness_check(name: str) -> None:
-    global _READY_CHECKS
-    _READY_CHECKS = [item for item in _READY_CHECKS if item[0] != name]
+    with _REGISTRY_LOCK:
+        _READY_CHECKS[:] = [item for item in _READY_CHECKS if item[0] != name]
+
+
+def readiness_checks() -> tuple[tuple[str, Callable[[], None]], ...]:
+    """Immutable snapshot of builtin + registered checks, taken under the lock."""
+    with _REGISTRY_LOCK:
+        return tuple(_BUILTIN_CHECKS) + tuple(_READY_CHECKS)
 
 
 def _check_core_imports() -> None:
@@ -93,7 +108,7 @@ def readyz() -> ProbeResult:
     """Readiness. Fail-closed: any failing check removes us from the pool."""
     checks: dict[str, str] = {}
     healthy = True
-    for name, fn in _BUILTIN_CHECKS + _READY_CHECKS:
+    for name, fn in readiness_checks():
         try:
             fn()
             checks[name] = "ok"
