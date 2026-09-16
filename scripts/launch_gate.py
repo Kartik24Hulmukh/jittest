@@ -78,6 +78,11 @@ def _run(cmd: list[str], timeout: int = 1800) -> tuple[int, str]:
 
 def gate_ruff() -> dict:
     code, out = _run([sys.executable, "-m", "ruff", "check", "src", "tests", "scripts", "eval"])
+    if code == 1 and "No module named ruff" in out:
+        # Infrastructure failure, not a source regression: fail loudly and
+        # distinctly so a missing tool can never masquerade as a lint FAIL.
+        return {"ok": False, "tool_missing": "ruff",
+                "detail": ["ruff is not installed; this is TOOL_MISSING, not a lint failure"]}
     return {"ok": code == 0, "detail": out.strip().splitlines()[-1:] if out else []}
 
 
@@ -184,6 +189,12 @@ def gate_tests(full: bool) -> dict:
             return {"ok": False, "mode": "focused", "missing_suites": missing}
         cmd += FOCUSED_SUITES
     code, out = _run(cmd, timeout=3600)
+    if "No module named pytest" in out:
+        # Infrastructure failure, not a test regression: an absent test runner
+        # is TOOL_MISSING, never an ordinary FAIL/NO_GO.
+        return {"ok": False, "mode": "full" if full else "focused",
+                "tool_missing": "pytest",
+                "summary": ["pytest is not installed; this is TOOL_MISSING, not a test failure"]}
     summary = [ln for ln in out.strip().splitlines() if "passed" in ln or "failed" in ln]
     return {"ok": code == 0, "mode": "full" if full else "focused", "summary": summary[-1:]}
 
@@ -194,8 +205,14 @@ def derive_ga_ready(blockers: list[dict]) -> bool:
 
 def build_report(gates: dict, blockers: list[dict]) -> dict:
     all_ok = bool(gates) and all(g.get("ok") is True for g in gates.values())
+    missing_tools = sorted(
+        {g["tool_missing"] for g in gates.values() if g.get("tool_missing")}
+    )
     ga_ready = derive_ga_ready(blockers)
-    if not all_ok:
+    if missing_tools:
+        # Distinct from NO_GO: the source tree may be fine, the toolchain is not.
+        decision = "NO_GO_TOOL_MISSING"
+    elif not all_ok:
         decision = "NO_GO"
     elif ga_ready:
         decision = "GO_GA"
@@ -208,6 +225,7 @@ def build_report(gates: dict, blockers: list[dict]) -> dict:
         "ga_blockers": blockers,
         "ga_ready": ga_ready,
         "decision": decision,
+        "tool_missing": missing_tools,
     }
     stable["digest"] = hashlib.sha256(canonical_json(stable).encode("utf-8")).hexdigest()
     return stable
@@ -238,11 +256,16 @@ def main(argv: list[str] | None = None) -> int:
     report["volatile"] = {"elapsed_s": round(time.time() - started, 1), "python": sys.version}
 
     for name, gate in gates.items():
-        print(f"  [{'ok  ' if gate['ok'] else 'FAIL'}] {name}")
+        if gate.get("tool_missing"):
+            print(f"  [TOOL_MISSING:{gate['tool_missing']}] {name}")
+        else:
+            print(f"  [{'ok  ' if gate['ok'] else 'FAIL'}] {name}")
     print(f"decision: {report['decision']}  ga_ready: {report['ga_ready']}")
     print(f"digest:   {report['digest']}")
     if args.json:
         args.json.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    if report["decision"] == "NO_GO_TOOL_MISSING":
+        return 2
     return 0 if report["decision"] != "NO_GO" else 1
 
 
