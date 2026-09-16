@@ -207,5 +207,67 @@ class FailClosedLaunchEvidence(unittest.TestCase):
         tests.assert_not_called()
 
 
+
+class ToolMissingIsDistinctFromSourceFailure(unittest.TestCase):
+    def test_missing_ruff_is_tool_missing_not_lint_fail(self):
+        with patch.object(launch_gate, "_run", return_value=(1, "No module named ruff\n")):
+            result = launch_gate.gate_ruff()
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["tool_missing"], "ruff")
+
+    def test_real_lint_failure_is_not_tool_missing(self):
+        with patch.object(launch_gate, "_run", return_value=(1, "src/x.py:1: E501 line too long")):
+            result = launch_gate.gate_ruff()
+        self.assertFalse(result["ok"])
+        self.assertNotIn("tool_missing", result)
+
+    def test_missing_pytest_is_tool_missing_not_test_fail(self):
+        with patch.object(launch_gate, "_run", return_value=(1, "No module named pytest")):
+            result = launch_gate.gate_tests(False)
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["tool_missing"], "pytest")
+
+    def test_real_test_failure_is_not_tool_missing(self):
+        with patch.object(
+            launch_gate, "_run", return_value=(1, "1 failed, 10 passed in 3.00s")
+        ):
+            result = launch_gate.gate_tests(True)
+        self.assertFalse(result["ok"])
+        self.assertNotIn("tool_missing", result)
+
+    def test_report_decision_distinguishes_tool_missing_from_no_go(self):
+        tool_missing = {"ruff": {"ok": False, "tool_missing": "ruff"}, "t": {"ok": True}}
+        report = launch_gate.build_report(tool_missing, launch_gate.GA_BLOCKERS)
+        self.assertEqual(report["decision"], "NO_GO_TOOL_MISSING")
+        self.assertEqual(report["tool_missing"], ["ruff"])
+        # A genuine source failure with tools present stays plain NO_GO.
+        src_fail = {"ruff": {"ok": False}, "t": {"ok": True}}
+        self.assertEqual(
+            launch_gate.build_report(src_fail, launch_gate.GA_BLOCKERS)["decision"], "NO_GO"
+        )
+        self.assertEqual(
+            launch_gate.build_report(src_fail, launch_gate.GA_BLOCKERS)["tool_missing"], []
+        )
+
+    def test_tool_missing_exit_code_is_2(self):
+        with (
+            patch.object(launch_gate, "gate_ruff",
+                         return_value={"ok": False, "tool_missing": "ruff"}),
+            patch.object(launch_gate, "gate_script", return_value={"ok": True}),
+            patch.object(launch_gate, "gate_receipts", return_value={"ok": True}),
+            patch.object(launch_gate, "gate_soak_evidence", return_value={"ok": True}),
+            patch.object(launch_gate, "gate_tests", return_value={"ok": True}),
+        ):
+            self.assertEqual(launch_gate.main([]), 2)
+
+    def test_tool_missing_gate_sets_stay_deterministic_across_key_order(self):
+        g1 = {"a": {"ok": False, "tool_missing": "ruff"}, "b": {"ok": False, "tool_missing": "pytest"}}
+        g2 = {"b": {"ok": False, "tool_missing": "pytest"}, "a": {"ok": False, "tool_missing": "ruff"}}
+        r1 = launch_gate.build_report(g1, [])
+        r2 = launch_gate.build_report(g2, [])
+        self.assertEqual(r1["digest"], r2["digest"])
+        self.assertEqual(r1["tool_missing"], ["pytest", "ruff"])
+
+
 if __name__ == "__main__":
     unittest.main()
