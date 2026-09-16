@@ -5,6 +5,7 @@ tests. Every test here is designed to fail loudly if the production surface
 regresses determinism, leaks unstructured output, or panics under load.
 """
 
+import contextlib
 import io
 import json
 import threading
@@ -79,6 +80,87 @@ class ProbeServerTests(unittest.TestCase):
         finally:
             server.shutdown()
             server.server_close()
+
+
+class ProbeServerChaosTests(unittest.TestCase):
+    """Found by a human-style chaos run on 2026-09-16 (garbage bytes, client
+    drops, 100 concurrent probers). Each case was a real traceback or a real
+    latency cliff before the fix; keep them failing-loud if they regress."""
+
+    def _server(self):
+        server, _ = probes.serve("127.0.0.1", 0, background=True)
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        return server, server.server_address[1]
+
+    def _get(self, port, path):
+        try:
+            with urllib.request.urlopen(f"http://127.0.0.1:{port}{path}", timeout=5) as resp:
+                return resp.status
+        except urllib.error.HTTPError as err:
+            return err.code
+
+    def test_listen_backlog_sized_for_orchestrator_bursts(self):
+        # stdlib default is 5: at 100 concurrent probers the kernel drops SYNs
+        # and clients retransmit after ~1s (observed P99 1.4s, 17 transport errors).
+        server, _ = self._server()
+        self.assertGreaterEqual(server.request_queue_size, 128)
+        self.assertTrue(server.daemon_threads)
+
+    def test_malformed_request_line_does_not_crash_handler_or_logger(self):
+        import socket
+        import sys
+        _, port = self._server()
+        captured = io.StringIO()
+        real_stderr = sys.stderr
+        sys.stderr = captured
+        try:
+            for payload in [b"GARBAGE\r\n\r\n", b"\x00" * 512, b"GET\r\n\r\n"]:
+                with socket.create_connection(("127.0.0.1", port), timeout=2) as sock:
+                    sock.sendall(payload)
+                    sock.settimeout(2)
+                    with contextlib.suppress(OSError):
+                        sock.recv(4096)
+            # The server must still be serving real traffic afterwards.
+            self.assertEqual(self._get(port, "/healthz"), 200)
+        finally:
+            sys.stderr = real_stderr
+        self.assertNotIn("Traceback", captured.getvalue())
+        self.assertNotIn("AttributeError", captured.getvalue())
+
+    def test_client_disconnect_mid_response_is_not_a_server_fault(self):
+        import socket
+        import sys
+        _, port = self._server()
+        captured = io.StringIO()
+        real_stderr = sys.stderr
+        sys.stderr = captured
+        try:
+            for _ in range(20):
+                sock = socket.create_connection(("127.0.0.1", port), timeout=2)
+                sock.sendall(b"GET /readyz HTTP/1.1\r\nHost: x\r\n\r\n")
+                sock.close()  # vanish before the response is written
+            self.assertEqual(self._get(port, "/readyz"), 200)
+        finally:
+            sys.stderr = real_stderr
+        self.assertNotIn("BrokenPipeError", captured.getvalue())
+        self.assertNotIn("Traceback", captured.getvalue())
+
+    def test_hundred_concurrent_probers_zero_transport_errors(self):
+        _, port = self._server()
+        errors = []
+
+        def prober(i):
+            try:
+                return self._get(port, "/readyz" if i % 2 else "/healthz")
+            except Exception as exc:  # transport-level failure, not an HTTP status
+                errors.append(repr(exc))
+                return None
+
+        with ThreadPoolExecutor(max_workers=100) as pool:
+            codes = list(pool.map(prober, range(400)))
+        self.assertEqual(errors, [])
+        self.assertEqual(set(codes), {200})
 
 
 class StructuredLoggingTests(unittest.TestCase):

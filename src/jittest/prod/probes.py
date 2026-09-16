@@ -104,22 +104,50 @@ def build_info() -> dict:
     }
 
 
+class _ProbeServer(ThreadingHTTPServer):
+    """Loopback probe server sized for orchestrator bursts.
+
+    The stdlib default listen backlog is 5. Under 100 concurrent probers that
+    overflows, the kernel drops SYNs and clients retransmit after ~1s, which
+    showed up in chaos runs as a 1.4s P99 with transport errors. A deep
+    backlog keeps accept latency flat; ``daemon_threads`` keeps shutdown clean.
+    """
+
+    request_queue_size = 1024
+    daemon_threads = True
+    allow_reuse_address = True
+
+
+_CLIENT_GONE = (BrokenPipeError, ConnectionResetError, ConnectionAbortedError, TimeoutError)
+
+
 class _Handler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
     def log_message(self, fmt, *args):  # structured logging only
         from .logging import log_event
-        route = self.path.split("?", 1)[0]
+        # ``path`` is unset when the request line itself was malformed and the
+        # stdlib calls send_error before parsing finished (chaos: garbage bytes).
+        route = str(getattr(self, "path", "") or "").split("?", 1)[0]
         route = route if route in ("/healthz", "/readyz", "/buildinfo") else "unmatched"
         log_event("info", "http_request", route=route)
 
+    def handle(self):  # a client that vanishes mid-request is not a server fault
+        try:
+            super().handle()
+        except _CLIENT_GONE:
+            self.close_connection = True
+
     def _respond(self, code: int, body: str) -> None:
         raw = body.encode("utf-8")
-        self.send_response(code)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(raw)))
-        self.end_headers()
-        self.wfile.write(raw)
+        try:
+            self.send_response(code)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(raw)))
+            self.end_headers()
+            self.wfile.write(raw)
+        except _CLIENT_GONE:
+            self.close_connection = True
 
     def do_GET(self):  # noqa: N802
         route = self.path.split("?")[0].rstrip("/") or "/"
@@ -137,8 +165,7 @@ class _Handler(BaseHTTPRequestHandler):
 
 def serve(host: str = "127.0.0.1", port: int = 8081, background: bool = False):
     """Development-only server; use bounded WSGI ProbeApp in production."""
-    server = ThreadingHTTPServer((host, port), _Handler)
-    server.daemon_threads = True
+    server = _ProbeServer((host, port), _Handler)
     if background:
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
