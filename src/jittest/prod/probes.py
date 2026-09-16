@@ -54,7 +54,16 @@ _READY_CHECKS: list[tuple[str, Callable[[], None]]] = []
 
 
 def register_readiness_check(name: str, fn: Callable[[], None]) -> None:
+    for idx, (existing_name, _) in enumerate(_READY_CHECKS):
+        if existing_name == name:
+            _READY_CHECKS[idx] = (name, fn)
+            return
     _READY_CHECKS.append((name, fn))
+
+
+def unregister_readiness_check(name: str) -> None:
+    global _READY_CHECKS
+    _READY_CHECKS = [item for item in _READY_CHECKS if item[0] != name]
 
 
 def _check_core_imports() -> None:
@@ -143,6 +152,12 @@ class _Handler(BaseHTTPRequestHandler):
     def handle(self):  # a client that vanishes mid-request is not a server fault
         try:
             super().handle()
+        except _CLIENT_GONE:
+            self.close_connection = True
+
+    def finish(self):  # guard wfile flush against client-gone RST / broken pipe
+        try:
+            super().finish()
         except _CLIENT_GONE:
             self.close_connection = True
 
