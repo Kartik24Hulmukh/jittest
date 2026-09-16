@@ -115,6 +115,8 @@ PERSONAS = [
 # Network conditions a real client sits behind. Each changes the bytes-on-wire
 # timeline, not just a label: direct, a slow uplink, a half-close after the
 # request, and a mid-request RST from an impatient browser/proxy.
+CLIENT_ABORT_ERRORS = (ConnectionResetError, ConnectionAbortedError, BrokenPipeError)
+
 NETWORKS = ["direct", "slow_uplink", "half_close", "rst_midway"]
 
 # Header profiles seen from real edges: bare k8s probes, browsers with cookies,
@@ -353,6 +355,14 @@ def main(argv=None) -> int:
                 status, ms = _execute_scenario(scenario, host, port, rng)
                 lc[status] += 1
                 ll.append(ms)
+            except CLIENT_ABORT_ERRORS:
+                # Peer-initiated teardown of a connection this scenario itself
+                # sabotaged (RST-midway, half-close). Linux surfaces this as an
+                # empty read (status 0); BSD/Winsock raise ConnectionReset/
+                # ConnectionAborted/BrokenPipe. Classify identically on every
+                # platform so the pass/fail gate is OS-independent. Refused
+                # connections and timeouts remain fatal transport errors.
+                lc[0] += 1
             except OSError as exc:
                 le.append(type(exc).__name__)
             progress.tick()
