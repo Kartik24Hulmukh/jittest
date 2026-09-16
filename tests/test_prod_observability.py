@@ -162,6 +162,69 @@ class ProbeServerChaosTests(unittest.TestCase):
         self.assertEqual(errors, [])
         self.assertEqual(set(codes), {200})
 
+    def test_head_is_first_class_for_load_balancers_and_uptime_monitors(self):
+        # Found by human-style curl testing: HEAD /readyz returned a stdlib HTML
+        # 501 page, which any HEAD-based uptime monitor reads as "service down".
+        _, port = self._server()
+        req = urllib.request.Request(f"http://127.0.0.1:{port}/readyz", method="HEAD")
+        with urllib.request.urlopen(req, timeout=5) as response:
+            self.assertEqual(response.status, 200)
+            self.assertEqual(response.headers["Content-Type"], "application/json")
+            self.assertEqual(response.headers["Cache-Control"], "no-store")
+            self.assertGreater(int(response.headers["Content-Length"]), 0)
+            self.assertEqual(response.read(), b"")  # headers only, per RFC 9110
+
+    def test_unsupported_methods_return_json_405_with_allow_header(self):
+        # Contract parity with the production WSGI ProbeApp (405 + Allow), not
+        # the stdlib HTML 501 that leaks `Server: BaseHTTP/x Python/y`.
+        _, port = self._server()
+        for method in ("POST", "PUT", "DELETE", "PATCH", "OPTIONS"):
+            req = urllib.request.Request(f"http://127.0.0.1:{port}/healthz", method=method, data=b"" if method != "OPTIONS" else None)
+            with self.assertRaises(urllib.error.HTTPError) as ctx:
+                urllib.request.urlopen(req, timeout=5)
+            self.assertEqual(ctx.exception.code, 405, method)
+            self.assertEqual(ctx.exception.headers["Allow"], "GET, HEAD")
+            self.assertEqual(ctx.exception.headers["Content-Type"], "application/json")
+            self.assertEqual(json.loads(ctx.exception.read().decode()), {"status": "method_not_allowed"})
+        self.assertEqual(self._get(port, "/healthz"), 200)  # still serving afterwards
+
+    def test_server_header_never_leaks_interpreter_or_stdlib_version(self):
+        import socket
+        _, port = self._server()
+        for raw in (b"GET /healthz HTTP/1.1\r\nHost: x\r\n\r\n", b"GARBAGE\r\n\r\n"):
+            with socket.create_connection(("127.0.0.1", port), timeout=2) as sock:
+                sock.sendall(raw)
+                sock.settimeout(2)
+                head = sock.recv(4096).decode("latin-1")
+            self.assertNotIn("Python/", head)
+            self.assertNotIn("BaseHTTP", head)
+            self.assertNotIn("<html", head.lower())  # every error is JSON, never HTML
+            # A garbage request line is parsed as HTTP/0.9, which has no headers:
+            # the reply is then the bare JSON body. Either way the payload is JSON.
+            self.assertTrue("application/json" in head or json.loads(head.strip()), head)
+
+    def test_incomplete_request_cannot_pin_a_handler_thread_forever(self):
+        # Slowloris: 494/2000 header-less payloads hung until the *client* gave up
+        # in the 20k-request chaos run, because the stdlib handler has no read
+        # timeout. The server must close an idle, incomplete request itself.
+        import socket
+        import time
+        original = probes._Handler.timeout
+        probes._Handler.timeout = 0.5
+        try:
+            _, port = self._server()
+            started = time.perf_counter()
+            with socket.create_connection(("127.0.0.1", port), timeout=5) as sock:
+                sock.sendall(b"\x00" * 700)  # no CRLF: request line never completes
+                sock.settimeout(5)
+                data = sock.recv(4096)  # server closes (or errors out) on its own
+            self.assertLess(time.perf_counter() - started, 4.0)
+            self.assertNotIn(b"<html", data.lower())
+            self.assertEqual(self._get(port, "/healthz"), 200)
+        finally:
+            probes._Handler.timeout = original
+        self.assertGreaterEqual(original, 1.0)  # production default is a real bound
+
 
 class StructuredLoggingTests(unittest.TestCase):
     def test_every_line_is_one_json_object(self):
