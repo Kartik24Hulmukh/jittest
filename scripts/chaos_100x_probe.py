@@ -17,7 +17,6 @@ import io
 import itertools
 import json
 import random
-import resource
 import socket
 import statistics
 import struct
@@ -25,6 +24,11 @@ import sys
 import threading
 import time
 from collections import Counter
+
+try:  # POSIX only; Windows CI imports this module through the test suite
+    import resource
+except ImportError:  # pragma: no cover
+    resource = None
 
 from jittest.prod import logging as prod_logging
 from jittest.prod import probes
@@ -284,6 +288,13 @@ def _probe_until(host, port, raw, want_status: int, deadline_s: float) -> float 
     return None
 
 
+def _rss_kb() -> int:
+    """Peak RSS in KiB; 0 where getrusage is unavailable (Windows)."""
+    if resource is None:
+        return 0
+    return int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--clients", type=int, default=100)
@@ -293,7 +304,7 @@ def main(argv=None) -> int:
     ap.add_argument("--recovery-slo-ms", type=float, default=200.0)
     args = ap.parse_args(argv)
 
-    rss_floor = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    rss_floor = _rss_kb()
 
     stderr_buf = io.StringIO()
     real_stderr = sys.stderr
@@ -403,7 +414,7 @@ def main(argv=None) -> int:
     prod_logging._DEFAULT = saved_logger
     lats.sort()
 
-    rss_ceiling = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    rss_ceiling = _rss_kb()
     traceback_count = stderr_buf.getvalue().count("Traceback")
 
     def pct(p):
