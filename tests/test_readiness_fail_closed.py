@@ -117,3 +117,53 @@ def test_cli_real_version_conflict_emits_signed_refusal(tmp_path, monkeypatch, c
     assert receipt["proven_catch"] is False
     assert "PRIVATE_OUTPUT" not in artifact.read_text()
     assert verify_receipt(receipt).signature_valid is True
+
+
+# --- Issue #198 follow-up: PEP 621 manifests must not silently pass through ---
+
+
+def _pyproject(tmp_path, body):
+    (tmp_path / "pyproject.toml").write_text(body, encoding="utf-8")
+    return tmp_path
+
+
+@pytest.mark.parametrize("body", [
+    '[project]\nname = "cand"\ndependencies = ["flask>=3.0.0"]\n',
+    '[project]\nname = "cand"\ndynamic = ["dependencies"]\n',
+    '[project]\nname = "cand"\n[project.optional-dependencies]\ndev = ["pytest"]\n',
+])
+def test_pyproject_dependencies_refuse_when_required(tmp_path, monkeypatch, body):
+    monkeypatch.setenv("JITTEST_READINESS", "required")
+    with pytest.raises(VerifyRefusalError) as exc:
+        _readiness_block(_pyproject(tmp_path, body), {"resolved_versions": []})
+    assert exc.value.reason.code == "environment_not_ready"
+    assert exc.value.reason.message == "unsupported_manifest:pyproject.toml"
+
+
+def test_unparsable_pyproject_refuses_when_required(tmp_path, monkeypatch):
+    monkeypatch.setenv("JITTEST_READINESS", "required")
+    with pytest.raises(VerifyRefusalError) as exc:
+        _readiness_block(_pyproject(tmp_path, 'not = [toml'), {"resolved_versions": []})
+    assert exc.value.reason.message == "unparsable_manifest:pyproject.toml"
+
+
+def test_pyproject_without_dependencies_is_a_pass_through(tmp_path, monkeypatch):
+    monkeypatch.setenv("JITTEST_READINESS", "required")
+    body = '[build-system]\nrequires = ["setuptools"]\n[project]\nname = "cand"\ndependencies = []\n'
+    assert _readiness_block(_pyproject(tmp_path, body), {"resolved_versions": []}) is None
+
+
+def test_pyproject_dependencies_report_without_refusing_when_optional(tmp_path, monkeypatch):
+    monkeypatch.setenv("JITTEST_READINESS", "optional")
+    body = '[project]\nname = "cand"\ndependencies = ["flask>=3.0.0"]\n'
+    block = _readiness_block(_pyproject(tmp_path, body), {"resolved_versions": []})
+    assert block == {"evaluated": False, "mode": "optional",
+                     "reason": "unsupported_manifest:pyproject.toml"}
+
+
+def test_requirements_txt_still_wins_over_pyproject(tmp_path, monkeypatch):
+    monkeypatch.setenv("JITTEST_READINESS", "required")
+    (tmp_path / "requirements.txt").write_text("flask==3.0.0", encoding="utf-8")
+    body = '[project]\nname = "cand"\ndependencies = ["flask>=3.0.0"]\n'
+    block = _readiness_block(_pyproject(tmp_path, body), {"resolved_versions": ["flask==3.0.0"]})
+    assert block["evaluated"] is True and block["source"] == "requirements.txt" and block["ok"] is True

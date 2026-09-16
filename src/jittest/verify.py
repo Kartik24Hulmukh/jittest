@@ -582,6 +582,43 @@ def _read_readiness_file(path: Path) -> str | None:
             os.close(fd)
 
 
+def _unsupported_manifest_reason(workdir: Path) -> str | None:
+    """Detect declared dependencies this evaluator cannot honour.
+
+    Issue #198 follow-up: a project that declares its runtime dependencies in
+    ``pyproject.toml`` (PEP 621) used to be indistinguishable from a project
+    with no manifest at all, so readiness silently passed through. Under
+    ``JITTEST_READINESS=required`` that is a silent trust hole, so such trees
+    now fail closed instead.
+    """
+    import tomllib
+
+    text = _read_readiness_file(workdir / "pyproject.toml")
+    if text is None:
+        return None
+    try:
+        data = tomllib.loads(text)
+    except Exception:
+        return "unparsable_manifest:pyproject.toml"
+    project = data.get("project")
+    if not isinstance(project, dict):
+        return None
+    dynamic = project.get("dynamic")
+    if isinstance(dynamic, list) and "dependencies" in dynamic:
+        return "unsupported_manifest:pyproject.toml"
+    deps = project.get("dependencies")
+    if deps is not None and not isinstance(deps, list):
+        return "unparsable_manifest:pyproject.toml"
+    if isinstance(deps, list) and deps:
+        return "unsupported_manifest:pyproject.toml"
+    extras = project.get("optional-dependencies")
+    if extras is not None and not isinstance(extras, dict):
+        return "unparsable_manifest:pyproject.toml"
+    if isinstance(extras, dict) and any(group for group in extras.values()):
+        return "unsupported_manifest:pyproject.toml"
+    return None
+
+
 def _readiness_block(workdir: Path | str, env_info: dict[str, Any] | None) -> dict[str, Any] | None:
     """Conservative version-aware check, not a complete resolver/ABI proof."""
     mode = _p0_mode(READINESS_ENV)
@@ -597,6 +634,9 @@ def _readiness_block(workdir: Path | str, env_info: dict[str, Any] | None) -> di
                 source = wd / name
                 break
         if source is None or text is None:
+            unsupported = _unsupported_manifest_reason(wd)
+            if unsupported is not None:
+                return _p0_error(mode, readiness=True, reason=unsupported)
             return None
         lock_text = _read_readiness_file(wd / "requirements.lock")
         # Enforce only a conservative, explicit subset. The legacy evaluator is
@@ -634,6 +674,8 @@ def _readiness_block(workdir: Path | str, env_info: dict[str, Any] | None) -> di
                 raise ValueError("conflicting_inventory_versions")
             target[name] = version
         report = evaluate_readiness(text, target, lock_text=lock_text)
+    except VerifyRefusalError:
+        raise  # structured fail-closed refusals keep their own reason
     except Exception as exc:
         return _p0_error(mode, readiness=True, reason=f"readiness_error:{type(exc).__name__}")
     block = {
