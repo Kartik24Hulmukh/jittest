@@ -18,6 +18,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from .proc import run_bounded
+
 try:
     import tomllib
 except ImportError:
@@ -646,13 +648,7 @@ def provision_environment(
                 subprocess.run([uv_exe, "python", "install", target_py], capture_output=True, timeout=5)
 
         try:
-            res_uv_venv = subprocess.run(
-                [uv_exe, "venv", "--python", py_for_venv, str(venv_dir)],
-                capture_output=True,
-                text=True,
-                errors="replace",
-                timeout=30,
-            )
+            res_uv_venv = run_bounded([uv_exe, "venv", "--python", py_for_venv, str(venv_dir)], timeout=30)
             if res_uv_venv.returncode == 0:
                 venv_created = True
         except subprocess.TimeoutExpired as exc:
@@ -662,14 +658,7 @@ def provision_environment(
 
     if not venv_created:
         try:
-            subprocess.run(
-                [sys.executable, "-m", "venv", str(venv_dir)],
-                check=True,
-                capture_output=True,
-                text=True,
-                errors="replace",
-                timeout=120,
-            )
+            run_bounded([sys.executable, "-m", "venv", str(venv_dir)], timeout=120, check=True)
         except subprocess.TimeoutExpired as exc:
             raise EnvSetupError(f"env_build_timeout: venv creation timed out at {venv_dir}: {exc}") from exc
         except Exception as exc:
@@ -693,15 +682,10 @@ def provision_environment(
         if sbx_plan is not None and getattr(sbx_plan, "backend", "none") in ("docker", "podman", "bubblewrap"):
             cmd, inst_env = sandbox.wrap(cmd, worktree, inst_env, sbx_plan)
 
-        return subprocess.run(
-            cmd,
-            cwd=str(worktree),
-            env=inst_env,
-            capture_output=True,
-            text=True,
-            errors="replace",
-            timeout=timeout,
-        )
+        # Hard-bounded: stdlib subprocess.run(timeout=) can wedge forever in its
+        # post-kill communicate() when a build backend leaves grandchildren
+        # holding the inherited pipes (observed on Windows/py3.13 CI).
+        return run_bounded(cmd, cwd=worktree, env=inst_env, timeout=timeout)
 
     # 1. Discover requirements files and extras
     discovered_pkgs, req_files = _discover_extras_and_requirements(worktree)

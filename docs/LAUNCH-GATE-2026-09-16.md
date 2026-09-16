@@ -35,6 +35,11 @@ Shipped: the gate pins this receipt as `KNOWN_REFUSED_RECEIPTS` and asserts it *
 intact signature. The tool's fail-closed behaviour on its own stale evidence is now a regression test.
 Regeneration via `scripts/generate_quadrants.py` remains a tracked follow-up (see the issue opened with this PR).
 
+**Update 2026-09-16 (issue #206 closed):** the receipt was regenerated from a real `verify_test` run against
+the pinned Flask checkout `12e95c93..d3b78fd1` (schema 2.1, base PASS / head PASS, dedicated Ed25519 key,
+`verify-receipt` exit 0 / `semantic_valid: true`). `KNOWN_REFUSED_RECEIPTS` is now empty; the mechanism is
+still unit-tested with a synthetic pin so a future documented refusal stays fail-closed.
+
 ## Council premortem (5 parallel lenses, 2026-09-15)
 | Lens | Failure mode | Mitigation in this PR |
 |---|---|---|

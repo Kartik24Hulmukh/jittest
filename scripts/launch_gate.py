@@ -42,7 +42,6 @@ LAUNCH_WINDOW = "2026-09-16/2026-09-17"
 GA_BLOCKERS = [
     {"issue": 73, "title": "real catch-rate / FPR / USD-per-PR evaluation"},
     {"issue": 198, "title": "Option C public-path wiring + trusted runtime inventory"},
-    {"issue": 206, "title": "regenerate semantically invalid non_discriminating receipt"},
 ]
 
 FOCUSED_SUITES = [
@@ -61,14 +60,12 @@ FOCUSED_SUITES = [
 
 RECEIPT_DIRS = ["docs/evidence/quadrants", "docs/evidence/pr"]
 
-# Receipts the product is *expected* to refuse. Found by this gate on 2026-09-15:
-# the legacy 2.0 showcase receipt records base_execution NOTRUN yet claims
-# non_discriminating (which requires PASS on both revisions). jittest correctly
-# refuses it (exit 5, semantic_invalid). We pin that fail-closed behaviour here
-# instead of hiding the receipt; regeneration is tracked in the launch doc.
-KNOWN_REFUSED_RECEIPTS = {
-    "docs/evidence/quadrants/non_discriminating_evidence.json": "semantic_invalid",
-}
+# Receipts the product is *expected* to refuse (path -> refusal code). Empty since
+# 2026-09-16: the legacy 2.0 showcase receipt (base_execution NOTRUN yet claiming
+# non_discriminating) was regenerated against real Flask base/head as a schema
+# 2.1 receipt (issue #206). Keep the mechanism so a future documented refusal is
+# pinned as fail-closed proof rather than hidden.
+KNOWN_REFUSED_RECEIPTS: dict[str, str] = {}
 SOAK_EVIDENCE = "docs/evidence/memory-soak-20260916.json"
 
 
