@@ -9,6 +9,7 @@ readiness dependency is failed and recovered mid-run.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import random
 import socket
@@ -113,10 +114,8 @@ def main(argv=None) -> int:
                 pass
         time.sleep(3)
         for s in socks:
-            try:
+            with contextlib.suppress(OSError):
                 s.close()
-            except OSError:
-                pass
 
     t0 = time.perf_counter()
     threads = [threading.Thread(target=worker, args=(i,)) for i in range(args.clients)]
