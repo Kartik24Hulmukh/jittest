@@ -35,9 +35,8 @@ _ROOT = Path(__file__).resolve().parents[1]
 if str(_ROOT / 'src') not in sys.path:
     sys.path.insert(0, str(_ROOT / 'src'))
 
-from jittest.prod import probes, tracing  # noqa: E402
-
 from jittest import proc  # noqa: E402
+from jittest.prod import probes, tracing  # noqa: E402
 
 PERSONA_KINDS = (
     'impatient_refresh', 'curl_head', 'poster', 'typo_route', 'garbage_bytes',
