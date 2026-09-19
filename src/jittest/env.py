@@ -15,6 +15,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -29,6 +30,71 @@ except ImportError:
 __all__ = ["provision_environment", "get_venv_python", "ensure_worktree_fixes", "EnvSetupError", "_scrubbed_installer_env"]
 
 logger = logging.getLogger("jittest.env")
+
+# Whole-provisioning wall-clock budget.  Individual installer steps used to
+# carry independent 60-90 s caps that summed to ~300 s, so a slow index or a
+# native build on a contended runner exhausted the *caller's* deadline first
+# and surfaced as an untyped kill instead of a typed EnvSetupError.
+PROVISION_BUDGET_S: float = float(os.environ.get("JITTEST_PROVISION_BUDGET_S", "240"))
+
+
+class _ProvisionDeadline:
+    """Monotonic deadline shared by every subprocess spawned during one provisioning.
+
+    ``bounded(requested)`` returns the timeout to hand to ``run_bounded``: never
+    more than requested, never more than what is left of the budget.  When the
+    budget is gone it raises a typed ``EnvSetupError`` *before* spawning, so a
+    provisioning never overshoots its budget by a whole extra step.
+    """
+
+    __slots__ = ("budget_s", "_end", "_clock")
+
+    def __init__(self, budget_s: float, clock: Any = time.perf_counter) -> None:
+        self.budget_s = float(budget_s)
+        self._clock = clock
+        self._end = clock() + self.budget_s
+
+    def remaining(self) -> float:
+        return self._end - self._clock()
+
+    def bounded(self, requested: float, step: str = "") -> float:
+        remaining = self.remaining()
+        if remaining <= 0.0:
+            raise EnvSetupError(
+                f"env_build_timeout: provisioning budget of {self.budget_s:.0f}s exhausted"
+                + (f" before step {step!r}" if step else "")
+            )
+        return max(1.0, min(float(requested), remaining))
+
+
+def env_cache_identity(
+    *,
+    repo: Path | str,
+    commit_sha: str,
+    target_py: str,
+    cutoff: str,
+    lockfile_hash: str,
+    needs_editable: bool,
+    uv_present: bool,
+) -> str:
+    """Content-addressed identity of a provisioned environment.
+
+    A venv is fully determined by the interpreter line, the index cutoff *when
+    a resolver actually applies it* (uv only; the pip fallback ignores it) and
+    the bytes of the dependency manifests.  Keying on the commit sha as well
+    made base and head with byte-identical requirements build two venvs, i.e.
+    twice the network installs per verification, which is how the native
+    dependency fixture blew its budget on contended Windows runners.
+
+    Only when the project itself is installed editable does the venv carry a
+    worktree-specific ``.pth``; then the identity must stay per (repo, commit).
+    """
+    applied_cutoff = cutoff if uv_present else ""
+    raw = f"v2:{target_py}:{applied_cutoff}:{lockfile_hash}"
+    if needs_editable:
+        raw += f":{Path(repo).resolve()}:{commit_sha}"
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
+
 
 
 class EnvSetupError(RuntimeError):
@@ -654,8 +720,16 @@ def provision_environment(
             "resolved_versions": [],
             "has_project_dependencies": False,
         }
-    cache_key_raw = f"{repo}:{commit_sha}:{target_py}:{cutoff}:{lockfile_hash}"
-    cache_key = hashlib.sha256(cache_key_raw.encode("utf-8")).hexdigest()[:16]
+    needs_editable = (
+        (worktree / "pyproject.toml").exists()
+        or (worktree / "setup.py").exists()
+        or (worktree / "setup.cfg").exists()
+    )
+    cache_key = env_cache_identity(
+        repo=repo, commit_sha=commit_sha, target_py=target_py, cutoff=cutoff,
+        lockfile_hash=lockfile_hash, needs_editable=needs_editable, uv_present=bool(uv_exe),
+    )
+    deadline = _ProvisionDeadline(PROVISION_BUDGET_S)
 
     cache_root = Path.home() / ".jittest" / "envs" if cache_root is None else Path(cache_root)
 
@@ -708,7 +782,7 @@ def provision_environment(
                 subprocess.run([uv_exe, "python", "install", target_py], capture_output=True, timeout=5)
 
         try:
-            res_uv_venv = run_bounded([uv_exe, "venv", "--python", py_for_venv, str(venv_dir)], timeout=30)
+            res_uv_venv = run_bounded([uv_exe, "venv", "--python", py_for_venv, str(venv_dir)], timeout=deadline.bounded(30, "uv venv"))
             if res_uv_venv.returncode == 0:
                 venv_created = True
         except subprocess.TimeoutExpired as exc:
@@ -718,7 +792,7 @@ def provision_environment(
 
     if not venv_created:
         try:
-            run_bounded([sys.executable, "-m", "venv", str(venv_dir)], timeout=120, check=True)
+            run_bounded([sys.executable, "-m", "venv", str(venv_dir)], timeout=deadline.bounded(120, "venv"), check=True)
         except subprocess.TimeoutExpired as exc:
             raise EnvSetupError(f"env_build_timeout: venv creation timed out at {venv_dir}: {exc}") from exc
         except Exception as exc:
@@ -734,7 +808,14 @@ def provision_environment(
                 cmd.extend(["--exclude-newer", cutoff])
             cmd.extend(args_list)
         else:
-            cmd = [str(pip_exe), "install"] + args_list
+            # --no-input: never block on a credential prompt (a wedge, not an
+            # error).  --prefer-binary: never start a native build when a
+            # wheel exists.  --disable-pip-version-check: one less network
+            # round-trip per invocation.
+            cmd = [
+                str(pip_exe), "install", "--no-input", "--prefer-binary",
+                "--disable-pip-version-check",
+            ] + args_list
 
         from . import sandbox
 
@@ -745,10 +826,10 @@ def provision_environment(
         # Hard-bounded: stdlib subprocess.run(timeout=) can wedge forever in its
         # post-kill communicate() when a build backend leaves grandchildren
         # holding the inherited pipes (observed on Windows/py3.13 CI).
-        return run_bounded(cmd, cwd=worktree, env=inst_env, timeout=timeout)
+        step = " ".join(a for a in args_list if not a.startswith("-"))[:60]
+        return run_bounded(cmd, cwd=worktree, env=inst_env, timeout=deadline.bounded(timeout, step))
 
-    # 1. Discover requirements files and extras
-    discovered_pkgs, req_files = _discover_extras_and_requirements(worktree)
+    # 1. Requirements files and extras were discovered once above for the identity.
 
     # 2. Install requirements files FIRST, unmodified
     for rf in req_files:
