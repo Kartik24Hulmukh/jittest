@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased - harden/jittest-v1-launch (2026-09-19)
+
+### perf
+- `proc.run_bounded` waits on `Popen.wait(timeout=)` instead of a 20 ms `poll()`/`time.sleep` loop; child exit wakes the caller immediately and `src/` no longer carries a polling sleep.
+
+### test
+- `scripts/persona_swarm_100x.py`: deterministic 100-persona human swarm (20 behaviour kinds: impatient refresh, curl HEAD, POST/OPTIONS, typo/unicode/double-slash routes, garbage bytes, slowloris, RST dropouts, oversized headers, HTTP/1.0, pipelining, conflicting readiness writers, trace bursts, malformed scripts, hard timeouts) at 100x concurrency with a JSON benchmark artefact (P50/P95/P99, throughput, RSS floor/ceiling, recovery, panics).
+- `tests/test_persona_swarm_100x.py`: CI-sized swarm, fixed-seed determinism, frozen artefact check, Hypothesis property over erratic probe payloads, `run_bounded` recovery < 200 ms.
+
+### docs
+- `repos.md`: open-source catalog with the integration log; `docs/PREMORTEM-2026-09-19.md`; `docs/evidence/persona-swarm-20260919.json`.
+
 ## Unreleased
 
 - Public verify and Action preplanning now honor maintainer BASE runtime-image
