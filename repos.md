@@ -42,3 +42,10 @@ The dependency-free lane still runs first, without installing any package.
 A separate subprocess regression uses `python -S` to prove discovery succeeds
 even when the developer environment has Hypothesis installed. This repairs
 the import-time decorator failure without adding a runtime dependency.
+
+## PR 224 continuation integrations
+
+CPython subprocess and existing pytest tooling only; no new runtime stack.
+CI stages the real PyYAML 6.0.3 native wheel using existing pip before the
+60-second fixture deadline, and native provisioning runs with both pip/uv
+indexes disabled. This is not a mock or an increased recovery threshold.

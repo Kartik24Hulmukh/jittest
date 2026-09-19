@@ -37,11 +37,17 @@ jobs:
           git config --global user.name "jittest ci"
           git config --global init.defaultBranch main
 
+      - name: Stage real native dependency wheels outside the test deadline
+        # No synthetic package or network retries inside the 60s fixture budget.
+        # Each matrix lane downloads its actual ABI/platform wheel once.
+        run: python -m pip download --only-binary=:all: --dest "${{ runner.temp }}/jittest-wheels" PyYAML==6.0.3
+
       - name: Test with no dependencies at all
         if: (matrix.os == 'ubuntu-latest' && matrix.python == '3.12') || (matrix.os == 'windows-latest' && matrix.python == '3.12')
         env:
           PYTHONUNBUFFERED: "1"
           JITTEST_SANDBOX_BACKEND: none
+          JITTEST_FIXTURE_WHEELHOUSE: ${{ runner.temp }}/jittest-wheels
         run: PYTHONPATH=src python -m unittest discover -s tests -p 'test_*.py' -t . -v
         shell: bash
 
@@ -49,6 +55,7 @@ jobs:
         env:
           PYTHONPATH: src
           JITTEST_SANDBOX_BACKEND: none
+          JITTEST_FIXTURE_WHEELHOUSE: ${{ runner.temp }}/jittest-wheels
         run: |
           pip install pytest pytest-timeout hypothesis
           # Three independent guards, because a wedged *descendant* - not pytest

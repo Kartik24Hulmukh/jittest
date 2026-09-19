@@ -229,23 +229,32 @@ class SevenFixturesTest(unittest.TestCase):
     def test_fixture_native_dependency_provisioning(self):
         """8. Target repository with third-party dependency (PyYAML with C/native extensions)."""
         base_sha = self._commit({
-            "requirements.txt": "pyyaml>=6.0\n",
+            "requirements.txt": "pyyaml==6.0.3\n",
             "config_parser.py": "import yaml\ndef parse_val(raw):\n    return yaml.safe_load(raw).get('val', 0)\n",
             "tests/test_cfg.py": "from config_parser import parse_val\ndef test_parse():\n    assert parse_val('val: 42') == 42\n",
         }, "base with pyyaml")
         head_sha = self._commit({
-            "requirements.txt": "pyyaml>=6.0\n",
+            "requirements.txt": "pyyaml==6.0.3\n",
             "config_parser.py": "import yaml\ndef parse_val(raw):\n    return yaml.safe_load(raw).get('val', 0) + 1\n",  # regression
             "tests/test_cfg.py": "from config_parser import parse_val\ndef test_parse():\n    assert parse_val('val: 42') == 42\n",
         }, "head with regression")
 
-        evidence, exit_code = verify_test(
-            repo_path=self.repo,
-            base_ref=base_sha,
-            head_ref=head_sha,
-            test_file_path=self.repo / "tests" / "test_cfg.py",
-            sandbox_mode="off",
-        )
+        # CI prefetches a real platform wheel, then proves provisioning without
+        # contacting an index. Local runs retain the live-index integration path.
+        wheelhouse = os.environ.get("JITTEST_FIXTURE_WHEELHOUSE")
+        if wheelhouse and not list(Path(wheelhouse).glob("[Pp][Yy][Yy][Aa][Mm][Ll]-6.0.3-*.whl")):
+            self.fail("native dependency wheelhouse is missing PyYAML 6.0.3")
+        installer_env = ({"PIP_NO_INDEX": "1", "PIP_FIND_LINKS": wheelhouse,
+                          "UV_NO_INDEX": "1", "UV_FIND_LINKS": wheelhouse}
+                         if wheelhouse else {})
+        with mock.patch.dict(os.environ, installer_env):
+            evidence, exit_code = verify_test(
+                repo_path=self.repo,
+                base_ref=base_sha,
+                head_ref=head_sha,
+                test_file_path=self.repo / "tests" / "test_cfg.py",
+                sandbox_mode="off",
+            )
         self.assertEqual(evidence["verdict"], VerdictClass.PROVEN_CATCH)
         self.assertEqual(evidence["disposition"], Disposition.CATCHING)
         self.assertTrue(evidence["proven_catch"])
