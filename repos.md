@@ -9,7 +9,7 @@ jittest uses it; **Runtime dep?** is always *no* because `pyproject.toml` keeps
 | 1 | https://github.com/python/cpython (`subprocess`, `http.server`, `tracemalloc`, `threading.excepthook`) | PSF | native waits, probe server, leak + panic detection | `proc.run_bounded` now blocks on `Popen.wait(timeout=)`; swarm captures thread panics via `threading.excepthook` and peaks via `tracemalloc` | stdlib |
 | 2 | https://github.com/pytest-dev/pytest | MIT | unit / integration / E2E runner | `[project.optional-dependencies].dev`; 1211-test suite | dev only |
 | 3 | https://github.com/pytest-dev/pytest-xdist | MIT | 100x-parallel test execution (`-n 8`) to shake out ordering/race bugs | used for the frozen baseline + post-change full run | dev only |
-| 4 | https://github.com/pytest-dev/pytest-timeout | MIT | thread-starvation guard: no test may hang the suite | `--timeout` on every CI run; `@pytest.mark.timeout(120)` on the swarm | dev only |
+| 4 | https://github.com/pytest-dev/pytest-timeout | MIT | thread-starvation guard: no test may hang the suite | `--timeout` on every CI run; subprocess timeouts on process-boundary regressions | dev only |
 | 5 | https://github.com/HypothesisWorks/hypothesis | MPL-2.0 | fixed-seed property testing of erratic payload shapes | `tests/test_persona_swarm_100x.py::test_probe_app_never_raises_and_always_answers_json` (`derandomize=True`, 200 examples); skipped cleanly if absent | dev only |
 | 6 | https://github.com/astral-sh/ruff | MIT | lint + import hygiene gate | `ruff check` clean on every touched file | dev only |
 | 7 | https://github.com/python/mypy | MIT | static typing gate | `[dev]` extra | dev only |
@@ -30,7 +30,15 @@ jittest uses it; **Runtime dep?** is always *no* because `pyproject.toml` keeps
    deliberate sleep (`llm._sleep`, request pacing, injectable for tests).
 2. **pytest-xdist + pytest-timeout** ran the frozen baseline: 1211 passed, 1 skipped,
    202 subtests, 177 s on 8 workers, before any source change.
-3. **hypothesis** added as a soft dev dependency (importorskip) for the erratic-payload
+3. **hypothesis** added as a optional dev dependency (conditional class definition) for the erratic-payload
    property test; the rest of the swarm is stdlib-only so CI without hypothesis stays green.
 4. **locust / vegeta / chaosmonkey** patterns informed the 20 persona kinds and the
    burst/percentile/recovery report shape; no code was vendored.
+
+## Continuation: optional-dependency CI repair
+
+Hypothesis is now declared in the dev extra and installed in the pytest CI lane.
+The dependency-free lane still runs first, without installing any package.
+A separate subprocess regression uses `python -S` to prove discovery succeeds
+even when the developer environment has Hypothesis installed. This repairs
+the import-time decorator failure without adding a runtime dependency.

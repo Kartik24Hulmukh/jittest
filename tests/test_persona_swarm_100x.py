@@ -98,45 +98,46 @@ try:
 except ImportError:  # pragma: no cover - hypothesis is a soft dev dependency
     HealthCheck = given = settings = st = None
 
-_erratic_text = st.text(min_size=0, max_size=64) if st is not None else None
+# Class decorators run before unittest can apply a skip. Do not evaluate
+# Hypothesis strategies or decorators in the dependency-free CI lane.
+if st is not None:
+    _erratic_text = st.text(min_size=0, max_size=64)
 
+    class ProbeAppPropertyTests(unittest.TestCase):
+        @settings(max_examples=200, derandomize=True, deadline=None,
+                  suppress_health_check=[HealthCheck.too_slow])
+        @given(path=st.one_of(_erratic_text, st.sampled_from(['/healthz', '/readyz', '/HEALTHZ', '/healthz/', ''])),
+               method=st.one_of(_erratic_text, st.sampled_from(['GET', 'HEAD', 'POST', 'BREW', ''])),
+               ready=st.booleans(), drain=st.booleans())
+        def test_probe_app_never_raises_and_always_answers_json(self, path, method, ready, drain):
+            app = ProbeApp()
+            app.set_ready(ready)
+            if drain:
+                app.drain()
+            captured: dict = {}
 
-@unittest.skipIf(st is None, 'hypothesis not installed')
-class ProbeAppPropertyTests(unittest.TestCase):
-    @settings(max_examples=200, derandomize=True, deadline=None,
-              suppress_health_check=[HealthCheck.too_slow])
-    @given(path=st.one_of(_erratic_text, st.sampled_from(['/healthz', '/readyz', '/HEALTHZ', '/healthz/', ''])),
-           method=st.one_of(_erratic_text, st.sampled_from(['GET', 'HEAD', 'POST', 'BREW', ''])),
-           ready=st.booleans(), drain=st.booleans())
-    def test_probe_app_never_raises_and_always_answers_json(self, path, method, ready, drain):
-        app = ProbeApp()
-        app.set_ready(ready)
-        if drain:
-            app.drain()
-        captured: dict = {}
+            def start_response(status, headers):
+                captured['status'] = status
+                captured['headers'] = dict(headers)
 
-        def start_response(status, headers):
-            captured['status'] = status
-            captured['headers'] = dict(headers)
-
-        body = b''.join(app({'PATH_INFO': path, 'REQUEST_METHOD': method}, start_response))
-        status = int(captured['status'][:3])
-        assert status in (200, 404, 405, 503)
-        assert captured['headers']['Content-Type'] == 'application/json'
-        declared = int(captured['headers']['Content-Length'])
-        if method == 'HEAD':  # RFC 9110 9.3.2: same headers as GET, no body
-            assert body == b'' and declared > 0
-            payload = None
-        else:
-            assert declared == len(body)
-            payload = json.loads(body)
-        if path not in ('/healthz', '/readyz'):
-            assert status == 404
-        elif method not in ('GET', 'HEAD'):
-            assert status == 405 and captured['headers']['Allow'] == 'GET, HEAD'
-        elif path == '/healthz':
-            assert status == 200 and payload in (None, {'status': 'alive'})
-        else:
-            expect_ready = ready and not drain
-            assert (status == 200) is expect_ready
-            assert payload is None or payload['status'] == ('ready' if expect_ready else 'not_ready')
+            body = b''.join(app({'PATH_INFO': path, 'REQUEST_METHOD': method}, start_response))
+            status = int(captured['status'][:3])
+            assert status in (200, 404, 405, 503)
+            assert captured['headers']['Content-Type'] == 'application/json'
+            declared = int(captured['headers']['Content-Length'])
+            if method == 'HEAD':  # RFC 9110 9.3.2: same headers as GET, no body
+                assert body == b'' and declared > 0
+                payload = None
+            else:
+                assert declared == len(body)
+                payload = json.loads(body)
+            if path not in ('/healthz', '/readyz'):
+                assert status == 404
+            elif method not in ('GET', 'HEAD'):
+                assert status == 405 and captured['headers']['Allow'] == 'GET, HEAD'
+            elif path == '/healthz':
+                assert status == 200 and payload in (None, {'status': 'alive'})
+            else:
+                expect_ready = ready and not drain
+                assert (status == 200) is expect_ready
+                assert payload is None or payload['status'] == ('ready' if expect_ready else 'not_ready')
