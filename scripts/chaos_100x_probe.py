@@ -418,6 +418,7 @@ def main(argv=None) -> int:
     elapsed = time.perf_counter() - t0
 
     server.shutdown()
+    server.server_close()
     thread.join(timeout=5)
     probes.unregister_readiness_check("chaos_dependency")
     sys.stderr = real_stderr
