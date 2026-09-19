@@ -59,14 +59,14 @@ BASE revision at all, the standalone loader retains checkout configuration.
 The digest in the examples above is a placeholder, not a published runnable
 image. Use an image you built and validated, pinned to its actual registry digest.
 
-**Not a production-completeness claim:** the public Option C environment currently
-has no image-bound package inventory. Required readiness therefore refuses
-third-party requirements whose presence cannot be established. Name-presence
-readiness does not establish PEP 508/version/extras/ABI compatibility. These
-remaining blockers are tracked in issue #198. Wrapper-only Docker proofs are not
-a dependency-bearing public CLI end-to-end proof. The legacy research pipeline
-still records invalid-pin errors and continues under the stdlib-only contract;
-public verification instead refuses invalid pins.
+**Image-bound inventory:** before readiness, Option C now runs an offline,
+read-only, capability-free probe in the digest-pinned image and records exact
+`name==version` package pins from `importlib.metadata`. Engine failures, malformed
+JSON, and empty inventories fail closed as typed provision-phase refusals
+(`image_inventory_failed`, `image_inventory_malformed`, or
+`image_inventory_empty`). The probe never mounts the candidate or enables the
+network, and engine stderr is not copied into receipts. Required readiness then
+checks declared dependencies against this verified inventory.
 
 ## 4. Security Invariants & Validation Rules
 
