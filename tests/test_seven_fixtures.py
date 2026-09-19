@@ -255,7 +255,7 @@ class SevenFixturesTest(unittest.TestCase):
                 test_file_path=self.repo / "tests" / "test_cfg.py",
                 sandbox_mode="off",
             )
-        self.assertEqual(evidence["verdict"], VerdictClass.PROVEN_CATCH)
+        self.assertEqual(evidence["verdict"], VerdictClass.PROVEN_CATCH, evidence)
         self.assertEqual(evidence["disposition"], Disposition.CATCHING)
         self.assertTrue(evidence["proven_catch"])
         self.assertEqual(exit_code, 0)

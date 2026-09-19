@@ -41,7 +41,7 @@ jobs:
         # No synthetic package or network retries inside the 60s fixture budget.
         # Each matrix lane downloads its actual ABI/platform wheel once.
         run: |
-          python -m pip download --only-binary=:all: --dest "${{ runner.temp }}/jittest-wheels" PyYAML==6.0.3
+          python -m pip download --only-binary=:all: --dest "${{ runner.temp }}/jittest-wheels" PyYAML==6.0.3 pytest setuptools-scm wheel packaging pluggy iniconfig exceptiongroup
 
       - name: Test with no dependencies at all
         if: (matrix.os == 'ubuntu-latest' && matrix.python == '3.12') || (matrix.os == 'windows-latest' && matrix.python == '3.12')
