@@ -14,6 +14,7 @@ import json
 import pathlib
 import threading
 import unittest
+from unittest.mock import patch
 
 from jittest.prod import probes
 
@@ -118,6 +119,24 @@ class TestChaosHarnessPrimitives(unittest.TestCase):
         loris_body = src[src.index("def slowloris") : src.index("t0 = time.perf_counter()")]
         self.assertNotIn("time.sleep", chaos_body)
         self.assertNotIn("time.sleep", loris_body)
+
+    def test_run_closes_listener_without_waiting_for_garbage_collection(self):
+        servers = []
+        real_serve = probes.serve
+
+        def capture_server(*args, **kwargs):
+            server, thread = real_serve(*args, **kwargs)
+            servers.append(server)
+            return server, thread
+
+        try:
+            with patch.object(probes, "serve", side_effect=capture_server), contextlib.redirect_stdout(io.StringIO()):
+                self.h.main(["--clients", "2", "--requests", "20", "--seed", "7"])
+            self.assertEqual(len(servers), 1)
+            self.assertEqual(servers[0].socket.fileno(), -1, "listener leaked after shutdown")
+        finally:
+            for server in servers:
+                server.server_close()
 
     def test_small_run_measures_recovery_within_slo(self):
         out = io.StringIO()

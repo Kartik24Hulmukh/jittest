@@ -50,7 +50,7 @@ jobs:
           PYTHONPATH: src
           JITTEST_SANDBOX_BACKEND: none
         run: |
-          pip install pytest pytest-timeout
+          pip install pytest pytest-timeout hypothesis
           # Three independent guards, because a wedged *descendant* - not pytest
           # itself - is what hung this job for 30 minutes on Linux:
           #   1. output goes to a FILE, never to the step's stdout pipe. An

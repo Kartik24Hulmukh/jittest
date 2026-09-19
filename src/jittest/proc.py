@@ -25,7 +25,6 @@ import signal
 import subprocess
 import sys
 import threading
-import time
 from pathlib import Path
 from typing import Any
 
@@ -121,16 +120,16 @@ def run_bounded(
     for t in readers:
         t.start()
 
-    deadline = time.monotonic() + timeout
+    # Delegate timeout accounting to the standard library instead of keeping
+    # a second fixed-20ms polling loop here. This is not universally event-driven:
+    # CPython's POSIX Popen.wait(timeout=...) may use a bounded polling loop;
+    # Windows uses the native process handle wait. Benchmark each target runtime.
     timed_out = False
-    while True:
-        if proc.poll() is not None:
-            break
-        if time.monotonic() >= deadline:
-            timed_out = True
-            kill_process_tree(proc, grace=grace)
-            break
-        time.sleep(0.02)
+    try:
+        proc.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        kill_process_tree(proc, grace=grace)
 
     for t in readers:
         t.join(timeout=min(grace, 2.0))

@@ -32,7 +32,7 @@ dependencies = []
 
 [project.optional-dependencies]
 litellm = ["litellm>=1.55.0"]
-dev = ["pytest>=8.2", "pytest-timeout>=2.3", "ruff>=0.6", "mypy>=1.10"]
+dev = ["pytest>=8.2", "pytest-timeout>=2.3", "hypothesis>=6", "ruff>=0.6", "mypy>=1.10"]
 
 [project.urls]
 Homepage = "https://github.com/Kartik24Hulmukh/jittest"
