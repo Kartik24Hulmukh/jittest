@@ -25,6 +25,7 @@ import signal
 import subprocess
 import sys
 import threading
+import time
 from pathlib import Path
 from typing import Any
 
@@ -99,6 +100,7 @@ def run_bounded(
     else:
         popen_kwargs["start_new_session"] = True
 
+    t_start = time.perf_counter()
     proc = subprocess.Popen(  # noqa: S603 - argv list, never shell
         cmd,
         cwd=str(cwd) if cwd is not None else None,
@@ -110,6 +112,7 @@ def run_bounded(
         errors="replace",
         **popen_kwargs,
     )
+    t_spawn = time.perf_counter()
 
     out_buf: list[str] = []
     err_buf: list[str] = []
@@ -125,20 +128,33 @@ def run_bounded(
     # CPython's POSIX Popen.wait(timeout=...) may use a bounded polling loop;
     # Windows uses the native process handle wait. Benchmark each target runtime.
     timed_out = False
+    t_wait_end = t_spawn
+    t_kill_end = t_spawn
     try:
         proc.wait(timeout=timeout)
+        t_wait_end = time.perf_counter()
+        t_kill_end = t_wait_end
     except subprocess.TimeoutExpired:
         timed_out = True
+        t_wait_end = time.perf_counter()
         kill_process_tree(proc, grace=grace)
+        t_kill_end = time.perf_counter()
 
     for t in readers:
         t.join(timeout=min(grace, 2.0))
+    t_join_end = time.perf_counter()
 
     stdout = "".join(out_buf)
     stderr = "".join(err_buf)
 
     if timed_out:
-        raise subprocess.TimeoutExpired(cmd, timeout, output=stdout, stderr=stderr)
+        exc = subprocess.TimeoutExpired(cmd, timeout, output=stdout, stderr=stderr)
+        exc.t_start = t_start  # type: ignore[attr-defined]
+        exc.t_spawn = t_spawn  # type: ignore[attr-defined]
+        exc.t_wait_end = t_wait_end  # type: ignore[attr-defined]
+        exc.t_kill_end = t_kill_end  # type: ignore[attr-defined]
+        exc.t_join_end = t_join_end  # type: ignore[attr-defined]
+        raise exc
 
     rc = proc.returncode if proc.returncode is not None else -1
     result: subprocess.CompletedProcess[str] = subprocess.CompletedProcess(cmd, rc, stdout, stderr)
