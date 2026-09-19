@@ -7,7 +7,7 @@ P50/P95/P99 latency, throughput, RSS floor/ceiling, recovery latency, panics.
     PYTHONHASHSEED=0 python scripts/persona_swarm_100x.py --seed 20260919 \
         --workers 100 --burst 1000 --out docs/evidence/persona-swarm-20260919.json
 
-Every persona is a real human behaviour observed against HTTP probe endpoints
+Personas are synthetic human-inspired behaviours against HTTP probe endpoints
 (impatient refreshers, curl HEAD users, POSTers, typo routes, garbage bytes,
 slowloris, RST dropouts, oversized headers, HTTP/1.0, unicode paths) plus two
 engineering personas that drive ``proc.run_bounded`` with malformed scripts and
@@ -260,7 +260,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument('--out', type=Path, default=None)
     a = ap.parse_args(argv)
     if os.environ.get('PYTHONHASHSEED') != '0':
-        print('warning: set PYTHONHASHSEED=0 for byte-identical reruns', file=sys.stderr)
+        print('warning: set PYTHONHASHSEED=0 for stable hashing; timing/RSS are not deterministic', file=sys.stderr)
     report = Swarm(a.seed, a.workers, a.burst).run(a.personas)
     text = json.dumps(report, sort_keys=True, indent=2)
     if a.out:

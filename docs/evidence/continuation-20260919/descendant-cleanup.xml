@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="1.724" timestamp="2026-09-19T16:10:18.337388+00:00" hostname="runnervmlun5p"><testcase classname="tests.test_sandbox_adversarial" name="test_timeout_child_spawner_cleaned_up" time="1.697" /></testsuite></testsuites>

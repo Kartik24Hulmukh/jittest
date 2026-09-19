@@ -1,0 +1,52 @@
+{
+  "clients": 100,
+  "distinct_client_scenarios": 100,
+  "elapsed_s": 0.82,
+  "latency_ms": {
+    "max": 154.838,
+    "mean": 27.316,
+    "p50": 28.238,
+    "p95": 101.348,
+    "p99": 148.505
+  },
+  "personas": {
+    "broken_proxy": 11,
+    "confused_dev": 10,
+    "header_flooder": 11,
+    "impatient_canceller": 11,
+    "load_balancer": 10,
+    "mixed_human": 10,
+    "pathological_uri": 8,
+    "scanner": 9,
+    "trickle_writer": 11,
+    "uptime_monitor": 9
+  },
+  "recovery": {
+    "degrade_ms": 140.807,
+    "recovery_ms": 29.624,
+    "slo_ms": 200.0
+  },
+  "requests_sent": 2000,
+  "rps": 2440.2,
+  "rss_ceiling_kb": 41672,
+  "rss_floor_kb": 25228,
+  "scenario_matrix_size": 120,
+  "seed": 20260916,
+  "server_alive_after_chaos": true,
+  "status_codes": {
+    "0": 797,
+    "200": 530,
+    "404": 156,
+    "405": 170,
+    "414": 138,
+    "431": 171,
+    "503": 38
+  },
+  "stderr_tracebacks": 0,
+  "structured_logs": {
+    "invalid_json": 0,
+    "lines": 1562,
+    "secret_or_traceback_leaks": 0
+  },
+  "transport_errors": {}
+}

@@ -1,0 +1,96 @@
+{
+  "final-pytest.status.json": {
+    "exit_code": 0,
+    "elapsed_s": 43.180292632983765,
+    "command": [
+      "jittest-venv/bin/python",
+      "-m",
+      "pytest",
+      "tests",
+      "-n",
+      "8",
+      "--timeout=120",
+      "--timeout-method=thread",
+      "--junitxml=../work-evidence/final-pytest.xml"
+    ]
+  },
+  "final-unittest.status.json": {
+    "exit_code": 0,
+    "elapsed_s": 57.910437981016,
+    "command": [
+      "/usr/bin/python3",
+      "-S",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests",
+      "-p",
+      "test_*.py",
+      "-t",
+      "."
+    ]
+  },
+  "final-ruff.status.json": {
+    "exit_code": 0,
+    "elapsed_s": 0.031785202998435125,
+    "command": [
+      "jittest-venv/bin/python",
+      "-m",
+      "ruff",
+      "check",
+      "src",
+      "tests",
+      "scripts",
+      "eval",
+      "run_acceptance_verification.py",
+      "run_v02_gate.py"
+    ]
+  },
+  "final-mypy.status.json": {
+    "exit_code": 0,
+    "elapsed_s": 0.16435605500009842,
+    "command": [
+      "jittest-venv/bin/python",
+      "-m",
+      "mypy",
+      "src/jittest",
+      "--ignore-missing-imports"
+    ]
+  },
+  "final-swarm.status.json": {
+    "exit_code": 0,
+    "elapsed_s": 6.474400189006701,
+    "command": [
+      "jittest-venv/bin/python",
+      "scripts/persona_swarm_100x.py",
+      "--workers",
+      "100",
+      "--personas",
+      "120",
+      "--burst",
+      "1000",
+      "--out",
+      "../work-evidence/final-swarm.json"
+    ]
+  },
+  "final-chaos.status.json": {
+    "exit_code": 0,
+    "elapsed_s": 1.415993050992256,
+    "command": [
+      "jittest-venv/bin/python",
+      "scripts/chaos_100x_probe.py",
+      "--clients",
+      "100",
+      "--requests",
+      "2000",
+      "--json",
+      "../work-evidence/final-chaos.json"
+    ]
+  },
+  "pytest_summary": "1220 passed, 1 skipped (real Docker cleanup covered separately), 202 subtests passed",
+  "unittest_summary": [
+    "Ran 977 tests in 57.697s",
+    "OK (skipped=19)"
+  ]
+}

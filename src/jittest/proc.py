@@ -120,10 +120,10 @@ def run_bounded(
     for t in readers:
         t.start()
 
-    # Native, event-driven wait: ``Popen.wait`` blocks on the child's exit
-    # (waitpid/WaitForSingleObject) and returns the moment it terminates. The
-    # previous 20 ms ``poll``/``sleep`` loop added up to 20 ms of dead time per
-    # call and burned a scheduler tick under 100x concurrency for no reason.
+    # Delegate timeout accounting to the standard library instead of keeping
+    # a second fixed-20ms polling loop here. This is not universally event-driven:
+    # CPython's POSIX Popen.wait(timeout=...) may use a bounded polling loop;
+    # Windows uses the native process handle wait. Benchmark each target runtime.
     timed_out = False
     try:
         proc.wait(timeout=timeout)

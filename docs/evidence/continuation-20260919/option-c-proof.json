@@ -1,0 +1,12 @@
+{
+  "proof": "option_c",
+  "defect": "D9",
+  "image": "jittest-pilot-requests:local",
+  "backend": "docker",
+  "status": "RUN",
+  "rc": 0,
+  "passed": true,
+  "wall_clock_s": 1.04,
+  "stdout_tail": "..                                                                       [100%]\n2 passed in 0.16s\n",
+  "stderr_tail": ""
+}

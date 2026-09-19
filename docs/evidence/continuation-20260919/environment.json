@@ -1,0 +1,10 @@
+{
+  "os": "Linux x86_64",
+  "python": "3.13.5",
+  "hash_seed": 0,
+  "swarm_seed": 20260919,
+  "scope": "synthetic probe-plane and metadata tests, not paid model pipeline capacity",
+  "code_sha": "3cd9a0af153d63a9c1aa944828be9b035c3d4f95",
+  "docker_proof_sha": "5575f762fa0eb814361616d533ba5bd0926ca2fd",
+  "docker_run_url": "https://github.com/Kartik24Hulmukh/jittest/actions/runs/35454063661"
+}
