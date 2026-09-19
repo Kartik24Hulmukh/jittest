@@ -25,7 +25,6 @@ import signal
 import subprocess
 import sys
 import threading
-import time
 from pathlib import Path
 from typing import Any
 
@@ -121,16 +120,16 @@ def run_bounded(
     for t in readers:
         t.start()
 
-    deadline = time.monotonic() + timeout
+    # Native, event-driven wait: ``Popen.wait`` blocks on the child's exit
+    # (waitpid/WaitForSingleObject) and returns the moment it terminates. The
+    # previous 20 ms ``poll``/``sleep`` loop added up to 20 ms of dead time per
+    # call and burned a scheduler tick under 100x concurrency for no reason.
     timed_out = False
-    while True:
-        if proc.poll() is not None:
-            break
-        if time.monotonic() >= deadline:
-            timed_out = True
-            kill_process_tree(proc, grace=grace)
-            break
-        time.sleep(0.02)
+    try:
+        proc.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        kill_process_tree(proc, grace=grace)
 
     for t in readers:
         t.join(timeout=min(grace, 2.0))
