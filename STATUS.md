@@ -113,3 +113,32 @@ Do NOT promote to GA on this commit alone; see docs/PREMORTEM-2026-09-12.md.
 | 0.4.1 release | THIS PR bumps 4 declarations + CHANGELOG; tag `v0.4.1` only after `ci` is green on the merge commit; PyPI 0.4.0 must be yanked by a maintainer (`YANK-REASONS.md`) | - |
 
 **Still open before GA**: registry-live proof on a real daemon at the release head; OIDC trusted-publishing rehearsal on the `pypi` environment; wiring `provision_in_sandbox` / `evaluate_readiness` / outputguard into the default `jittest verify` state machine; two named maintainers + SLOs; five design-partner advisory trials.
+
+
+## Session 2026-09-19 round 4 (harden/jittest-v1-launch continuation: #198 item 2)
+
+- Closes #198 item 2 ("Option C empty inventory"): `provision_environment` under
+  `option_c_trusted_image` previously returned `resolved_versions: []`, which is
+  ambiguous between "the image was probed and is genuinely empty" and "nothing
+  was ever probed". jittest does not execute anything inside the pinned trusted
+  image to enumerate its site-packages, so the field is now `None`, with an
+  explicit `inventory_probed: False` flag and a human-readable `inventory_note`
+  bound to the pinned image digest. Both fields are threaded through to the
+  signed receipt (`resolved_versions`, `inventory_probed`, `inventory_note`).
+- Verified `_readiness_block` already treats `resolved_versions=None` the same
+  as an empty target (fail-closed): a candidate with a `requirements.txt` pin
+  that jittest cannot verify inside a trusted image still refuses in
+  `required` mode. New regression test proves this explicitly so the
+  fail-closed behavior cannot silently regress.
+- New tests: `tests/test_wave3_isolation.py::TestD198Item2OptionCInventoryHonesty`
+  (2 tests): `test_option_c_reports_unprobed_inventory_not_empty_list`,
+  `test_readiness_still_fails_closed_when_inventory_unprobed`.
+- Verification in this workspace: 54/54 targeted tests green
+  (`test_p0_gates.py`, `test_wave3_isolation.py`, `test_receipt_json_schema.py`,
+  `test_phase2_observability_runtime.py`); `ruff check` clean on the three
+  changed files.
+- Still open on #198: item 1 (Option C not reachable from the public verify
+  path -- `verify_test` calls `plan_sandbox` without `runtime_image`), item 3
+  (readiness semantics beyond `requirements.txt`), item 4 (refusal receipts).
+  Not claimed fixed here; scoped to item 2 only per the convergence-limit
+  guardrail (max 5 remediation cycles per module before checkpointing).

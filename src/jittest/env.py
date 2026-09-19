@@ -535,6 +535,15 @@ def provision_environment(
         and getattr(sbx_plan, "backend", "none") in ("docker", "podman")
     )
     if option_c:
+        # D_198-2: resolved_versions=[] is ambiguous between "probed the image and
+        # it is genuinely empty" and "never probed at all". jittest does not
+        # execute anything inside the trusted image to enumerate its site-packages,
+        # so the honest inventory state is None (not probed), with an explicit
+        # inventory_probed=False flag and a human-readable note bound to the pinned
+        # digest. Consumers of the receipt (readiness, integrity) must not read an
+        # unprobed inventory as "confirmed compatible": readiness treats
+        # resolved_versions=None the same as an empty target (fail-closed if the
+        # candidate declares requirements jittest cannot verify inside the image).
         return {
             "venv_dir": "",
             "python_path": "python",
@@ -543,7 +552,13 @@ def provision_environment(
             "lockfile_sha256": "",
             "exclude_newer_cutoff": "",
             "interpreter_version": "",
-            "resolved_versions": [],
+            "resolved_versions": None,
+            "inventory_probed": False,
+            "inventory_note": (
+                "runtime image contents were not enumerated by jittest; "
+                "compatibility of declared dependencies with the pinned image "
+                f"digest {str(getattr(sbx_plan, 'image_digest', '') or '')!r} is not verified"
+            ),
             "provisioning": "option_c_trusted_image",
             "runtime_image": runtime_image,
             "image_digest": str(getattr(sbx_plan, "image_digest", "") or ""),
