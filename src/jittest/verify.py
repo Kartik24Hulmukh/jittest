@@ -1237,6 +1237,8 @@ def verify_test(
         "exclude_newer_cutoff": base_env_info.get("exclude_newer_cutoff") if base_env_info else None,
         "interpreter_version": base_env_info.get("interpreter_version") if base_env_info else None,
         "resolved_versions": base_env_info.get("resolved_versions") if base_env_info else None,
+        "inventory_probed": (base_env_info.get("inventory_probed") if base_env_info and "inventory_probed" in base_env_info else None),
+        "inventory_note": (base_env_info.get("inventory_note") if base_env_info else None),
         "provenance": {
             "repo_path": re.sub(r"^[a-zA-Z]:/[Uu]sers/[^/]+", "<USER_DIR>", str(repo_path).replace("\\", "/")),
             "repo_canonical": get_repo_canonical(repo_path),

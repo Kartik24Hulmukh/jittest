@@ -320,6 +320,17 @@ Test suite: 712 passing.
 - Canonical Apache-2.0 licence; GitHub now detects `spdx_id: Apache-2.0`.
 - Ruff compliance: 7 errors fixed, no per-file-ignores, no noqa.
 
+## [Unreleased]
+
+### Fixed
+- `provision_environment` Option C (`option_c_trusted_image`) no longer reports
+  `resolved_versions: []` for a pinned trusted runtime image it never probed.
+  It now reports `resolved_versions: None`, `inventory_probed: False`, and an
+  `inventory_note` bound to the image digest, propagated into the signed
+  receipt. Closes GA blocker #198 item 2. Readiness fail-closed behavior for
+  declared-but-unverified dependencies is unchanged and now has a direct
+  regression test.
+
 ## [0.2.0] - 2026-07-25
 
 ### Changed - the zero-dependency rewrite
