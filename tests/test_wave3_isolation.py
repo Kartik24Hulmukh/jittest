@@ -239,32 +239,22 @@ class TestWave3D2PreflightIsolation(unittest.TestCase):
 
 
 class TestD198Item2OptionCInventoryHonesty(unittest.TestCase):
-    """D_198-2: option_c_trusted_image must not report resolved_versions=[] as if
-    the image contents were probed and confirmed empty. It must report None with
-    an explicit inventory_probed=False flag and a human-readable note bound to
-    the pinned image digest, so downstream consumers cannot misread an unprobed
-    inventory as verified compatibility.
-    """
+    """D_198-2: Option C exposes only a verified, exact image inventory."""
 
-    def test_option_c_reports_unprobed_inventory_not_empty_list(self):
+    def test_option_c_reports_verified_inventory(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             worktree = Path(tmpdir)
-            (worktree / "test_dep.py").write_text("import requests\n", encoding="utf-8")
             (worktree / "pyproject.toml").write_text(
-                "[project]\nname = \"x\"\nversion = \"0.0.0\"\ndependencies = [\"requests\"]\n",
-                encoding="utf-8",
+                '[project]\nname="x"\nversion="0"\ndependencies=["requests"]\n', encoding="utf-8"
             )
-            plan = SandboxPlan(
-                backend="docker",
-                image="jittest-pilot-requests@sha256:" + ("a" * 64),
-            )
-            plan.runtime_image = "jittest-pilot-requests@sha256:" + ("a" * 64)
-            plan.image_digest = "sha256:" + ("a" * 64)
-            info = provision_environment(worktree, "a" * 40, worktree, sbx_plan=plan)
-            self.assertEqual(info["provisioning"], "option_c_trusted_image")
-            self.assertIsNone(info["resolved_versions"])
-            self.assertFalse(info["inventory_probed"])
-            self.assertIn("sha256:" + ("a" * 64), info["inventory_note"])
+            plan = SandboxPlan(backend="docker", image="runtime@sha256:" + "a" * 64)
+            plan.runtime_image = "runtime@sha256:" + "a" * 64
+            plan.image_digest = "sha256:" + "a" * 64
+            result = subprocess.CompletedProcess([], 0, stdout='[{"name":"requests","version":"2.32.4"}]', stderr="")
+            with mock.patch("jittest.env.subprocess.run", return_value=result):
+                info = provision_environment(worktree, "a" * 40, worktree, sbx_plan=plan)
+            self.assertEqual(info["resolved_versions"], ["requests==2.32.4"])
+            self.assertTrue(info["inventory_probed"])
 
     def test_readiness_still_fails_closed_when_inventory_unprobed(self):
         from jittest.verify import _readiness_block

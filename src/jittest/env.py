@@ -18,6 +18,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from . import discovery
 from .proc import run_bounded
 
 try:
@@ -497,10 +498,9 @@ def provision_environment(
 
     ensure_worktree_fixes(worktree)
 
-    from .discovery import discover_manifest
     from .verify import RefusalReason, VerifyRefusalError
 
-    manifest = discover_manifest(worktree)
+    manifest = discovery.discover_manifest(worktree)
 
     # 1. Ambiguity & symlink escape checks
     if manifest.ambiguous:
@@ -535,33 +535,76 @@ def provision_environment(
         and getattr(sbx_plan, "backend", "none") in ("docker", "podman")
     )
     if option_c:
-        # D_198-2: resolved_versions=[] is ambiguous between "probed the image and
-        # it is genuinely empty" and "never probed at all". jittest does not
-        # execute anything inside the trusted image to enumerate its site-packages,
-        # so the honest inventory state is None (not probed), with an explicit
-        # inventory_probed=False flag and a human-readable note bound to the pinned
-        # digest. Consumers of the receipt (readiness, integrity) must not read an
-        # unprobed inventory as "confirmed compatible": readiness treats
-        # resolved_versions=None the same as an empty target (fail-closed if the
-        # candidate declares requirements jittest cannot verify inside the image).
+        # Enumerate the immutable image itself, offline.  The probe uses
+        # importlib.metadata rather than pip so it works in minimal images and
+        # never executes candidate-controlled files.  Empty, failed, or
+        # malformed inventories are typed refusals: an empty list must never be
+        # mistaken for proof that declared dependencies are available.
+        backend = str(getattr(sbx_plan, "backend", ""))
+        probe_script = (
+            "import json,importlib.metadata as m;"
+            "print(json.dumps([{'name':d.metadata.get('Name',''),'version':d.version} "
+            "for d in m.distributions()]))"
+        )
+        cmd = [
+            backend, "run", "--rm", "--network", "none", "--read-only",
+            "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
+            "--pids-limit", "64", "--memory", "256m", "--cpus", "1",
+            runtime_image, "python", "-I", "-s", "-B", "-c", probe_script,
+        ]
+        try:
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, errors="replace", timeout=30,
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            raise VerifyRefusalError(RefusalReason(
+                code="image_inventory_failed",
+                message="Failed to enumerate packages in pinned runtime image",
+                phase="provision",
+                details=type(exc).__name__,
+            )) from exc
+        if result.returncode != 0:
+            # Do not copy engine stderr into the refusal: registry and engine
+            # diagnostics can contain credentials or authorization headers.
+            raise VerifyRefusalError(RefusalReason(
+                code="image_inventory_failed",
+                message="Pinned runtime image package probe failed",
+                phase="provision",
+                details=f"container engine exited {result.returncode}",
+            ))
+        import json
+        try:
+            raw_inventory = json.loads(result.stdout)
+            if not isinstance(raw_inventory, list):
+                raise ValueError("inventory root is not a list")
+            pins = sorted(
+                f"{row['name']}=={row['version']}"
+                for row in raw_inventory
+                if isinstance(row, dict)
+                and isinstance(row.get("name"), str) and row["name"].strip()
+                and isinstance(row.get("version"), str) and row["version"].strip()
+            )
+        except (ValueError, TypeError, KeyError) as exc:
+            raise VerifyRefusalError(RefusalReason(
+                code="image_inventory_malformed",
+                message="Pinned runtime image returned a malformed package inventory",
+                phase="provision",
+                details=type(exc).__name__,
+            )) from exc
+        if not pins:
+            raise VerifyRefusalError(RefusalReason(
+                code="image_inventory_empty",
+                message="Pinned runtime image contains no verifiable package inventory",
+                phase="provision",
+            ))
         return {
-            "venv_dir": "",
-            "python_path": "python",
-            "cached": False,
-            "cache_key": "",
-            "lockfile_sha256": "",
-            "exclude_newer_cutoff": "",
-            "interpreter_version": "",
-            "resolved_versions": None,
-            "inventory_probed": False,
-            "inventory_note": (
-                "runtime image contents were not enumerated by jittest; "
-                "compatibility of declared dependencies with the pinned image "
-                f"digest {str(getattr(sbx_plan, 'image_digest', '') or '')!r} is not verified"
-            ),
-            "provisioning": "option_c_trusted_image",
+            "venv_dir": "", "python_path": "python", "cached": False,
+            "cache_key": "", "lockfile_sha256": "", "exclude_newer_cutoff": "",
+            "interpreter_version": "", "resolved_versions": pins,
+            "inventory_probed": True, "provisioning": "option_c_trusted_image",
             "runtime_image": runtime_image,
             "image_digest": str(getattr(sbx_plan, "image_digest", "") or ""),
+            "has_project_dependencies": bool(manifest.declared_dependencies),
         }
     if is_isolated and manifest.declared_dependencies:
         details = f"declared dependencies: {', '.join(manifest.declared_dependencies[:5])}"
@@ -574,7 +617,9 @@ def provision_environment(
             )
         )
 
-    cutoff = get_commit_cutoff(repo, commit_sha)
+    # Container paths do not resolve from the network/host, so an index cutoff
+    # is inapplicable and avoiding git here keeps provisioning side-effect free.
+    cutoff = "" if is_isolated else get_commit_cutoff(repo, commit_sha)
     if is_isolated:
         is_bwrap = getattr(sbx_plan, "backend", "none") == "bubblewrap"
         py_exe = str(sys.executable) if is_bwrap else "python"
