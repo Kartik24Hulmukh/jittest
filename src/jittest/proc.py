@@ -10,10 +10,14 @@ from __future__ import annotations
 
 import atexit
 import contextlib
+import errno
 import math
 import os
 import selectors
+import shutil
+import signal
 import subprocess
+import sys
 import threading
 import time
 from threading import BoundedSemaphore
@@ -37,6 +41,91 @@ def _reap_killers() -> None:
 atexit.register(_reap_killers)
 
 
+# Linux lifetime containment for #225. A per-run supervisor marks itself a
+# child subreaper (prctl PR_SET_CHILD_SUBREAPER), so descendants that setsid()
+# or double-fork are re-parented to it instead of init. After the workload
+# exits, or on SIGTERM from run_bounded, it SIGKILLs and reaps every remaining
+# descendant before exiting. PR_SET_PDEATHSIG ties it to the jittest process.
+_REAPER_SOURCE = r"""
+import ctypes, os, signal, sys
+libc = ctypes.CDLL(None, use_errno=True)
+if libc.prctl(36, 1, 0, 0, 0) != 0:  # PR_SET_CHILD_SUBREAPER
+    os.write(2, b'jittest-reaper: PR_SET_CHILD_SUBREAPER unavailable\n'); os._exit(125)
+libc.prctl(1, signal.SIGTERM, 0, 0, 0)  # PR_SET_PDEATHSIG
+if os.getppid() != int(sys.argv[1]):
+    os._exit(125)
+class Stop(BaseException):
+    pass
+def stop(*_):
+    raise Stop
+signal.signal(signal.SIGTERM, stop)
+me = os.getpid()
+def children():
+    out = []
+    for name in os.listdir('/proc'):
+        if name.isdigit():
+            try:
+                with open('/proc/%s/stat' % name, 'rb') as f:
+                    data = f.read()
+            except OSError:
+                continue
+            fields = data[data.rindex(b')') + 2:].split()
+            if int(fields[1]) == me:
+                out.append(int(name))
+    return out
+def sweep():
+    signal.signal(signal.SIGTERM, signal.SIG_IGN)
+    while True:
+        for pid in children():
+            try:
+                os.kill(pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+        try:
+            os.waitpid(-1, 0)
+        except ChildProcessError:
+            return
+status = None
+pid = -1
+try:
+    try:
+        pid = os.posix_spawnp(sys.argv[2], sys.argv[2:], os.environ)
+    except OSError as exc:
+        os.write(2, ('jittest-reaper: %s\n' % exc).encode()); status = 127 << 8
+    while status is None:
+        got, st = os.waitpid(-1, 0)
+        if got == pid:
+            status = st
+except Stop:
+    status = signal.SIGKILL
+sweep()
+if os.WIFEXITED(status):
+    os._exit(os.WEXITSTATUS(status))
+sig = os.WTERMSIG(status) if os.WIFSIGNALED(status) else signal.SIGKILL
+signal.signal(sig, signal.SIG_DFL)
+os.kill(me, sig)
+os._exit(128 + sig)
+"""
+
+
+def _reaper_available() -> bool:
+    return sys.platform.startswith("linux") and os.environ.get("JITTEST_DISABLE_REAPER") != "1"
+
+
+def _resolve_argv0(cmd: list[str], env: dict[str, str] | None, cwd: Any) -> None:
+    """Preserve Popen's FileNotFoundError contract when a supervisor is used."""
+    exe = cmd[0]
+    if os.sep in exe:
+        path = exe if os.path.isabs(exe) or cwd is None else os.path.join(str(cwd), exe)
+        if os.access(path, os.X_OK):
+            return
+    else:
+        search = (env if env is not None else os.environ).get("PATH", os.defpath)
+        if shutil.which(exe, path=search) is not None:
+            return
+    raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), exe)
+
+
 def kill_process_tree(proc: subprocess.Popen[Any], grace: float = 1.0) -> None:
     """Signal the owned POSIX session even when its leader has already exited.
 
@@ -58,6 +147,12 @@ def kill_process_tree(proc: subprocess.Popen[Any], grace: float = 1.0) -> None:
                 with contextlib.suppress(OSError):
                     proc.kill()
     else:
+        if getattr(proc, "_jittest_reaper", False) and proc.poll() is None:
+            # Ask the subreaper to kill and reap escaped descendants first.
+            with contextlib.suppress(ProcessLookupError):
+                os.kill(proc.pid, signal.SIGTERM)
+            with contextlib.suppress(subprocess.TimeoutExpired):
+                proc.wait(timeout=max(grace, 0.12))
         try:
             os.killpg(proc.pid, 9)
         except (ProcessLookupError, PermissionError):
@@ -288,8 +383,13 @@ def run_bounded(
                 raise OSError("Cannot establish Windows job containment")
             owned_job = [job]
             resources.callback(lambda: _close_job(owned_job[0]))
+            supervised = os.name != "nt" and _reaper_available()
+            argv = list(cmd)
+            if supervised:
+                _resolve_argv0(argv, env, cwd)
+                argv = [sys.executable, "-I", "-S", "-c", _REAPER_SOURCE, str(os.getpid()), *argv]
             proc = subprocess.Popen(
-                cmd,
+                argv,
                 cwd=str(cwd) if cwd is not None else None,
                 env=env,
                 stdout=subprocess.PIPE if capture else subprocess.DEVNULL,
@@ -297,6 +397,7 @@ def run_bounded(
                 stdin=subprocess.DEVNULL,
                 **popen_kwargs,
             )
+            proc._jittest_reaper = supervised  # type: ignore[attr-defined]
             readers: list[_Capture] = []
             try:
                 if os.name == "nt":

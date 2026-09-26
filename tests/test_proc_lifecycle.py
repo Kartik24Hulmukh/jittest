@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 import unittest
 from pathlib import Path
 
@@ -164,11 +165,62 @@ class EscapedPipeTests(unittest.TestCase):
             )
             before = {t.ident for t in threading.enumerate() if t.name == "jittest-capture"}
             try:
-                with self.assertRaisesRegex(RuntimeError, "capture pipe"):
-                    run_bounded([sys.executable, "-c", script, str(pidfile)], timeout=2)
+                if sys.platform.startswith("linux"):
+                    # #225: the subreaper supervisor kills the setsid() escapee.
+                    started = time.perf_counter()
+                    result = run_bounded([sys.executable, "-c", script, str(pidfile)], timeout=5)
+                    self.assertLess(time.perf_counter() - started, 3.0)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertIn("done", result.stdout)
+                    escaped = int(pidfile.read_text())
+                    alive = True
+                    try:
+                        stat = Path(f"/proc/{escaped}/stat").read_text()
+                        alive = stat[stat.rindex(")") + 2] != "Z"
+                    except FileNotFoundError:
+                        alive = False
+                    self.assertFalse(alive, "escaped descendant survived run_bounded")
+                else:
+                    with self.assertRaisesRegex(RuntimeError, "capture pipe"):
+                        run_bounded([sys.executable, "-c", script, str(pidfile)], timeout=2)
                 self.assertEqual(before, {t.ident for t in threading.enumerate()
                                           if t.name == "jittest-capture"})
             finally:
                 if pidfile.exists():
                     with contextlib.suppress(ProcessLookupError):
                         os.kill(int(pidfile.read_text()), signal.SIGKILL)
+
+
+@unittest.skipUnless(sys.platform.startswith("linux"), "Linux subreaper containment")
+class SubreaperContainmentTests(unittest.TestCase):
+    def test_timeout_kills_double_forked_setsid_descendant(self):
+        with tempfile.TemporaryDirectory() as directory:
+            pidfile = Path(directory) / "grandchild.pid"
+            script = (
+                "import os,sys,time,pathlib\n"
+                "if os.fork()==0:\n os.setsid()\n if os.fork()==0:\n  "
+                "pathlib.Path(sys.argv[1]).write_text(str(os.getpid()))\n  time.sleep(60)\n os._exit(0)\n"
+                "time.sleep(60)\n"
+            )
+            started = time.perf_counter()
+            with self.assertRaises(subprocess.TimeoutExpired):
+                run_bounded([sys.executable, "-c", script, str(pidfile)], timeout=1.5, capture=False)
+            self.assertLess(time.perf_counter() - started, 3.0)
+            grandchild = int(pidfile.read_text())
+            try:
+                stat = Path(f"/proc/{grandchild}/stat").read_text()
+                alive = stat[stat.rindex(")") + 2] != "Z"
+            except FileNotFoundError:
+                alive = False
+            if alive:
+                os.kill(grandchild, signal.SIGKILL)
+            self.assertFalse(alive, "double-forked setsid descendant survived timeout")
+
+    def test_exit_status_and_signal_are_preserved(self):
+        self.assertEqual(run_bounded([sys.executable, "-c", "raise SystemExit(7)"], timeout=10).returncode, 7)
+        rc = run_bounded([sys.executable, "-c", "import os,signal;os.kill(os.getpid(),signal.SIGTERM)"], timeout=10).returncode
+        self.assertEqual(rc, -signal.SIGTERM)
+
+    def test_missing_executable_still_raises_file_not_found(self):
+        with self.assertRaises(FileNotFoundError):
+            run_bounded(["jittest-missing-executable-225"], timeout=1)
