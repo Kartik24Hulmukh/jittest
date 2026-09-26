@@ -104,11 +104,14 @@ class TestRunBounded(unittest.TestCase):
     def test_job_object_containment_is_none_off_windows(self):
         import os
 
-        from jittest.proc import _assign_to_job, _create_kill_on_close_job
+        from jittest.proc import _assign_to_job, _close_job, _create_kill_on_close_job
 
         job = _create_kill_on_close_job()
         if os.name == "nt":
-            self.assertIsNotNone(job)
+            try:
+                self.assertIsNotNone(job)
+            finally:
+                _close_job(job)
         else:
             self.assertIsNone(job)
             self.assertFalse(_assign_to_job(job, None))  # type: ignore[arg-type]

@@ -84,3 +84,7 @@ unbounded, Windows job containment is absent, and the independent 100-process
 recovery gate failed. The probe-plane swarm is not evidence of 100x engine
 throughput. Recovery timestamps now include capture decoding and resource
 closure, previously excluded by `t_join_end`.
+
+## Session 5 integration log
+
+Reused catalog CPython subprocess/threading/ctypes (bounded pipe capture and pre-execution Windows job assignment), pytest, pytest-timeout, pytest-xdist and ruff. No new runtime dependencies. Existing lifecycle and fixed-seed persona harnesses retained. Captured output never touches disk; unrelated child writes remain unrestricted. Windows-specific real descendant regressions cover normal exit and timeout; Linux cannot validate that kernel path.

@@ -1,12 +1,9 @@
-"""Bounded-memory subprocess capture with explicit resource ownership.
+"""Bounded subprocess capture with explicit process-tree ownership.
 
-TemporaryFile owns capture handles across spawn errors, cancellation and normal
-exit. Capture is bounded in memory. POSIX session cleanup also runs after parent
-exit. On Windows every child is assigned to an OS job object created with
-JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE; closing the job handle (owned by the same
-ExitStack as the capture files) makes the kernel kill the whole member tree,
-including descendants whose parent already exited. taskkill is only a fallback
-when job creation/assignment fails. Recovery timestamps include decoding and file cleanup, not just process wait.
+Pipe drainers retain at most MAX_CAPTURE bytes per stream, discarding excess
+without writing capture files or limiting unrelated child filesystem writes.
+Admission bounds both child count and reader count. Windows children start
+suspended and cannot execute until assigned to a kill-on-close job.
 """
 
 from __future__ import annotations
@@ -16,7 +13,6 @@ import contextlib
 import math
 import os
 import subprocess
-import tempfile
 import threading
 import time
 from threading import BoundedSemaphore
@@ -109,7 +105,14 @@ def _create_kill_on_close_job() -> Any | None:
             ("PeakJobMemoryUsed", ctypes.c_size_t),
         ]
 
+    kernel32.CreateJobObjectW.argtypes = [ctypes.c_void_p, wintypes.LPCWSTR]
     kernel32.CreateJobObjectW.restype = wintypes.HANDLE
+    kernel32.SetInformationJobObject.argtypes = [wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD]
+    kernel32.SetInformationJobObject.restype = wintypes.BOOL
+    kernel32.AssignProcessToJobObject.argtypes = [wintypes.HANDLE, wintypes.HANDLE]
+    kernel32.AssignProcessToJobObject.restype = wintypes.BOOL
+    kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+    kernel32.CloseHandle.restype = wintypes.BOOL
     job = kernel32.CreateJobObjectW(None, None)
     if not job:
         return None
@@ -134,14 +137,45 @@ def _close_job(job: Any | None) -> None:
         kernel32.CloseHandle(handle)
 
 
-def _read_capture(stream: BinaryIO | None) -> str:
-    if stream is None:
-        return ""
-    stream.seek(0)
-    content = stream.read(MAX_CAPTURE).decode("utf-8", "replace")
-    # Truncate the file to prevent disk exhaustion after reading cap
-    stream.truncate(MAX_CAPTURE)
-    return content
+def _resume_contained(proc: subprocess.Popen[Any]) -> None:
+    """Resume only after assignment; Popen has already closed its thread handle."""
+    import ctypes
+    from ctypes import wintypes
+
+    ntdll = ctypes.WinDLL("ntdll")  # type: ignore[attr-defined]
+    ntdll.NtResumeProcess.argtypes = [wintypes.HANDLE]
+    ntdll.NtResumeProcess.restype = wintypes.LONG
+    status = ntdll.NtResumeProcess(int(proc._handle))  # type: ignore[attr-defined]
+    if status < 0:
+        raise OSError(f"NtResumeProcess failed: {status:#x}")
+
+
+class _Capture:
+    """One owned drainer, bounded retained bytes, synchronous error propagation."""
+
+    def __init__(self, stream: BinaryIO) -> None:
+        self.stream = stream
+        self.content = bytearray()
+        self.error: BaseException | None = None
+        self.thread = threading.Thread(target=self._drain, name="jittest-capture")
+
+    def _drain(self) -> None:
+        try:
+            while chunk := self.stream.read(65536):
+                remaining = MAX_CAPTURE - len(self.content)
+                if remaining > 0:
+                    self.content.extend(chunk[:remaining])
+        except BaseException as exc:
+            self.error = exc
+
+    def finish(self) -> None:
+        self.thread.join()
+        self.stream.close()
+
+    def text(self) -> str:
+        if self.error is not None:
+            raise self.error
+        return self.content.decode("utf-8", "replace")
 
 
 def run_bounded(
@@ -168,7 +202,7 @@ def run_bounded(
         raise ValueError("run_bounded requires a finite nonnegative grace")
     popen_kwargs: dict[str, Any] = {}
     if os.name == "nt":
-        popen_kwargs["creationflags"] = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+        popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP | 0x00000004  # CREATE_SUSPENDED
     else:
         popen_kwargs["start_new_session"] = True
 
@@ -179,35 +213,51 @@ def run_bounded(
     _LIVE_PROCESSES.acquire()
     try:
         with contextlib.ExitStack() as resources:
-            out_file = resources.enter_context(tempfile.TemporaryFile()) if capture else None
-            err_file = resources.enter_context(tempfile.TemporaryFile()) if capture else None
             job = _create_kill_on_close_job()
-            # Registered before spawn: on every exit path the kernel reclaims the tree.
-            resources.callback(_close_job, job)
-            
+            if os.name == "nt" and job is None:
+                raise OSError("Cannot establish Windows job containment")
+            owned_job = [job]
+            resources.callback(lambda: _close_job(owned_job[0]))
             proc = subprocess.Popen(
                 cmd,
                 cwd=str(cwd) if cwd is not None else None,
                 env=env,
-                stdout=out_file if capture else subprocess.DEVNULL,
-                stderr=err_file if capture else subprocess.DEVNULL,
+                stdout=subprocess.PIPE if capture else subprocess.DEVNULL,
+                stderr=subprocess.PIPE if capture else subprocess.DEVNULL,
                 stdin=subprocess.DEVNULL,
                 **popen_kwargs,
             )
-            _assign_to_job(job, proc)
-            t_spawn = time.perf_counter()
+            readers: list[_Capture] = []
             try:
+                if os.name == "nt":
+                    if not _assign_to_job(job, proc):
+                        raise OSError("Cannot assign child to Windows containment job")
+                    _resume_contained(proc)
+                for stream in (proc.stdout, proc.stderr):
+                    if stream is not None:
+                        resources.callback(stream.close)
+                        reader = _Capture(stream)
+                        reader.thread.start()
+                        readers.append(reader)
+                t_spawn = time.perf_counter()
                 try:
                     proc.wait(timeout=timeout)
                 except subprocess.TimeoutExpired:
                     timed_out = True
                 t_wait_end = time.perf_counter()
             finally:
-                # Includes successful parent exits and BaseException cancellation.
+                # Containment must close BEFORE joining drains: a descendant
+                # can retain a pipe after its direct parent exits successfully.
+                _close_job(owned_job[0])
+                owned_job[0] = None
                 kill_process_tree(proc, grace=grace)
-            t_kill_end = time.perf_counter()
-            stdout = _read_capture(out_file)
-            stderr = _read_capture(err_file)
+                t_kill_end = time.perf_counter()
+                for reader in readers:
+                    reader.finish()
+                for stream in (proc.stdout, proc.stderr):
+                    if stream is not None:
+                        stream.close()
+            stdout, stderr = (reader.text() for reader in readers) if capture else ("", "")
         # Account for all capture, decoding and close/unlink work in recovery.
         t_join_end = time.perf_counter()
         if timed_out:

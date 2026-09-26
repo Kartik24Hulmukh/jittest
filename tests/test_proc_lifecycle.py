@@ -81,3 +81,71 @@ class ProcessLifecycleTests(unittest.TestCase):
         finally:
             with contextlib.suppress(ProcessLookupError):
                 os.kill(pid, signal.SIGKILL)
+
+
+class StreamingCaptureTests(unittest.TestCase):
+    def test_capture_uses_pipes_not_disk_and_preserves_large_child_files(self):
+        # fstat inside the real child proves the live capture endpoint is a pipe,
+        # not a tempfile truncated after exit. Child data files are unrestricted.
+        with tempfile.TemporaryDirectory() as directory:
+            result = run_bounded([sys.executable, "-c",
+                "import os,stat,sys,pathlib; "
+                "assert stat.S_ISFIFO(os.fstat(1).st_mode); "
+                "assert stat.S_ISFIFO(os.fstat(2).st_mode); "
+                "pathlib.Path('data').write_bytes(b'z'*(8*1024*1024)); "
+                "sys.stdout.buffer.write(b'x'*(16*1024*1024)); "
+                "sys.stderr.buffer.write(b'y'*(16*1024*1024))"],
+                timeout=30, cwd=directory)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(result.stdout, "x" * MAX_CAPTURE)
+            self.assertEqual(result.stderr, "y" * MAX_CAPTURE)
+            self.assertEqual((Path(directory) / "data").stat().st_size, 8*1024*1024)
+
+    def test_timeout_joins_all_owned_capture_threads(self):
+        before = {t.ident for t in threading.enumerate() if t.name == "jittest-capture"}
+        with self.assertRaises(subprocess.TimeoutExpired):
+            run_bounded([sys.executable, "-c",
+                "import sys,threading; sys.stdout.buffer.write(b'x'*(8*1024*1024)); "
+                "sys.stdout.flush(); threading.Event().wait(60)"], timeout=1)
+        self.assertEqual(before, {t.ident for t in threading.enumerate()
+                                  if t.name == "jittest-capture"})
+
+    @unittest.skipUnless(os.name == "nt", "Windows kernel containment")
+    def test_windows_descendant_is_dead_on_success_and_timeout(self):
+        import ctypes
+        from ctypes import wintypes
+
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+        kernel32.OpenProcess.restype = wintypes.HANDLE
+        kernel32.WaitForSingleObject.argtypes = [wintypes.HANDLE, wintypes.DWORD]
+        kernel32.WaitForSingleObject.restype = wintypes.DWORD
+        kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+        kernel32.TerminateProcess.argtypes = [wintypes.HANDLE, wintypes.UINT]
+        for hang in (False, True):
+            with self.subTest(timeout=hang):
+                script = (
+                    "import subprocess,sys,threading; "
+                    "p=subprocess.Popen([sys.executable,'-c',"
+                    "'import threading; threading.Event().wait(60)']); "
+                    "print(p.pid,flush=True); "
+                    + ("threading.Event().wait(60)" if hang else "pass")
+                )
+                if hang:
+                    with self.assertRaises(subprocess.TimeoutExpired) as caught:
+                        run_bounded([sys.executable, "-c", script], timeout=2)
+                    output = caught.exception.output
+                else:
+                    output = run_bounded([sys.executable, "-c", script], timeout=10).stdout
+                pid = int(output.strip())
+                handle = kernel32.OpenProcess(0x00100001, False, pid)
+                if not handle:
+                    # ERROR_INVALID_PARAMETER means the process is already gone.
+                    self.assertEqual(ctypes.get_last_error(), 87)
+                    continue
+                try:
+                    self.assertEqual(kernel32.WaitForSingleObject(handle, 199), 0,
+                                     "descendant survived containment cleanup")
+                finally:
+                    kernel32.TerminateProcess(handle, 1)
+                    kernel32.CloseHandle(handle)
