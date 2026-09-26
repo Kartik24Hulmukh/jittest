@@ -1,0 +1,25 @@
+{
+  "baseline_sha": "f7788e688ad7a9a4f4632e511e32f8bb40b05a90",
+  "seed": 20260919,
+  "workers": 100,
+  "journeys_min": 100,
+  "unhandled_panics": 0,
+  "owned_thread_fd_tempfile_descendant_leaks": 0,
+  "recovery_ms_strict_upper_bound": 200,
+  "capture_bytes_per_stream": 2097152,
+  "throughput_requirement": "100x measured single-user baseline; 100 workers alone is not proof",
+  "merge_requirement": "all CI and independent frozen gates pass",
+  "max_fix_cycles_per_module": 5,
+  "premortem": [
+    "JIT lifetime races: successful parent exit must not strand descendants",
+    "Thread starvation: capture=False readers block in read and stop draining at cap",
+    "Nondeterministic drift: preserve existing fixed-seed registry/swarm tests",
+    "Disk exhaustion and tempfile leaks: file capture has no disk bound and failed spawn bypasses unlink",
+    "Windows lifecycle retention: _KILLERS retains every Popen; taskkill async is not verified reclamation"
+  ],
+  "environment": {
+    "python": "3.14.6",
+    "platform": "Linux-6.8.0-124-generic-x86_64-with-glibc2.41",
+    "cpu_count": 64
+  }
+}

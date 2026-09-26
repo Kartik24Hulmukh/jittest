@@ -41,8 +41,18 @@ LAUNCH_WINDOW = "2026-09-16/2026-09-17"
 # way to flip it is to close the issues and delete the rows in the same PR.
 GA_BLOCKERS = [
     {"issue": 73, "title": "real catch-rate / FPR / USD-per-PR evaluation"},
-    {"issue": 198, "title": "Option C public-path wiring + trusted runtime inventory"},
 ]
+
+# Independent runtime failures block *launch*, not merely GA. Remove entries
+# only in the change carrying verified cross-platform resolution evidence.
+RUNTIME_BLOCKERS = [
+    {"issue": 225, "title": "Windows descendant containment and bounded capture disk usage"},
+]
+
+
+def gate_runtime_blockers() -> dict:
+    return {"ok": not RUNTIME_BLOCKERS, "blockers": list(RUNTIME_BLOCKERS)}
+
 
 FOCUSED_SUITES = [
     "tests/test_memory_soak.py",
@@ -246,6 +256,7 @@ def main(argv: list[str] | None = None) -> int:
         "workflow_cli_contract": gate_script("check_workflow_cli_contract.py"),
         "receipts_recompute": gate_receipts(),
         "soak_evidence": gate_soak_evidence(),
+        "runtime_blockers": gate_runtime_blockers(),
     }
     if not args.skip_tests:
         gates["tests"] = gate_tests(args.full)

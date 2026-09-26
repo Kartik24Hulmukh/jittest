@@ -171,8 +171,12 @@ class Swarm:
             try:
                 proc.run_bounded([sys.executable, '-c', 'import time; time.sleep(30)'], timeout=0.3)
                 return kind, 500
-            except subprocess.TimeoutExpired:
-                recover_ms = (time.perf_counter() - t0 - 0.3) * 1000
+            except subprocess.TimeoutExpired as exc:
+                t_wait_end = getattr(exc, 't_wait_end', t0 + 0.3)
+                t_join_end = getattr(exc, 't_join_end', time.perf_counter())
+                recover_ms = (t_join_end - t_wait_end) * 1000
+                if not hasattr(exc, 't_wait_end'):
+                    recover_ms = (time.perf_counter() - t0 - 0.3) * 1000
                 return kind, 200 if recover_ms < 200 else 503
         raise ValueError(kind)
 

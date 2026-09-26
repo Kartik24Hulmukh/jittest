@@ -1,0 +1,8 @@
+test_fixture_native_dependency_provisioning (tests.test_seven_fixtures.SevenFixturesTest.test_fixture_native_dependency_provisioning)
+8. Target repository with third-party dependency (PyYAML with C/native extensions). ... WARNING: Sandbox disabled. Candidate tests will run unconfined.
+ok
+
+----------------------------------------------------------------------
+Ran 1 test in 7.114s
+
+OK

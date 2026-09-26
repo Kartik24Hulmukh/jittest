@@ -69,6 +69,53 @@ class TestRunBounded(unittest.TestCase):
         time.sleep(0.5)
         self.assertLessEqual(threading.active_count() - before, 2)
 
+    def test_capture_is_capped_at_max_capture(self):
+        """Unbounded-capture regression (#225): a child emitting far more than
+        MAX_CAPTURE must not balloon memory - captured output is truncated to
+        the 2 MiB ceiling per stream."""
+        from jittest.proc import MAX_CAPTURE
+
+        payload = MAX_CAPTURE + 1024 * 1024  # 1 MiB past the ceiling
+        script = (
+            "import sys\n"
+            f"sys.stdout.write('x' * {payload})\n"
+            "sys.stdout.flush()\n"
+        )
+        res = run_bounded([sys.executable, "-c", script], timeout=60)
+        self.assertEqual(res.returncode, 0)
+        self.assertLessEqual(len(res.stdout.encode("utf-8", "replace")), MAX_CAPTURE)
+        self.assertEqual(len(res.stdout), MAX_CAPTURE)
+
+    def test_capture_cap_survives_timeout_path(self):
+        """Same ceiling applies on the timeout/kill path (files read after kill)."""
+        from jittest.proc import MAX_CAPTURE
+
+        payload = MAX_CAPTURE + 512 * 1024
+        script = (
+            "import sys, time\n"
+            f"sys.stdout.write('y' * {payload})\n"
+            "sys.stdout.flush()\n"
+            "time.sleep(60)\n"
+        )
+        with self.assertRaises(subprocess.TimeoutExpired) as ctx:
+            run_bounded([sys.executable, "-c", script], timeout=1.5, grace=2.0)
+        self.assertLessEqual(len(ctx.exception.output or ""), MAX_CAPTURE)
+
+    def test_job_object_containment_is_none_off_windows(self):
+        import os
+
+        from jittest.proc import _assign_to_job, _close_job, _create_kill_on_close_job
+
+        job = _create_kill_on_close_job()
+        if os.name == "nt":
+            try:
+                self.assertIsNotNone(job)
+            finally:
+                _close_job(job)
+        else:
+            self.assertIsNone(job)
+            self.assertFalse(_assign_to_job(job, None))  # type: ignore[arg-type]
+
 
 if __name__ == "__main__":
     unittest.main()

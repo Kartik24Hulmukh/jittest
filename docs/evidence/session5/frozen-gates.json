@@ -1,0 +1,40 @@
+{
+  "head": "82fdbc2",
+  "seed": 20260919,
+  "workers": 100,
+  "gates": {
+    "unhandled_panics": 0,
+    "owned_thread_delta": 0,
+    "fd_delta": 0,
+    "surviving_descendants": 0,
+    "recovery_max_ms_exclusive": 200,
+    "retained_bytes_per_stream": 2097152,
+    "capture_disk_bytes": 0
+  },
+  "premortem": [
+    "JIT lifetime race: Windows child starts before assignment; fail closed and resume only after job assignment",
+    "Thread starvation: preserve four-process admission; join owned bounded drainers",
+    "Drift: fixed seed and existing research benchmark manifests",
+    "Unbounded live capture disk: replace temporary files with capped pipe drains",
+    "Windows handle truncation and unchecked assignment: explicit ctypes signatures and checked containment"
+  ],
+  "status": {
+    "done": [
+      "Linux lifecycle cleanup",
+      "fixed seeds",
+      "probe observability"
+    ],
+    "partial": [
+      "Windows containment",
+      "capture bounds",
+      "100-persona probe evidence (not engine throughput)"
+    ],
+    "missing": [
+      "real catch-rate/FPR/cost #73"
+    ],
+    "broken": [
+      "live capture disk limit",
+      "Windows assignment is unchecked and post-start"
+    ]
+  }
+}

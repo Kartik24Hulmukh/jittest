@@ -1,0 +1,25 @@
+............F.......                                             [100%]
+=================================== FAILURES ===================================
+_ ProcessLifecycleTests.test_successful_parent_exit_stops_inherited_descendant _
+
+self = <tests.test_proc_lifecycle.ProcessLifecycleTests testMethod=test_successful_parent_exit_stops_inherited_descendant>
+
+    @unittest.skipUnless(sys.platform.startswith("linux"), "Linux process state inspection")
+    def test_successful_parent_exit_stops_inherited_descendant(self):
+        script = ("import subprocess,sys; "
+                  "p=subprocess.Popen([sys.executable,'-c','import threading; threading.Event().wait(60)']); "
+                  "print(p.pid,flush=True)")
+        result = run_bounded([sys.executable, "-c", script], timeout=10)
+        pid = int(result.stdout.strip())
+        try:
+            try:
+                state = Path(f"/proc/{pid}/stat").read_text().split(") ", 1)[1][0]
+            except FileNotFoundError:
+                state = "gone"
+>           self.assertIn(state, ("Z", "gone"), "descendant still executing after supervisor return")
+E           AssertionError: 'R' not found in ('Z', 'gone') : descendant still executing after supervisor return
+
+tests/test_proc_lifecycle.py:67: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_proc_lifecycle.py::ProcessLifecycleTests::test_successful_parent_exit_stops_inherited_descendant
+1 failed, 19 passed, 8 subtests passed in 27.95s

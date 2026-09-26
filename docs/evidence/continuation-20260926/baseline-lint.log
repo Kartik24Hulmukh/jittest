@@ -1,0 +1,100 @@
+F401 [*] `sys` imported but unused
+  --> src/jittest/proc.py:26:8
+   |
+24 | import os
+25 | import subprocess
+26 | import sys
+   |        ^^^
+27 | import tempfile
+28 | import threading
+   |
+help: Remove unused import: `sys`
+   |
+25 | import subprocess
+   - import sys
+26 | import tempfile
+   |
+
+SIM105 Use `contextlib.suppress(Exception)` instead of `try`-`except`-`pass`
+  --> src/jittest/proc.py:41:9
+   |
+39 |       """Reap any fire-and-forget taskkill processes still tracked at exit."""
+40 |       for p in list(_KILLERS):
+41 | /         try:
+42 | |             p.poll()
+43 | |         except Exception:
+44 | |             pass
+   | |________________^
+help: Replace `try`-`except`-`pass` with `with contextlib.suppress(Exception): ...`
+
+SIM105 Use `contextlib.suppress(Exception)` instead of `try`-`except`-`pass`
+   --> src/jittest/proc.py:109:9
+    |
+107 |                   proc.kill()
+108 |       except Exception:
+109 | /         try:
+110 | |             proc.kill()
+111 | |         except Exception:
+112 | |             pass
+    | |________________^
+113 |       # 2) Bound the synchronous reap to a small slice of grace.
+114 |       reap_cap = min(grace, 0.12)
+    |
+help: Replace `try`-`except`-`pass` with `with contextlib.suppress(Exception): ...`
+
+SIM105 Use `contextlib.suppress(subprocess.TimeoutExpired)` instead of `try`-`except`-`pass`
+   --> src/jittest/proc.py:115:5
+    |
+113 |       # 2) Bound the synchronous reap to a small slice of grace.
+114 |       reap_cap = min(grace, 0.12)
+115 | /     try:
+116 | |         proc.wait(timeout=reap_cap)
+117 | |     except subprocess.TimeoutExpired:
+118 | |         # The tree is already signalled; do not block longer. A subsequent
+119 | |         # poll()/wait on the next call reaps the zombie.
+120 | |         pass
+    | |____________^
+121 |
+122 |   def run_bounded(
+    |
+help: Replace `try`-`except`-`pass` with `with contextlib.suppress(subprocess.TimeoutExpired): ...`
+
+SIM115 Use a context manager for opening files
+   --> src/jittest/proc.py:168:20
+    |
+166 |         os.close(out_fd)
+167 |         os.close(err_fd)
+168 |         out_file = open(out_path, "wb")
+    |                    ^^^^
+169 |         err_file = open(err_path, "wb")
+170 |         stdout_target: Any = out_file
+    |
+
+SIM115 Use a context manager for opening files
+   --> src/jittest/proc.py:169:20
+    |
+167 |         os.close(err_fd)
+168 |         out_file = open(out_path, "wb")
+169 |         err_file = open(err_path, "wb")
+    |                    ^^^^
+170 |         stdout_target: Any = out_file
+171 |         stderr_target: Any = err_file
+    |
+
+SIM105 Use `contextlib.suppress(OSError)` instead of `try`-`except`-`pass`
+   --> src/jittest/proc.py:240:17
+    |
+238 |           for p in (out_path, err_path):
+239 |               if p:
+240 | /                 try:
+241 | |                     os.unlink(p)
+242 | |                 except OSError:
+243 | |                     pass
+    | |________________________^
+244 |       else:
+245 |           stdout = b"".join(out_buf).decode("utf-8", "replace")
+    |
+help: Replace `try`-`except`-`pass` with `with contextlib.suppress(OSError): ...`
+
+Found 7 errors.
+[*] 1 fixable with the `--fix` option (3 hidden fixes can be enabled with the `--unsafe-fixes` option).

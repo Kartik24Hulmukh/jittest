@@ -1,0 +1,10 @@
+  [ok  ] ruff
+  [ok  ] version_drift
+  [ok  ] release_mapping
+  [ok  ] workflow_cli_contract
+  [ok  ] receipts_recompute
+  [ok  ] soak_evidence
+  [FAIL] runtime_blockers
+  [ok  ] tests
+decision: NO_GO  ga_ready: False
+digest:   31ab973acd65a73631fa872be8d9e025169c92a1904c6a665b7877909856b590

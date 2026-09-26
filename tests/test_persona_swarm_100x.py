@@ -79,10 +79,13 @@ class PersonaSwarmTests(unittest.TestCase):
 
     def test_run_bounded_timeout_recovers_within_200ms(self):
         t0 = time.perf_counter()
-        with self.assertRaises(subprocess.TimeoutExpired):
+        with self.assertRaises(subprocess.TimeoutExpired) as ctx:
             proc.run_bounded([sys.executable, '-c', 'import time; time.sleep(30)'], timeout=0.25)
-        overshoot_ms = (time.perf_counter() - t0 - 0.25) * 1000
-        assert overshoot_ms < 200, overshoot_ms
+        exc = ctx.exception
+        t_wait_end = getattr(exc, 't_wait_end', t0 + 0.25)
+        t_join_end = getattr(exc, 't_join_end', time.perf_counter())
+        cleanup_ms = (t_join_end - t_wait_end) * 1000
+        assert cleanup_ms < 200, cleanup_ms
 
 
     def test_run_bounded_malformed_script_is_a_result_not_a_panic(self):

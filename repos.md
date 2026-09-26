@@ -42,3 +42,51 @@ The dependency-free lane still runs first, without installing any package.
 A separate subprocess regression uses `python -S` to prove discovery succeeds
 even when the developer environment has Hypothesis installed. This repairs
 the import-time decorator failure without adding a runtime dependency.
+
+## PR 224 continuation integrations
+
+CPython subprocess and existing pytest tooling only; no new runtime stack.
+CI stages the real PyYAML 6.0.3 native wheel using existing pip before the
+60-second fixture deadline, and native provisioning runs with both pip/uv
+indexes disabled. This is not a mock or an increased recovery threshold.
+
+## Continuation: provisioning identity + budget (PR #224, 2026-09-19)
+
+Root cause of the `test (windows-latest, 3.11)` red on PR #224: the venv cache key
+included the commit sha, so base and head with byte-identical `requirements.txt`
+built two venvs (2x venv creation, 2x3 network installs) inside one 60 s
+pytest-timeout budget; per-step installer caps (90+90+60+60 s) summed past the
+caller's deadline so exhaustion surfaced as an untyped kill.
+
+| # | Repository | Taken | Where |
+|---|------------|-------|-------|
+| 1 | https://github.com/python/cpython (`hashlib`, `time.perf_counter`) | content-addressed env identity; monotonic provisioning deadline | `env.env_cache_identity`, `env._ProvisionDeadline` |
+| 17 | https://github.com/pypa/pip | `--no-input --prefer-binary --disable-pip-version-check` on the fallback installer: no credential-prompt wedge, no native build when a wheel exists, no self-check round-trip | `env.provision_environment.run_installer` |
+| 18 | https://github.com/astral-sh/uv | `--exclude-newer` is the only resolver that applies the era cutoff, so the cutoff enters the identity only when uv is present | `env.env_cache_identity` |
+
+Frozen swarm (seed 20260919, 100 workers, 1000-request burst, `PYTHONHASHSEED=0`,
+run concurrently with the full suite): p50 91.3 ms / p95 107.6 ms / p99 119.7 ms,
+1040.8 rps, RSS 29.3 -> 52.7 MiB, tracemalloc peak 11.0 MiB, recovery 1.04 ms,
+0 unhandled panics, 0 unexpected statuses, no registry drift.
+
+## 2026-09-26 continuation integrations
+
+Existing CPython `contextlib.ExitStack` and `tempfile.TemporaryFile` now own
+capture resources across spawn failures and cancellation; `math.isfinite`
+rejects invalid budgets; `DEVNULL` removes the unused pipe-reader fallback.
+Linux regression uses CPython `os.pidfd_open` + `select` for a real kernel
+exit notification within 199 ms, not a sleep or mock. Existing ruff, mypy,
+pytest, xdist and hypothesis provide verification. No new runtime dependency.
+`psutil` was installed in the sandbox but was not integrated or used as evidence.
+
+This is a partial repair, not launch approval: capture disk usage is still
+unbounded, Windows job containment is absent, and the independent 100-process
+recovery gate failed. The probe-plane swarm is not evidence of 100x engine
+throughput. Recovery timestamps now include capture decoding and resource
+closure, previously excluded by `t_join_end`.
+
+## Session 5 integration log
+
+Reused catalog CPython subprocess/threading/ctypes (bounded pipe capture and pre-execution Windows job assignment), pytest, pytest-timeout, pytest-xdist and ruff. No new runtime dependencies. Existing lifecycle and fixed-seed persona harnesses retained. Captured output never touches disk; unrelated child writes remain unrestricted. Windows-specific real descendant regressions cover normal exit and timeout; Linux cannot validate that kernel path.
+
+CPython selectors + a wakeup pipe now bound POSIX capture-reader lifetime even when a descendant escapes the process group with setsid(). Such escape is reported as a containment error; process-group cleanup is not claimed to kill escaped descendants. Real regression harness explicitly owns escaped-child cleanup.
