@@ -1,0 +1,14 @@
+[
+  {
+    "repeat": 1,
+    "exit_code": 1
+  },
+  {
+    "repeat": 2,
+    "exit_code": 1
+  },
+  {
+    "repeat": 3,
+    "exit_code": 1
+  }
+]

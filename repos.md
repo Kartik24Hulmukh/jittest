@@ -68,3 +68,19 @@ Frozen swarm (seed 20260919, 100 workers, 1000-request burst, `PYTHONHASHSEED=0`
 run concurrently with the full suite): p50 91.3 ms / p95 107.6 ms / p99 119.7 ms,
 1040.8 rps, RSS 29.3 -> 52.7 MiB, tracemalloc peak 11.0 MiB, recovery 1.04 ms,
 0 unhandled panics, 0 unexpected statuses, no registry drift.
+
+## 2026-09-26 continuation integrations
+
+Existing CPython `contextlib.ExitStack` and `tempfile.TemporaryFile` now own
+capture resources across spawn failures and cancellation; `math.isfinite`
+rejects invalid budgets; `DEVNULL` removes the unused pipe-reader fallback.
+Linux regression uses CPython `os.pidfd_open` + `select` for a real kernel
+exit notification within 199 ms, not a sleep or mock. Existing ruff, mypy,
+pytest, xdist and hypothesis provide verification. No new runtime dependency.
+`psutil` was installed in the sandbox but was not integrated or used as evidence.
+
+This is a partial repair, not launch approval: capture disk usage is still
+unbounded, Windows job containment is absent, and the independent 100-process
+recovery gate failed. The probe-plane swarm is not evidence of 100x engine
+throughput. Recovery timestamps now include capture decoding and resource
+closure, previously excluded by `t_join_end`.
