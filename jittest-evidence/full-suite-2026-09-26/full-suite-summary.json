@@ -1,0 +1,18 @@
+{
+  "command": "pytest -q -n 4 --timeout=300 --junitxml",
+  "elapsed_s": 174.9,
+  "head": "5dfee08 (== main 0ef44db content)",
+  "python": "CPython 3.14",
+  "pythonhashseed": "0",
+  "returncode": 0,
+  "summary": {
+    "errors": "0",
+    "failures": "0",
+    "hostname": "f87fa431-4643-4336-8b52-05f42e87df93",
+    "name": "pytest",
+    "skipped": "2",
+    "tests": "1458",
+    "time": "173.020",
+    "timestamp": "2026-09-26T18:10:18.434917+00:00"
+  }
+}
