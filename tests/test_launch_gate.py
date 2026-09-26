@@ -274,12 +274,27 @@ if __name__ == "__main__":
 
 
 class IndependentRuntimeBlockers(unittest.TestCase):
-    def test_runtime_blockers_cannot_be_hidden_by_green_focused_suites(self):
+    def test_runtime_blockers_resolved_after_pr227_cross_platform_ci(self):
+        # Issue #225 was closed by PR #227 (merge 0ef44db): pidfd/selectors death
+        # wait + reaper SIGKILL-teardown fix, proven green on ubuntu-latest,
+        # macos-latest and windows-latest (3.11/3.12/3.13) before merge.
         gate = launch_gate.gate_runtime_blockers()
-        self.assertFalse(gate["ok"])
-        self.assertEqual({row["issue"] for row in gate["blockers"]}, {225})
+        self.assertTrue(gate["ok"])
+        self.assertEqual(gate["blockers"], [])
         report = launch_gate.build_report({"tests": {"ok": True}, "runtime_blockers": gate}, [])
-        self.assertEqual(report["decision"], "NO_GO")
+        self.assertNotEqual(report["decision"], "NO_GO")
+
+    def test_runtime_blockers_mechanism_still_fails_closed(self):
+        # Prove the fail-closed mechanism itself still works even though the
+        # real list is empty today: a synthetic open blocker must still force
+        # NO_GO and must not be hidden by green focused suites.
+        synthetic = [{"issue": 999999, "title": "synthetic probe"}]
+        with patch.object(launch_gate, "RUNTIME_BLOCKERS", synthetic):
+            gate = launch_gate.gate_runtime_blockers()
+            self.assertFalse(gate["ok"])
+            self.assertEqual({row["issue"] for row in gate["blockers"]}, {999999})
+            report = launch_gate.build_report({"tests": {"ok": True}, "runtime_blockers": gate}, [])
+            self.assertEqual(report["decision"], "NO_GO")
 
     def test_closed_option_c_issue_is_not_a_ga_blocker(self):
         self.assertNotIn(198, {row["issue"] for row in launch_gate.GA_BLOCKERS})

@@ -45,9 +45,10 @@ GA_BLOCKERS = [
 
 # Independent runtime failures block *launch*, not merely GA. Remove entries
 # only in the change carrying verified cross-platform resolution evidence.
-RUNTIME_BLOCKERS = [
-    {"issue": 225, "title": "Windows descendant containment and bounded capture disk usage"},
-]
+# Resolved 2026-09-26: PR #227 (merge 0ef44db) landed the pidfd/selectors death
+# wait + reaper SIGKILL-teardown fix and proved it cross-platform green on
+# ubuntu-latest/macos-latest/windows-latest (3.11/3.12/3.13) CI before merge.
+RUNTIME_BLOCKERS: list[dict] = []
 
 
 def gate_runtime_blockers() -> dict:
