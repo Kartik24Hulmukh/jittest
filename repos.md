@@ -88,3 +88,5 @@ closure, previously excluded by `t_join_end`.
 ## Session 5 integration log
 
 Reused catalog CPython subprocess/threading/ctypes (bounded pipe capture and pre-execution Windows job assignment), pytest, pytest-timeout, pytest-xdist and ruff. No new runtime dependencies. Existing lifecycle and fixed-seed persona harnesses retained. Captured output never touches disk; unrelated child writes remain unrestricted. Windows-specific real descendant regressions cover normal exit and timeout; Linux cannot validate that kernel path.
+
+CPython selectors + a wakeup pipe now bound POSIX capture-reader lifetime even when a descendant escapes the process group with setsid(). Such escape is reported as a containment error; process-group cleanup is not claimed to kill escaped descendants. Real regression harness explicitly owns escaped-child cleanup.

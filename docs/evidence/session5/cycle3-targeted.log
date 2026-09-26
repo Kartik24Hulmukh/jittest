@@ -1,0 +1,35 @@
+...............F..s.                                             [100%]
+=================================== FAILURES ===================================
+_ ProcessLifecycleTests.test_successful_parent_exit_stops_inherited_descendant _
+
+self = <tests.test_proc_lifecycle.ProcessLifecycleTests testMethod=test_successful_parent_exit_stops_inherited_descendant>
+
+    @unittest.skipUnless(sys.platform.startswith("linux"), "Linux process state inspection")
+    def test_successful_parent_exit_stops_inherited_descendant(self):
+        script = ("import subprocess,sys; "
+                  "p=subprocess.Popen([sys.executable,'-c','import threading; threading.Event().wait(60)']); "
+                  "print(p.pid,flush=True)")
+>       result = run_bounded([sys.executable, "-c", script], timeout=10)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_proc_lifecycle.py:62: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/jittest/proc.py:321: in run_bounded
+    stdout, stderr = (reader.text() for reader in readers) if capture else ("", "")
+    ^^^^^^^^^^^^^^
+src/jittest/proc.py:321: in <genexpr>
+    stdout, stderr = (reader.text() for reader in readers) if capture else ("", "")
+                      ^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <jittest.proc._Capture object at 0x76ca75b7f770>
+
+    def text(self) -> str:
+        if self.error is not None:
+>           raise self.error
+E           RuntimeError: descendant retained capture pipe outside process containment
+
+src/jittest/proc.py:238: RuntimeError
+=========================== short test summary info ============================
+FAILED tests/test_proc_lifecycle.py::ProcessLifecycleTests::test_successful_parent_exit_stops_inherited_descendant
+1 failed, 18 passed, 1 skipped, 8 subtests passed in 10.73s

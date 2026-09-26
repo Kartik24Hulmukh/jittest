@@ -149,3 +149,26 @@ class StreamingCaptureTests(unittest.TestCase):
                 finally:
                     kernel32.TerminateProcess(handle, 1)
                     kernel32.CloseHandle(handle)
+
+
+@unittest.skipUnless(os.name == "posix", "POSIX session escape")
+class EscapedPipeTests(unittest.TestCase):
+    def test_escaped_writer_is_reported_without_stranding_reader_threads(self):
+        with tempfile.TemporaryDirectory() as directory:
+            pidfile = Path(directory) / "escaped.pid"
+            script = (
+                "import subprocess,sys,pathlib; "
+                "p=subprocess.Popen([sys.executable,'-c',"
+                "'import threading;threading.Event().wait(60)'],start_new_session=True); "
+                "pathlib.Path(sys.argv[1]).write_text(str(p.pid));print('done',flush=True)"
+            )
+            before = {t.ident for t in threading.enumerate() if t.name == "jittest-capture"}
+            try:
+                with self.assertRaisesRegex(RuntimeError, "capture pipe"):
+                    run_bounded([sys.executable, "-c", script, str(pidfile)], timeout=2)
+                self.assertEqual(before, {t.ident for t in threading.enumerate()
+                                          if t.name == "jittest-capture"})
+            finally:
+                if pidfile.exists():
+                    with contextlib.suppress(ProcessLookupError):
+                        os.kill(int(pidfile.read_text()), signal.SIGKILL)

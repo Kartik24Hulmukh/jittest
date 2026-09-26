@@ -12,6 +12,7 @@ import atexit
 import contextlib
 import math
 import os
+import selectors
 import subprocess
 import threading
 import time
@@ -158,19 +159,88 @@ class _Capture:
         self.content = bytearray()
         self.error: BaseException | None = None
         self.thread = threading.Thread(target=self._drain, name="jittest-capture")
+        self.stop_pipe: tuple[int, int] | None = None
+        if os.name != "nt":
+            self.stop_pipe = os.pipe()
+            os.set_blocking(self.stream.fileno(), False)
+
+    def start(self) -> None:
+        try:
+            self.thread.start()
+        except BaseException:
+            self._close_stop_pipe()
+            raise
+
+    def _close_stop_pipe(self) -> None:
+        if self.stop_pipe is not None:
+            for fd in self.stop_pipe:
+                os.close(fd)
+            self.stop_pipe = None
+
+    def _retain(self, chunk: bytes) -> None:
+        remaining = MAX_CAPTURE - len(self.content)
+        if remaining > 0:
+            self.content.extend(chunk[:remaining])
+
+    def _drain_posix(self) -> None:
+        # A descendant can setsid() and retain a pipe outside the owned session.
+        # The stop FD wakes this reader without polling or abandoning a thread.
+        assert self.stop_pipe is not None
+        with selectors.DefaultSelector() as selector:
+            selector.register(self.stream, selectors.EVENT_READ, "output")
+            selector.register(self.stop_pipe[0], selectors.EVENT_READ, "stop")
+            while True:
+                events = selector.select()
+                stopping = any(key.data == "stop" for key, _ in events)
+                if stopping:
+                    # Flush only a bounded tail already in the pipe. An escaped
+                    # writer must not keep the supervisor alive indefinitely.
+                    deadline = time.monotonic() + 0.12
+                    selector.unregister(self.stop_pipe[0])
+                    for _ in range(MAX_CAPTURE // 65536 + 1):
+                        try:
+                            chunk = os.read(self.stream.fileno(), 65536)
+                        except BlockingIOError:
+                            # SIGKILL delivery is asynchronous for descendants.
+                            # A readiness wait, not a sleep, allows their EOF.
+                            if selector.select(max(0.0, deadline - time.monotonic())):
+                                chunk = os.read(self.stream.fileno(), 65536)
+                            else:
+                                self.error = RuntimeError("descendant retained capture pipe outside process containment")
+                                return
+                        if not chunk:
+                            return
+                        self._retain(chunk)
+                    self.error = RuntimeError("capture pipe remained active after process containment cleanup")
+                    return
+                try:
+                    chunk = os.read(self.stream.fileno(), 65536)
+                except BlockingIOError:
+                    continue
+                if not chunk:
+                    return
+                self._retain(chunk)
 
     def _drain(self) -> None:
         try:
-            while chunk := self.stream.read(65536):
-                remaining = MAX_CAPTURE - len(self.content)
-                if remaining > 0:
-                    self.content.extend(chunk[:remaining])
+            if self.stop_pipe is not None:
+                self._drain_posix()
+            else:
+                while chunk := self.stream.read(65536):
+                    self._retain(chunk)
         except BaseException as exc:
             self.error = exc
 
+    def stop(self) -> None:
+        if self.stop_pipe is not None:
+            os.write(self.stop_pipe[1], b"x")
+
     def finish(self) -> None:
-        self.thread.join()
-        self.stream.close()
+        try:
+            self.thread.join()
+        finally:
+            self._close_stop_pipe()
+            self.stream.close()
 
     def text(self) -> str:
         if self.error is not None:
@@ -237,7 +307,7 @@ def run_bounded(
                     if stream is not None:
                         resources.callback(stream.close)
                         reader = _Capture(stream)
-                        reader.thread.start()
+                        reader.start()
                         readers.append(reader)
                 t_spawn = time.perf_counter()
                 try:
@@ -252,6 +322,8 @@ def run_bounded(
                 owned_job[0] = None
                 kill_process_tree(proc, grace=grace)
                 t_kill_end = time.perf_counter()
+                for reader in readers:
+                    reader.stop()
                 for reader in readers:
                     reader.finish()
                 for stream in (proc.stdout, proc.stderr):
