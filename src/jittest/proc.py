@@ -102,6 +102,8 @@ sweep()
 if os.WIFEXITED(status):
     os._exit(os.WEXITSTATUS(status))
 sig = os.WTERMSIG(status) if os.WIFSIGNALED(status) else signal.SIGKILL
+if sig in (signal.SIGKILL, signal.SIGSTOP):
+    os._exit(128 + sig)
 signal.signal(sig, signal.SIG_DFL)
 os.kill(me, sig)
 os._exit(128 + sig)
@@ -151,17 +153,48 @@ def kill_process_tree(proc: subprocess.Popen[Any], grace: float = 1.0) -> None:
             # Ask the subreaper to kill and reap escaped descendants first.
             with contextlib.suppress(ProcessLookupError):
                 os.kill(proc.pid, signal.SIGTERM)
-            with contextlib.suppress(subprocess.TimeoutExpired):
-                proc.wait(timeout=max(grace, 0.12))
+            _wait_death(proc, time.monotonic() + max(grace, 0.12))
         try:
             os.killpg(proc.pid, 9)
         except (ProcessLookupError, PermissionError):
             if proc.poll() is None:
                 with contextlib.suppress(OSError):
                     proc.kill()
-    with contextlib.suppress(subprocess.TimeoutExpired):
-        proc.wait(timeout=min(grace, 0.12))
+    _wait_death(proc, time.monotonic() + min(grace, 0.12))
     _reap_killers()
+
+
+def _wait_death(proc: subprocess.Popen[Any], deadline: float) -> None:
+    """Block on the kernel death notification for proc, then reap it.
+
+    A pidfd becomes readable exactly when the process dies, so this waits
+    only as long as death actually takes instead of a fixed ceiling, and
+    never returns while the child is still executing. Where pidfd is
+    unavailable this degrades to the previous bounded Popen.wait.
+    """
+    if proc.poll() is not None:
+        return
+    open_pidfd = getattr(os, "pidfd_open", None)
+    if open_pidfd is None:
+        with contextlib.suppress(subprocess.TimeoutExpired):
+            proc.wait(timeout=max(0.0, deadline - time.monotonic()))
+        return
+    try:
+        fd = open_pidfd(proc.pid, 0)
+    except OSError:
+        with contextlib.suppress(subprocess.TimeoutExpired):
+            proc.wait(timeout=max(0.0, deadline - time.monotonic()))
+        return
+    try:
+        with selectors.DefaultSelector() as selector:
+            selector.register(fd, selectors.EVENT_READ)
+            remaining = deadline - time.monotonic()
+            if remaining > 0:
+                selector.select(remaining)
+    finally:
+        os.close(fd)
+    with contextlib.suppress(subprocess.TimeoutExpired):
+        proc.wait(timeout=0)
 
 
 def _create_kill_on_close_job() -> Any | None:
