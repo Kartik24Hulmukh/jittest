@@ -21,9 +21,9 @@ Design (v2 - file-redirect capture):
 from __future__ import annotations
 
 import atexit
+import contextlib
 import os
 import subprocess
-import sys
 import tempfile
 import threading
 import time
@@ -38,10 +38,8 @@ _KILLERS: set[subprocess.Popen[Any]] = set()
 def _reap_killers() -> None:
     """Reap any fire-and-forget taskkill processes still tracked at exit."""
     for p in list(_KILLERS):
-        try:
+        with contextlib.suppress(Exception):
             p.poll()
-        except Exception:
-            pass
 
 
 atexit.register(_reap_killers)
@@ -106,18 +104,14 @@ def kill_process_tree(proc: subprocess.Popen[Any], grace: float = 1.0) -> None:
             except (ProcessLookupError, PermissionError):
                 proc.kill()
     except Exception:
-        try:
+        with contextlib.suppress(Exception):
             proc.kill()
-        except Exception:
-            pass
     # 2) Bound the synchronous reap to a small slice of grace.
     reap_cap = min(grace, 0.12)
-    try:
+    # The tree is already signalled; if the reap does not finish inside the
+    # cap, do not block longer - a subsequent poll()/wait reaps the zombie.
+    with contextlib.suppress(subprocess.TimeoutExpired):
         proc.wait(timeout=reap_cap)
-    except subprocess.TimeoutExpired:
-        # The tree is already signalled; do not block longer. A subsequent
-        # poll()/wait on the next call reaps the zombie.
-        pass
 
 def run_bounded(
     cmd: list[str],
@@ -165,8 +159,8 @@ def run_bounded(
         err_fd, err_path = tempfile.mkstemp(prefix="jit-err-", suffix=".log")
         os.close(out_fd)
         os.close(err_fd)
-        out_file = open(out_path, "wb")
-        err_file = open(err_path, "wb")
+        out_file = open(out_path, "wb")  # noqa: SIM115 - lifetime spans try/except; closed in cleanup paths below
+        err_file = open(err_path, "wb")  # noqa: SIM115 - lifetime spans try/except; closed in cleanup paths below
         stdout_target: Any = out_file
         stderr_target: Any = err_file
     else:
@@ -237,10 +231,8 @@ def run_bounded(
         stderr = _read_bounded(err_path, MAX_CAPTURE)
         for p in (out_path, err_path):
             if p:
-                try:
+                with contextlib.suppress(OSError):
                     os.unlink(p)
-                except OSError:
-                    pass
     else:
         stdout = b"".join(out_buf).decode("utf-8", "replace")
         stderr = b"".join(err_buf).decode("utf-8", "replace")
