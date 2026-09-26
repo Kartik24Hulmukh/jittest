@@ -277,7 +277,7 @@ class IndependentRuntimeBlockers(unittest.TestCase):
     def test_runtime_blockers_cannot_be_hidden_by_green_focused_suites(self):
         gate = launch_gate.gate_runtime_blockers()
         self.assertFalse(gate["ok"])
-        self.assertEqual({row["issue"] for row in gate["blockers"]}, {223, 225})
+        self.assertEqual({row["issue"] for row in gate["blockers"]}, {225})
         report = launch_gate.build_report({"tests": {"ok": True}, "runtime_blockers": gate}, [])
         self.assertEqual(report["decision"], "NO_GO")
 
