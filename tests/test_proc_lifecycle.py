@@ -75,7 +75,7 @@ class ProcessLifecycleTests(unittest.TestCase):
                     os.close(descriptor)
             try:
                 state = Path(f"/proc/{pid}/stat").read_text().split(") ", 1)[1][0]
-            except FileNotFoundError:
+            except (FileNotFoundError, ProcessLookupError):
                 state = "gone"
             self.assertIn(state, ("Z", "gone"), "descendant still executing after supervisor return")
         finally:

@@ -1,11 +1,10 @@
 """Bounded-memory subprocess capture with explicit resource ownership.
 
 TemporaryFile owns capture handles across spawn errors, cancellation and normal
-exit. Capture is bounded in memory, NOT on disk: hostile output still requires
-an external filesystem quota. POSIX session cleanup also runs after parent exit.
-Windows taskkill cannot contain descendants after their parent has exited; that
-platform still needs OS-owned job containment before the launch gate can pass.
-Recovery timestamps include decoding and file cleanup, not just process wait.
+exit. Capture is bounded in memory. POSIX session cleanup also runs after parent
+exit. Windows taskkill cannot contain descendants after their parent has exited;
+that platform still needs OS-owned job containment before the launch gate can
+pass. Recovery timestamps include decoding and file cleanup, not just process wait.
 """
 
 from __future__ import annotations
@@ -18,9 +17,12 @@ import subprocess
 import tempfile
 import threading
 import time
+from threading import BoundedSemaphore
 from typing import Any, BinaryIO
 
 MAX_CAPTURE = 2 * 1024 * 1024
+MAX_LIVE_PROCESSES = 4
+_LIVE_PROCESSES = BoundedSemaphore(MAX_LIVE_PROCESSES)
 _KILLERS: set[subprocess.Popen[Any]] = set()
 _KILLERS_LOCK = threading.Lock()
 
@@ -90,6 +92,8 @@ def run_bounded(
     capture=False discards output without pipes or reader threads. Timeout and
     grace must be finite, with timeout positive and grace nonnegative. Child
     startup is recorded separately; timeout begins after Popen returns.
+    Spawning is throttled to MAX_LIVE_PROCESSES concurrent processes to prevent
+    OS-level scheduling starvation under load.
     """
     if timeout is None or not math.isfinite(timeout) or timeout <= 0:
         raise ValueError("run_bounded requires a finite positive timeout")
@@ -103,42 +107,50 @@ def run_bounded(
 
     t_start = time.perf_counter()
     timed_out = False
-    with contextlib.ExitStack() as resources:
-        out_file = resources.enter_context(tempfile.TemporaryFile()) if capture else None
-        err_file = resources.enter_context(tempfile.TemporaryFile()) if capture else None
-        proc = subprocess.Popen(
-            cmd,
-            cwd=str(cwd) if cwd is not None else None,
-            env=env,
-            stdout=out_file if capture else subprocess.DEVNULL,
-            stderr=err_file if capture else subprocess.DEVNULL,
-            stdin=subprocess.DEVNULL,
-            **popen_kwargs,
-        )
-        t_spawn = time.perf_counter()
-        try:
+    
+    # Acquire admission permit before entering the context (so we don't hold FD/child if we wait).
+    _LIVE_PROCESSES.acquire()
+    try:
+        with contextlib.ExitStack() as resources:
+            out_file = resources.enter_context(tempfile.TemporaryFile()) if capture else None
+            err_file = resources.enter_context(tempfile.TemporaryFile()) if capture else None
+            
+            proc = subprocess.Popen(
+                cmd,
+                cwd=str(cwd) if cwd is not None else None,
+                env=env,
+                stdout=out_file if capture else subprocess.DEVNULL,
+                stderr=err_file if capture else subprocess.DEVNULL,
+                stdin=subprocess.DEVNULL,
+                **popen_kwargs,
+            )
+            t_spawn = time.perf_counter()
             try:
-                proc.wait(timeout=timeout)
-            except subprocess.TimeoutExpired:
-                timed_out = True
-            t_wait_end = time.perf_counter()
-        finally:
-            # Includes successful parent exits and BaseException cancellation.
-            kill_process_tree(proc, grace=grace)
-        t_kill_end = time.perf_counter()
-        stdout = _read_capture(out_file)
-        stderr = _read_capture(err_file)
-    # Account for all capture, decoding and close/unlink work in recovery.
-    t_join_end = time.perf_counter()
-    if timed_out:
-        exc = subprocess.TimeoutExpired(cmd, timeout, output=stdout, stderr=stderr)
-        exc.t_start = t_start  # type: ignore[attr-defined]
-        exc.t_spawn = t_spawn  # type: ignore[attr-defined]
-        exc.t_wait_end = t_wait_end  # type: ignore[attr-defined]
-        exc.t_kill_end = t_kill_end  # type: ignore[attr-defined]
-        exc.t_join_end = t_join_end  # type: ignore[attr-defined]
-        raise exc
-    rc = proc.returncode if proc.returncode is not None else -1
-    if check and rc != 0:
-        raise subprocess.CalledProcessError(rc, cmd, output=stdout, stderr=stderr)
-    return subprocess.CompletedProcess(cmd, rc, stdout, stderr)
+                try:
+                    proc.wait(timeout=timeout)
+                except subprocess.TimeoutExpired:
+                    timed_out = True
+                t_wait_end = time.perf_counter()
+            finally:
+                # Includes successful parent exits and BaseException cancellation.
+                kill_process_tree(proc, grace=grace)
+            t_kill_end = time.perf_counter()
+            stdout = _read_capture(out_file)
+            stderr = _read_capture(err_file)
+        # Account for all capture, decoding and close/unlink work in recovery.
+        t_join_end = time.perf_counter()
+        if timed_out:
+            exc = subprocess.TimeoutExpired(cmd, timeout, output=stdout, stderr=stderr)
+            exc.t_start = t_start  # type: ignore[attr-defined]
+            exc.t_spawn = t_spawn  # type: ignore[attr-defined]
+            exc.t_wait_end = t_wait_end  # type: ignore[attr-defined]
+            exc.t_kill_end = t_kill_end  # type: ignore[attr-defined]
+            exc.t_join_end = t_join_end  # type: ignore[attr-defined]
+            raise exc
+        rc = proc.returncode if proc.returncode is not None else -1
+        if check and rc != 0:
+            raise subprocess.CalledProcessError(rc, cmd, output=stdout, stderr=stderr)
+        return subprocess.CompletedProcess(cmd, rc, stdout, stderr)
+    finally:
+        # Release the admission permit after the child and all resources are gone.
+        _LIVE_PROCESSES.release()
