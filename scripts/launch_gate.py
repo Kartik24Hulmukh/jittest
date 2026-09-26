@@ -46,7 +46,6 @@ GA_BLOCKERS = [
 # Independent runtime failures block *launch*, not merely GA. Remove entries
 # only in the change carrying verified cross-platform resolution evidence.
 RUNTIME_BLOCKERS = [
-    {"issue": 223, "title": "100-process end-to-end recovery exceeds 200ms under load"},
     {"issue": 225, "title": "Windows descendant containment and bounded capture disk usage"},
 ]
 
