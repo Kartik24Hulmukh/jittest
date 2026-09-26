@@ -90,3 +90,21 @@ closure, previously excluded by `t_join_end`.
 Reused catalog CPython subprocess/threading/ctypes (bounded pipe capture and pre-execution Windows job assignment), pytest, pytest-timeout, pytest-xdist and ruff. No new runtime dependencies. Existing lifecycle and fixed-seed persona harnesses retained. Captured output never touches disk; unrelated child writes remain unrestricted. Windows-specific real descendant regressions cover normal exit and timeout; Linux cannot validate that kernel path.
 
 CPython selectors + a wakeup pipe now bound POSIX capture-reader lifetime even when a descendant escapes the process group with setsid(). Such escape is reported as a containment error; process-group cleanup is not claimed to kill escaped descendants. Real regression harness explicitly owns escaped-child cleanup.
+
+## Session 3 (2026-09-26) integration log: recovery SLO root-cause fix
+
+Reused catalog CPython primitives only; no new runtime dependency. The reaper
+supervisor tail now reports SIGKILL/SIGSTOP status via `os._exit(128+sig)`
+instead of `signal.signal(SIGKILL, SIG_DFL)` (which raised OSError EINVAL and
+killed the reaper through the unhandled-exception path, adding a ~30 ms floor
+to every timed-out run). `kill_process_tree` waits on the kernel death
+notification with CPython `os.pidfd_open` + `selectors` (`_wait_death`),
+replacing two fixed `Popen.wait` ceilings, so recovery blocks exactly as long
+as death takes and never returns while the child still executes; it degrades
+to the previous bounded wait where pidfd is unavailable. New frozen harness
+`scripts/bench_recovery_slo.py` measures recovery (t_join_end - t_wait_end)
+for 100 timed-out runs at 20 workers under 8 CPU burners with nearest-rank
+percentiles. Verification reused catalog pytest, pytest-xdist, pytest-timeout,
+hypothesis and ruff. Evidence: `jittest-evidence/recovery-slo-2026-09-26/`
+(baseline main@669d03b P95 284.5 ms -> post-fix P95 87.2 ms, worst 88.7 ms,
+bar 200 ms; persona swarm 100 workers seed 20260919 passed, 0 panics).

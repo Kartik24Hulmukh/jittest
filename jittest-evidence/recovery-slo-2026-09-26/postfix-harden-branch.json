@@ -1,0 +1,19 @@
+{
+  "bar_recovery_ms": 200.0,
+  "burners": 8,
+  "calls": 100,
+  "errors": [],
+  "harness": "bench_recovery_slo",
+  "leaked_threads": [],
+  "passed": true,
+  "recovery_ms": {
+    "p50": 4.315,
+    "p95": 87.193,
+    "p99": 87.557,
+    "worst": 88.663
+  },
+  "rss_ceiling_kib": 17620,
+  "throughput_timedout_runs_per_s": 17.49,
+  "timeout_s": 0.2,
+  "workers": 20
+}
