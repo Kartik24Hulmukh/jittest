@@ -16,7 +16,7 @@ import subprocess
 import threading
 import time
 from threading import BoundedSemaphore
-from typing import Any, BinaryIO
+from typing import IO, Any
 
 MAX_CAPTURE = 2 * 1024 * 1024
 MAX_LIVE_PROCESSES = 4
@@ -153,7 +153,7 @@ def _resume_contained(proc: subprocess.Popen[Any]) -> None:
 class _Capture:
     """One owned drainer, bounded retained bytes, synchronous error propagation."""
 
-    def __init__(self, stream: BinaryIO) -> None:
+    def __init__(self, stream: IO[bytes]) -> None:
         self.stream = stream
         self.content = bytearray()
         self.error: BaseException | None = None
@@ -202,7 +202,7 @@ def run_bounded(
         raise ValueError("run_bounded requires a finite nonnegative grace")
     popen_kwargs: dict[str, Any] = {}
     if os.name == "nt":
-        popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP | 0x00000004  # CREATE_SUSPENDED
+        popen_kwargs["creationflags"] = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0) | 0x00000004  # CREATE_SUSPENDED
     else:
         popen_kwargs["start_new_session"] = True
 

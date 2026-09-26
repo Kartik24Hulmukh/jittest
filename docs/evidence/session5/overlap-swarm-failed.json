@@ -1,0 +1,26 @@
+{
+  "burst_elapsed_s": 7.1998,
+  "burst_requests": 1000,
+  "max_ms": 892.455,
+  "p50_ms": 696.145,
+  "p95_ms": 794.039,
+  "p99_ms": 806.912,
+  "passed": false,
+  "persona_kinds": 20,
+  "personas": 120,
+  "personas_elapsed_s": 6.1966,
+  "recovery_ms": 2.659,
+  "recovery_status": 200,
+  "registry_drift": false,
+  "rss_ceiling_mib": 46.6,
+  "rss_floor_mib": 29.1,
+  "seed": 20260919,
+  "server_thread_alive_after_shutdown": false,
+  "throughput_rps": 138.9,
+  "tracemalloc_peak_mib": 8.99,
+  "unexpected": [
+    "hard_timeout#16: status 503 not in ['200']"
+  ],
+  "unhandled_panics": [],
+  "workers": 100
+}
