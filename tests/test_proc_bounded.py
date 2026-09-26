@@ -101,6 +101,18 @@ class TestRunBounded(unittest.TestCase):
             run_bounded([sys.executable, "-c", script], timeout=1.5, grace=2.0)
         self.assertLessEqual(len(ctx.exception.output or ""), MAX_CAPTURE)
 
+    def test_job_object_containment_is_none_off_windows(self):
+        import os
+
+        from jittest.proc import _assign_to_job, _create_kill_on_close_job
+
+        job = _create_kill_on_close_job()
+        if os.name == "nt":
+            self.assertIsNotNone(job)
+        else:
+            self.assertIsNone(job)
+            self.assertFalse(_assign_to_job(job, None))  # type: ignore[arg-type]
+
 
 if __name__ == "__main__":
     unittest.main()

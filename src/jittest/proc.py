@@ -2,9 +2,11 @@
 
 TemporaryFile owns capture handles across spawn errors, cancellation and normal
 exit. Capture is bounded in memory. POSIX session cleanup also runs after parent
-exit. Windows taskkill cannot contain descendants after their parent has exited;
-that platform still needs OS-owned job containment before the launch gate can
-pass. Recovery timestamps include decoding and file cleanup, not just process wait.
+exit. On Windows every child is assigned to an OS job object created with
+JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE; closing the job handle (owned by the same
+ExitStack as the capture files) makes the kernel kill the whole member tree,
+including descendants whose parent already exited. taskkill is only a fallback
+when job creation/assignment fails. Recovery timestamps include decoding and file cleanup, not just process wait.
 """
 
 from __future__ import annotations
@@ -70,6 +72,68 @@ def kill_process_tree(proc: subprocess.Popen[Any], grace: float = 1.0) -> None:
     _reap_killers()
 
 
+def _create_kill_on_close_job() -> Any | None:
+    """Return a Windows job handle that kills its members on close, else None."""
+    if os.name != "nt":
+        return None
+    import ctypes
+    from ctypes import wintypes
+
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)  # type: ignore[attr-defined]
+
+    class _BasicLimit(ctypes.Structure):
+        _fields_ = [
+            ("PerProcessUserTimeLimit", ctypes.c_int64),
+            ("PerJobUserTimeLimit", ctypes.c_int64),
+            ("LimitFlags", wintypes.DWORD),
+            ("MinimumWorkingSetSize", ctypes.c_size_t),
+            ("MaximumWorkingSetSize", ctypes.c_size_t),
+            ("ActiveProcessLimit", wintypes.DWORD),
+            ("Affinity", ctypes.c_size_t),
+            ("PriorityClass", wintypes.DWORD),
+            ("SchedulingClass", wintypes.DWORD),
+        ]
+
+    class _IoCounters(ctypes.Structure):
+        _fields_ = [(name, ctypes.c_uint64) for name in (
+            "ReadOperationCount", "WriteOperationCount", "OtherOperationCount",
+            "ReadTransferCount", "WriteTransferCount", "OtherTransferCount")]
+
+    class _ExtendedLimit(ctypes.Structure):
+        _fields_ = [
+            ("BasicLimitInformation", _BasicLimit),
+            ("IoInfo", _IoCounters),
+            ("ProcessMemoryLimit", ctypes.c_size_t),
+            ("JobMemoryLimit", ctypes.c_size_t),
+            ("PeakProcessMemoryUsed", ctypes.c_size_t),
+            ("PeakJobMemoryUsed", ctypes.c_size_t),
+        ]
+
+    kernel32.CreateJobObjectW.restype = wintypes.HANDLE
+    job = kernel32.CreateJobObjectW(None, None)
+    if not job:
+        return None
+    info = _ExtendedLimit()
+    info.BasicLimitInformation.LimitFlags = 0x2000  # JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+    if not kernel32.SetInformationJobObject(job, 9, ctypes.byref(info), ctypes.sizeof(info)):
+        kernel32.CloseHandle(job)
+        return None
+    return (kernel32, job)
+
+
+def _assign_to_job(job: Any | None, proc: subprocess.Popen[Any]) -> bool:
+    if job is None:
+        return False
+    kernel32, handle = job
+    return bool(kernel32.AssignProcessToJobObject(handle, int(proc._handle)))  # type: ignore[attr-defined]
+
+
+def _close_job(job: Any | None) -> None:
+    if job is not None:
+        kernel32, handle = job
+        kernel32.CloseHandle(handle)
+
+
 def _read_capture(stream: BinaryIO | None) -> str:
     if stream is None:
         return ""
@@ -110,13 +174,16 @@ def run_bounded(
 
     t_start = time.perf_counter()
     timed_out = False
-    
+
     # Acquire admission permit before entering the context (so we don't hold FD/child if we wait).
     _LIVE_PROCESSES.acquire()
     try:
         with contextlib.ExitStack() as resources:
             out_file = resources.enter_context(tempfile.TemporaryFile()) if capture else None
             err_file = resources.enter_context(tempfile.TemporaryFile()) if capture else None
+            job = _create_kill_on_close_job()
+            # Registered before spawn: on every exit path the kernel reclaims the tree.
+            resources.callback(_close_job, job)
             
             proc = subprocess.Popen(
                 cmd,
@@ -127,6 +194,7 @@ def run_bounded(
                 stdin=subprocess.DEVNULL,
                 **popen_kwargs,
             )
+            _assign_to_job(job, proc)
             t_spawn = time.perf_counter()
             try:
                 try:
