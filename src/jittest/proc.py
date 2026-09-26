@@ -74,7 +74,10 @@ def _read_capture(stream: BinaryIO | None) -> str:
     if stream is None:
         return ""
     stream.seek(0)
-    return stream.read(MAX_CAPTURE).decode("utf-8", "replace")
+    content = stream.read(MAX_CAPTURE).decode("utf-8", "replace")
+    # Truncate the file to prevent disk exhaustion after reading cap
+    stream.truncate(MAX_CAPTURE)
+    return content
 
 
 def run_bounded(
