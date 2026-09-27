@@ -28,6 +28,7 @@ from .llm import (
     BaseLLM,
     BudgetExceeded,
     LLMError,
+    ModelUnavailableError,
     RateLimitedError,
     TimedOutError,
     strip_code_fence,
@@ -183,7 +184,10 @@ def run(
             head_dir = stack.enter_context(Worktree(repo, head))
             base_dir = stack.enter_context(Worktree(repo, base))
 
+            model_gone = False
             for rs in ranked:
+                if model_gone:
+                    break
                 t = rs.target
                 emit(f"target {t.qualified} (risk {rs.score:.2f})")
                 found = False
@@ -229,6 +233,12 @@ def run(
                         tel(report, t, rs, attempt, "timed_out",
                                    check_reason=str(exc))
                         continue
+                    except ModelUnavailableError as exc:
+                        report.errors.append(f"model unavailable: {exc}")
+                        _bump(report.discarded, "model_unavailable")
+                        emit("model unavailable, stopping generation")
+                        model_gone = True
+                        break
                     except LLMError as exc:
                         report.errors.append(f"model error: {exc}")
                         _bump(report.discarded, "model_error")
@@ -377,6 +387,8 @@ def run(
         report.phases["run_total_s"] = report.duration_s
         if report.model_requests == 0 and report.rate_limited_candidates > 0:
             report.diff_status = "rate_limited"
+        if report.discarded.get("model_unavailable") and report.diff_status == "ok":
+            report.diff_status = "model_unavailable"
         if owns_ledger:
             ledger.close()
 

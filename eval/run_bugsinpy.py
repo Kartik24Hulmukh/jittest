@@ -712,6 +712,7 @@ def main() -> int:
     print(f"Discovered {len(specs)} bugs", file=sys.stderr)
 
     results: list[BugResult] = []
+    aborted = ""
     for i, spec in enumerate(specs, 1):
         repo, reason = ensure_repo(spec, args.workdir, fresh=args.fresh_clone)
         if repo is None:
@@ -763,8 +764,17 @@ def main() -> int:
               f"deps={r.deps_status} "
               f"cost={'unpriced' if not r.priced else f'${r.cost_usd:.3f}'} "
               f"{r.error}", file=sys.stderr)
+        # A model that is gone (HTTP 401/403/404/410) is gone for every bug.
+        # Continuing only burns runner minutes and hides the one fact that
+        # matters under a column of not_measured rows (run 36346472249).
+        if r.diff_status == "model_unavailable":
+            aborted = f"model unavailable, sweep stopped after {i} bug(s): {r.error}"
+            print(f"ERROR: {aborted}", file=sys.stderr)
+            break
 
     summary = summarize(results)
+    if aborted:
+        summary["aborted"] = aborted
     # Defect 74. The condition a rate was measured under travels with it.
     summary["risk_threshold"] = args.risk_threshold
     args.out.write_text(json.dumps(
@@ -773,7 +783,7 @@ def main() -> int:
     print(json.dumps(summary, indent=2))
     for warning in summary.get("environment_warnings", []):
         print(f"::warning::{warning}", file=sys.stderr)
-    return 0
+    return 3 if aborted else 0
 
 
 if __name__ == "__main__":

@@ -84,6 +84,13 @@ jobs:
             echo "::warning::budget $BUDGET USD is below the ~$NEED USD that $LIMIT bugs are expected to cost at ~0.50 USD/bug. The sweep will stop early and the catch rate will be computed over fewer bugs than requested."
           fi
 
+      - name: Preflight - configured model is still served
+        env:
+          JITTEST_API_KEY: ${{ secrets.JITTEST_API_KEY }}
+          JITTEST_MODEL: ${{ inputs.model || vars.JITTEST_MODEL }}
+          JITTEST_API_BASE: ${{ inputs.api_base || vars.JITTEST_API_BASE }}
+        run: python eval/preflight_model.py
+
       - name: Install jittest
         run: pip install .
 

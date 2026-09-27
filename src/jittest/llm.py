@@ -25,6 +25,19 @@ from ._llmcache import _Cache
 from ._llmjson import extract_json, strip_code_fence
 from ._pricing import PRICES, estimate_tokens, price_for
 
+# Status codes that mean the model or credential is gone, not busy.
+_PERMANENT_MODEL = frozenset({401, 403, 404, 410})
+
+
+class ModelUnavailableError(LLMError):
+    """The endpoint permanently refuses this model or credential.
+
+    HTTP 401/403/404/410 do not heal on retry. Run 36346472249 is the receipt:
+    the configured model reached end of life (HTTP 410) and every candidate of
+    every target of every bug re-asked a model that no longer exists, while
+    the eval summary recorded the cause as "ok". Callers must stop asking.
+    """
+
 
 class RateLimitedError(LLMError):
     """Raised when the LLM provider rate limits requests after retries."""
@@ -278,6 +291,9 @@ class HTTPLLM(BaseLLM):
                 last, last_code = exc, exc.code
                 if exc.code not in _RETRYABLE:
                     detail = exc.read().decode("utf-8", "ignore")[:400]
+                    if exc.code in _PERMANENT_MODEL:
+                        raise ModelUnavailableError(
+                            f"HTTP {exc.code} from {self.provider}: {detail}") from exc
                     raise LLMError(f"HTTP {exc.code} from {self.provider}: {detail}") from exc
                 if exc.code in _RATE_LIMITED:
                     requested = retry_after_seconds(exc)
