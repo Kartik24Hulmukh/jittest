@@ -6,6 +6,7 @@ from the handoff matrix asserts a fail-closed refusal, never a
 fallback.
 """
 
+import contextlib
 import os
 import shutil
 import socket
@@ -23,6 +24,23 @@ from src.jittest.verify import VerifyRefusalError
 
 GOOD_DIGEST = "sha256:" + "ab" * 32
 
+
+
+def _symlink_available(root) -> bool:
+    """True when this runner can create symlinks (CI runners can; some
+    unprivileged Windows runners raise WinError 1314)."""
+    try:
+        import pathlib
+        link = pathlib.Path(root) / "__jit_symlink_probe"
+        target = pathlib.Path(root) / "__jit_symlink_target"
+        target.write_text("x", encoding="utf-8")
+        link.symlink_to(target)
+        ok = link.is_symlink()
+        with contextlib.suppress(OSError):
+            link.unlink()
+        return ok
+    except (OSError, NotImplementedError, PermissionError):
+        return False
 
 def _make_fifo(path: Path) -> bool:
     """Create a FIFO; False on platforms without os.mkfifo (Windows)."""
@@ -210,6 +228,8 @@ class TestOutputTrustBoundary(unittest.TestCase):
         ev.mkdir()
         target = self.tmp / "secret"
         target.write_text("x", encoding="utf-8")
+        if not _symlink_available(self.tmp):
+            self.skipTest("platform lacks symlink privilege (WinError 1314); covered on CI")
         os.symlink(target, ev / "link")
         made_fifo = _make_fifo(ev / "pipe")
         made_socket = _make_socket(ev / "sock")
@@ -239,6 +259,8 @@ class TestOutputTrustBoundary(unittest.TestCase):
         outside = self.tmp / "outside"
         outside.mkdir()
         (outside / "f.txt").write_text("y", encoding="utf-8")
+        if not _symlink_available(self.tmp):
+            self.skipTest("platform lacks symlink privilege (WinError 1314); covered on CI")
         os.symlink(outside, ev / "up")
         big = self.tmp / "big"
         big.mkdir()
