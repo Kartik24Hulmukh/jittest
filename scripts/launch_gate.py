@@ -35,7 +35,7 @@ sys.path.insert(0, str(SRC))
 
 from jittest.integrity import canonical_json  # noqa: E402
 
-LAUNCH_WINDOW = "2026-09-16/2026-09-17"
+LAUNCH_WINDOW = "2026-09-28/2026-10-31"
 
 # Open GA blockers. ga_ready is derived from this list being empty, so the only
 # way to flip it is to close the issues and delete the rows in the same PR.
