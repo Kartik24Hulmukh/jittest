@@ -108,3 +108,20 @@ percentiles. Verification reused catalog pytest, pytest-xdist, pytest-timeout,
 hypothesis and ruff. Evidence: `jittest-evidence/recovery-slo-2026-09-26/`
 (baseline main@669d03b P95 284.5 ms -> post-fix P95 87.2 ms, worst 88.7 ms,
 bar 200 ms; persona swarm 100 workers seed 20260919 passed, 0 panics).
+
+## Session 4 (2026-09-26) integration log: RUNTIME_BLOCKERS #225 closed
+
+PR #227 (merge 0ef44db) proved the pidfd/selectors death-wait + reaper
+SIGKILL-teardown fix cross-platform green in CI (ubuntu-latest, macos-latest,
+windows-latest x 3.11/3.12/3.13, plus CodeQL/GitGuardian/lint/mypy/build/
+dogfood/consumer_action_e2e/schema-contract/version-drift/check-drift/
+verify-pr all success) before merge. Per the fail-closed policy in
+scripts/launch_gate.py ("remove entries only in the change carrying verified
+cross-platform resolution evidence"), RUNTIME_BLOCKERS is now cleared to []
+and tests/test_launch_gate.py is updated: one test pins the resolved state,
+a second proves the fail-closed mechanism itself still works via a patched
+synthetic blocker (999999). No stack rebuilt: reused CPython pidfd/selectors,
+pytest/pytest-xdist/pytest-timeout, GitHub Actions matrix CI already wired in
+PR #227. Builds on the session-4 full-suite JUnit evidence already frozen at
+7717e10 (1458 passed / 0 failures / 0 errors) confirming the fix holds under
+the real suite, not just the focused proc tests.
