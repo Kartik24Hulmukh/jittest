@@ -10,6 +10,13 @@ from __future__ import annotations
 import json
 import unittest
 
+try:
+    import httpx  # noqa: F401
+except ImportError:
+    httpx = None  # type: ignore[assignment]
+    raise unittest.SkipTest("httpx not installed; install jittest[melious] to run router tests") from None
+
+
 import httpx
 
 from jittest.llm.melious_router import (
@@ -18,8 +25,10 @@ from jittest.llm.melious_router import (
     DeadlineExceeded,
     MeliousRouter,
     ModelUnavailableError,
-    TransportError as MeliousTransportError,
     _validate_base,
+)
+from jittest.llm.melious_router import (
+    TransportError as MeliousTransportError,
 )
 
 

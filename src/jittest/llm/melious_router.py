@@ -11,7 +11,7 @@ Melious catalogue models with:
 - 429-aware failover with bounded cooldown; no cross-model routing leaks
 
 The router is deterministic and offline-testable: the HTTP layer is injected
-via ``transport`` (httpx.MockTransport) so unit tests exercise failover and
+via ``transport`` (_httpx().MockTransport) so unit tests exercise failover and
 deadline logic without network access.
 """
 
@@ -22,7 +22,29 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-import httpx
+_httpx_module = None
+
+
+def _httpx() -> Any:
+    """Lazily import httpx (optional extra).
+
+    The core jittest package stays dependency-free; the Melious router is
+    enabled by installing the \"melious\" extra (httpx). Importing
+    jittest.llm.melious_router without httpx raises ImportError with a clear
+    install hint instead of failing at package import time.
+    """
+    global _httpx_module
+    if _httpx_module is None:
+        try:
+            import httpx  # type: ignore[import-not-found]
+        except ImportError as e:  # pragma: no cover - depends on install
+            raise ImportError(
+                "jittest.llm.melious_router requires the 'melious' extra: "
+                "pip install -e .[melious]  (httpx>=0.28)"
+            ) from e
+        _httpx_module = httpx
+    return _httpx_module
+
 
 MODEL_CEILINGS: dict[str, int] = {
     "glm-5.3": 65536,
@@ -100,7 +122,7 @@ class MeliousRouter:
         *,
         api_key: str | None = None,
         base: str = "https://api.melious.ai/v1",
-        transport: httpx.BaseTransport | None = None,
+        transport: _httpx().BaseTransport | None = None,
         default_deadline: float = 120.0,
         max_tokens: int = 1024,
         temperature: float = 0.0,
@@ -111,14 +133,14 @@ class MeliousRouter:
         self.default_deadline = default_deadline
         self.max_tokens = max_tokens
         self.temperature = temperature
-        self._client: httpx.Client | None = None
+        self._client: _httpx().Client | None = None
 
-    def _ensure_client(self) -> httpx.Client:
+    def _ensure_client(self) -> _httpx().Client:
         if self._client is None:
-            self._client = httpx.Client(
+            self._client = _httpx().Client(
                 base_url=self.base,
                 headers={"Authorization": f"Bearer {self.api_key}"},
-                timeout=httpx.Timeout(30.0, connect=5.0),
+                timeout=_httpx().Timeout(30.0, connect=5.0),
                 transport=self.transport,
             )
         return self._client
@@ -216,7 +238,7 @@ class MeliousRouter:
 
     def _complete_leg(
         self,
-        client: httpx.Client,
+        client: _httpx().Client,
         model: str,
         prompt: str,
         *,
@@ -240,7 +262,7 @@ class MeliousRouter:
                 raise DeadlineExceeded("retry/cooldown exceeds remaining deadline (no hang)")
             try:
                 resp = client.post("/chat/completions", json=payload)
-            except httpx.HTTPError as e:
+            except _httpx().HTTPError as e:
                 raise TransportError(
                     f"network failure (no hang): {type(e).__name__}"
                 ) from e
