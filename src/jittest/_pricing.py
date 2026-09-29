@@ -5,6 +5,7 @@ change without dragging model I/O into review, and vice versa.
 """
 from __future__ import annotations
 
+import math
 import os
 
 __all__ = ["PRICES", "price_for", "estimate_tokens"]
@@ -31,6 +32,16 @@ PRICES: dict[str, tuple[float, float]] = {
 }
 
 
+# Vendor list rates verified at https://melious.ai/pricing on 2026-09-29.
+# Currency conversion must be stated by the operator; no invented USD rate.
+MELIOUS_PRICES_EUR: dict[str, tuple[float, float]] = {
+    "glm-5.3-flash": (0.10, 0.40),
+    "glm-5.3": (1.00, 3.00),
+    "kimi-k3": (2.80, 14.00),
+    "qwen3.8-27b": (0.40, 2.40),
+}
+
+
 def price_for(model: str) -> tuple[float, float] | None:
     """USD per million (input, output) tokens for a model, or None.
 
@@ -52,8 +63,19 @@ def price_for(model: str) -> tuple[float, float] | None:
                 stated = (float(parts[0]), float(parts[1]))
             except ValueError:
                 stated = None
-            if stated is not None and stated[0] >= 0 and stated[1] >= 0:
+            if stated is not None and all(math.isfinite(x) and x >= 0 for x in stated):
                 return stated
+    # Exact bare IDs or explicitly namespaced Melious IDs only.
+    bare = model.removeprefix("melious/")
+    if bare in MELIOUS_PRICES_EUR and ("/" not in model or model.startswith("melious/")):
+        try:
+            fx = float(os.environ["JITTEST_EUR_USD"])
+        except (KeyError, ValueError):
+            return None
+        if not math.isfinite(fx) or fx <= 0:
+            return None
+        in_price, out_price = MELIOUS_PRICES_EUR[bare]
+        return in_price * fx, out_price * fx
     for key, price in PRICES.items():
         if key in model:
             return price

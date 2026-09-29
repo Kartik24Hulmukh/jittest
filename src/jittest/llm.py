@@ -18,7 +18,9 @@ import urllib.request
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 from pathlib import Path
+from urllib.parse import urlsplit
 
+from ._billing import billing_refusal
 from ._litellm import LiteLLMBackend
 from ._llmbase import BaseLLM, BudgetExceeded, LLMError, Usage
 from ._llmcache import _Cache
@@ -39,6 +41,10 @@ class ModelUnavailableError(LLMError):
     """
 
 
+class QuotaExhaustedError(LLMError):
+    """Terminal billing refusal: do not retry or fail over."""
+
+
 class RateLimitedError(LLMError):
     """Raised when the LLM provider rate limits requests after retries."""
 
@@ -48,7 +54,7 @@ class TimedOutError(LLMError):
 
 
 __all__ = [
-    "LLMError", "RateLimitedError", "TimedOutError", "BudgetExceeded", "Usage",
+    "LLMError", "QuotaExhaustedError", "ModelUnavailableError", "RateLimitedError", "TimedOutError", "BudgetExceeded", "Usage",
     "BaseLLM", "HTTPLLM", "LiteLLMBackend", "DryRunLLM", "build_llm",
     "extract_json", "strip_code_fence", "PRICES", "price_for", "estimate_tokens",
 ]
@@ -182,7 +188,10 @@ class HTTPLLM(BaseLLM):
         explicit_base = os.getenv("JITTEST_API_BASE")
         self.base_url = explicit_base or _BASES.get(
             provider, "https://api.anthropic.com/v1")
-        self.api_model = model if explicit_base else self.model_name
+        direct_provider = (explicit_base and provider in _BASES and
+                           urlsplit(explicit_base).netloc.lower() ==
+                           urlsplit(_BASES[provider]).netloc.lower())
+        self.api_model = model if explicit_base and not direct_provider else self.model_name
         self.cache = _Cache(cache_path)
         self.request_ceiling = request_ceiling
         self.max_attempts = _env_int("JITTEST_MAX_RETRIES", _DEFAULT_MAX_ATTEMPTS)
@@ -217,7 +226,7 @@ class HTTPLLM(BaseLLM):
         return None
 
     def _price(self) -> tuple[float, float] | None:
-        return price_for(self.model_name) or price_for(self.model)
+        return price_for(self.model) if "/" in self.model else price_for(self.model_name)
 
     def _account(self, input_tokens: int, output_tokens: int,
                  estimated: bool = False) -> None:
@@ -290,8 +299,11 @@ class HTTPLLM(BaseLLM):
                     return json.loads(resp.read().decode("utf-8"))
             except urllib.error.HTTPError as exc:
                 last, last_code = exc, exc.code
+                detail = exc.read(4096).decode("utf-8", "ignore")
+                if billing_refusal(exc.code, detail):
+                    raise QuotaExhaustedError("billing refusal: account credits/quota exhausted") from exc
                 if exc.code not in _RETRYABLE:
-                    detail = exc.read().decode("utf-8", "ignore")[:400]
+                    detail = detail[:400]
                     if exc.code in _PERMANENT_MODEL:
                         raise ModelUnavailableError(
                             f"HTTP {exc.code} from {self.provider}: {detail}") from exc

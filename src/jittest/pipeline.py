@@ -29,6 +29,7 @@ from .llm import (
     BudgetExceeded,
     LLMError,
     ModelUnavailableError,
+    QuotaExhaustedError,
     RateLimitedError,
     TimedOutError,
     strip_code_fence,
@@ -233,9 +234,11 @@ def run(
                         tel(report, t, rs, attempt, "timed_out",
                                    check_reason=str(exc))
                         continue
-                    except ModelUnavailableError as exc:
+                    except (ModelUnavailableError, QuotaExhaustedError) as exc:
                         report.errors.append(f"model unavailable: {exc}")
-                        _bump(report.discarded, "model_unavailable")
+                        report.diff_status = ("quota_exhausted" if isinstance(exc, QuotaExhaustedError)
+                                              else "model_unavailable")
+                        _bump(report.discarded, report.diff_status)
                         emit("model unavailable, stopping generation")
                         model_gone = True
                         break
@@ -385,10 +388,11 @@ def run(
         report.duration_s = time.time() - started
         report.wall_clock_s = report.duration_s
         report.phases["run_total_s"] = report.duration_s
+        if (report.model_requests == 0 and report.diff_status == "ok"
+                and report.discarded.get("model_error", 0) > 0):
+            report.diff_status = "model_error"
         if report.model_requests == 0 and report.rate_limited_candidates > 0:
             report.diff_status = "rate_limited"
-        if report.discarded.get("model_unavailable") and report.diff_status == "ok":
-            report.diff_status = "model_unavailable"
         if owns_ledger:
             ledger.close()
 

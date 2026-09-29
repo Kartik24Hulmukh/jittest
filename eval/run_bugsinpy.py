@@ -693,6 +693,17 @@ def main() -> int:
                          "resulting catch rate measures the runner.")
     args = ap.parse_args()
 
+    if not args.dry_run:
+        from preflight_model import preflight_model
+
+        from jittest.config import load_config
+        try:
+            probe = preflight_model(args.model or load_config(Path.cwd()).model)
+            print(json.dumps({"preflight": probe}), file=sys.stderr)
+        except Exception as exc:
+            print(f"::error::preflight refused: {type(exc).__name__}: {exc}", file=sys.stderr)
+            return 2
+
     setup_env = not (args.dry_run or args.skip_env_setup)
 
     # Defect 69. Establish the execution environment BEFORE measuring, and
@@ -767,7 +778,7 @@ def main() -> int:
         # A model that is gone (HTTP 401/403/404/410) is gone for every bug.
         # Continuing only burns runner minutes and hides the one fact that
         # matters under a column of not_measured rows (run 36346472249).
-        if r.diff_status == "model_unavailable":
+        if r.diff_status in ("model_unavailable", "quota_exhausted"):
             aborted = f"model unavailable, sweep stopped after {i} bug(s): {r.error}"
             print(f"ERROR: {aborted}", file=sys.stderr)
             break

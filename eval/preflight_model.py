@@ -17,6 +17,8 @@ import sys
 import urllib.error
 import urllib.request
 
+from jittest.llm import LLMError, build_llm
+
 
 def served_models(api_base: str, api_key: str, timeout: float = 20.0) -> list[str] | None:
     req = urllib.request.Request(
@@ -45,6 +47,20 @@ def check(model: str, catalogue: list[str] | None) -> tuple[bool, str]:
     hint = f" Served by the same vendor: {', '.join(near)}." if near else ""
     return False, (f"model {model} is not served by this endpoint (retired or "
                    f"misspelt). Set vars.JITTEST_MODEL or the model input.{hint}")
+
+
+def preflight_model(model: str, budget: float = 0.05) -> dict:
+    llm = build_llm(model, budget_usd=budget, request_ceiling=1, http_timeout=15)
+    if llm._price() is None:
+        raise LLMError("model unpriced: set JITTEST_MODEL_PRICE or JITTEST_EUR_USD before paid evaluation")
+    llm.max_attempts = 1
+    outputs = llm.complete("Reply briefly.", "Reply only OK", temperature=0)
+    if not outputs or not outputs[0].strip():
+        raise LLMError("preflight returned empty content")
+    return {"model": model, "status": "responsive", "cost_usd": llm.usage.cost_usd,
+            "input_tokens": llm.usage.input_tokens, "output_tokens": llm.usage.output_tokens,
+            "tokens_estimated": llm.usage.tokens_estimated}
+
 
 
 def main() -> int:

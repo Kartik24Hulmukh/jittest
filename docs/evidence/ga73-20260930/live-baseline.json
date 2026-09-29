@@ -1,0 +1,94 @@
+[
+  {
+    "case": "catalogue",
+    "status": "ok",
+    "model_count": 63,
+    "requested_present": [
+      "glm-5.3",
+      "glm-5.3-flash",
+      "kimi-k3",
+      "qwen3.8-27b"
+    ],
+    "seconds": 0.4297664059999988
+  },
+  {
+    "case": "completion",
+    "model": "glm-5.3",
+    "status": "ok",
+    "seconds": 2.837975063999977,
+    "usage": {
+      "prompt_tokens": 16,
+      "completion_tokens": 3,
+      "total_tokens": 19,
+      "cached_tokens": 0,
+      "reasoning_tokens": 1,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1
+      }
+    },
+    "finish_reason": "stop"
+  },
+  {
+    "case": "completion",
+    "model": "glm-5.3-flash",
+    "status": "ok",
+    "seconds": 0.520709514999993,
+    "usage": {
+      "prompt_tokens": 16,
+      "completion_tokens": 41,
+      "total_tokens": 57,
+      "cached_tokens": 0,
+      "reasoning_tokens": 39,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 39
+      }
+    },
+    "finish_reason": "stop"
+  },
+  {
+    "case": "completion",
+    "model": "kimi-k3",
+    "status": "ok",
+    "seconds": 1.229887304000016,
+    "usage": {
+      "prompt_tokens": 128,
+      "completion_tokens": 37,
+      "total_tokens": 165,
+      "cached_tokens": 0,
+      "reasoning_tokens": 26,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 26
+      }
+    },
+    "finish_reason": "stop"
+  },
+  {
+    "case": "completion",
+    "model": "qwen3.8-27b",
+    "status": "ok",
+    "seconds": 0.7612742720000085,
+    "usage": {
+      "prompt_tokens": 14,
+      "completion_tokens": 34,
+      "total_tokens": 48,
+      "cached_tokens": 0,
+      "reasoning_tokens": 31,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 31
+      }
+    },
+    "finish_reason": "stop"
+  }
+]

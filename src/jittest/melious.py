@@ -11,10 +11,14 @@ shadow jittest.llm, which remains the provider-agnostic LLM layer.
 
 from __future__ import annotations
 
+import math
 import os
+import threading
 import time
 from dataclasses import dataclass, field
 from typing import Any
+
+from ._billing import billing_refusal
 
 MODEL_CEILINGS: dict[str, int] = {
     "glm-5.3": 65536,
@@ -34,6 +38,10 @@ class MeliousError(Exception):
 
 class AuthenticationError(MeliousError):
     """Authentication rejected by the catalogue (HTTP 401)."""
+
+
+class InsufficientCreditsError(MeliousError):
+    """Terminal account billing refusal; never retried or failed over."""
 
 
 class ModelUnavailableError(MeliousError):
@@ -111,22 +119,27 @@ class MeliousRouter:
         self.max_tokens = max_tokens
         self.temperature = temperature
         self._client: Any | None = None
+        self._client_lock = threading.RLock()
 
     def _ensure_client(self) -> Any:
-        if self._client is None:
-            hx = _httpx()
-            self._client = hx.Client(
-                base_url=self.base,
-                headers={"Authorization": f"Bearer {self.api_key}"},
-                timeout=hx.Timeout(30.0, connect=5.0),
-                transport=self.transport,
-            )
-        return self._client
+        # httpx clients are thread-safe; construction and publication must also
+        # be serialized so concurrent first callers cannot leak separate pools.
+        with self._client_lock:
+            if self._client is None:
+                hx = _httpx()
+                self._client = hx.Client(
+                    base_url=self.base,
+                    headers={"Authorization": f"Bearer {self.api_key}"},
+                    timeout=hx.Timeout(30.0, connect=5.0),
+                    transport=self.transport,
+                )
+            return self._client
 
     def close(self) -> None:
-        if self._client is not None:
-            self._client.close()
-            self._client = None
+        with self._client_lock:
+            if self._client is not None:
+                self._client.close()
+                self._client = None
 
     def __enter__(self) -> MeliousRouter:
         return self
@@ -167,6 +180,11 @@ class MeliousRouter:
         """Complete ``prompt`` on ``model`` with failover and a hard deadline."""
         t0 = time.perf_counter()
         budget = deadline if deadline is not None else self.default_deadline
+        if not math.isfinite(budget) or budget <= 0:
+            raise DeadlineExceeded("deadline must be finite and positive")
+        tokens = self.max_tokens if max_tokens is None else max_tokens
+        if isinstance(tokens, bool) or not isinstance(tokens, int) or not 0 < tokens <= MODEL_CEILINGS.get(model, 65536):
+            raise ValueError("max_tokens outside configured ceiling")
         chain = [model] + FAILOVER_CHAINS.get(model, [])
         self._preflight(model)
         client = self._ensure_client()
@@ -180,7 +198,7 @@ class MeliousRouter:
                 return self._complete_leg(
                     client, leg, prompt,
                     deadline=leg_deadline,
-                    max_tokens=max_tokens or self.max_tokens,
+                    max_tokens=tokens,
                     truncation_escalation=truncation_escalation,
                 )
             except (AuthenticationError, ModelUnavailableError, TransportError) as e:
@@ -223,37 +241,68 @@ class MeliousRouter:
         leg_start = time.perf_counter()
         attempts = 0
         last_finish = "stop"
+        aggregate_usage: dict[str, int] = {}
+        escalations = 0
         while True:
             attempts += 1
             elapsed = time.perf_counter() - leg_start
             if elapsed >= deadline:
                 raise DeadlineExceeded("retry/cooldown exceeds remaining deadline (no hang)")
             try:
-                resp = client.post("/chat/completions", json=payload)
+                resp = client.post("/chat/completions", json=payload,
+                                   timeout=_httpx().Timeout(deadline - elapsed,
+                                                           connect=min(5.0, deadline - elapsed)))
             except Exception as e:
+                # A bounded retry tolerates transient DNS/connect failures without
+                # pinning a vendor IP or changing global socket behavior.
+                remaining = deadline - (time.perf_counter() - leg_start)
+                if isinstance(e, _httpx().ConnectError) and attempts < 3 and remaining > 0.1:
+                    time.sleep(min(0.1 * attempts, remaining / 2))
+                    continue
                 raise TransportError(f"network failure (no hang): {type(e).__name__}") from e
             elapsed = time.perf_counter() - leg_start
             if elapsed >= deadline:
                 raise DeadlineExceeded("retry/cooldown exceeds remaining deadline (no hang)")
             if resp.status_code == 401:
                 raise AuthenticationError("auth failed: HTTP 401: catalogue authorization rejected")
-            if resp.status_code == 404:
+            if billing_refusal(resp.status_code, resp.text):
+                raise InsufficientCreditsError("billing refusal: account credits/quota exhausted")
+            if resp.status_code in (403, 404, 410):
                 raise ModelUnavailableError(
-                    f"model {model!r} unavailable: HTTP 404: absent from catalogue (0 spend)"
+                    f"model {model!r} unavailable: HTTP {resp.status_code}: refused by catalogue"
                 )
-            if resp.status_code == 429:
+            if resp.status_code in (429, 500, 502, 503, 504):
+                if resp.status_code != 429 and attempts >= 3:
+                    raise TransportError(f"provider refused request after bounded retries: HTTP {resp.status_code}")
                 cooldown = min(1.5 * attempts, 5.0)
                 if elapsed + cooldown >= deadline:
                     raise DeadlineExceeded("retry/cooldown exceeds remaining deadline (no hang)")
                 time.sleep(cooldown)
                 continue
-            resp.raise_for_status()
-            data = resp.json()
+            if not 200 <= resp.status_code < 300:
+                raise TransportError(f"provider refused request: HTTP {resp.status_code}")
+            try:
+                data = resp.json()
+                choices = data.get("choices")
+                if not isinstance(choices, list) or not choices or not isinstance(choices[0], dict):
+                    raise ValueError("choices must be a nonempty list")
+                message = choices[0].get("message")
+                if not isinstance(message, dict) or not isinstance(message.get("content"), str):
+                    raise ValueError("message.content must be text")
+            except (ValueError, AttributeError, TypeError) as exc:
+                raise TransportError("malformed completion response") from exc
+            usage = data.get("usage") or {}
+            if not isinstance(usage, dict):
+                raise TransportError("malformed completion usage")
+            for key, value in usage.items():
+                if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+                    aggregate_usage[key] = aggregate_usage.get(key, 0) + value
             text = (data.get("choices") or [{}])[0].get("message", {}).get("content", "")
             finish = (data.get("choices") or [{}])[0].get("finish_reason", "stop")
             last_finish = finish or "stop"
             if truncation_escalation and finish == "length" and max_tokens < 65536:
-                if attempts >= 3:
+                escalations += 1
+                if escalations >= 3:
                     raise DeadlineExceeded(
                         "truncation escalation exhausted: finish=length after 3 attempts (no hang)"
                     )
@@ -266,5 +315,5 @@ class MeliousRouter:
                 attempts=attempts,
                 finish_reason=last_finish,
                 status=resp.status_code,
-                usage=data.get("usage", {}),
+                usage=aggregate_usage,
             )

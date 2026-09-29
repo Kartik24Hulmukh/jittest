@@ -248,6 +248,27 @@ def detect_runner(python_exe: str | Path | None = None, workdir: Path | None = N
     return [exe, "-m", "jittest._minirunner"]
 
 
+def detect_isolated_runner(workdir: Path, sbx: SandboxPlan, timeout_s: int,
+                           python_path: str | Path | None = None) -> list[str]:
+    """Probe only a pinned image, inside confinement, never candidate code on host.
+
+    Stock images retain the stdlib shim. A maintainer-pinned image may contain
+    pytest; -I keeps the probe from importing workspace shadows/plugins. The
+    actual test command remains confined and its JUnit proves real execution.
+    """
+    exe = str(python_path) if python_path else "python"
+    if sbx.runtime_image and not os.getenv("JITTEST_FORCE_MINIRUNNER"):
+        command, env = sandbox_wrap([exe, "-I", "-m", "pytest", "--version"],
+                                    workdir, {}, sbx)
+        try:
+            rc, _, _ = _run_process(command, str(workdir), env, min(timeout_s, 10))
+            if rc == 0:
+                return [exe, "-m", "pytest", "-q", "-p", "no:cacheprovider"]
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+    return [exe, "-m", "jittest._minirunner"]
+
+
 class RevisionMismatch(RuntimeError):
     """A checkout does not contain the revision it is supposed to contain.
 
@@ -625,7 +646,7 @@ def run_test(workdir: Path, test_code: str, timeout_s: int = 120,
         candidate = workdir / f"{CANDIDATE_PREFIX}{token}.py"
     candidate.write_text(test_code, encoding="utf-8")
     if sbx is not None and sbx.isolated and sbx.backend in ("docker", "podman", "bubblewrap"):
-        runner = [str(python_path) if python_path else "python", "-m", "jittest._minirunner"]
+        runner = detect_isolated_runner(workdir, sbx, timeout_s, python_path)
     else:
         runner = detect_runner(python_path, workdir=workdir)
     uses_pytest = "pytest" in runner

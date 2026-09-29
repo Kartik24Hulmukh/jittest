@@ -1,126 +1,121 @@
-"""GA-73 live stress: Melious router across all 4 catalogue models.
+"""Bounded, opt-in live routing evidence. Never substitutes for catch/FPR/PR cost.
 
-Requires MELIOUS_API_KEY in the environment (never in argv/logs).
-Measures: catalogue auth, per-model completion, failover, deadline behavior,
-and a small concurrency burst (10 parallel, out of order) with hard bounds.
+MELIOUS_API_KEY must be supplied through the environment, never argv. Each job
+makes a 256-token bounded request with truncation escalation disabled. Provider
+errors remain in the artifact; there is no success-only rerun filtering.
 """
-
 from __future__ import annotations
 
+import argparse
+import hashlib
+import json
+import math
 import os
-import sys
+import subprocess
+import threading
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+from jittest._pricing import price_for
+from jittest.melious import DeadlineExceeded, MeliousError, MeliousRouter
 
-from jittest.melious import (
-    AuthenticationError,
-    ChainExhaustedError,
-    DeadlineExceeded,
-    MeliousRouter,
-    ModelUnavailableError,
-)
-
-MODELS = ["glm-5.3", "glm-5.3-flash", "kimi-k3", "qwen3.8-27b"]
+MODELS = ("glm-5.3", "glm-5.3-flash", "kimi-k3", "qwen3.8-27b")
 
 
-def _burst(r: MeliousRouter) -> list[tuple[str, str, float, str]]:
-    prompt = "Write exactly one sentence about deterministic software testing."
-    burst = (MODELS * 3)[:10]
-
-    def one(m: str) -> tuple[str, str, float, str]:
-        t0 = time.perf_counter()
-        try:
-            o = r.complete(m, prompt, deadline=45.0, max_tokens=64)
-            return (m, "ok", time.perf_counter() - t0, f"finish={o.finish_reason} attempts={o.attempts}")
-        except (ChainExhaustedError, DeadlineExceeded, AuthenticationError, ModelUnavailableError) as e:
-            return (m, "fail", time.perf_counter() - t0, type(e).__name__)
-
-    with ThreadPoolExecutor(max_workers=10) as pool:
-        return list(pool.map(one, burst))
+def rss_kib() -> int | None:
+    try:
+        for line in Path("/proc/self/status").read_text().splitlines():
+            if line.startswith("VmRSS:"):
+                return int(line.split()[1])
+    except OSError:
+        pass
+    return None
 
 
 def main() -> int:
-    key = os.environ.get("MELIOUS_API_KEY", "")
-    if not key:
-        print("MELIOUS_API_KEY is not set; cannot run live stress", file=sys.stderr)
-        return 2
-
-    rows: list[tuple[str, str, str, float, str]] = []
-    r = MeliousRouter(api_key=key)
-    try:
-        # 1) catalogue auth
-        t0 = time.perf_counter()
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--calls", type=int, default=100)
+    ap.add_argument("--workers", type=int, default=100)
+    ap.add_argument("--deadline", type=float, default=15.0)
+    ap.add_argument("--out", type=Path, default=Path("live-routing.json"))
+    args = ap.parse_args()
+    if not 4 <= args.calls <= 100 or not 1 <= args.workers <= 100:
+        ap.error("calls must be 4..100; workers must be 1..100")
+    if not math.isfinite(args.deadline) or not 0 < args.deadline <= 30:
+        ap.error("deadline must be finite, positive and <=30 seconds")
+    if not os.getenv("MELIOUS_API_KEY"):
+        ap.error("MELIOUS_API_KEY is required")
+    sha = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+    diff = subprocess.check_output(["git", "diff", "HEAD"])
+    rows: list[dict] = []
+    start_rss, start_threads = rss_kib(), threading.active_count()
+    t0 = time.monotonic()
+    with MeliousRouter() as router:
         try:
-            models = r.list_models()
-            dt = time.perf_counter() - t0
-            present = [m for m in MODELS if m in models]
-            missing = [m for m in MODELS if m not in models]
-            print(f"[catalogue] {len(models)} models; present={present}; missing={missing} ({dt:.2f}s)")
-            rows.append(("catalogue", "auth", "ok", dt, f"present={present} missing={missing}"))
-        except AuthenticationError as e:
-            print(f"[catalogue] AUTH FAILED: {e}")
-            rows.append(("catalogue", "auth", "auth-fail", 0.0, str(e)))
-            return 1
-
-        # 2) per-model completion (sequential, hard deadline)
-        prompt = "Write exactly one sentence about deterministic software testing."
-        for model in MODELS:
-            t0 = time.perf_counter()
+            catalogue = router.list_models()
+            missing = sorted(set(MODELS) - set(catalogue))
+            rows.append({"case": "catalogue", "status": "ok" if not missing else "failed",
+                         "model_count": len(catalogue), "missing": missing})
+        except Exception as exc:
+            rows.append({"case": "catalogue", "status": "failed", "error_type": type(exc).__name__})
+            catalogue = []
+        if set(MODELS) <= set(catalogue):
+            def one(index: int) -> dict:
+                model = MODELS[index % len(MODELS)]
+                expected = f"JT-{index:03d}"
+                started = time.monotonic()
+                try:
+                    result = router.complete(model, f"Reply exactly {expected}. No punctuation or explanation.",
+                                             deadline=args.deadline, max_tokens=256,
+                                             truncation_escalation=False)
+                    price = price_for("melious/" + result.model)
+                    inp = result.usage.get("prompt_tokens", 0)
+                    out = max(result.usage.get("completion_tokens", 0),
+                              result.usage.get("total_tokens", 0) - inp)
+                    return {"case": "completion", "index": index, "model": model,
+                            "routed_model": result.model,
+                            "status": "ok" if result.text.strip() == expected and result.finish_reason == "stop" else "failed",
+                            "seconds": time.monotonic() - started, "attempts": result.attempts,
+                            "finish_reason": result.finish_reason, "usage": result.usage,
+                            "list_price_estimate_usd": None if price is None else (inp * price[0] + out * price[1]) / 1e6}
+                except Exception as exc:
+                    return {"case": "completion", "index": index, "model": model, "status": "failed",
+                            "seconds": time.monotonic() - started, "error_type": type(exc).__name__,
+                            "error_detail": str(exc) if isinstance(exc, MeliousError) else "unexpected exception",
+                            "cause_type": type(exc.__cause__).__name__ if exc.__cause__ else None,
+                            "list_price_estimate_usd": None}
+            with ThreadPoolExecutor(max_workers=args.workers) as pool:
+                for future in as_completed([pool.submit(one, i) for i in range(args.calls)]):
+                    rows.append(future.result())
+            started = time.monotonic()
             try:
-                out = r.complete(model, prompt, deadline=60.0, max_tokens=128)
-                dt = time.perf_counter() - t0
-                ok = bool(out.text.strip())
-                print(f"[{model}] ok={ok} finish={out.finish_reason} attempts={out.attempts} {dt*1000:.0f}ms")
-                rows.append(("model", model, "ok", dt, f"finish={out.finish_reason} attempts={out.attempts}"))
-            except (AuthenticationError, ModelUnavailableError, ChainExhaustedError, DeadlineExceeded) as e:
-                dt = time.perf_counter() - t0
-                print(f"[{model}] FAILED {type(e).__name__}: {e} ({dt*1000:.0f}ms)")
-                rows.append(("model", model, "fail", dt, type(e).__name__))
-
-        # 3) failover: retired glm-4.5 -> glm-5.3
-        t0 = time.perf_counter()
-        try:
-            out = r.complete("glm-4.5", prompt, deadline=60.0, max_tokens=128)
-            dt = time.perf_counter() - t0
-            print(f"[failover glm-4.5] routed to {out.model} attempts={out.attempts} ({dt*1000:.0f}ms)")
-            rows.append(("failover", "glm-4.5->glm-5.3", "ok", dt, f"routed={out.model}"))
-        except (ModelUnavailableError, ChainExhaustedError, DeadlineExceeded, AuthenticationError) as e:
-            dt = time.perf_counter() - t0
-            print(f"[failover glm-4.5] FAILED {type(e).__name__}: {e} ({dt*1000:.0f}ms)")
-            rows.append(("failover", "glm-4.5->glm-5.3", "fail", dt, type(e).__name__))
-
-        # 4) concurrency burst
-        results = _burst(r)
-        ok_n = sum(1 for _, s, _, _ in results if s == "ok")
-        print(f"[burst] {ok_n}/10 ok (parallel, out of order)")
-        for m, s, dt, note in results:
-            print(f"    {m}: {s} {dt*1000:.0f}ms {note}")
-            rows.append(("burst", m, s, dt, note))
-
-        # 5) deadline behavior: impossible deadline must raise fast (no hang)
-        t0 = time.perf_counter()
-        try:
-            r.complete("glm-5.3", prompt, deadline=0.0001, max_tokens=64)
-            print("[deadline] FAIL: expected DeadlineExceeded")
-        except DeadlineExceeded:
-            dt = time.perf_counter() - t0
-            print(f"[deadline] DeadlineExceeded in {dt*1000:.2f}ms (no hang)")
-            rows.append(("deadline", "glm-5.3", "ok", dt, "raised fast"))
-    finally:
-        r.close()
-
-    fails = [row for row in rows if row[2] == "fail"]
-    print("")
-    print(f"=== SUMMARY: {len(rows)} rows, {len(fails)} failures ===")
-    if fails:
-        for f in fails:
-            print("  FAIL:", f)
-        return 1
-    print("ALL LIVE STRESS CHECKS PASSED")
-    return 0
+                router.complete(MODELS[0], "No network call allowed.", deadline=0)
+                passed = False
+            except DeadlineExceeded:
+                passed = True
+            rows.append({"case": "invalid_deadline", "status": "ok" if passed else "failed",
+                         "seconds": time.monotonic() - started})
+    completions = [r for r in rows if r["case"] == "completion"]
+    durations = sorted(r["seconds"] for r in completions)
+    quantiles = {f"p{p}_seconds": durations[max(0, math.ceil(len(durations) * p / 100) - 1)]
+                 for p in (50, 95, 99)} if durations else {}
+    failures = sum(r["status"] != "ok" for r in rows)
+    elapsed = time.monotonic() - t0
+    evidence = {"sha": sha, "working_diff_sha256": hashlib.sha256(diff).hexdigest(),
+                "calls_requested": args.calls, "workers": args.workers, "max_tokens": 256,
+                "truncation_escalation": False, "seconds": elapsed,
+                "successful_completions": sum(r["status"] == "ok" for r in completions),
+                "failed_checks": failures, "passed": failures == 0 and len(completions) == args.calls,
+                "latency_includes_failures": True, **quantiles,
+                "throughput_calls_per_second": len(completions) / elapsed,
+                "rss_start_kib": start_rss, "rss_end_kib": rss_kib(),
+                "threads_before": start_threads, "threads_after": threading.active_count(),
+                "cost_caveat": "Provider-reported token counts times list prices, not wallet reconciliation or USD per PR. Failed calls may have unobserved spend.",
+                "rows": rows}
+    args.out.write_text(json.dumps(evidence, indent=2) + "\n")
+    print(json.dumps({k: v for k, v in evidence.items() if k != "rows"}, indent=2))
+    return 0 if evidence["passed"] else 1
 
 
 if __name__ == "__main__":
