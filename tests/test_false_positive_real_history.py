@@ -22,18 +22,47 @@ class MainlineSampleTests(unittest.TestCase):
                     env=env, stderr=subprocess.PIPE, text=True).strip()
             git('init', '--quiet', '-b', 'main')
             (repo / 'alpha.py').write_text('def alpha():\n    return 1\n')
-            git('add', '.'); git('commit', '--quiet', '-m', 'baseline')
+            git('add', '.')
+            git('commit', '--quiet', '-m', 'baseline')
             git('checkout', '--quiet', '-b', 'feature')
             (repo / 'alpha.py').write_text('def alpha():\n    return 2\n')
             git('commit', '--quiet', '-am', 'feature')
             git('checkout', '--quiet', 'main')
             (repo / 'sync.py').write_text('def sync():\n    return 3\n')
-            git('add', '.'); git('commit', '--quiet', '-m', 'main advanced')
+            git('add', '.')
+            git('commit', '--quiet', '-m', 'main advanced')
             base = git('rev-parse', 'HEAD')
             git('checkout', '--quiet', 'feature')
             git('merge', '--quiet', '--no-ff', 'main', '-m', 'Merge branch main into feature')
-            head = git('rev-parse', 'HEAD')
             git('checkout', '--quiet', 'main')
             git('merge', '--quiet', '--no-ff', 'feature', '-m', 'Merge pull request #1 from feature')
+            merged = git('rev-parse', 'HEAD')
             pairs, _ = select_pairs(repo, 40, since='2024-01-01', until='2025-12-31')
-            self.assertEqual(pairs, [(base, head)])
+            self.assertEqual(pairs, [(base, merged)])
+
+    def test_docs_pr_does_not_inherit_stale_branch_python_changes(self):
+        with tempfile.TemporaryDirectory() as td:
+            repo = Path(td)
+            env = {k: v for k, v in os.environ.items() if not k.startswith('GIT_')}
+            env.update(GIT_AUTHOR_NAME='Fixture', GIT_COMMITTER_NAME='Fixture',
+                       GIT_AUTHOR_EMAIL='fixture@localhost', GIT_COMMITTER_EMAIL='fixture@localhost',
+                       GIT_AUTHOR_DATE='2025-01-01T12:00:00+0000',
+                       GIT_COMMITTER_DATE='2025-01-01T12:00:00+0000')
+            def git(*args):
+                return subprocess.check_output(['git', '-C', str(repo), *args],
+                    env=env, stderr=subprocess.PIPE, text=True).strip()
+            git('init', '--quiet', '-b', 'main')
+            (repo / 'alpha.py').write_text('def alpha():\n    return 1\n')
+            git('add', '.')
+            git('commit', '--quiet', '-m', 'baseline')
+            git('checkout', '--quiet', '-b', 'docs')
+            (repo / 'README.md').write_text('Documentation change only\n')
+            git('add', '.')
+            git('commit', '--quiet', '-m', 'documentation')
+            git('checkout', '--quiet', 'main')
+            (repo / 'alpha.py').write_text('def alpha():\n    return 2\n')
+            git('commit', '--quiet', '-am', 'unrelated Python advancement')
+            git('merge', '--quiet', '--no-ff', 'docs', '-m', 'Merge pull request #2 from docs')
+            pairs, screened = select_pairs(repo, 40, since='2024-01-01', until='2025-12-31')
+            self.assertEqual(pairs, [])
+            self.assertEqual(screened, 1)

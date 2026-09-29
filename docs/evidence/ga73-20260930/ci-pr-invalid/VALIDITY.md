@@ -1,0 +1,1 @@
+INVALID FOR FPR PUBLICATION: branch-tip versus advanced-main comparison included unrelated reversals. The five noisy docs-only PRs actually applied no Python changes. Formal collection qualification alone did not validate merge semantics. Raw rows retained unmodified; do not use 15.2% as product FPR.

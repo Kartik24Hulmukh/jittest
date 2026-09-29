@@ -12,8 +12,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from eval.false_positives import changed_python_files, summarize_rows  # noqa: E402
 from jittest.config import load_config  # noqa: E402
+from jittest.diff import extract_targets, git_diff  # noqa: E402
 from jittest.llm import build_llm  # noqa: E402
 from jittest.pipeline import run  # noqa: E402
+from jittest.risk import rank  # noqa: E402
 
 MODEL = 'melious/glm-5.3-flash'
 
@@ -26,6 +28,10 @@ def validate_manifest(manifest: dict) -> None:
     if not re.fullmatch(r'[0-9a-f]{40}', manifest.get('sha', '')):
         raise ValueError('unpinned repository')
     pairs = manifest['pairs']
+    if any(p['head'] != p.get('merge_sha') or p.get('ranked_preflight', 0) < 1 for p in pairs):
+        raise ValueError('not an applied, default-risk eligible PR')
+    if any(not re.fullmatch(r'[0-9a-f]{40}', p.get('pr_head', '')) for p in pairs):
+        raise ValueError('original PR head identity missing')
     if any(p.get('pr_metadata_status') != 'verified' or not p.get('pr_merged_at') for p in pairs):
         raise ValueError('actual merged PR receipts missing')
     if len({(p['base'], p['head']) for p in pairs}) != 40:
@@ -40,7 +46,7 @@ def main() -> int:
     ap.add_argument('--manifest', type=Path, default=Path('eval/ga73_click_manifest.json'))
     ap.add_argument('--out', type=Path, default=Path('ga73-pr-pilot.json'))
     args = ap.parse_args()
-    evidence = {'scope': 'settled-merge screening proxy, NOT definitive FPR or independent human labels',
+    evidence = {'scope': 'default-risk-eligible applied-PR screening proxy; NOT global FPR or independent human labels',
         'independent_adjudication': 'pending', 'ga_ready': False, 'model': MODEL,
         'risk_threshold': 0.35, 'max_targets': 5, 'candidates_per_target': 4,
         'accounted_budget_usd': 1.0,
@@ -55,11 +61,34 @@ def main() -> int:
             raise ValueError('source or isolation mismatch')
         evidence['code_sha'] = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
         evidence['runtime_image'] = os.environ['JITTEST_RUNTIME_IMAGE']
+        cfg_profile = load_config(args.repo, overrides={'model': MODEL, 'budget_usd': 0.0,
+            'max_targets': 5, 'candidates_per_target': 4, 'risk_threshold': 0.35})
+        no_call_proofs = []
+        for p in manifest.get('sampling_canaries', []) + manifest.get('risk_skipped_frame', []):
+            # Real pipeline, real Git source; budget zero is a safety backstop,
+            # not proof of no call: generation attempts must also stay zero.
+            llm = build_llm(MODEL, api_key='unused-no-network', budget_usd=0.0, request_ceiling=1)
+            report = run(args.repo, p['base'], p['head'], cfg_profile, llm)
+            if report.model_request_attempts or report.model_requests or report.findings:
+                raise ValueError('static no-call contract violated')
+            no_call_proofs.append({'base': p['base'], 'head': p['head'], 'pr_number': p['pr_number'],
+                'diff_status': report.diff_status, 'model_requests': report.model_requests,
+                'model_request_attempts': report.model_request_attempts, 'reported': 0})
+        evidence['no_call_proofs'] = no_call_proofs
+        evidence['population_note'] = manifest.get('eligibility')
         # Refuse unavailable pairs before the first paid call; never silently shrink.
         for p in manifest['pairs']:
             for key in ('base', 'head'):
                 subprocess.run(['git', '-C', str(args.repo), 'cat-file', '-e', p[key] + '^{commit}'],
                                check=True, capture_output=True, timeout=15)
+            parents = subprocess.check_output(['git', '-C', str(args.repo), 'show', '--no-patch',
+                                              '--format=%P', p['head']], text=True).strip().split()
+            if parents != [p['base'], p['pr_head']]:
+                raise ValueError('applied merge-parent identity mismatch')
+            ts = extract_targets(git_diff(args.repo, p['base'], p['head']), repo=args.repo,
+                                 base=p['base'], head=p['head'])
+            if not rank([t for t in ts if not cfg_profile.is_ignored(t.file_path)], 0.35, 5):
+                raise ValueError('default-risk eligibility drift')
             if not changed_python_files(args.repo, p['base'], p['head']):
                 raise ValueError('non-Python pair')
         rows, spent = [], 0.0

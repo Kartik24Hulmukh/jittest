@@ -591,7 +591,9 @@ def select_pairs(
         parent_shas = parents.split()
         if len(parent_shas) != 2:
             continue
-        base, head = parent_shas[0], parent_shas[1]
+        # Measure what the PR actually applied, not a stale source branch's
+        # apparent reversal of unrelated changes already present in main.
+        base, head = parent_shas[0], _sha
         if require_python and not changed_python_files(repo, base, head):
             screened_out += 1
             continue

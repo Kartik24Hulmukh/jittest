@@ -24,3 +24,10 @@ class ManifestTests(unittest.TestCase):
         broken['pairs'] = broken['pairs'][:39]
         with self.assertRaises(ValueError):
             validate_manifest(broken)
+
+    def test_original_branch_tip_is_not_an_applied_pr_result(self):
+        manifest = json.loads((Path(__file__).parents[1] / 'eval/ga73_click_manifest.json').read_text())
+        broken = copy.deepcopy(manifest)
+        broken['pairs'][0]['head'] = broken['pairs'][0]['pr_head']
+        with self.assertRaises(ValueError):
+            validate_manifest(broken)
