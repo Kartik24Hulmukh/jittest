@@ -1,0 +1,214 @@
+{
+  "scope": "seeded Defect-13 live canary, NOT real-bug GA rates",
+  "accounted_budget_usd": 1.0,
+  "per_run_budget_usd": 0.5,
+  "runs_required": 2,
+  "budget_caveat": "Response-accounted price guard, not a provider reservation; unreceived failures can have unobserved spend.",
+  "risk_threshold": 0.0,
+  "min_confidence": 0.7,
+  "model": "melious/glm-5.3-flash",
+  "mutation": {
+    "file": "src/jittest/diff.py",
+    "old": "return min(covering, key=lambda s: s[2] - s[1])",
+    "new": "return max(covering, key=lambda s: s[2] - s[1])"
+  },
+  "runs": [
+    {
+      "version": "0.4.1",
+      "repo": "repo",
+      "base": "c7c2bb51be660a64eb7ca20d29e34861340d6f20",
+      "head": "4b02e0926897fdfd2677f313342aee53adaad7dc",
+      "model": "melious/glm-5.3-flash",
+      "targets_considered": 1,
+      "targets_skipped": 0,
+      "candidates_generated": 1,
+      "discarded": {},
+      "cost_usd": 0.0004,
+      "priced": true,
+      "tokens_estimated": false,
+      "provider_billing": {
+        "provider_cost_eur": "0.00031610",
+        "provider_credit_debit_eur": "0.00031610",
+        "provider_billing_complete": true,
+        "provider_response_count": 2,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "input_tokens": 1493,
+      "output_tokens": 545,
+      "duration_s": 7.22,
+      "model_requests": 2,
+      "model_request_attempts": 1,
+      "rate_limited_candidates": 0,
+      "diff_status": "ok",
+      "sandbox": {
+        "mode": "required",
+        "backend": "docker",
+        "image": "localhost:5000/jittest-ga73-canary@sha256:dafb59e02720685fd5a4a253d14be8a1a74a6dad7a13960f02d350ae9d9a86a5",
+        "isolated": true,
+        "network_denied": true,
+        "notes": [
+          "candidates executed under docker with network egress denied inside the maintainer-pinned runtime image localhost:5000/jittest-ga73-canary@sha256:dafb59e02720685fd5a4a253d14be8a1a74a6dad7a13960f02d350ae9d9a86a5"
+        ],
+        "runtime_image": "localhost:5000/jittest-ga73-canary@sha256:dafb59e02720685fd5a4a253d14be8a1a74a6dad7a13960f02d350ae9d9a86a5",
+        "image_digest": "sha256:07693bdcde6d69f9dbb2ce59c4b5f577feb92615bee8550dba0dedfe35d7f6ab"
+      },
+      "wall_clock_s": 7.216,
+      "phases": {
+        "run_total_s": 7.216,
+        "oracle_s": 2.449
+      },
+      "has_regression": true,
+      "errors": [],
+      "telemetry": [
+        {
+          "target_symbol": "_innermost",
+          "target_file": "src/jittest/diff.py",
+          "risk_score": 0.3604,
+          "candidate_index": 1,
+          "disposition": "catching",
+          "head_outcome": "fail",
+          "base_outcome": "pass",
+          "rerun_agreement": true,
+          "assessor_verdict": "real_regression",
+          "assessor_confidence": 0.75,
+          "failure_excerpt": "F                                                                        [100%]\n=================================== FAILURES ===================================\n_______________ test_innermost_returns_smallest_covering_symbol ________________\n    <source elided>\ntest_jittest_candidate_07dd723c.py:10: AssertionError\n---------- generated xml file: /workspace/.jittest-junit-07dd723c.xml ----------\n=========================== short test summary info ============================\nFAILED test_jittest_candidate_07dd723c.py::test_innermost_returns_smallest_covering_symbol",
+          "check_reason": "",
+          "parse_error": "",
+          "candidate_source_sha256": "e1a54aaf31932f7032cc9cddc9ab5de62ff48403ce4eac893d02eca003d99618",
+          "candidate_source_path": "",
+          "refusal_code": "",
+          "sandbox_backend": "docker",
+          "sandbox_image_digest": "sha256:07693bdcde6d69f9dbb2ce59c4b5f577feb92615bee8550dba0dedfe35d7f6ab",
+          "wall_clock_s": 2.449
+        }
+      ],
+      "findings": [
+        {
+          "file": "src/jittest/diff.py",
+          "symbol": "_innermost",
+          "risk_score": 0.3604,
+          "risk_reasons": [
+            "branch_density",
+            "modifies_existing"
+          ],
+          "oracle_reason": "catching: passes on base, fails on head",
+          "assessment": {
+            "verdict": "real_regression",
+            "confidence": 0.75,
+            "severity": "high",
+            "summary": "Flipping min to max inverts _innermost's core purpose, returning the outermost symbol; no PR text indicates this was intended.",
+            "reviewer_question": "Did you intend _innermost to return the largest covering symbol, and if so, why does the function keep its name and semantics?",
+            "should_report": true
+          },
+          "test_code": "import jittest.diff as diff\n\n\ndef test_innermost_returns_smallest_covering_symbol():\n    symbols = [\n        (\"outer\", 1, 100),\n        (\"inner\", 40, 60),\n    ]\n    result = diff._innermost(symbols, 50)\n    assert result == (\"inner\", 40, 60)",
+          "repro_command": "git checkout 4b02e0926897 && pytest src/jittest/diff.py -q   # expect FAIL\ngit checkout c7c2bb51be66 && pytest src/jittest/diff.py -q   # expect PASS"
+        }
+      ],
+      "latent": []
+    },
+    {
+      "version": "0.4.1",
+      "repo": "repo",
+      "base": "c7c2bb51be660a64eb7ca20d29e34861340d6f20",
+      "head": "4b02e0926897fdfd2677f313342aee53adaad7dc",
+      "model": "melious/glm-5.3-flash",
+      "targets_considered": 1,
+      "targets_skipped": 0,
+      "candidates_generated": 1,
+      "discarded": {},
+      "cost_usd": 0.0003,
+      "priced": true,
+      "tokens_estimated": false,
+      "provider_billing": {
+        "provider_cost_eur": "0.00017700",
+        "provider_credit_debit_eur": "0.00017700",
+        "provider_billing_complete": true,
+        "provider_response_count": 2,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "input_tokens": 1494,
+      "output_tokens": 261,
+      "duration_s": 5.8,
+      "model_requests": 2,
+      "model_request_attempts": 1,
+      "rate_limited_candidates": 0,
+      "diff_status": "ok",
+      "sandbox": {
+        "mode": "required",
+        "backend": "docker",
+        "image": "localhost:5000/jittest-ga73-canary@sha256:dafb59e02720685fd5a4a253d14be8a1a74a6dad7a13960f02d350ae9d9a86a5",
+        "isolated": true,
+        "network_denied": true,
+        "notes": [
+          "candidates executed under docker with network egress denied inside the maintainer-pinned runtime image localhost:5000/jittest-ga73-canary@sha256:dafb59e02720685fd5a4a253d14be8a1a74a6dad7a13960f02d350ae9d9a86a5"
+        ],
+        "runtime_image": "localhost:5000/jittest-ga73-canary@sha256:dafb59e02720685fd5a4a253d14be8a1a74a6dad7a13960f02d350ae9d9a86a5",
+        "image_digest": "sha256:07693bdcde6d69f9dbb2ce59c4b5f577feb92615bee8550dba0dedfe35d7f6ab"
+      },
+      "wall_clock_s": 5.804,
+      "phases": {
+        "run_total_s": 5.804,
+        "oracle_s": 2.449
+      },
+      "has_regression": true,
+      "errors": [],
+      "telemetry": [
+        {
+          "target_symbol": "_innermost",
+          "target_file": "src/jittest/diff.py",
+          "risk_score": 0.3604,
+          "candidate_index": 1,
+          "disposition": "catching",
+          "head_outcome": "fail",
+          "base_outcome": "pass",
+          "rerun_agreement": true,
+          "assessor_verdict": "real_regression",
+          "assessor_confidence": 0.85,
+          "failure_excerpt": "F                                                                        [100%]\n=================================== FAILURES ===================================\n_______________ test_innermost_returns_narrowest_covering_symbol _______________\n    <source elided>\ntest_jittest_candidate_de96a023.py:10: AssertionError\n---------- generated xml file: /workspace/.jittest-junit-de96a023.xml ----------\n=========================== short test summary info ============================\nFAILED test_jittest_candidate_de96a023.py::test_innermost_returns_narrowest_covering_symbol",
+          "check_reason": "",
+          "parse_error": "",
+          "candidate_source_sha256": "fff7d2eb51fb12766a8ac8e707d85c44c1ba553d168b6bca4db78e5c1ab7fbee",
+          "candidate_source_path": "",
+          "refusal_code": "",
+          "sandbox_backend": "docker",
+          "sandbox_image_digest": "sha256:07693bdcde6d69f9dbb2ce59c4b5f577feb92615bee8550dba0dedfe35d7f6ab",
+          "wall_clock_s": 2.449
+        }
+      ],
+      "findings": [
+        {
+          "file": "src/jittest/diff.py",
+          "symbol": "_innermost",
+          "risk_score": 0.3604,
+          "risk_reasons": [
+            "branch_density",
+            "modifies_existing"
+          ],
+          "oracle_reason": "catching: passes on base, fails on head",
+          "assessment": {
+            "verdict": "real_regression",
+            "confidence": 0.85,
+            "severity": "medium",
+            "summary": "min-to-max flip makes _innermost return the widest covering symbol, contradicting its name; no PR context suggests intent.",
+            "reviewer_question": "Did you intend _innermost to return the outermost covering symbol (e.g. renaming it), or is the min-to-max change accidental?",
+            "should_report": true
+          },
+          "test_code": "import jittest.diff as diff\n\n\ndef test_innermost_returns_narrowest_covering_symbol():\n    symbols = [\n        (\"outer\", 1, 100),\n        (\"inner\", 40, 60),\n    ]\n    result = diff._innermost(symbols, 50)\n    assert result == (\"inner\", 40, 60)",
+          "repro_command": "git checkout 4b02e0926897 && pytest src/jittest/diff.py -q   # expect FAIL\ngit checkout c7c2bb51be66 && pytest src/jittest/diff.py -q   # expect PASS"
+        }
+      ],
+      "latent": []
+    }
+  ],
+  "passed": true,
+  "pr_comment_posted": true,
+  "code_sha": "c7c2bb51be660a64eb7ca20d29e34861340d6f20",
+  "runtime_image": "localhost:5000/jittest-ga73-canary@sha256:dafb59e02720685fd5a4a253d14be8a1a74a6dad7a13960f02d350ae9d9a86a5",
+  "base_sha": "c7c2bb51be660a64eb7ca20d29e34861340d6f20",
+  "head_sha": "4b02e0926897fdfd2677f313342aee53adaad7dc",
+  "pr_comment_url": "https://github.com/Kartik24Hulmukh/jittest/pull/230#issuecomment-5899052066"
+}

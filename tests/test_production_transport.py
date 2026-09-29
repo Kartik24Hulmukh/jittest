@@ -22,7 +22,10 @@ def test_router_billing_is_terminal(status, body):
         calls.append(request)
         return httpx.Response(status, json=body)
     with MeliousRouter(api_key="test", transport=httpx.MockTransport(handler)) as router, pytest.raises(MeliousError, match="billing"):
-        router.complete("glm-4.5", "hi", deadline=0.02)
+        # This checks response classification, not the scheduler. A 20ms
+        # deadline can expire under contention before the refusal is received;
+        # deadline budgeting is tested separately below and in real live runs.
+        router.complete("glm-4.5", "hi")
     assert len(calls) == 1
 
 

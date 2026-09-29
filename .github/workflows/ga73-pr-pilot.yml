@@ -1,0 +1,73 @@
+name: ga73-settled-pr-pilot
+on:
+  push:
+    branches: [harden/jittest-v1-launch]
+    paths: ['eval/ga73_pr_pilot.py', 'eval/ga73_click_manifest.json', '.github/workflows/ga73-pr-pilot.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ga73-settled-pr-pilot-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Install trusted Jittest
+        run: python -m pip install -e '.[melious]'
+      - name: Build and pin trusted Python 3.13 pytest runtime
+        run: |
+          set -euo pipefail
+          docker pull python:3.13-slim
+          BASE=$(docker image inspect -f '{{index .RepoDigests 0}}' python:3.13-slim)
+          echo "$BASE" > ga73-canary-base-image.txt
+          docker build --build-arg PYTHON_BASE="$BASE" -t localhost:5000/jittest-ga73-canary:live docker/ga73-canary
+          docker run -d --name ga73-registry -p 127.0.0.1:5000:5000 registry:2
+          docker push localhost:5000/jittest-ga73-canary:live
+          PIN=$(docker image inspect -f '{{index .RepoDigests 0}}' localhost:5000/jittest-ga73-canary:live)
+          docker pull "$PIN"
+          echo "$PIN" > ga73-canary-runtime-image.txt
+          echo "JITTEST_RUNTIME_IMAGE=$PIN" >> "$GITHUB_ENV"
+      - name: Retrieve official FX
+        run: |
+          curl --fail --silent --show-error https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml -o ga73-canary-fx.xml
+          python - <<'PY'
+          import os,xml.etree.ElementTree as ET
+          root=ET.parse('ga73-canary-fx.xml').getroot()
+          rate=next(n.attrib['rate'] for n in root.iter() if n.attrib.get('currency')=='USD')
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              f.write('JITTEST_EUR_USD='+rate+'\n')
+          PY
+      - name: Clone declared Click source as inert data only
+        run: |
+          git clone --quiet https://github.com/pallets/click /tmp/ga73-click
+          SHA=$(python -c "import json;print(json.load(open('eval/ga73_click_manifest.json'))['sha'])")
+          git -C /tmp/ga73-click checkout --detach "$SHA"
+      - name: Bounded paid settled-PR pilot
+        env:
+          JITTEST_API_KEY: ${{ secrets.JITTEST_MELIOUS_API_KEY }}
+          JITTEST_MODEL: melious/glm-5.3-flash
+          JITTEST_API_BASE: https://api.melious.ai/v1
+          JITTEST_SANDBOX: required
+          JITTEST_SANDBOX_BACKEND: docker
+          JITTEST_MAX_RETRIES: '1'
+          JITTEST_HTTP_TIMEOUT: '30'
+          PYTHONHASHSEED: '0'
+        run: python eval/ga73_pr_pilot.py --repo /tmp/ga73-click --out ga73-pr-pilot.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: ga73-pr-pilot-${{ github.sha }}
+          path: |
+            ga73-pr-pilot.json
+            ga73-canary-base-image.txt
+            ga73-canary-runtime-image.txt
+            ga73-canary-fx.xml
+          if-no-files-found: error
