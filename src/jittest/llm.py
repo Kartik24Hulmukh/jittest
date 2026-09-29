@@ -20,7 +20,7 @@ from email.utils import parsedate_to_datetime
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from ._billing import billing_refusal
+from ._billing import BillingTotals, billing_refusal
 from ._litellm import LiteLLMBackend
 from ._llmbase import BaseLLM, BudgetExceeded, LLMError, Usage
 from ._llmcache import _Cache
@@ -180,6 +180,7 @@ class HTTPLLM(BaseLLM):
         provider, _, name = model.partition("/")
         if not name:
             provider, name = ("anthropic" if "claude" in model else "openai"), model
+        self._billing_totals = BillingTotals()
         self.provider = provider
         self.model_name = name
         # With an explicit API base (e.g. NVIDIA NIM) the full namespaced model
@@ -407,6 +408,8 @@ class HTTPLLM(BaseLLM):
                 else:
                     out_tokens = completion_tokens
                 self._account_response(prompt_tokens, out_tokens, system + user, text)
+            self._billing_totals.add(body.get("billing_cost"))
+            self.usage.provider_billing = self._billing_totals.as_dict()
             outputs.append(text or "")
 
         self.cache.put(key, json.dumps(outputs))

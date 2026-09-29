@@ -1,11 +1,15 @@
 """Production regressions discovered during the continued GA-73 audit."""
 import io
 import json
+import unittest
 import urllib.error
 from unittest.mock import patch
 
-import httpx
-import pytest
+try:
+    import httpx
+    import pytest
+except ImportError:
+    raise unittest.SkipTest("production transport tests require pytest and the melious extra") from None
 
 from jittest.llm import HTTPLLM, LLMError
 from jittest.melious import MeliousError, MeliousRouter

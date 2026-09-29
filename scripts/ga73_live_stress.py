@@ -78,6 +78,7 @@ def main() -> int:
                             "status": "ok" if result.text.strip() == expected and result.finish_reason == "stop" else "failed",
                             "seconds": time.monotonic() - started, "attempts": result.attempts,
                             "finish_reason": result.finish_reason, "usage": result.usage,
+                            "provider_billing": result.provider_billing,
                             "list_price_estimate_usd": None if price is None else (inp * price[0] + out * price[1]) / 1e6}
                 except Exception as exc:
                     return {"case": "completion", "index": index, "model": model, "status": "failed",

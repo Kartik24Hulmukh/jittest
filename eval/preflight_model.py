@@ -59,7 +59,8 @@ def preflight_model(model: str, budget: float = 0.05) -> dict:
         raise LLMError("preflight returned empty content")
     return {"model": model, "status": "responsive", "cost_usd": llm.usage.cost_usd,
             "input_tokens": llm.usage.input_tokens, "output_tokens": llm.usage.output_tokens,
-            "tokens_estimated": llm.usage.tokens_estimated}
+            "tokens_estimated": llm.usage.tokens_estimated,
+            "provider_billing": llm.usage.provider_billing}
 
 
 

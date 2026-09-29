@@ -29,6 +29,7 @@ class Usage:
     priced: bool = True
     # True when any token count was estimated rather than provider-reported.
     tokens_estimated: bool = False
+    provider_billing: dict | None = None
 
 
 class BaseLLM:

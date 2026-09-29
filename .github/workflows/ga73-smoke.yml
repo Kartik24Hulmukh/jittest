@@ -32,8 +32,8 @@ jobs:
       - name: Resolve official Python digest and build trusted evaluation image
         run: |
           set -euo pipefail
-          docker pull python:3.12-slim
-          BASE=$(docker image inspect -f '{{index .RepoDigests 0}}' python:3.12-slim)
+          docker pull python:3.8-slim
+          BASE=$(docker image inspect -f '{{index .RepoDigests 0}}' python:3.8-slim)
           echo "$BASE" > ga73-base-image.txt
           docker build --build-arg PYTHON_BASE="$BASE" -t localhost:5000/jittest-ga73:smoke docker/ga73-smoke
           docker run -d --name ga73-registry -p 127.0.0.1:5000:5000 registry:2

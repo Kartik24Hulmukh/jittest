@@ -382,6 +382,7 @@ def run(
         report.cost_usd = llm.usage.cost_usd
         report.priced = llm.usage.priced
         report.tokens_estimated = llm.usage.tokens_estimated
+        report.provider_billing = llm.usage.provider_billing
         report.input_tokens = llm.usage.input_tokens
         report.output_tokens = llm.usage.output_tokens
         report.model_requests = llm.usage.calls

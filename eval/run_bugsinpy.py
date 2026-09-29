@@ -94,6 +94,10 @@ class BugResult:
     reported: int = 0
     cost_usd: float = 0.0
     priced: bool = True
+    provider_billing: dict | None = None
+    input_tokens: int = 0
+    output_tokens: int = 0
+    tokens_estimated: bool = False
     model_requests: int = 0
     seconds: float = 0.0
     error: str = ""
@@ -634,6 +638,10 @@ def evaluate_one(spec: BugSpec, repo: Path, model: str, budget: float,
         res.reported = len([f for f in report.findings if f.assessment.should_report])
         res.cost_usd = report.cost_usd
         res.priced = report.priced
+        res.provider_billing = report.provider_billing
+        res.input_tokens = report.input_tokens
+        res.output_tokens = report.output_tokens
+        res.tokens_estimated = report.tokens_estimated
         res.model_requests = getattr(report, "model_requests", 0)
         # Loop 7 added Report.diff_status; without reading it, a git failure
         # collapses into "not_measured" and sits in the catch-rate denominator

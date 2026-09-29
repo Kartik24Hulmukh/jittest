@@ -1,0 +1,17 @@
+{
+  "model": "melious/glm-5.3-flash",
+  "status": "responsive",
+  "cost_usd": 3.52005e-06,
+  "input_tokens": 19,
+  "output_tokens": 3,
+  "tokens_estimated": false,
+  "provider_billing": {
+    "provider_cost_eur": "0.0000031",
+    "provider_credit_debit_eur": "0.0000031",
+    "provider_billing_complete": true,
+    "provider_billed_responses": 1,
+    "provider_paid_with": [
+      "credits"
+    ]
+  }
+}

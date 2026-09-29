@@ -18,7 +18,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-from ._billing import billing_refusal
+from ._billing import BillingTotals, billing_refusal
 
 MODEL_CEILINGS: dict[str, int] = {
     "glm-5.3": 65536,
@@ -68,6 +68,7 @@ class ModelResult:
     finish_reason: str = "stop"
     status: int = 200
     usage: dict[str, int] = field(default_factory=dict)
+    provider_billing: dict | None = None
 
 
 def _validate_base(base: str) -> str:
@@ -242,6 +243,7 @@ class MeliousRouter:
         attempts = 0
         last_finish = "stop"
         aggregate_usage: dict[str, int] = {}
+        billing_totals = BillingTotals()
         escalations = 0
         while True:
             attempts += 1
@@ -291,6 +293,7 @@ class MeliousRouter:
                     raise ValueError("message.content must be text")
             except (ValueError, AttributeError, TypeError) as exc:
                 raise TransportError("malformed completion response") from exc
+            billing_totals.add(data.get("billing_cost"))
             usage = data.get("usage") or {}
             if not isinstance(usage, dict):
                 raise TransportError("malformed completion usage")
@@ -316,4 +319,5 @@ class MeliousRouter:
                 finish_reason=last_finish,
                 status=resp.status_code,
                 usage=aggregate_usage,
+                provider_billing=billing_totals.as_dict(),
             )

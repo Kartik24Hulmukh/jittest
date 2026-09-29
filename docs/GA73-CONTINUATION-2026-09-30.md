@@ -36,3 +36,16 @@ Melious list rates were rechecked against https://melious.ai/pricing. Official E
 Existing GitHub Actions, Docker, pytest and optional httpx transport were reused. `repos.md` was reviewed; no additional orchestration framework was needed or introduced. Existing CodeQL remains a CI gate. Core runtime dependencies stay empty. The provider credential is an encrypted dedicated repository secret, supplied only to the paid smoke step, never a build argument or corpus container environment.
 
 **Launch status:** do not close GA-73 or claim production readiness on the strength of these engineering checks. Audit the actual smoke artifact, then complete the predeclared larger real-corpus evaluation, independently adjudicated settled-PR sample, billing reconciliation and external pilot gates.
+
+
+## Actual real-daemon findings, first smoke
+
+The first paid smoke ran on a real Docker daemon and **failed correctly**: 17 of 30 candidate dispositions were `head_uncollectable`, with no base/head execution pair. All three bugs made real model requests. No catch-rate conclusion is published from this environment-broken run.
+
+Root cause read from frozen corpus source: PySnooper revisions import `Mapping`/`Sequence` from `collections`, removed in Python 3.10; the image incorrectly used Python 3.12. The oldest revision also declares decorator/future/six, although BugsInPy's per-bug requirements metadata is empty. The corrected **research-only** image matches the declared Python 3.8 specimens and explicitly pins these runtime packages. Jittest itself stays on the supported Python 3.12 host. Legacy/EOL Python is confined offline for historical measurement, not promoted as a production runtime. Safety rules were not relaxed to admit rejected write/interpreter operations.
+
+Current-head real-daemon Option C, public phase-boundary and registry-live proof workflows ran successfully; raw artifacts were retrieved for independent inspection. CI also exposed optional-httpx collection in the new tests; zero-dependency discovery now skips that optional test module explicitly, while the funded smoke step installs the extra and executes it.
+
+New authoritative evidence: Melious documents `billing_cost.credits` as an exact decimal EUR equivalent and `paid_with` as the actually debited balance. Response billing is now captured with decimal arithmetic and propagated into reports/evaluation rows. Energy coverage is not misreported as a cash credit debit; missing/invalid metadata withholds totals. A real Flash probe returned EUR 0.0000031 with `paid_with=credits`. This closes a previously missed accounting instrumentation gap, not the qualified USD-per-real-PR evaluation itself. Source: https://melious.ai/docs/concepts/pricing
+
+Billing scope is received successful responses only; a complete billing block does not certify that every failed/timed-out request was unbilled. Preserve transport failures and reconcile separately.
