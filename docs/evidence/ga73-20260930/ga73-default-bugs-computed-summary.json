@@ -1,0 +1,22 @@
+{
+  "file": "ga73-default-bugs.json",
+  "bytes": 110531,
+  "rows": 25,
+  "model_measured": 22,
+  "model_response_count": 78,
+  "valid_received_response_billing_rows": 22,
+  "model_measured_billing_rows": 22,
+  "observed_credit_debit_eur": "0.06703426",
+  "observed_received_response_usd": "0.076117402230",
+  "observed_usd_per_attempted": "0.0030446960892",
+  "observed_usd_per_model_measured": "0.003459881919545454545454545455",
+  "dispositions": {
+    "safety_rejected": 12,
+    "head_failed_base_failed_latent": 14,
+    "head_passed": 4,
+    "catching": 20,
+    "model_declined": 8
+  },
+  "qualified": true,
+  "scope": "Default-operating-point real-bug cohort; not a standalone precision/GA claim"
+}

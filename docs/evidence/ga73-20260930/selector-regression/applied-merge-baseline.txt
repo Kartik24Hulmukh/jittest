@@ -28,11 +28,11 @@ self = <tests.test_false_positive_real_history.MainlineSampleTests testMethod=te
             pairs, screened = select_pairs(repo, 40, since='2024-01-01', until='2025-12-31')
 >           self.assertEqual(pairs, [])
 E           AssertionError: Lists differ: [('f84f77ff01ca56987ae2201e529c6decebcfae5[43 chars]78')] != []
-E           
+E
 E           First list contains 1 additional elements.
 E           First extra element 0:
 E           ('f84f77ff01ca56987ae2201e529c6decebcfae5d', '05cbb73404898863170c45bc186ca8269ba60178')
-E           
+E
 E           + []
 E           - [('f84f77ff01ca56987ae2201e529c6decebcfae5d',
 E           -   '05cbb73404898863170c45bc186ca8269ba60178')]

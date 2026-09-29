@@ -33,18 +33,18 @@ self = <tests.test_false_positive_real_history.MainlineSampleTests testMethod=te
             pairs, _ = select_pairs(repo, 40, since='2024-01-01', until='2025-12-31')
 >           self.assertEqual(pairs, [(base, head)])
 E           AssertionError: Lists differ: [('7d[79 chars]dda'), ('ad213f077b3bfcb3ccb5d315de2b976d97e97[45 chars]64')] != [('7d[79 chars]dda')]
-E           
+E
 E           First list contains 1 additional elements.
 E           First extra element 1:
 E           ('ad213f077b3bfcb3ccb5d315de2b976d97e971dc', '7d589bee3c23e158304a9ee6931b7aa6722d7264')
-E           
+E
 E             [('7d589bee3c23e158304a9ee6931b7aa6722d7264',
 E           -   'ee861d2faabf39d870f5aa6057a5403d1852cdda'),
 E           ?                                              ^
-E           
+E
 E           +   'ee861d2faabf39d870f5aa6057a5403d1852cdda')]
 E           ?                                              ^
-E           
+E
 E           -  ('ad213f077b3bfcb3ccb5d315de2b976d97e971dc',
 E           -   '7d589bee3c23e158304a9ee6931b7aa6722d7264')]
 

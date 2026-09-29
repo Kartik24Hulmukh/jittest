@@ -5,7 +5,8 @@
 - **Done:** paired execution/receipt CLI, zero-dependency core, required sandbox refusal, health/readiness probes, JSON logging and tracing were already present.
 - **Broken -> fixed:** billing refusals retried as rate limits, direct endpoint namespaces, missing Melious price provenance, discarded truncation usage, untyped malformed/server responses, optional-router transient server retries, and isolated engine forced to use the mini-runner even when a trusted image contained pytest.
 - **Partial:** bounded live provider reliability. The retained runs include failures; one later burst is not a sustained availability SLO.
-- **Missing:** sample-qualified catch/FPR and billing-reconciled USD per real PR, external adoption/payment evidence. These cannot be replaced with fixture results or instrument readiness.
+- **Done, limited cohort:** qualified historical mechanical catch and conditional real-PR screening/cost observations; see eval/RESULTS.md.
+- **Missing:** independently labeled representative FPR/recall, wallet-reconciled total cost, sustained production SLOs and external adoption/payment evidence. These cannot be replaced with fixtures or a limited screening proxy.
 
 ## Frozen and retained evidence
 
@@ -111,3 +112,11 @@ Before any corrected paid outcomes, static proper-merge preflight found Click29/
 A production wiring audit also reproduced six unsupported generation inputs silently ignored by the current receipt-verification Action. The drop-in workflow now uses only the actual supported verification contract, requires isolation, disables persisted checkout credentials, uploads the real verification outputs, and needs no model API key. Optional paid generation/evaluation remains separate; the dedicated Melious credential is not sent unnecessarily to production verification. Existing legacy provider secrets/variables were not overwritten.
 
 Final complete eight-worker suite: 1,322 passed, 9 skipped, 210 subtests in81.77seconds. Exact CI Ruff and the local-Action input contract passed. Red/green source and workflow regression logs use tracked .txt files; ignored .log files are not falsely represented as committed evidence. The corrected conditional precision study is not yet claimed completed.
+
+## Final corrected measurement and engineering gate
+
+The corrected forty-PR workflow36638597532 passed collection qualification: all forty were model-measured, zero reports surfaced, and all twenty no-call canaries passed. Zero observed reports are paired with the approximate95%upper bound7.5%, explicitly conditional on default-risk eligibility and not definitive FPR. Exact successful-response credits EUR0.08981148 convert to USD0.101980935540; observed USD0.0025495233885 per evaluated PR excludes unreceived/failed requests and CI. Raw artifacts, immutable pins, FX and independent decimal/scaled-integer recomputation retained. The same default operating point caught16/25 historical bugs mechanically and surfaced12/25; do not conflate the two.
+
+Fresh OptionC/public-boundary/registry/descendant-cleanup proof passed on5331774 in run36640058668. Exact final Ruff/full mypy/workflow contract passed; actual test-running launch gate GO_LAUNCH_NOT_GA with ga_ready false. The1322-pass full suite and nine cross-platform matrix jobs passed. Evidence is qualified for a limited pilot, not a100xtraction claim or universalzeroissues/leaks/SLA.
+
+Tracked regression display logs have trailing whitespace normalized; raw-logs.json retains original lossless raw_text and SHA256, so the failing baseline evidence is not erased. Follow-up eval/RESULTS.md is the concise current statement; earlier sections remain chronological failed/partial checkpoints, not current launch assertions.
