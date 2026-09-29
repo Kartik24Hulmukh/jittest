@@ -3,6 +3,7 @@ import copy
 import json
 import unittest
 from pathlib import Path
+
 from eval.ga73_pr_pilot import validate_manifest
 
 

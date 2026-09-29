@@ -31,12 +31,14 @@ def main() -> int:
     ap.add_argument("--bugsinpy", type=Path, required=True)
     ap.add_argument("--smoke", type=Path, required=True)
     ap.add_argument("--out", type=Path, default=Path("ga73-measurements.json"))
+    ap.add_argument("--bugs-only", action="store_true")
+    ap.add_argument("--bug-risk-threshold", type=float, choices=(0.0, 0.35), default=0.0)
     args = ap.parse_args()
     evidence = {"scope": "predeclared real-corpus pilot; clean-merge screening proxy, not definitive FPR",
                 "ga_ready": False, "model": MODEL, "independent_adjudication": "pending",
                 "dataset_sha": DATASET_SHA, "projects": PROJECTS, "bug_limit": 25, "fp_limit": 40,
                 "fp_since": "5 years ago", "fp_until": "90 days ago",
-                "bug_risk_threshold": 0.0, "fp_risk_threshold": 0.35,
+                "bug_risk_threshold": args.bug_risk_threshold, "fp_risk_threshold": 0.35,
                 "max_targets": 5, "candidates_per_target": 4,
                 "accounted_budget_usd": {"bugs": 2.0, "fp": 1.0},
                 "budget_caveat": "Response-accounted list-price guard, not provider-side reservation. A request can overshoot; timeouts can have unobserved spend.",
@@ -67,7 +69,7 @@ def main() -> int:
                 raise ValueError("frozen corpus revision unavailable")
             if spec.project == "youtube-dl":
                 fp_repo = repo
-            result = evaluate_one(spec, repo, MODEL, 2.0 - spent, risk_threshold=0.0)
+            result = evaluate_one(spec, repo, MODEL, 2.0 - spent, risk_threshold=args.bug_risk_threshold)
             result.runner = "pytest"
             # Unlike B1, do not assert every project's dependencies are proved.
             result.deps_status = "predeclared-runtime; inspect collection outcomes"
@@ -80,6 +82,20 @@ def main() -> int:
             if result.diff_status in ("model_unavailable", "quota_exhausted"):
                 evidence["bug_abort"] = result.diff_status
                 break
+        if args.bugs_only:
+            telemetry = [t for row in evidence["bug_results"] for t in row["telemetry"]]
+            bad = sum(str(t.get("disposition", "")).startswith("head_uncollectable") for t in telemetry)
+            healthy = bool(telemetry) and bad / len(telemetry) < 0.20
+            paired = any(t.get("head_outcome") in ("pass", "fail") and
+                         t.get("base_outcome") in ("pass", "fail") for t in telemetry)
+            qualified = (len(bug_rows) == 25 and evidence["bug_summary"]["completion_rate"] >= 0.8
+                         and healthy and paired)
+            evidence.update(scope="Default-operating-point real-bug cohort; not a standalone precision/GA claim",
+                            collection_qualified=qualified, healthy_collection=healthy,
+                            bug_execution_pair_present=paired)
+            args.out.write_text(json.dumps(evidence, indent=2) + "\n")
+            print("Default bug cohort captured; pair with matching-threshold PR evidence.")
+            return 0 if qualified else 1
         if fp_repo is None:
             raise ValueError("no approved repository for settled-merge pilot")
         evidence["fp_repo"] = next(s.repo_url for s in specs if s.project == "youtube-dl")

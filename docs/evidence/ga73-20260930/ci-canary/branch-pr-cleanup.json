@@ -1,0 +1,251 @@
+{
+  "proven_by_exact_merged_PR": [
+    {
+      "name": "feat/handoff-p0-gates-2026-09-12",
+      "sha": "f28f54b63c1b184a61dde810ab333db8d278f68e",
+      "merged_pr": 185,
+      "merged_at": "2026-09-12T20:10:07Z"
+    },
+    {
+      "name": "feat/melious-router-ga73",
+      "sha": "e648676119df5f38d9f3bd4389490f5ba6d0f1ec",
+      "merged_pr": 231,
+      "merged_at": "2026-09-29T06:23:40Z"
+    },
+    {
+      "name": "fix/antigravity-sha-fabrication",
+      "sha": "2df5b04e13af580c71dfbbe26fd1ab5cb53b05bc",
+      "merged_pr": 181,
+      "merged_at": "2026-09-09T19:11:37Z"
+    },
+    {
+      "name": "fix/antigravity-sha-typo",
+      "sha": "a2c8abee5d82f855e90717988313de4b86136315",
+      "merged_pr": 182,
+      "merged_at": "2026-09-09T19:15:59Z"
+    },
+    {
+      "name": "fix/ci-clear-github-event-name",
+      "sha": "9090a30ce419750d2cbbcb5331393a850c3933aa",
+      "merged_pr": 178,
+      "merged_at": "2026-09-09T18:15:34Z"
+    },
+    {
+      "name": "fix/option-c-public-base-trust",
+      "sha": "f9f4afd17ba6a8ceecf28b13106b4449344a537a",
+      "merged_pr": 200,
+      "merged_at": "2026-09-13T17:09:23Z"
+    },
+    {
+      "name": "fix/per-phase-verification-boundaries",
+      "sha": "3be03d5c08cffa95315dd9a372d0e5a59240e2f3",
+      "merged_pr": 196,
+      "merged_at": "2026-09-13T16:32:50Z"
+    },
+    {
+      "name": "fix/stress-launch-contracts-2026-09-01",
+      "sha": "cc68e04f7fca7b6c8f43615243f56009a6b195a8",
+      "merged_pr": 166,
+      "merged_at": "2026-09-01T09:23:36Z"
+    },
+    {
+      "name": "fix/trust-context-trusted-push-events",
+      "sha": "88df024c8e2ccf13f7b1d605524799fe58de508a",
+      "merged_pr": 176,
+      "merged_at": "2026-09-09T16:08:33Z"
+    },
+    {
+      "name": "fix/verification-path-containment",
+      "sha": "cb271aba7617842b2858ac54b58e1f33b8a4ae64",
+      "merged_pr": 197,
+      "merged_at": "2026-09-13T16:46:20Z"
+    },
+    {
+      "name": "harden/jittest-prod",
+      "sha": "6e0e52f7111c19ad9fe5b0d0022d325585a02ea9",
+      "merged_pr": 205,
+      "merged_at": "2026-09-15T17:00:56Z"
+    },
+    {
+      "name": "harden/jittest-v1-launch-inventory",
+      "sha": "ce7d522f9374a09d0a0dea1cb34d1d3e3ad8607e",
+      "merged_pr": 221,
+      "merged_at": "2026-09-19T15:16:32Z"
+    },
+    {
+      "name": "harden/jittest-v1-launch-readiness-198",
+      "sha": "34a57b3ffe6de84c03135012afd84ffd92989538",
+      "merged_pr": 215,
+      "merged_at": "2026-09-16T14:43:18Z"
+    },
+    {
+      "name": "harden/jittest-v1-launch-round4",
+      "sha": "d4d4fc96b21051d6f33bc6b60d7989a2cb7ecf9a",
+      "merged_pr": 220,
+      "merged_at": "2026-09-19T14:52:05Z"
+    },
+    {
+      "name": "harden/launch-evidence-fail-closed",
+      "sha": "191bd5291520bd9396aba662e63226f491118e18",
+      "merged_pr": 211,
+      "merged_at": "2026-09-15T18:51:06Z"
+    },
+    {
+      "name": "harden/launch-gate-20260916",
+      "sha": "0032c26f90e9ff9b9c5d5573b810cdd6fd774625",
+      "merged_pr": 207,
+      "merged_at": "2026-09-15T17:28:09Z"
+    },
+    {
+      "name": "harden/release-artifact-mapping",
+      "sha": "27712213735be04be1847f09a4484b2ce72644e6",
+      "merged_pr": 202,
+      "merged_at": "2026-09-15T09:41:25Z"
+    },
+    {
+      "name": "harden/workflow-cli-contract-20260916",
+      "sha": "693d0419bf8e3915135672789ce1a1c06199a3ff",
+      "merged_pr": 209,
+      "merged_at": "2026-09-15T18:31:50Z"
+    },
+    {
+      "name": "merge/jittest-p0-final-20260831",
+      "sha": "f840efed2b3a0463d42f421f3b4c03522daea4e5",
+      "merged_pr": 165,
+      "merged_at": "2026-08-31T19:16:28Z"
+    },
+    {
+      "name": "track/a-isolation",
+      "sha": "26ae4d30acab1a0b6c0100b122a1be3787bc6e42",
+      "merged_pr": 172,
+      "merged_at": "2026-09-09T06:46:53Z"
+    },
+    {
+      "name": "track/b-receipts",
+      "sha": "23350998720e2bebea93a0b592685d9908a9f6a3",
+      "merged_pr": 173,
+      "merged_at": "2026-09-09T07:30:38Z"
+    },
+    {
+      "name": "track/c-runtime",
+      "sha": "e79d4c4d8ea9da602394b3b7e805e6c3b0c61ec8",
+      "merged_pr": 175,
+      "merged_at": "2026-09-09T07:21:00Z"
+    },
+    {
+      "name": "wo26/bounded-cleanup",
+      "sha": "157dc3fdd3046a1fe94e908ee48c165aa136daf8",
+      "merged_pr": 159,
+      "merged_at": "2026-08-26T07:01:54Z"
+    },
+    {
+      "name": "wo27/close-cleanup",
+      "sha": "5f1f8d47a04f2d5bbb3a49eb73b202662a181db7",
+      "merged_pr": 160,
+      "merged_at": "2026-08-26T07:39:13Z"
+    }
+  ],
+  "retained": [
+    {
+      "name": "chore/lint-bisect-a",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "chore/lint-bisect-b",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "chore/lint-bisect-c",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "copilot/implement-p0-fixes-stress-test",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "copilot/p0-follow-up-verify-handling",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "feat/production-hardening-2026-09-12",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "fix/candidate-env-isolation",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "fix/candidate-env-isolation-v2",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "fix/close-n13-option-c-verify",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "fix/eval-bugsinpy-wiring",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "fix/eval-integrity-and-cost",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "fix/per-test-oracle-p3-2",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "fix/redact-secrets-from-excerpts",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "fix/release-040-version-drift",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "harden/jittest-v1-launch",
+      "reason": "protected/default/active"
+    },
+    {
+      "name": "harden/output-boundary-sept2026",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "main",
+      "reason": "protected/default/active"
+    },
+    {
+      "name": "probe/lint-accountant-v2",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "probe/lint-cli-tests",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "probe/lint-llm",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "probe/lint-pipeline",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "probe/lint-src-only",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "probe/lint-test-only",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "track/d-phase2-observability-runtime",
+      "reason": "not proven merged at current SHA"
+    },
+    {
+      "name": "track/e-status-render",
+      "reason": "not proven merged at current SHA"
+    }
+  ],
+  "deleted": true
+}

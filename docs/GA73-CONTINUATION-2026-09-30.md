@@ -85,3 +85,11 @@ The next full-suite contention run exposed a test-oracle timing conflation: the 
 Prepayment PR identity audit exposed a further sampling problem: unrestricted merge history includes branch synchronization merges, not just merged PRs. The final Click manifest uses first-parent mainline merge history and verifies all forty exact merge/head identities against authoritative GitHub closed-PR metadata before any paid outcome. Author PR title/body/ref now reach generation and assessment, with captured public source URLs retained. The corrected real-PR cohort has 33/40 default-risk-ranked pairs; all seven skips remain in denominators. This eligibility correction supersedes the preliminary 32/40 merge-pair count and is not model-outcome selection.
 
 Final frozen-follow-up source passed the complete eight-worker suite: 1,318 passed, 9 skipped, 210 subtests in 98.41 seconds. Ruff passed and the workflow contract checker covered 23 invocations with zero violations. The original failed 20ms-classification run was retained; the repeated full suite is not represented as the same run.
+
+## Matching product operating point
+
+The risk-zero bug study is instrument potential, not default-product recall: it cannot be marketed together with default-risk precision as a single operating point. The same frozen 25 bugs are now measured at default risk 0.35 alongside the verified forty-PR risk-0.35 cohort. Max targets/candidates/model are unchanged; all low-risk skips remain in the attempted denominator. The historical-runtime successful-response budget guard is USD2; default coverage <80% still fails qualification. No post-outcome threshold change.
+
+Exact CI lint reproduction exposed an isort grouping error in the new manifest test that the shorter local Ruff command had not caught. Import formatting was corrected; the entire actual CI Ruff command now passes. Full mypy passed all 53 source files. The matching-point complete eight-worker suite passed 1,318 tests, 9 skipped and 210 subtests in 91.25 seconds. Workflow contract checker: 25 invocations, zero violations.
+
+Branch hygiene additionally verified 24 squash-merged heads against exact GitHub merged-PR metadata and preserved refs/pull identities before leased deletion: 32 total proven-merged inactive branches removed. Protected/default/active/unproven work was retained rather than guessed abandoned.
