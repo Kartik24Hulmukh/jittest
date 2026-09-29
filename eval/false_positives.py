@@ -696,6 +696,7 @@ def main() -> int:
                 "reported": len(reported),
                 "cost_usd": report.cost_usd,
                 "priced": report.priced,
+                "provider_billing": getattr(report, "provider_billing", None),
                 "input_tokens": getattr(report, "input_tokens", 0),
                 "output_tokens": getattr(report, "output_tokens", 0),
                 "model_requests": getattr(report, "model_requests", 0),

@@ -76,9 +76,10 @@ def price_for(model: str) -> tuple[float, float] | None:
             return None
         in_price, out_price = MELIOUS_PRICES_EUR[bare]
         return in_price * fx, out_price * fx
-    for key, price in PRICES.items():
+    # Resolve the most specific family first (gpt-4.1-mini before gpt-4.1).
+    for key in sorted(PRICES, key=len, reverse=True):
         if key in model:
-            return price
+            return PRICES[key]
     return None
 
 

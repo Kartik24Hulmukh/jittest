@@ -37,10 +37,12 @@ class BillingTotals:
             return
         try:
             raw = billing.get("credits")
-            if not isinstance(raw, str):
+            if not isinstance(raw, str) or len(raw) > 128:
                 raise ValueError("credits must be a decimal string")
             eur = Decimal(raw)
-            if not eur.is_finite() or eur < 0:
+            exponent = eur.as_tuple().exponent
+            if (not eur.is_finite() or eur < 0 or not isinstance(exponent, int)
+                    or not -128 <= exponent <= 128):
                 raise ValueError("credits must be finite and nonnegative")
         except (InvalidOperation, ValueError):
             self.complete = False

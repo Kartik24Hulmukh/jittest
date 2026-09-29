@@ -29,7 +29,7 @@ def served_models(api_base: str, api_key: str, timeout: float = 20.0) -> list[st
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             data = json.loads(resp.read().decode("utf-8"))
     except (urllib.error.URLError, TimeoutError, ValueError) as exc:
-        print(f"::warning::could not list models at {api_base}: {exc}", file=sys.stderr)
+        print(f"::warning::could not list model catalogue: {type(exc).__name__}", file=sys.stderr)
         return None
     rows = data.get("data") if isinstance(data, dict) else None
     if not isinstance(rows, list):

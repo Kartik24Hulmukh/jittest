@@ -17,7 +17,7 @@ concurrency:
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -77,12 +77,26 @@ jobs:
           JITTEST_HTTP_TIMEOUT: '30'
           PYTHONHASHSEED: '0'
         run: python eval/ga73_smoke.py --bugsinpy /tmp/BugsInPy --out ga73-smoke.json
+      - name: Predeclared downstream real-bug and settled-merge pilot
+        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[ga73-measure]')
+        env:
+          JITTEST_API_KEY: ${{ secrets.JITTEST_MELIOUS_API_KEY }}
+          JITTEST_MODEL: melious/glm-5.3-flash
+          JITTEST_API_BASE: https://api.melious.ai/v1
+          JITTEST_SANDBOX: required
+          JITTEST_SANDBOX_BACKEND: docker
+          JITTEST_MAX_RETRIES: '1'
+          JITTEST_RETRY_MAX_SLEEP: '1'
+          JITTEST_HTTP_TIMEOUT: '30'
+          PYTHONHASHSEED: '0'
+        run: python eval/ga73_measurements.py --bugsinpy /tmp/BugsInPy --smoke ga73-smoke.json --out ga73-measurements.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
           name: ga73-smoke-${{ github.sha }}
           path: |
             ga73-smoke.json
+            ga73-measurements.json
             ga73-base-image.txt
             ga73-runtime-image.txt
             ga73-fx.xml

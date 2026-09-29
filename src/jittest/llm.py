@@ -250,7 +250,10 @@ class HTTPLLM(BaseLLM):
         try:
             in_tokens = int(reported_in or 0)
             out_tokens = int(reported_out or 0)
-        except (TypeError, ValueError):
+            if (isinstance(reported_in, bool) or isinstance(reported_out, bool)
+                    or in_tokens < 0 or out_tokens < 0):
+                raise ValueError("invalid token counts")
+        except (TypeError, ValueError, OverflowError):
             in_tokens = out_tokens = 0
         if in_tokens or out_tokens:
             self._account(in_tokens, out_tokens)
@@ -297,18 +300,23 @@ class HTTPLLM(BaseLLM):
             self._last_request_at = time.monotonic()
             try:
                 with urllib.request.urlopen(req, timeout=self.http_timeout) as resp:
-                    return json.loads(resp.read().decode("utf-8"))
+                    try:
+                        body = json.loads(resp.read().decode("utf-8"))
+                        if not isinstance(body, dict):
+                            raise ValueError("response must be an object")
+                    except (UnicodeError, ValueError) as exc:
+                        raise LLMError("malformed provider JSON response") from exc
+                    return body
             except urllib.error.HTTPError as exc:
                 last, last_code = exc, exc.code
                 detail = exc.read(4096).decode("utf-8", "ignore")
                 if billing_refusal(exc.code, detail):
                     raise QuotaExhaustedError("billing refusal: account credits/quota exhausted") from exc
                 if exc.code not in _RETRYABLE:
-                    detail = detail[:400]
                     if exc.code in _PERMANENT_MODEL:
                         raise ModelUnavailableError(
-                            f"HTTP {exc.code} from {self.provider}: {detail}") from exc
-                    raise LLMError(f"HTTP {exc.code} from {self.provider}: {detail}") from exc
+                            f"HTTP {exc.code} from {self.provider}: model/auth unavailable") from None
+                    raise LLMError(f"HTTP {exc.code} from {self.provider}: model/auth unavailable") from None
                 if exc.code in _RATE_LIMITED:
                     requested = retry_after_seconds(exc)
             except TimeoutError as exc:
@@ -347,7 +355,7 @@ class HTTPLLM(BaseLLM):
                 f"any of {self.max_attempts} attempts ({self.timeout_retries} read "
                 f"timeouts). Models that always emit a reasoning trace are slow on "
                 f"large diffs; raise JITTEST_HTTP_TIMEOUT.")
-        raise LLMError(f"model request failed after retries: {last}")
+        raise LLMError(f"model request failed after retries: {type(last).__name__}")
 
     def complete(self, system: str, user: str, n: int = 1,
                  temperature: float | None = None) -> list[str]:
@@ -380,10 +388,14 @@ class HTTPLLM(BaseLLM):
                      "x-api-key": self.api_key or "",
                      "anthropic-version": "2023-06-01"},
                 )
-                text = "".join(
-                    b.get("text", "") for b in body.get("content", [])
-                    if b.get("type") == "text")
-                usage = body.get("usage", {})
+                blocks = body.get("content", [])
+                if (not isinstance(blocks, list) or any(not isinstance(b, dict) for b in blocks)
+                        or any(not isinstance(b.get("text", ""), str) for b in blocks if b.get("type") == "text")):
+                    raise LLMError("malformed message response")
+                text = "".join(b.get("text", "") for b in blocks if b.get("type") == "text")
+                usage = body.get("usage") or {}
+                if not isinstance(usage, dict):
+                    raise LLMError("malformed provider usage")
                 self._account_response(usage.get("input_tokens"),
                                        usage.get("output_tokens"),
                                        system + user, text)
@@ -398,12 +410,25 @@ class HTTPLLM(BaseLLM):
                      "authorization": f"Bearer {self.api_key or ''}"},
                 )
                 choices = body.get("choices", [])
-                text = choices[0]["message"]["content"] if choices else ""
-                usage = body.get("usage", {})
+                if not isinstance(choices, list):
+                    raise LLMError("malformed completion choices")
+                if choices:
+                    if not isinstance(choices[0], dict) or not isinstance(choices[0].get("message"), dict):
+                        raise LLMError("malformed completion message")
+                    text = choices[0]["message"].get("content") or ""
+                    if not isinstance(text, str):
+                        raise LLMError("malformed completion content")
+                else:
+                    text = ""
+                usage = body.get("usage") or {}
+                if not isinstance(usage, dict):
+                    raise LLMError("malformed provider usage")
                 prompt_tokens = usage.get("prompt_tokens")
                 total_tokens = usage.get("total_tokens")
                 completion_tokens = usage.get("completion_tokens")
-                if total_tokens is not None and prompt_tokens is not None:
+                out_tokens: object
+                if (isinstance(total_tokens, int) and not isinstance(total_tokens, bool)
+                        and isinstance(prompt_tokens, int) and not isinstance(prompt_tokens, bool)):
                     out_tokens = total_tokens - prompt_tokens
                 else:
                     out_tokens = completion_tokens

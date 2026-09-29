@@ -706,10 +706,10 @@ def main() -> int:
 
         from jittest.config import load_config
         try:
-            probe = preflight_model(args.model or load_config(Path.cwd()).model)
-            print(json.dumps({"preflight": probe}), file=sys.stderr)
+            preflight_model(args.model or load_config(Path.cwd()).model)
+            print("preflight: model responsive and pricing available", file=sys.stderr)
         except Exception as exc:
-            print(f"::error::preflight refused: {type(exc).__name__}: {exc}", file=sys.stderr)
+            print(f"::error::preflight refused: {type(exc).__name__}", file=sys.stderr)
             return 2
 
     setup_env = not (args.dry_run or args.skip_env_setup)
