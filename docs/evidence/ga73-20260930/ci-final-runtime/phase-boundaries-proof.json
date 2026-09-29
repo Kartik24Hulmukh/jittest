@@ -1,0 +1,81 @@
+{
+  "proof": "public-verify-phase-boundaries",
+  "status": "RUN",
+  "verdict": "proven_catch",
+  "backend": "docker",
+  "phases": [
+    {
+      "phase": "base",
+      "revision": "f3eee1000649b7c59cbd5a28804dc66a1438f8ed",
+      "test_sha256": "4d907ffd39a19f4faae0b7e6d81374181eb426febeeeb2395cc6b0baa3b0059a",
+      "dependencies_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "readiness": {
+        "evaluated": false,
+        "mode": "observe",
+        "reason": "no_supported_requirements_manifest"
+      },
+      "outcome": "PASS",
+      "exit_code": 0,
+      "stdout_sha256": "531466de998ac659865b0b7dceb89bfa4197770506eeae43fe6cda7aea64ce11",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_guard": {
+        "scanned": true,
+        "mode": "required",
+        "ok": true,
+        "files": 3,
+        "total_bytes": 171,
+        "violations": []
+      }
+    },
+    {
+      "phase": "head",
+      "revision": "bf46b4ea1d56d6cf4c9eec1a08307278dd7a606c",
+      "test_sha256": "4d907ffd39a19f4faae0b7e6d81374181eb426febeeeb2395cc6b0baa3b0059a",
+      "dependencies_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "readiness": {
+        "evaluated": false,
+        "mode": "observe",
+        "reason": "no_supported_requirements_manifest"
+      },
+      "outcome": "FAIL",
+      "exit_code": 1,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "83743ce42dd5639d4870b82ae0f4fad090e455cead27d15e10bd3e3efeb1151e",
+      "output_guard": {
+        "scanned": true,
+        "mode": "required",
+        "ok": true,
+        "files": 3,
+        "total_bytes": 171,
+        "violations": []
+      }
+    },
+    {
+      "phase": "head_rerun_2",
+      "revision": "bf46b4ea1d56d6cf4c9eec1a08307278dd7a606c",
+      "test_sha256": "4d907ffd39a19f4faae0b7e6d81374181eb426febeeeb2395cc6b0baa3b0059a",
+      "dependencies_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "readiness": {
+        "evaluated": false,
+        "mode": "observe",
+        "reason": "no_supported_requirements_manifest"
+      },
+      "outcome": "FAIL",
+      "exit_code": 1,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "358ebab1b90d3d6bfa5bdf637520b7c95dfe4937b477fa468a76d7dba7c9ca84",
+      "output_guard": {
+        "scanned": true,
+        "mode": "required",
+        "ok": true,
+        "files": 3,
+        "total_bytes": 171,
+        "violations": []
+      }
+    }
+  ],
+  "confined_signature_valid": true,
+  "phase_tamper_rejected": true,
+  "base_only_violation_refused": true,
+  "passed": true
+}

@@ -1,0 +1,1 @@
+workflow-cli-contract: 25 invocations checked, 0 violating

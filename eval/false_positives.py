@@ -558,7 +558,7 @@ def select_pairs(
     since: str = DEFAULT_SINCE,
     until: str = DEFAULT_UNTIL,
 ) -> tuple[list[tuple[str, str]], int]:
-    """Return eligible (base, head) pairs and how many were screened out.
+    """Return eligible mainline (base, head) pairs and the screened count.
 
     The screened-out count is returned rather than discarded because a
     denominator that silently shrinks is how a collapsed run turns into a
@@ -573,6 +573,7 @@ def select_pairs(
     log = git(
         repo,
         "log",
+        "--first-parent",
         "--merges",
         f"--since={since}",
         f"--until={until}",
@@ -590,7 +591,9 @@ def select_pairs(
         parent_shas = parents.split()
         if len(parent_shas) != 2:
             continue
-        base, head = parent_shas[0], parent_shas[1]
+        # Measure what the PR actually applied, not a stale source branch's
+        # apparent reversal of unrelated changes already present in main.
+        base, head = parent_shas[0], _sha
         if require_python and not changed_python_files(repo, base, head):
             screened_out += 1
             continue
@@ -696,6 +699,7 @@ def main() -> int:
                 "reported": len(reported),
                 "cost_usd": report.cost_usd,
                 "priced": report.priced,
+                "provider_billing": getattr(report, "provider_billing", None),
                 "input_tokens": getattr(report, "input_tokens", 0),
                 "output_tokens": getattr(report, "output_tokens", 0),
                 "model_requests": getattr(report, "model_requests", 0),

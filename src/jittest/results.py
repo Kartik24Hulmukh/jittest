@@ -137,6 +137,7 @@ class Report:
     # failure modes are different: no price at all, versus a real price
     # applied to approximate tokens.
     tokens_estimated: bool = False
+    provider_billing: dict | None = None
     input_tokens: int = 0
     output_tokens: int = 0
     duration_s: float = 0.0
@@ -198,6 +199,7 @@ class Report:
             "cost_usd": round(self.cost_usd, 4),
             "priced": self.priced,
             "tokens_estimated": self.tokens_estimated,
+            "provider_billing": self.provider_billing,
             "input_tokens": self.input_tokens,
             "output_tokens": self.output_tokens,
             "duration_s": round(self.duration_s, 2),

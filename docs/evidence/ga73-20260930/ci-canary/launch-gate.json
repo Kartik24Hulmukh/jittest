@@ -1,0 +1,98 @@
+{
+  "decision": "GO_LAUNCH_NOT_GA",
+  "digest": "0754c96fef7ce35e0170fbfa0d76ae7ef31b354b10312d33894b7276c22fe157",
+  "ga_blockers": [
+    {
+      "issue": 73,
+      "title": "real catch-rate / FPR / USD-per-PR evaluation"
+    }
+  ],
+  "ga_ready": false,
+  "gates": {
+    "receipts_recompute": {
+      "ok": true,
+      "receipts": [
+        {
+          "artifact": "docs/evidence/quadrants/inconclusive_evidence.json",
+          "expectation": "valid",
+          "ok": true,
+          "signature_valid": true,
+          "valid": true
+        },
+        {
+          "artifact": "docs/evidence/quadrants/non_discriminating_evidence.json",
+          "expectation": "valid",
+          "ok": true,
+          "signature_valid": true,
+          "valid": true
+        },
+        {
+          "artifact": "docs/evidence/quadrants/proven_catch_evidence.json",
+          "expectation": "valid",
+          "ok": true,
+          "signature_valid": true,
+          "valid": true
+        },
+        {
+          "artifact": "docs/evidence/quadrants/refuted_evidence.json",
+          "expectation": "valid",
+          "ok": true,
+          "signature_valid": true,
+          "valid": true
+        },
+        {
+          "artifact": "docs/evidence/pr/flask_pr_evidence.json",
+          "expectation": "valid",
+          "ok": true,
+          "signature_valid": true,
+          "valid": true
+        }
+      ]
+    },
+    "release_mapping": {
+      "detail": [
+        "ok: 11 release-mapping checks agree"
+      ],
+      "ok": true
+    },
+    "ruff": {
+      "detail": [
+        "All checks passed!"
+      ],
+      "ok": true
+    },
+    "runtime_blockers": {
+      "blockers": [],
+      "ok": true
+    },
+    "soak_evidence": {
+      "artifact": "docs/evidence/memory-soak-20260916.json",
+      "ok": true,
+      "problems": []
+    },
+    "tests": {
+      "mode": "focused",
+      "ok": true,
+      "summary": []
+    },
+    "version_drift": {
+      "detail": [
+        "ok: version 0.4.1 agrees in 4 places"
+      ],
+      "ok": true
+    },
+    "workflow_cli_contract": {
+      "detail": [
+        "workflow-cli-contract: 22 invocations checked, 0 violating"
+      ],
+      "ok": true
+    }
+  },
+  "kind": "launch_gate",
+  "launch_window": "2026-09-28/2026-10-31",
+  "tool_missing": [],
+  "volatile": {
+    "elapsed_s": 11.6,
+    "python": "3.13.14 (main, Jul 15 2026, 00:00:00) [GCC 11.5.0 20240719 (Red Hat 11.5.0-5)]"
+  }
+}

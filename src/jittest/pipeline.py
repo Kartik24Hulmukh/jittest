@@ -28,6 +28,8 @@ from .llm import (
     BaseLLM,
     BudgetExceeded,
     LLMError,
+    ModelUnavailableError,
+    QuotaExhaustedError,
     RateLimitedError,
     TimedOutError,
     strip_code_fence,
@@ -183,7 +185,10 @@ def run(
             head_dir = stack.enter_context(Worktree(repo, head))
             base_dir = stack.enter_context(Worktree(repo, base))
 
+            model_gone = False
             for rs in ranked:
+                if model_gone:
+                    break
                 t = rs.target
                 emit(f"target {t.qualified} (risk {rs.score:.2f})")
                 found = False
@@ -229,6 +234,14 @@ def run(
                         tel(report, t, rs, attempt, "timed_out",
                                    check_reason=str(exc))
                         continue
+                    except (ModelUnavailableError, QuotaExhaustedError) as exc:
+                        report.errors.append(f"model unavailable: {exc}")
+                        report.diff_status = ("quota_exhausted" if isinstance(exc, QuotaExhaustedError)
+                                              else "model_unavailable")
+                        _bump(report.discarded, report.diff_status)
+                        emit("model unavailable, stopping generation")
+                        model_gone = True
+                        break
                     except LLMError as exc:
                         report.errors.append(f"model error: {exc}")
                         _bump(report.discarded, "model_error")
@@ -369,12 +382,16 @@ def run(
         report.cost_usd = llm.usage.cost_usd
         report.priced = llm.usage.priced
         report.tokens_estimated = llm.usage.tokens_estimated
+        report.provider_billing = llm.usage.provider_billing
         report.input_tokens = llm.usage.input_tokens
         report.output_tokens = llm.usage.output_tokens
         report.model_requests = llm.usage.calls
         report.duration_s = time.time() - started
         report.wall_clock_s = report.duration_s
         report.phases["run_total_s"] = report.duration_s
+        if (report.model_requests == 0 and report.diff_status == "ok"
+                and report.discarded.get("model_error", 0) > 0):
+            report.diff_status = "model_error"
         if report.model_requests == 0 and report.rate_limited_candidates > 0:
             report.diff_status = "rate_limited"
         if owns_ledger:

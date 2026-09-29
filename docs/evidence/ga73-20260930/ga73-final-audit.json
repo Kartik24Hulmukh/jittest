@@ -1,0 +1,35 @@
+{
+  "pr": {
+    "source_sha256": "9028a73dafb95d5f35f1fe2e53baf1bd8fe549bcd440f66c774847b52c2616c4",
+    "rows": 40,
+    "measured": 40,
+    "responses": 113,
+    "eur": "0.08981148",
+    "usd": "0.101980935540",
+    "usd_per_attempted": "0.0025495233885",
+    "qualified": true,
+    "reported_prs": 0,
+    "reports": 0,
+    "no_call_proofs": 20,
+    "rule_of_three_upper_95": 0.075,
+    "exact_binomial_upper_95": 0.0721575245055146,
+    "conditional_rank_eligibility": 0.7272727272727273
+  },
+  "bugs": {
+    "source_sha256": "6f53e740e7783c639ac53cdd5df10248df4e38401790128cc625bd4fa6a36969",
+    "rows": 25,
+    "measured": 22,
+    "responses": 78,
+    "eur": "0.06703426",
+    "usd": "0.076117402230",
+    "usd_per_attempted": "0.0030446960892",
+    "qualified": true,
+    "mechanically_caught": 16,
+    "reported_bugs": 12
+  },
+  "scope": "Frozen historical bugs plus conditional default-risk-eligible settled Click PRs; not global recall/FPR, not independent human labels or wallet reconciliation.",
+  "comparison_plan": {
+    "disposition": "prose",
+    "reason": "Three release-gate headline measurements across incompatible populations; a shared chart would imply comparable denominators."
+  }
+}

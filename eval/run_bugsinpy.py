@@ -94,6 +94,10 @@ class BugResult:
     reported: int = 0
     cost_usd: float = 0.0
     priced: bool = True
+    provider_billing: dict | None = None
+    input_tokens: int = 0
+    output_tokens: int = 0
+    tokens_estimated: bool = False
     model_requests: int = 0
     seconds: float = 0.0
     error: str = ""
@@ -634,6 +638,10 @@ def evaluate_one(spec: BugSpec, repo: Path, model: str, budget: float,
         res.reported = len([f for f in report.findings if f.assessment.should_report])
         res.cost_usd = report.cost_usd
         res.priced = report.priced
+        res.provider_billing = report.provider_billing
+        res.input_tokens = report.input_tokens
+        res.output_tokens = report.output_tokens
+        res.tokens_estimated = report.tokens_estimated
         res.model_requests = getattr(report, "model_requests", 0)
         # Loop 7 added Report.diff_status; without reading it, a git failure
         # collapses into "not_measured" and sits in the catch-rate denominator
@@ -693,6 +701,17 @@ def main() -> int:
                          "resulting catch rate measures the runner.")
     args = ap.parse_args()
 
+    if not args.dry_run:
+        from preflight_model import preflight_model
+
+        from jittest.config import load_config
+        try:
+            preflight_model(args.model or load_config(Path.cwd()).model)
+            print("preflight: model responsive and pricing available", file=sys.stderr)
+        except Exception as exc:
+            print(f"::error::preflight refused: {type(exc).__name__}", file=sys.stderr)
+            return 2
+
     setup_env = not (args.dry_run or args.skip_env_setup)
 
     # Defect 69. Establish the execution environment BEFORE measuring, and
@@ -712,6 +731,7 @@ def main() -> int:
     print(f"Discovered {len(specs)} bugs", file=sys.stderr)
 
     results: list[BugResult] = []
+    aborted = ""
     for i, spec in enumerate(specs, 1):
         repo, reason = ensure_repo(spec, args.workdir, fresh=args.fresh_clone)
         if repo is None:
@@ -763,8 +783,17 @@ def main() -> int:
               f"deps={r.deps_status} "
               f"cost={'unpriced' if not r.priced else f'${r.cost_usd:.3f}'} "
               f"{r.error}", file=sys.stderr)
+        # A model that is gone (HTTP 401/403/404/410) is gone for every bug.
+        # Continuing only burns runner minutes and hides the one fact that
+        # matters under a column of not_measured rows (run 36346472249).
+        if r.diff_status in ("model_unavailable", "quota_exhausted"):
+            aborted = f"model unavailable, sweep stopped after {i} bug(s): {r.error}"
+            print(f"ERROR: {aborted}", file=sys.stderr)
+            break
 
     summary = summarize(results)
+    if aborted:
+        summary["aborted"] = aborted
     # Defect 74. The condition a rate was measured under travels with it.
     summary["risk_threshold"] = args.risk_threshold
     args.out.write_text(json.dumps(
@@ -773,7 +802,7 @@ def main() -> int:
     print(json.dumps(summary, indent=2))
     for warning in summary.get("environment_warnings", []):
         print(f"::warning::{warning}", file=sys.stderr)
-    return 0
+    return 3 if aborted else 0
 
 
 if __name__ == "__main__":

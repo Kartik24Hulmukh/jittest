@@ -1,0 +1,17 @@
+F.                                                                       [100%]
+=================================== FAILURES ===================================
+______ ManifestTests.test_original_branch_tip_is_not_an_applied_pr_result ______
+
+self = <tests.test_ga73_pr_manifest.ManifestTests testMethod=test_original_branch_tip_is_not_an_applied_pr_result>
+
+    def test_original_branch_tip_is_not_an_applied_pr_result(self):
+        manifest = json.loads((Path(__file__).parents[1] / 'eval/ga73_click_manifest.json').read_text())
+        broken = copy.deepcopy(manifest)
+        broken['pairs'][0]['head'] = broken['pairs'][0]['pr_head']
+>       with self.assertRaises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: ValueError not raised
+
+tests/test_ga73_pr_manifest.py:32: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_ga73_pr_manifest.py::ManifestTests::test_original_branch_tip_is_not_an_applied_pr_result

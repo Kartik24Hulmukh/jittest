@@ -18,12 +18,31 @@ import urllib.request
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 from pathlib import Path
+from urllib.parse import urlsplit
 
+from ._billing import BillingTotals, billing_refusal
 from ._litellm import LiteLLMBackend
 from ._llmbase import BaseLLM, BudgetExceeded, LLMError, Usage
 from ._llmcache import _Cache
 from ._llmjson import extract_json, strip_code_fence
 from ._pricing import PRICES, estimate_tokens, price_for
+
+# Status codes that mean the model or credential is gone, not busy.
+_PERMANENT_MODEL = frozenset({401, 403, 404, 410})
+
+
+class ModelUnavailableError(LLMError):
+    """The endpoint permanently refuses this model or credential.
+
+    HTTP 401/403/404/410 do not heal on retry. Run 36346472249 is the receipt:
+    the configured model reached end of life (HTTP 410) and every candidate of
+    every target of every bug re-asked a model that no longer exists, while
+    the eval summary recorded the cause as "ok". Callers must stop asking.
+    """
+
+
+class QuotaExhaustedError(LLMError):
+    """Terminal billing refusal: do not retry or fail over."""
 
 
 class RateLimitedError(LLMError):
@@ -35,7 +54,7 @@ class TimedOutError(LLMError):
 
 
 __all__ = [
-    "LLMError", "RateLimitedError", "TimedOutError", "BudgetExceeded", "Usage",
+    "LLMError", "QuotaExhaustedError", "ModelUnavailableError", "RateLimitedError", "TimedOutError", "BudgetExceeded", "Usage",
     "BaseLLM", "HTTPLLM", "LiteLLMBackend", "DryRunLLM", "build_llm",
     "extract_json", "strip_code_fence", "PRICES", "price_for", "estimate_tokens",
 ]
@@ -161,6 +180,7 @@ class HTTPLLM(BaseLLM):
         provider, _, name = model.partition("/")
         if not name:
             provider, name = ("anthropic" if "claude" in model else "openai"), model
+        self._billing_totals = BillingTotals()
         self.provider = provider
         self.model_name = name
         # With an explicit API base (e.g. NVIDIA NIM) the full namespaced model
@@ -169,7 +189,10 @@ class HTTPLLM(BaseLLM):
         explicit_base = os.getenv("JITTEST_API_BASE")
         self.base_url = explicit_base or _BASES.get(
             provider, "https://api.anthropic.com/v1")
-        self.api_model = model if explicit_base else self.model_name
+        direct_provider = (explicit_base and provider in _BASES and
+                           urlsplit(explicit_base).netloc.lower() ==
+                           urlsplit(_BASES[provider]).netloc.lower())
+        self.api_model = model if explicit_base and not direct_provider else self.model_name
         self.cache = _Cache(cache_path)
         self.request_ceiling = request_ceiling
         self.max_attempts = _env_int("JITTEST_MAX_RETRIES", _DEFAULT_MAX_ATTEMPTS)
@@ -204,7 +227,7 @@ class HTTPLLM(BaseLLM):
         return None
 
     def _price(self) -> tuple[float, float] | None:
-        return price_for(self.model_name) or price_for(self.model)
+        return price_for(self.model) if "/" in self.model else price_for(self.model_name)
 
     def _account(self, input_tokens: int, output_tokens: int,
                  estimated: bool = False) -> None:
@@ -227,7 +250,10 @@ class HTTPLLM(BaseLLM):
         try:
             in_tokens = int(reported_in or 0)
             out_tokens = int(reported_out or 0)
-        except (TypeError, ValueError):
+            if (isinstance(reported_in, bool) or isinstance(reported_out, bool)
+                    or in_tokens < 0 or out_tokens < 0):
+                raise ValueError("invalid token counts")
+        except (TypeError, ValueError, OverflowError):
             in_tokens = out_tokens = 0
         if in_tokens or out_tokens:
             self._account(in_tokens, out_tokens)
@@ -274,12 +300,23 @@ class HTTPLLM(BaseLLM):
             self._last_request_at = time.monotonic()
             try:
                 with urllib.request.urlopen(req, timeout=self.http_timeout) as resp:
-                    return json.loads(resp.read().decode("utf-8"))
+                    try:
+                        body = json.loads(resp.read().decode("utf-8"))
+                        if not isinstance(body, dict):
+                            raise ValueError("response must be an object")
+                    except (UnicodeError, ValueError) as exc:
+                        raise LLMError("malformed provider JSON response") from exc
+                    return body
             except urllib.error.HTTPError as exc:
                 last, last_code = exc, exc.code
+                detail = exc.read(4096).decode("utf-8", "ignore")
+                if billing_refusal(exc.code, detail):
+                    raise QuotaExhaustedError("billing refusal: account credits/quota exhausted") from exc
                 if exc.code not in _RETRYABLE:
-                    detail = exc.read().decode("utf-8", "ignore")[:400]
-                    raise LLMError(f"HTTP {exc.code} from {self.provider}: {detail}") from exc
+                    if exc.code in _PERMANENT_MODEL:
+                        raise ModelUnavailableError(
+                            f"HTTP {exc.code} from {self.provider}: model/auth unavailable") from None
+                    raise LLMError(f"HTTP {exc.code} from {self.provider}: model/auth unavailable") from None
                 if exc.code in _RATE_LIMITED:
                     requested = retry_after_seconds(exc)
             except TimeoutError as exc:
@@ -318,7 +355,7 @@ class HTTPLLM(BaseLLM):
                 f"any of {self.max_attempts} attempts ({self.timeout_retries} read "
                 f"timeouts). Models that always emit a reasoning trace are slow on "
                 f"large diffs; raise JITTEST_HTTP_TIMEOUT.")
-        raise LLMError(f"model request failed after retries: {last}")
+        raise LLMError(f"model request failed after retries: {type(last).__name__}")
 
     def complete(self, system: str, user: str, n: int = 1,
                  temperature: float | None = None) -> list[str]:
@@ -351,10 +388,14 @@ class HTTPLLM(BaseLLM):
                      "x-api-key": self.api_key or "",
                      "anthropic-version": "2023-06-01"},
                 )
-                text = "".join(
-                    b.get("text", "") for b in body.get("content", [])
-                    if b.get("type") == "text")
-                usage = body.get("usage", {})
+                blocks = body.get("content", [])
+                if (not isinstance(blocks, list) or any(not isinstance(b, dict) for b in blocks)
+                        or any(not isinstance(b.get("text", ""), str) for b in blocks if b.get("type") == "text")):
+                    raise LLMError("malformed message response")
+                text = "".join(b.get("text", "") for b in blocks if b.get("type") == "text")
+                usage = body.get("usage") or {}
+                if not isinstance(usage, dict):
+                    raise LLMError("malformed provider usage")
                 self._account_response(usage.get("input_tokens"),
                                        usage.get("output_tokens"),
                                        system + user, text)
@@ -369,16 +410,31 @@ class HTTPLLM(BaseLLM):
                      "authorization": f"Bearer {self.api_key or ''}"},
                 )
                 choices = body.get("choices", [])
-                text = choices[0]["message"]["content"] if choices else ""
-                usage = body.get("usage", {})
+                if not isinstance(choices, list):
+                    raise LLMError("malformed completion choices")
+                if choices:
+                    if not isinstance(choices[0], dict) or not isinstance(choices[0].get("message"), dict):
+                        raise LLMError("malformed completion message")
+                    text = choices[0]["message"].get("content") or ""
+                    if not isinstance(text, str):
+                        raise LLMError("malformed completion content")
+                else:
+                    text = ""
+                usage = body.get("usage") or {}
+                if not isinstance(usage, dict):
+                    raise LLMError("malformed provider usage")
                 prompt_tokens = usage.get("prompt_tokens")
                 total_tokens = usage.get("total_tokens")
                 completion_tokens = usage.get("completion_tokens")
-                if total_tokens is not None and prompt_tokens is not None:
+                out_tokens: object
+                if (isinstance(total_tokens, int) and not isinstance(total_tokens, bool)
+                        and isinstance(prompt_tokens, int) and not isinstance(prompt_tokens, bool)):
                     out_tokens = total_tokens - prompt_tokens
                 else:
                     out_tokens = completion_tokens
                 self._account_response(prompt_tokens, out_tokens, system + user, text)
+            self._billing_totals.add(body.get("billing_cost"))
+            self.usage.provider_billing = self._billing_totals.as_dict()
             outputs.append(text or "")
 
         self.cache.put(key, json.dumps(outputs))

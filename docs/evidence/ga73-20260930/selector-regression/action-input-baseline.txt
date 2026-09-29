@@ -1,0 +1,43 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_____ LocalActionWorkflowContractTests.test_all_local_action_inputs_exist ______
+
+self = <tests.test_local_action_workflow_contract.LocalActionWorkflowContractTests testMethod=test_all_local_action_inputs_exist>
+
+    def test_all_local_action_inputs_exist(self):
+        root = Path(__file__).parents[1]
+        schema = (root / 'action.yml').read_text().split('inputs:', 1)[1].split('\nruns:', 1)[0]
+        allowed = set(re.findall(r'^  ([\w-]+):', schema, re.M))
+        errors = []
+        for path in (root / '.github/workflows').glob('*.yml'):
+            lines = path.read_text().splitlines()
+            for i, line in enumerate(lines):
+                m = re.match(r'^( *)(- )?uses: [\'"]?\./[\'"]?\s*$', line)
+                if not m:
+                    continue
+                step_indent = len(m[1]) if m[2] else len(m[1]) - 2
+                in_with = False
+                for child in lines[i + 1:]:
+                    if not child.strip() or child.lstrip().startswith('#'):
+                        continue
+                    indent = len(child) - len(child.lstrip())
+                    if indent <= step_indent:
+                        break
+                    if child.strip() == 'with:':
+                        in_with = True
+                        continue
+                    if in_with and indent == step_indent + 4:
+                        key = child.strip().split(':', 1)[0]
+                        if key not in allowed:
+                            errors.append(f'{path.name}: unsupported {key}')
+>       self.assertFalse(errors, '\n'.join(errors))
+E       AssertionError: ['jittest.yml: unsupported model', 'jittest.yml: unsupported api-base', 'jittest.yml: unsupported api-key', 'jittest.yml: unsupported max-targets', 'jittest.yml: unsupported dry-run', 'jittest.yml: unsupported fail-on-regression'] is not false : jittest.yml: unsupported model
+E       jittest.yml: unsupported api-base
+E       jittest.yml: unsupported api-key
+E       jittest.yml: unsupported max-targets
+E       jittest.yml: unsupported dry-run
+E       jittest.yml: unsupported fail-on-regression
+
+tests/test_local_action_workflow_contract.py:34: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_local_action_workflow_contract.py::LocalActionWorkflowContractTests::test_all_local_action_inputs_exist

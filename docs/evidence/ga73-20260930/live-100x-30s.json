@@ -1,0 +1,1779 @@
+{
+  "sha": "4a485e5780567527d6636b4e6f8e453d0cbf39c0",
+  "working_diff_sha256": "e5403aa02cae61818a998aa684c41b732d42c559a38346455ea05123410e9f8f",
+  "calls_requested": 100,
+  "workers": 100,
+  "max_tokens": 256,
+  "truncation_escalation": false,
+  "seconds": 6.530687794999949,
+  "successful_completions": 92,
+  "failed_checks": 8,
+  "passed": false,
+  "latency_includes_failures": true,
+  "p50_seconds": 2.47396912399995,
+  "p95_seconds": 5.826839984999992,
+  "p99_seconds": 6.098761458000013,
+  "throughput_calls_per_second": 15.312322857718355,
+  "rss_start_kib": 20796,
+  "rss_end_kib": 40720,
+  "threads_before": 1,
+  "threads_after": 1,
+  "cost_caveat": "Provider-reported token counts times list prices, not wallet reconciliation or USD per PR. Failed calls may have unobserved spend.",
+  "rows": [
+    {
+      "case": "catalogue",
+      "status": "ok",
+      "model_count": 63,
+      "missing": []
+    },
+    {
+      "case": "completion",
+      "index": 0,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 0.5753690519999282,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 23,
+        "total_tokens": 46,
+        "cached_tokens": 0,
+        "reasoning_tokens": 19
+      },
+      "list_price_estimate_usd": 0.000104466
+    },
+    {
+      "case": "completion",
+      "index": 8,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 0.7678442370000766,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 6,
+        "total_tokens": 30,
+        "cached_tokens": 0,
+        "reasoning_tokens": 1
+      },
+      "list_price_estimate_usd": 4.7691e-05
+    },
+    {
+      "case": "completion",
+      "index": 4,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 0.8359989570000153,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "list_price_estimate_usd": 0.00011241449999999999
+    },
+    {
+      "case": "completion",
+      "index": 28,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 0.8445774479999955,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "list_price_estimate_usd": 0.00011241449999999999
+    },
+    {
+      "case": "completion",
+      "index": 76,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 0.845734843999935,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "list_price_estimate_usd": 0.00011241449999999999
+    },
+    {
+      "case": "completion",
+      "index": 24,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 0.8775326769999765,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "list_price_estimate_usd": 0.00011241449999999999
+    },
+    {
+      "case": "completion",
+      "index": 12,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 0.9105526239999335,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "list_price_estimate_usd": 0.00011241449999999999
+    },
+    {
+      "case": "completion",
+      "index": 68,
+      "model": "glm-5.3",
+      "status": "failed",
+      "seconds": 0.8788009390000298,
+      "error_type": "TransportError",
+      "error_detail": "provider refused request: HTTP 503",
+      "cause_type": null,
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 44,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 0.9470849670000234,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "list_price_estimate_usd": 0.00011241449999999999
+    },
+    {
+      "case": "completion",
+      "index": 48,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 0.9738335580000239,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "list_price_estimate_usd": 0.00011241449999999999
+    },
+    {
+      "case": "completion",
+      "index": 80,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.0145061050000095,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "list_price_estimate_usd": 0.00011241449999999999
+    },
+    {
+      "case": "completion",
+      "index": 32,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.1296226080000906,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "list_price_estimate_usd": 0.00011241449999999999
+    },
+    {
+      "case": "completion",
+      "index": 56,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.1629352700000481,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "list_price_estimate_usd": 0.00011241449999999999
+    },
+    {
+      "case": "completion",
+      "index": 16,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.2013364019999244,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "list_price_estimate_usd": 0.00011241449999999999
+    },
+    {
+      "case": "completion",
+      "index": 84,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.322139859999993,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "list_price_estimate_usd": 0.00011241449999999999
+    },
+    {
+      "case": "completion",
+      "index": 52,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.362578118999977,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "list_price_estimate_usd": 0.00011241449999999999
+    },
+    {
+      "case": "completion",
+      "index": 60,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.3896963729999925,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "list_price_estimate_usd": 0.00011241449999999999
+    },
+    {
+      "case": "completion",
+      "index": 20,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.44175627300001,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "list_price_estimate_usd": 0.00011241449999999999
+    },
+    {
+      "case": "completion",
+      "index": 5,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 1.5028241159999425,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 16,
+        "total_tokens": 40,
+        "cached_tokens": 0,
+        "reasoning_tokens": 11
+      },
+      "list_price_estimate_usd": 9.9924e-06
+    },
+    {
+      "case": "completion",
+      "index": 81,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 1.483802350000019,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 45,
+        "total_tokens": 69,
+        "cached_tokens": 0,
+        "reasoning_tokens": 40
+      },
+      "list_price_estimate_usd": 2.31642e-05
+    },
+    {
+      "case": "completion",
+      "index": 25,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 1.546978426999999,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 16,
+        "total_tokens": 40,
+        "cached_tokens": 0,
+        "reasoning_tokens": 11
+      },
+      "list_price_estimate_usd": 9.9924e-06
+    },
+    {
+      "case": "completion",
+      "index": 36,
+      "model": "glm-5.3",
+      "status": "failed",
+      "seconds": 1.592782570000054,
+      "error_type": "TransportError",
+      "error_detail": "provider refused request: HTTP 503",
+      "cause_type": null,
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 64,
+      "model": "glm-5.3",
+      "status": "failed",
+      "seconds": 1.576437525000074,
+      "error_type": "TransportError",
+      "error_detail": "provider refused request: HTTP 503",
+      "cause_type": null,
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 92,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.5709510560000126,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "list_price_estimate_usd": 0.00011241449999999999
+    },
+    {
+      "case": "completion",
+      "index": 72,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.6448443430000452,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "list_price_estimate_usd": 0.00011241449999999999
+    },
+    {
+      "case": "completion",
+      "index": 39,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 1.6925922350000064,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 36,
+        "total_tokens": 59,
+        "cached_tokens": 0,
+        "reasoning_tokens": 29
+      },
+      "list_price_estimate_usd": 0.00010855379999999999
+    },
+    {
+      "case": "completion",
+      "index": 7,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 1.7358682999999928,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 36,
+        "total_tokens": 59,
+        "cached_tokens": 0,
+        "reasoning_tokens": 29
+      },
+      "list_price_estimate_usd": 0.00010855379999999999
+    },
+    {
+      "case": "completion",
+      "index": 85,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 1.7224512819999518,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 20,
+        "total_tokens": 44,
+        "cached_tokens": 0,
+        "reasoning_tokens": 15
+      },
+      "list_price_estimate_usd": 1.18092e-05
+    },
+    {
+      "case": "completion",
+      "index": 77,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 1.7494992030000276,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 20,
+        "total_tokens": 44,
+        "cached_tokens": 0,
+        "reasoning_tokens": 15
+      },
+      "list_price_estimate_usd": 1.18092e-05
+    },
+    {
+      "case": "completion",
+      "index": 95,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 1.7530204810000214,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "list_price_estimate_usd": 0.00013308059999999998
+    },
+    {
+      "case": "completion",
+      "index": 79,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 1.7968904199999542,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "list_price_estimate_usd": 0.00013308059999999998
+    },
+    {
+      "case": "completion",
+      "index": 96,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.8841457580000451,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "list_price_estimate_usd": 0.00011241449999999999
+    },
+    {
+      "case": "completion",
+      "index": 40,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.932831243999999,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "list_price_estimate_usd": 0.00011241449999999999
+    },
+    {
+      "case": "completion",
+      "index": 97,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 1.9322310119999884,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 70,
+        "total_tokens": 94,
+        "cached_tokens": 0,
+        "reasoning_tokens": 65
+      },
+      "list_price_estimate_usd": 3.45192e-05
+    },
+    {
+      "case": "completion",
+      "index": 41,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 1.9939083780000146,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 69,
+        "total_tokens": 93,
+        "cached_tokens": 0,
+        "reasoning_tokens": 64
+      },
+      "list_price_estimate_usd": 3.4065e-05
+    },
+    {
+      "case": "completion",
+      "index": 31,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 2.031014975000062,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 36,
+        "total_tokens": 59,
+        "cached_tokens": 0,
+        "reasoning_tokens": 29
+      },
+      "list_price_estimate_usd": 0.00010855379999999999
+    },
+    {
+      "case": "completion",
+      "index": 57,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 2.0391242190000867,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 72,
+        "total_tokens": 96,
+        "cached_tokens": 0,
+        "reasoning_tokens": 67
+      },
+      "list_price_estimate_usd": 3.54276e-05
+    },
+    {
+      "case": "completion",
+      "index": 37,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 2.0688314059999584,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 85,
+        "total_tokens": 109,
+        "cached_tokens": 0,
+        "reasoning_tokens": 80
+      },
+      "list_price_estimate_usd": 4.13322e-05
+    },
+    {
+      "case": "completion",
+      "index": 13,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 2.1164823610000667,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 94,
+        "total_tokens": 118,
+        "cached_tokens": 0,
+        "reasoning_tokens": 89
+      },
+      "list_price_estimate_usd": 4.542e-05
+    },
+    {
+      "case": "completion",
+      "index": 65,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 2.1009676609999133,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 17,
+        "total_tokens": 41,
+        "cached_tokens": 0,
+        "reasoning_tokens": 12
+      },
+      "list_price_estimate_usd": 1.0446600000000001e-05
+    },
+    {
+      "case": "completion",
+      "index": 33,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 2.1577861680000296,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 20,
+        "total_tokens": 44,
+        "cached_tokens": 0,
+        "reasoning_tokens": 15
+      },
+      "list_price_estimate_usd": 1.18092e-05
+    },
+    {
+      "case": "completion",
+      "index": 29,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 2.19166536299997,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 94,
+        "total_tokens": 118,
+        "cached_tokens": 0,
+        "reasoning_tokens": 89
+      },
+      "list_price_estimate_usd": 4.542e-05
+    },
+    {
+      "case": "completion",
+      "index": 88,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 2.2273214900000085,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 49,
+        "total_tokens": 73,
+        "cached_tokens": 0,
+        "reasoning_tokens": 44
+      },
+      "list_price_estimate_usd": 0.0001941705
+    },
+    {
+      "case": "completion",
+      "index": 61,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 2.2694658269999763,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 81,
+        "total_tokens": 105,
+        "cached_tokens": 0,
+        "reasoning_tokens": 76
+      },
+      "list_price_estimate_usd": 3.95154e-05
+    },
+    {
+      "case": "completion",
+      "index": 47,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 2.3010345989999905,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "list_price_estimate_usd": 0.00013308059999999998
+    },
+    {
+      "case": "completion",
+      "index": 15,
+      "model": "qwen3.8-27b",
+      "status": "failed",
+      "seconds": 2.3406723110000485,
+      "error_type": "TransportError",
+      "error_detail": "provider refused request: HTTP 503",
+      "cause_type": null,
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 51,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 2.3999923310000213,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 36,
+        "total_tokens": 59,
+        "cached_tokens": 0,
+        "reasoning_tokens": 29
+      },
+      "list_price_estimate_usd": 0.00010855379999999999
+    },
+    {
+      "case": "completion",
+      "index": 3,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 2.455803092999986,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 36,
+        "total_tokens": 59,
+        "cached_tokens": 0,
+        "reasoning_tokens": 29
+      },
+      "list_price_estimate_usd": 0.00010855379999999999
+    },
+    {
+      "case": "completion",
+      "index": 59,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 2.4465778920000503,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 36,
+        "total_tokens": 59,
+        "cached_tokens": 0,
+        "reasoning_tokens": 29
+      },
+      "list_price_estimate_usd": 0.00010855379999999999
+    },
+    {
+      "case": "completion",
+      "index": 75,
+      "model": "qwen3.8-27b",
+      "status": "failed",
+      "seconds": 2.47396912399995,
+      "error_type": "TransportError",
+      "error_detail": "provider refused request: HTTP 503",
+      "cause_type": null,
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 11,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 2.577350503000048,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 36,
+        "total_tokens": 59,
+        "cached_tokens": 0,
+        "reasoning_tokens": 29
+      },
+      "list_price_estimate_usd": 0.00010855379999999999
+    },
+    {
+      "case": "completion",
+      "index": 71,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 2.5725440710000385,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 36,
+        "total_tokens": 59,
+        "cached_tokens": 0,
+        "reasoning_tokens": 29
+      },
+      "list_price_estimate_usd": 0.00010855379999999999
+    },
+    {
+      "case": "completion",
+      "index": 63,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 2.594279307000079,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "list_price_estimate_usd": 0.00013308059999999998
+    },
+    {
+      "case": "completion",
+      "index": 89,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 2.6115672759999597,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 91,
+        "total_tokens": 115,
+        "cached_tokens": 0,
+        "reasoning_tokens": 86
+      },
+      "list_price_estimate_usd": 4.40574e-05
+    },
+    {
+      "case": "completion",
+      "index": 43,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 2.6686622039999293,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "list_price_estimate_usd": 0.00013308059999999998
+    },
+    {
+      "case": "completion",
+      "index": 55,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 2.67817912299995,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "list_price_estimate_usd": 0.00013308059999999998
+    },
+    {
+      "case": "completion",
+      "index": 27,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 2.722398949999956,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "list_price_estimate_usd": 0.00013308059999999998
+    },
+    {
+      "case": "completion",
+      "index": 99,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 3.1805500960000472,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "list_price_estimate_usd": 0.00013308059999999998
+    },
+    {
+      "case": "completion",
+      "index": 35,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 3.238425704000065,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "list_price_estimate_usd": 0.00013308059999999998
+    },
+    {
+      "case": "completion",
+      "index": 91,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 3.609064311999987,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "list_price_estimate_usd": 0.00013308059999999998
+    },
+    {
+      "case": "completion",
+      "index": 19,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 3.828117003999978,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 47,
+        "total_tokens": 70,
+        "cached_tokens": 0,
+        "reasoning_tokens": 40
+      },
+      "list_price_estimate_usd": 0.00013853099999999998
+    },
+    {
+      "case": "completion",
+      "index": 67,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 3.815799482999978,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 47,
+        "total_tokens": 70,
+        "cached_tokens": 0,
+        "reasoning_tokens": 40
+      },
+      "list_price_estimate_usd": 0.00013853099999999998
+    },
+    {
+      "case": "completion",
+      "index": 14,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 3.874429477000035,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 48,
+        "total_tokens": 183,
+        "cached_tokens": 0,
+        "reasoning_tokens": 35
+      },
+      "list_price_estimate_usd": 0.0011922749999999998
+    },
+    {
+      "case": "completion",
+      "index": 93,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 3.8448457529999587,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 71,
+        "total_tokens": 95,
+        "cached_tokens": 0,
+        "reasoning_tokens": 66
+      },
+      "list_price_estimate_usd": 3.49734e-05
+    },
+    {
+      "case": "completion",
+      "index": 87,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 3.9832546080000384,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "list_price_estimate_usd": 0.00013308059999999998
+    },
+    {
+      "case": "completion",
+      "index": 83,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 4.0172302150000405,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "list_price_estimate_usd": 0.00013308059999999998
+    },
+    {
+      "case": "completion",
+      "index": 74,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 4.043561491999981,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "list_price_estimate_usd": 0.0011763779999999998
+    },
+    {
+      "case": "completion",
+      "index": 69,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 4.193050561999939,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 70,
+        "total_tokens": 94,
+        "cached_tokens": 0,
+        "reasoning_tokens": 65
+      },
+      "list_price_estimate_usd": 3.45192e-05
+    },
+    {
+      "case": "completion",
+      "index": 23,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 4.245921723999913,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 47,
+        "total_tokens": 70,
+        "cached_tokens": 0,
+        "reasoning_tokens": 40
+      },
+      "list_price_estimate_usd": 0.00013853099999999998
+    },
+    {
+      "case": "completion",
+      "index": 1,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 4.434324900999968,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 71,
+        "total_tokens": 94,
+        "cached_tokens": 0,
+        "reasoning_tokens": 67
+      },
+      "list_price_estimate_usd": 3.485984999999999e-05
+    },
+    {
+      "case": "completion",
+      "index": 38,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 4.462926178999965,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "list_price_estimate_usd": 0.0011763779999999998
+    },
+    {
+      "case": "completion",
+      "index": 9,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 4.496095215999958,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 94,
+        "total_tokens": 118,
+        "cached_tokens": 0,
+        "reasoning_tokens": 89
+      },
+      "list_price_estimate_usd": 4.542e-05
+    },
+    {
+      "case": "completion",
+      "index": 30,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 4.53090466499998,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "list_price_estimate_usd": 0.0011763779999999998
+    },
+    {
+      "case": "completion",
+      "index": 58,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 4.525889950999954,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "list_price_estimate_usd": 0.0011763779999999998
+    },
+    {
+      "case": "completion",
+      "index": 53,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 4.629776159000016,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 89,
+        "total_tokens": 113,
+        "cached_tokens": 0,
+        "reasoning_tokens": 84
+      },
+      "list_price_estimate_usd": 4.3149e-05
+    },
+    {
+      "case": "completion",
+      "index": 34,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 4.661951024000018,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 48,
+        "total_tokens": 183,
+        "cached_tokens": 0,
+        "reasoning_tokens": 35
+      },
+      "list_price_estimate_usd": 0.0011922749999999998
+    },
+    {
+      "case": "completion",
+      "index": 73,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 4.786813900000084,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 67,
+        "total_tokens": 91,
+        "cached_tokens": 0,
+        "reasoning_tokens": 62
+      },
+      "list_price_estimate_usd": 3.31566e-05
+    },
+    {
+      "case": "completion",
+      "index": 46,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 4.826278945000013,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "list_price_estimate_usd": 0.0011763779999999998
+    },
+    {
+      "case": "completion",
+      "index": 94,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 4.826709408999932,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "list_price_estimate_usd": 0.0011763779999999998
+    },
+    {
+      "case": "completion",
+      "index": 45,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 4.8910391890000255,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 119,
+        "total_tokens": 143,
+        "cached_tokens": 0,
+        "reasoning_tokens": 114
+      },
+      "list_price_estimate_usd": 5.6775e-05
+    },
+    {
+      "case": "completion",
+      "index": 17,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 4.969682857999942,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 89,
+        "total_tokens": 113,
+        "cached_tokens": 0,
+        "reasoning_tokens": 84
+      },
+      "list_price_estimate_usd": 4.3149e-05
+    },
+    {
+      "case": "completion",
+      "index": 78,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 4.960472987000003,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "list_price_estimate_usd": 0.0011763779999999998
+    },
+    {
+      "case": "completion",
+      "index": 18,
+      "model": "kimi-k3",
+      "status": "failed",
+      "seconds": 5.043061289999969,
+      "error_type": "TransportError",
+      "error_detail": "provider refused request: HTTP 503",
+      "cause_type": null,
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 98,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 5.125408777000075,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "list_price_estimate_usd": 0.0011763779999999998
+    },
+    {
+      "case": "completion",
+      "index": 50,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 5.160025150000024,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "list_price_estimate_usd": 0.0011763779999999998
+    },
+    {
+      "case": "completion",
+      "index": 82,
+      "model": "kimi-k3",
+      "status": "failed",
+      "seconds": 5.172375092000038,
+      "error_type": "TransportError",
+      "error_detail": "provider refused request: HTTP 503",
+      "cause_type": null,
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 21,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 5.226808699999992,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 112,
+        "total_tokens": 136,
+        "cached_tokens": 0,
+        "reasoning_tokens": 107
+      },
+      "list_price_estimate_usd": 5.35956e-05
+    },
+    {
+      "case": "completion",
+      "index": 66,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 5.22622369599992,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "list_price_estimate_usd": 0.0011763779999999998
+    },
+    {
+      "case": "completion",
+      "index": 22,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 5.265529374999915,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 48,
+        "total_tokens": 183,
+        "cached_tokens": 0,
+        "reasoning_tokens": 35
+      },
+      "list_price_estimate_usd": 0.0011922749999999998
+    },
+    {
+      "case": "completion",
+      "index": 86,
+      "model": "kimi-k3",
+      "status": "failed",
+      "seconds": 5.365576234000059,
+      "error_type": "TransportError",
+      "error_detail": "provider refused request: HTTP 503",
+      "cause_type": null,
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 90,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 5.3794875120000825,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 45,
+        "total_tokens": 180,
+        "cached_tokens": 0,
+        "reasoning_tokens": 32
+      },
+      "list_price_estimate_usd": 0.001144584
+    },
+    {
+      "case": "completion",
+      "index": 2,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 5.7695546639999975,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 48,
+        "total_tokens": 183,
+        "cached_tokens": 0,
+        "reasoning_tokens": 35
+      },
+      "list_price_estimate_usd": 0.0011922749999999998
+    },
+    {
+      "case": "completion",
+      "index": 62,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 5.744750776000046,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "list_price_estimate_usd": 0.0011763779999999998
+    },
+    {
+      "case": "completion",
+      "index": 54,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 5.778117017,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 40,
+        "total_tokens": 175,
+        "cached_tokens": 0,
+        "reasoning_tokens": 27
+      },
+      "list_price_estimate_usd": 0.001065099
+    },
+    {
+      "case": "completion",
+      "index": 10,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 5.826839984999992,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "list_price_estimate_usd": 0.0011763779999999998
+    },
+    {
+      "case": "completion",
+      "index": 26,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 5.961486916000013,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "list_price_estimate_usd": 0.0011763779999999998
+    },
+    {
+      "case": "completion",
+      "index": 49,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 6.047744910000006,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 88,
+        "total_tokens": 112,
+        "cached_tokens": 0,
+        "reasoning_tokens": 83
+      },
+      "list_price_estimate_usd": 4.26948e-05
+    },
+    {
+      "case": "completion",
+      "index": 42,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 6.067485142999999,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "list_price_estimate_usd": 0.0011763779999999998
+    },
+    {
+      "case": "completion",
+      "index": 6,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 6.118176041000083,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "list_price_estimate_usd": 0.0011763779999999998
+    },
+    {
+      "case": "completion",
+      "index": 70,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 6.098761458000013,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 48,
+        "total_tokens": 183,
+        "cached_tokens": 0,
+        "reasoning_tokens": 35
+      },
+      "list_price_estimate_usd": 0.0011922749999999998
+    },
+    {
+      "case": "invalid_deadline",
+      "status": "ok",
+      "seconds": 1.5127999972719408e-05
+    }
+  ]
+}
