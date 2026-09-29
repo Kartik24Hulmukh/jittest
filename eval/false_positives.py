@@ -558,7 +558,7 @@ def select_pairs(
     since: str = DEFAULT_SINCE,
     until: str = DEFAULT_UNTIL,
 ) -> tuple[list[tuple[str, str]], int]:
-    """Return eligible (base, head) pairs and how many were screened out.
+    """Return eligible mainline (base, head) pairs and the screened count.
 
     The screened-out count is returned rather than discarded because a
     denominator that silently shrinks is how a collapsed run turns into a
@@ -573,6 +573,7 @@ def select_pairs(
     log = git(
         repo,
         "log",
+        "--first-parent",
         "--merges",
         f"--since={since}",
         f"--until={until}",

@@ -93,3 +93,9 @@ The risk-zero bug study is instrument potential, not default-product recall: it 
 Exact CI lint reproduction exposed an isort grouping error in the new manifest test that the shorter local Ruff command had not caught. Import formatting was corrected; the entire actual CI Ruff command now passes. Full mypy passed all 53 source files. The matching-point complete eight-worker suite passed 1,318 tests, 9 skipped and 210 subtests in 91.25 seconds. Workflow contract checker: 25 invocations, zero violations.
 
 Branch hygiene additionally verified 24 squash-merged heads against exact GitHub merged-PR metadata and preserved refs/pull identities before leased deletion: 32 total proven-merged inactive branches removed. Protected/default/active/unproven work was retained rather than guessed abandoned.
+
+## Mainline sampling root-cause fix
+
+The shared settled-merge selector, not only the controlled manifest, now follows first-parent history. A real Git regression graph with a nested main-to-feature synchronization merge failed before the fix because both the synchronization and final mainline PR entered the sample; it passes after the fix with only the real mainline pair. No mock, artificial sleep or denominator waiver was used. Mainline Git history is still only a screening proxy; the funded forty-PR study additionally verifies authoritative GitHub PR identities and intent.
+
+All false-positive regressions passed after the one-line selector fix. The complete eight-worker suite passed 1,319 tests, 9 skipped, 210 subtests in 90.11 seconds. Exact CI Ruff command passed. Source pipeline/transport semantics used by both in-progress matched paid cohorts are unchanged by this future-sampling correction. Baseline, fixed and full-suite logs retained under selector-regression.
