@@ -1,18 +1,12 @@
-"""Melious model router with failover, bounded deadlines, and hardening.
+"""Melious model router: catalogue-aware failover with hard deadlines.
 
-Turns jittest probes into model calls routed across a failover chain of
-Melious catalogue models with:
+The router is the production transport for melious/* models via HTTPLLM: it
+validates HTTPS endpoints, bounds max_tokens, fails over retired models,
+escalates truncated responses, and never hangs (transport errors map to
+TransportError; deadlines are checked before and after each request).
 
-- HTTPS-only endpoint validation (rejects non-TLS and embedded credentials)
-- Catalogue-aware model availability (404 absent -> ModelUnavailableError)
-- Preflight bounds validation (max_tokens ceiling, etc.) before any spend
-- Truncation escalation: retries a refused/truncated response with more tokens
-- Hard wall-clock deadline across retries and failover legs (no hang)
-- 429-aware failover with bounded cooldown; no cross-model routing leaks
-
-The router is deterministic and offline-testable: the HTTP layer is injected
-via ``transport`` (_httpx().MockTransport) so unit tests exercise failover and
-deadline logic without network access.
+Import this module directly (jittest.melious) — it intentionally does NOT
+shadow jittest.llm, which remains the provider-agnostic LLM layer.
 """
 
 from __future__ import annotations
@@ -22,30 +16,6 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-_httpx_module = None
-
-
-def _httpx() -> Any:
-    """Lazily import httpx (optional extra).
-
-    The core jittest package stays dependency-free; the Melious router is
-    enabled by installing the \"melious\" extra (httpx). Importing
-    jittest.llm.melious_router without httpx raises ImportError with a clear
-    install hint instead of failing at package import time.
-    """
-    global _httpx_module
-    if _httpx_module is None:
-        try:
-            import httpx  # type: ignore[import-not-found]
-        except ImportError as e:  # pragma: no cover - depends on install
-            raise ImportError(
-                "jittest.llm.melious_router requires the 'melious' extra: "
-                "pip install -e .[melious]  (httpx>=0.28)"
-            ) from e
-        _httpx_module = httpx
-    return _httpx_module
-
-
 MODEL_CEILINGS: dict[str, int] = {
     "glm-5.3": 65536,
     "glm-5.3-flash": 65536,
@@ -54,7 +24,6 @@ MODEL_CEILINGS: dict[str, int] = {
 }
 
 FAILOVER_CHAINS: dict[str, list[str]] = {
-    # retired/edge models fail over to a healthy primary
     "glm-4.5": ["glm-5.3"],
 }
 
@@ -75,17 +44,12 @@ class ChainExhaustedError(MeliousError):
     """Every leg of the failover chain failed (deadline-bounded; no hang)."""
 
 
-class TransportError(MeliousError):
-    """Network/transport failure (timeouts, dropped connections, DNS).
-
-    Mapped from httpx transport exceptions so a dropped network behaves like a
-    failed leg: it fails over when a fallback exists and raises cleanly (never
-    an uncaught httpx exception) when the chain is exhausted.
-    """
-
-
 class DeadlineExceeded(MeliousError):
     """Retry/cooldown exceeded the remaining deadline (no hang)."""
+
+
+class TransportError(MeliousError):
+    """Network/transport failure (timeouts, dropped connections, DNS)."""
 
 
 @dataclass
@@ -110,8 +74,21 @@ def _validate_base(base: str) -> str:
     return base.rstrip("/")
 
 
-def _catalogue_url(base: str) -> str:
-    return _validate_base(base) + "/models"
+_httpx_module = None
+
+
+def _httpx() -> Any:
+    """Lazily import httpx (optional melious extra)."""
+    global _httpx_module
+    if _httpx_module is None:
+        try:
+            import httpx  # type: ignore[import-not-found]
+        except ImportError as e:  # pragma: no cover - depends on install
+            raise ImportError(
+                "jittest.melious requires the melious extra: pip install -e .[melious]"
+            ) from e
+        _httpx_module = httpx
+    return _httpx_module
 
 
 class MeliousRouter:
@@ -122,7 +99,7 @@ class MeliousRouter:
         *,
         api_key: str | None = None,
         base: str = "https://api.melious.ai/v1",
-        transport: _httpx().BaseTransport | None = None,
+        transport: Any | None = None,
         default_deadline: float = 120.0,
         max_tokens: int = 1024,
         temperature: float = 0.0,
@@ -133,14 +110,15 @@ class MeliousRouter:
         self.default_deadline = default_deadline
         self.max_tokens = max_tokens
         self.temperature = temperature
-        self._client: _httpx().Client | None = None
+        self._client: Any | None = None
 
-    def _ensure_client(self) -> _httpx().Client:
+    def _ensure_client(self) -> Any:
         if self._client is None:
-            self._client = _httpx().Client(
+            hx = _httpx()
+            self._client = hx.Client(
                 base_url=self.base,
                 headers={"Authorization": f"Bearer {self.api_key}"},
-                timeout=_httpx().Timeout(30.0, connect=5.0),
+                timeout=hx.Timeout(30.0, connect=5.0),
                 transport=self.transport,
             )
         return self._client
@@ -167,8 +145,8 @@ class MeliousRouter:
         resp.raise_for_status()
         data = resp.json()
         if isinstance(data, list):
-            return [m.get("id", "") for m in data if isinstance(m, dict)]
-        return [m.get("id", "") for m in data.get("data", []) if isinstance(m, dict)]
+            return [x.get("id", "") for x in data if isinstance(x, dict)]
+        return [x.get("id", "") for x in data.get("data", []) if isinstance(x, dict)]
 
     def _preflight(self, model: str) -> None:
         if not self.api_key:
@@ -186,12 +164,7 @@ class MeliousRouter:
         max_tokens: int | None = None,
         truncation_escalation: bool = True,
     ) -> ModelResult:
-        """Complete ``prompt`` on ``model`` with failover and a hard deadline.
-
-        Raises AuthenticationError on 401, ModelUnavailableError on 404-absent,
-        ChainExhaustedError when every chain leg fails, DeadlineExceeded when
-        retries/cooldown would exceed the remaining deadline (never hangs).
-        """
+        """Complete ``prompt`` on ``model`` with failover and a hard deadline."""
         t0 = time.perf_counter()
         budget = deadline if deadline is not None else self.default_deadline
         chain = [model] + FAILOVER_CHAINS.get(model, [])
@@ -211,15 +184,10 @@ class MeliousRouter:
                     truncation_escalation=truncation_escalation,
                 )
             except (AuthenticationError, ModelUnavailableError, TransportError) as e:
-                # terminal per leg: a missing/slow model fails over; auth is fatal
                 if isinstance(e, AuthenticationError):
                     raise
                 if i == 0 and len(chain) == 1:
-                    # a direct (non-failover) call whose only leg failed:
-                    # propagate the direct error so callers see the real cause
                     raise
-                # a fallback leg failed -> the chain itself is exhausted (or fails over)
-                last_err = e
                 last_err = e
             except DeadlineExceeded as e:
                 if i == len(chain) - 1:
@@ -238,7 +206,7 @@ class MeliousRouter:
 
     def _complete_leg(
         self,
-        client: _httpx().Client,
+        client: Any,
         model: str,
         prompt: str,
         *,
@@ -262,10 +230,8 @@ class MeliousRouter:
                 raise DeadlineExceeded("retry/cooldown exceeds remaining deadline (no hang)")
             try:
                 resp = client.post("/chat/completions", json=payload)
-            except _httpx().HTTPError as e:
-                raise TransportError(
-                    f"network failure (no hang): {type(e).__name__}"
-                ) from e
+            except Exception as e:
+                raise TransportError(f"network failure (no hang): {type(e).__name__}") from e
             elapsed = time.perf_counter() - leg_start
             if elapsed >= deadline:
                 raise DeadlineExceeded("retry/cooldown exceeds remaining deadline (no hang)")
@@ -276,7 +242,6 @@ class MeliousRouter:
                     f"model {model!r} unavailable: HTTP 404: absent from catalogue (0 spend)"
                 )
             if resp.status_code == 429:
-                # bounded cooldown; if it would exceed the leg deadline, stop
                 cooldown = min(1.5 * attempts, 5.0)
                 if elapsed + cooldown >= deadline:
                     raise DeadlineExceeded("retry/cooldown exceeds remaining deadline (no hang)")
@@ -292,11 +257,8 @@ class MeliousRouter:
                     raise DeadlineExceeded(
                         "truncation escalation exhausted: finish=length after 3 attempts (no hang)"
                     )
-                # escalation: retry with more tokens (bounded by both deadline and attempt cap)
                 max_tokens = min(max_tokens * 4, 65536)
                 payload["max_tokens"] = max_tokens
-                if elapsed >= deadline:
-                    raise DeadlineExceeded("retry/cooldown exceeds remaining deadline (no hang)")
                 continue
             return ModelResult(
                 text=text,
@@ -306,7 +268,3 @@ class MeliousRouter:
                 status=resp.status_code,
                 usage=data.get("usage", {}),
             )
-
-
-def router_from_env(**kw: Any) -> MeliousRouter:
-    return MeliousRouter(**kw)

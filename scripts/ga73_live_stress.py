@@ -15,7 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from jittest.llm.melious_router import (
+from jittest.melious import (
     AuthenticationError,
     ChainExhaustedError,
     DeadlineExceeded,

@@ -1,9 +1,4 @@
-"""Unit tests for jittest.llm.melious_router (offline, MockTransport).
-
-Every test injects a deterministic HTTP transport so failover, cooldown, and
-deadline behaviour is exercised WITHOUT network access. Live-network stress is
-a separate script (scripts/ga73_live_stress.py) that requires MELIOUS_API_KEY.
-"""
+"""Unit tests for jittest.melious router (offline, MockTransport)."""
 
 from __future__ import annotations
 
@@ -13,34 +8,23 @@ import unittest
 try:
     import httpx  # noqa: F401
 except ImportError:
-    httpx = None  # type: ignore[assignment]
     raise unittest.SkipTest("httpx not installed; install jittest[melious] to run router tests") from None
 
-
-import httpx
-
-from jittest.llm.melious_router import (
+from jittest.melious import (
     AuthenticationError,
     ChainExhaustedError,
     DeadlineExceeded,
     MeliousRouter,
     ModelUnavailableError,
+    TransportError,
     _validate_base,
 )
-from jittest.llm.melious_router import (
-    TransportError as MeliousTransportError,
-)
-
-
-def _fake_response(status: int, payload: dict) -> httpx.Response:
-    return httpx.Response(status, json=payload, request=httpx.Request("POST", "http://test/chat/completions"))
-
 
 CHAT_OK = {"choices": [{"message": {"content": "hello"}, "finish_reason": "stop"}], "usage": {"total_tokens": 5}}
 CHAT_LEN = {"choices": [{"message": {"content": "partial"}, "finish_reason": "length"}], "usage": {"total_tokens": 3}}
 
 
-def _router(handler) -> MeliousRouter:
+def _router(handler):
     return MeliousRouter(api_key="k", transport=httpx.MockTransport(handler))
 
 
@@ -72,7 +56,7 @@ class RouterAuthTests(unittest.TestCase):
             r.close()
 
     def test_401_raises_authentication_error(self):
-        def handler(request: httpx.Request) -> httpx.Response:
+        def handler(request):
             return httpx.Response(401, json={"error": "catalogue authorization rejected"}, request=request)
 
         r = _router(handler)
@@ -85,12 +69,12 @@ class RouterAuthTests(unittest.TestCase):
 
 class RouterFailoverTests(unittest.TestCase):
     def test_404_fails_over_to_chain(self):
-        calls: list[tuple[str, str]] = []
+        calls = []
 
-        def handler(request: httpx.Request) -> httpx.Response:
+        def handler(request):
             body = json.loads(request.content)
             model = body["model"]
-            calls.append((model, request.url.path))
+            calls.append(model)
             if model == "glm-4.5":
                 return httpx.Response(404, json={"error": "not found"}, request=request)
             return httpx.Response(200, json=CHAT_OK, request=request)
@@ -101,10 +85,10 @@ class RouterFailoverTests(unittest.TestCase):
         finally:
             r.close()
         self.assertEqual(out.model, "glm-5.3")
-        self.assertEqual([m for m, _ in calls], ["glm-4.5", "glm-5.3"])
+        self.assertEqual(calls, ["glm-4.5", "glm-5.3"])
 
     def test_chain_exhausted_raises(self):
-        def handler(request: httpx.Request) -> httpx.Response:
+        def handler(request):
             return httpx.Response(404, json={"error": "not found"}, request=request)
 
         r = _router(handler)
@@ -119,7 +103,7 @@ class Router429Tests(unittest.TestCase):
     def test_429_retries_with_bounded_cooldown(self):
         seq = [429, 429, 200]
 
-        def handler(request: httpx.Request) -> httpx.Response:
+        def handler(request):
             code = seq.pop(0)
             if code == 429:
                 return httpx.Response(429, json={"error": "rate limited"}, request=request)
@@ -133,7 +117,7 @@ class Router429Tests(unittest.TestCase):
         self.assertEqual(out.attempts, 3)
 
     def test_429_with_tiny_deadline_raises_deadline_exceeded(self):
-        def handler(request: httpx.Request) -> httpx.Response:
+        def handler(request):
             return httpx.Response(429, json={"error": "rate limited"}, request=request)
 
         r = _router(handler)
@@ -146,9 +130,9 @@ class Router429Tests(unittest.TestCase):
 
 class RouterTruncationTests(unittest.TestCase):
     def test_length_finish_escalates_max_tokens(self):
-        calls: list[int] = []
+        calls = []
 
-        def handler(request: httpx.Request) -> httpx.Response:
+        def handler(request):
             body = json.loads(request.content)
             calls.append(body["max_tokens"])
             if len(calls) == 1:
@@ -164,7 +148,7 @@ class RouterTruncationTests(unittest.TestCase):
         self.assertEqual(out.finish_reason, "stop")
 
     def test_length_finish_deadline_bounded(self):
-        def handler(request: httpx.Request) -> httpx.Response:
+        def handler(request):
             return httpx.Response(200, json=CHAT_LEN, request=request)
 
         r = _router(handler)
@@ -177,7 +161,7 @@ class RouterTruncationTests(unittest.TestCase):
 
 class RouterModelUnavailableTests(unittest.TestCase):
     def test_absent_model_raises_model_unavailable(self):
-        def handler(request: httpx.Request) -> httpx.Response:
+        def handler(request):
             return httpx.Response(404, json={"error": "absent"}, request=request)
 
         r = _router(handler)
@@ -188,7 +172,7 @@ class RouterModelUnavailableTests(unittest.TestCase):
             r.close()
 
     def test_catalogue_lists_models(self):
-        def handler(request: httpx.Request) -> httpx.Response:
+        def handler(request):
             return httpx.Response(200, json={"data": [{"id": "glm-5.3"}, {"id": "kimi-k3"}]}, request=request)
 
         r = _router(handler)
@@ -199,25 +183,22 @@ class RouterModelUnavailableTests(unittest.TestCase):
         self.assertEqual(models, ["glm-5.3", "kimi-k3"])
 
 
-if __name__ == "__main__":
-    unittest.main()
-
 class RouterTransportTests(unittest.TestCase):
     def test_transport_error_becomes_transport_error(self):
-        def handler(request: httpx.Request) -> httpx.Response:
+        def handler(request):
             raise httpx.ReadTimeout("simulated dropped network")
 
         r = _router(handler)
         try:
-            with self.assertRaises(MeliousTransportError):
+            with self.assertRaises(TransportError):
                 r.complete("glm-5.3", "hi")
         finally:
             r.close()
 
     def test_transport_error_fails_over(self):
-        calls: list[str] = []
+        calls = []
 
-        def handler(request: httpx.Request) -> httpx.Response:
+        def handler(request):
             body = json.loads(request.content)
             calls.append(body["model"])
             if body["model"] == "glm-4.5":
@@ -235,14 +216,14 @@ class RouterTransportTests(unittest.TestCase):
 
 class RouterBurstTests(unittest.TestCase):
     def test_ten_parallel_no_uncaught_transport_error(self):
-        def handler(request: httpx.Request) -> httpx.Response:
+        def handler(request):
             return httpx.Response(200, json=CHAT_OK, request=request)
 
-        import concurrent.futures
+        from concurrent.futures import ThreadPoolExecutor
 
         r = _router(handler)
         try:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=10) as pool:
+            with ThreadPoolExecutor(max_workers=10) as pool:
                 results = list(
                     pool.map(
                         lambda _m: r.complete("glm-5.3", "hi", deadline=5.0, max_tokens=64),
@@ -253,3 +234,7 @@ class RouterBurstTests(unittest.TestCase):
             r.close()
         self.assertEqual(len(results), 10)
         self.assertTrue(all(o.finish_reason == "stop" for o in results))
+
+
+if __name__ == "__main__":
+    unittest.main()
