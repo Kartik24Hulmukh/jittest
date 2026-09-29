@@ -61,6 +61,7 @@ _BASES = {
     "together": "https://api.together.xyz/v1",
     "deepseek": "https://api.deepseek.com/v1",
     "ollama": "http://localhost:11434/v1",
+    "melious": "https://api.melious.ai/v1",
 }
 _RETRYABLE = {408, 409, 429, 500, 502, 503, 529}
 _RATE_LIMITED = {429, 503}
