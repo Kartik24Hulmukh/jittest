@@ -60,6 +60,103 @@ class BillingTotals:
                 "provider_paid_with": sorted(self.paid_with)}
 
 
+def _ledger_decimal(value: object):
+    from decimal import Decimal, InvalidOperation
+
+    if not isinstance(value, str) or len(value) > 128:
+        raise ValueError("documented equivalent must be a decimal string")
+    try:
+        amount = Decimal(value)
+        exponent = amount.as_tuple().exponent
+        if (not amount.is_finite() or amount < 0 or not isinstance(exponent, int)
+                or not -128 <= exponent <= 128):
+            raise ValueError("invalid documented equivalent")
+    except InvalidOperation as exc:
+        raise ValueError("invalid documented equivalent") from exc
+    return amount
+
+
+def _validate_ledger_event(event: object) -> dict:
+    """Refuse malformed observations; genuinely absent attribution stays unknown."""
+    import re
+    from datetime import datetime, timedelta
+
+    if not isinstance(event, dict):
+        raise ValueError("dispatch ledger event must be an object")
+    version = event.get("schema_version")
+    if isinstance(version, bool) or not isinstance(version, int) or version != 1:
+        raise ValueError("unsupported dispatch ledger schema")
+    for field in ("run_id", "target_id", "provider_request_id", "invocation_id"):
+        value = event.get(field)
+        if value is not None and (not isinstance(value, str)
+                or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}", value)):
+            raise ValueError("invalid ledger attribution identifier")
+    if event.get("stage") not in (None, "generator", "assessor"):
+        raise ValueError("invalid ledger stage")
+    body = event.get("body_parse_status")
+    content = event.get("content_parse_status")
+    usage = event.get("usage_parse_status")
+    statuses = ("not_attempted", "parsed", "failed")
+    if any(value not in statuses for value in (body, content, usage)):
+        raise ValueError("invalid ledger parse status")
+    received = event.get("received_body")
+    if not isinstance(received, bool):
+        raise ValueError("received_body must be boolean")
+    equivalent = event.get("provider_equivalent_eur")
+    state = event.get("debit_observation_status")
+    kind = event.get("event_type")
+    if kind not in ("dispatch", "cache_hit", "budget_refusal", "pre_dispatch_error"):
+        raise ValueError("unknown dispatch ledger event type")
+    if kind != "dispatch":
+        if (event.get("dispatch_timestamp_utc") is not None or event.get("retry_index") is not None
+                or event.get("transport_status") != "not_dispatched" or received
+                or event.get("http_status") is not None or event.get("provider_request_id") is not None
+                or equivalent is not None or state != "unknown"
+                or content != "not_attempted" or usage != "not_attempted"
+                or (kind != "cache_hit" and body != "not_attempted")):
+            raise ValueError("nondispatch event cannot claim transport observations")
+        return event
+    identity = event.get("dispatch_id")
+    if not isinstance(identity, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}", identity):
+        raise ValueError("invalid dispatch id")
+    stamp = event.get("dispatch_timestamp_utc")
+    if not isinstance(stamp, str) or len(stamp) > 64:
+        raise ValueError("dispatch requires an aware UTC timestamp")
+    try:
+        when = datetime.fromisoformat(stamp)
+    except ValueError as exc:
+        raise ValueError("invalid dispatch timestamp") from exc
+    if when.tzinfo is None or when.utcoffset() != timedelta(0):
+        raise ValueError("dispatch timestamp must be aware UTC")
+    transport = event.get("transport_status")
+    if transport not in ("started", "response_received", "http_error", "timeout", "transport_error"):
+        raise ValueError("invalid transport status")
+    status = event.get("http_status")
+    if status is not None and (isinstance(status, bool) or not isinstance(status, int)
+                              or not 100 <= status <= 599):
+        raise ValueError("invalid HTTP status")
+    if (transport == "response_received" and (status is None or status >= 400)
+            or transport == "http_error" and (status is None or status < 400)
+            or transport == "started" and status is not None):
+        raise ValueError("HTTP status conflicts with transport observation")
+    if received and transport not in ("response_received", "http_error"):
+        raise ValueError("received body conflicts with transport observation")
+    if not received and any(value != "not_attempted" for value in (body, content, usage)):
+        raise ValueError("parse observations require a received body")
+    if ((content != "not_attempted" and body != "parsed")
+            or (usage != "not_attempted" and content != "parsed")):
+        raise ValueError("parse status conflicts with preceding phase")
+    if state in ("observed", "noncredit"):
+        if not received or body != "parsed" or transport not in ("response_received", "http_error"):
+            raise ValueError("billing observation requires a received parsed body")
+        amount = _ledger_decimal(equivalent)
+        if state == "observed" and _ledger_decimal(event.get("credit_debit_eur")) != amount:
+            raise ValueError("credit debit conflicts with documented equivalent")
+    elif equivalent is not None:
+        raise ValueError("unknown debit cannot claim a documented equivalent")
+    return event
+
+
 def summarize_dispatch_ledger(events: list[dict]) -> dict:
     """Validate opt-in dispatch evidence and summarize observed subsets only.
 
@@ -69,6 +166,8 @@ def summarize_dispatch_ledger(events: list[dict]) -> dict:
     from collections import Counter
     from decimal import Decimal, InvalidOperation
 
+    if not isinstance(events, list):
+        raise ValueError("dispatch ledger must be an event list")
     kinds = {"dispatch", "cache_hit", "budget_refusal", "pre_dispatch_error"}
     transports = {"started", "response_received", "http_error", "timeout", "transport_error"}
     dispatch_ids: set[str] = set()
@@ -76,7 +175,8 @@ def summarize_dispatch_ledger(events: list[dict]) -> dict:
     observed = Decimal(0)
     observed_count = unknown_count = noncredit_count = missing_request_ids = 0
     missing_invocations = missing_context = 0
-    for event in events:
+    for raw_event in events:
+        event = _validate_ledger_event(raw_event)
         kind = event.get("event_type")
         if kind not in kinds:
             raise ValueError("unknown dispatch ledger event type")

@@ -350,5 +350,101 @@ class BillingDispatchContract(unittest.TestCase):
         self.assertEqual(summarize_dispatch_ledger(events)["body_parse_failures"], 1)
 
 
+class DispatchLedgerSchema(unittest.TestCase):
+    """Pure declared schema fixtures, not owner/provider statement evidence."""
+
+    @staticmethod
+    def event(**changes):
+        value = {
+            "schema_version": 1, "event_type": "dispatch", "run_id": None,
+            "target_id": None, "stage": None, "invocation_id": "invocation-1",
+            "dispatch_id": "dispatch-1", "retry_index": 0,
+            "dispatch_timestamp_utc": "2026-09-30T17:00:00+00:00",
+            "provider_request_id": None, "http_status": 200,
+            "transport_status": "response_received", "received_body": True,
+            "body_parse_status": "parsed", "content_parse_status": "parsed",
+            "usage_parse_status": "parsed", "credit_debit_eur": "0.25",
+            "provider_equivalent_eur": "0.25", "debit_observation_status": "observed",
+            "fx_receipt_sha256": None, "sanitized_statement_line_id": None,
+        }
+        value.update(changes)
+        return value
+
+    def test_nondict_event_is_typed_value_error(self):
+        for value in (None, [], "dispatch", 1):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                summarize_dispatch_ledger([value])
+
+    def test_invalid_or_missing_dispatch_timestamp_is_rejected(self):
+        for stamp in (None, 1, True, "yesterday", "2026-09-30T17:00:00",
+                      "2026-09-30T17:00:00+05:30", "2026-02-30T17:00:00Z"):
+            with self.subTest(stamp=stamp), self.assertRaises(ValueError):
+                summarize_dispatch_ledger([self.event(dispatch_timestamp_utc=stamp)])
+
+    def test_present_but_malformed_context_and_ids_refuse(self):
+        for field, value in (("run_id", ""), ("run_id", {}), ("target_id", 0),
+                             ("target_id", "contains whitespace"), ("stage", "invented"),
+                             ("stage", []), ("provider_request_id", ""),
+                             ("provider_request_id", True), ("invocation_id", "bad id"),
+                             ("dispatch_id", "bad id")):
+            with self.subTest(field=field, value=value), self.assertRaises(ValueError):
+                summarize_dispatch_ledger([self.event(**{field: value})])
+
+    def test_noncredit_requires_received_parsed_body_and_finite_equivalent(self):
+        base = self.event(debit_observation_status="noncredit", credit_debit_eur=None)
+        for change in ({"transport_status": "timeout"}, {"received_body": False},
+                       {"body_parse_status": "failed"}, {"provider_equivalent_eur": None},
+                       {"provider_equivalent_eur": "NaN"}, {"provider_equivalent_eur": "-1"},
+                       {"provider_equivalent_eur": 0.25}):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                summarize_dispatch_ledger([dict(base, **change)])
+
+    def test_observed_requires_parsed_body_and_matching_equivalent(self):
+        for change in ({"body_parse_status": "failed"}, {"provider_equivalent_eur": "NaN"},
+                       {"provider_equivalent_eur": "0.5"}):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                summarize_dispatch_ledger([self.event(**change)])
+
+    def test_invalid_transport_body_usage_and_status_combinations_refuse(self):
+        for change in ({"schema_version": True}, {"schema_version": 1.0},
+                       {"event_type": []}, {"transport_status": []}, {"http_status": True}, {"http_status": "200"}, {"http_status": 999},
+                       {"transport_status": "http_error", "http_status": 200},
+                       {"received_body": "yes"}, {"body_parse_status": "invented"},
+                       {"content_parse_status": "invented"}, {"usage_parse_status": "invented"},
+                       {"usage_parse_status": "parsed", "content_parse_status": "failed"}):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                summarize_dispatch_ledger([self.event(**change)])
+
+    def test_none_context_is_valid_unknown_and_batch_retry_resets_are_valid(self):
+        batch = [self.event(), self.event(dispatch_id="dispatch-2")]
+        result = summarize_dispatch_ledger(batch)
+        self.assertEqual(result["actual_dispatches"], 2)
+        self.assertEqual(result["retry_dispatches"], 0)
+        self.assertEqual(result["known_invocations"], 1)
+        self.assertEqual(result["dispatches_missing_provider_request_id"], 2)
+        self.assertEqual(result["dispatches_missing_run_target_or_stage"], 2)
+
+    def test_missing_invocation_and_valid_noncredit_are_not_fabricated(self):
+        event = self.event(invocation_id=None, credit_debit_eur=None,
+                           debit_observation_status="noncredit")
+        result = summarize_dispatch_ledger([event])
+        self.assertEqual(result["events_missing_invocation"], 1)
+        self.assertEqual(result["noncredit_dispatches"], 1)
+        self.assertIsNone(result["observed_credit_debit_eur"])
+
+    def test_nondispatch_cannot_claim_response_or_timestamp(self):
+        event = self.event(event_type="cache_hit", dispatch_id=None, retry_index=None,
+                           dispatch_timestamp_utc=None, transport_status="not_dispatched",
+                           http_status=None, provider_request_id=None, received_body=False,
+                           content_parse_status="not_attempted", usage_parse_status="not_attempted",
+                           credit_debit_eur=None, provider_equivalent_eur=None,
+                           debit_observation_status="unknown")
+        for change in ({"dispatch_timestamp_utc": "2026-09-30T17:00:00Z"},
+                       {"transport_status": "response_received"}, {"received_body": True},
+                       {"provider_request_id": "request-1"}, {"http_status": 200}):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                summarize_dispatch_ledger([dict(event, **change)])
+
+
 if __name__ == "__main__":
     unittest.main()
