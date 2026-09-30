@@ -10,7 +10,11 @@ import sys
 from pathlib import Path
 from unittest import mock
 
-import pytest
+try:
+    import pytest
+except ModuleNotFoundError as exc:  # pragma: no cover
+    import unittest
+    raise unittest.SkipTest("requires pytest; exercised by the pytest CI matrix") from exc
 
 from jittest.receipt import verify_receipt
 from jittest.results import AttemptCensus

@@ -6,7 +6,11 @@ import hashlib
 import json
 from unittest.mock import patch
 
-import pytest
+try:
+    import pytest
+except ModuleNotFoundError as exc:  # pragma: no cover
+    import unittest
+    raise unittest.SkipTest("requires pytest; exercised by the pytest CI matrix") from exc
 
 from eval import ga73_acceptance as acceptance
 from eval.ga73_reanalysis import INPUTS, OUT
