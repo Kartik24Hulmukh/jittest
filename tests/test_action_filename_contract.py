@@ -81,7 +81,8 @@ class FilenameContract(unittest.TestCase):
                    'JITTEST_BASE': base, 'JITTEST_HEAD': head, 'JITTEST_POLICY': 'strict',
                    'JITTEST_SANDBOX_MODE': 'off', 'GITHUB_EVENT_NAME': 'push',
                    'JITTEST_SIGNING_KEY_PATH': str(key), 'JITTEST_OUTPUT_DIR': str(out),
-                   'GITHUB_STEP_SUMMARY': str(summary)}
+                   'GITHUB_STEP_SUMMARY': str(summary),
+                   'PYTHONUTF8': '1', 'PYTHONIOENCODING': 'utf-8'}
             command = [sys.executable, '-m', entrypoint]
             if entrypoint == 'jittest.cli':
                 command += ['action', '--repo', str(repo), '--sandbox', 'off']
@@ -110,17 +111,22 @@ class FilenameContract(unittest.TestCase):
     def test_actual_action_newline_receipt(self):
         self.run_entrypoint('jittest.action', 'test_line\nbreak.py')
 
-    @unittest.skipIf(os.name == 'nt', 'invalid filename bytes only supported on POSIX')
-    def test_invalid_filesystem_bytes_refuse_comparison(self):
+    def test_invalid_git_path_bytes_refuse_comparison(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
             repo, base, _, _ = self.make_pair(root, 'test_ok.py')
-            raw = os.fsencode(repo) + b'/test_\xff.py'
-            with open(raw, 'wb') as f:
-                f.write(b'# own harmless invalid-byte filename\n')
-            subprocess.run(['git', '-C', str(repo), 'add', '.'], check=True)
-            subprocess.run(['git', '-C', str(repo), 'commit', '-qm', 'invalid filename'], check=True)
-            head = subprocess.check_output(['git', '-C', str(repo), 'rev-parse', 'HEAD']).decode().strip()
+            # Git trees can contain non-UTF8 path bytes even where APFS/Windows
+            # cannot create or check out those filesystem names. Exercise real
+            # Git's raw diff on every platform, before any candidate checkout.
+            env = platform_env()
+            blob = subprocess.check_output(['git', '-C', str(repo), 'hash-object', '-w', '--stdin'],
+                                           input=b'# owned invalid-path fixture\n', env=env).strip()
+            entries = subprocess.check_output(['git', '-C', str(repo), 'ls-tree', '-z', 'HEAD'], env=env)
+            entries += b'100644 blob ' + blob + b'\ttest_\xff.py\0'
+            tree = subprocess.check_output(['git', '-C', str(repo), 'mktree', '-z'], input=entries, env=env).decode().strip()
+            parent = subprocess.check_output(['git', '-C', str(repo), 'rev-parse', 'HEAD'], env=env).decode().strip()
+            head = subprocess.check_output(['git', '-C', str(repo), 'commit-tree', tree, '-p', parent,
+                                            '-m', 'owned invalid-path tree fixture'], env=env).decode().strip()
             with self.assertRaises(UnicodeDecodeError):
                 action.get_changed_files(repo, base, head)
             env = {**platform_env(), 'JITTEST_BASE': base, 'JITTEST_HEAD': head,
@@ -131,3 +137,17 @@ class FilenameContract(unittest.TestCase):
             self.assertEqual(status, 1)
             data = json.loads((out / 'comparison-refusal.json').read_text())
             self.assertFalse(data['denominator_known'])
+            bootstrap = root / 'invalid-bootstrap'
+            bootstrap.mkdir()
+            (bootstrap / 'sitecustomize.py').write_text(
+                'import jittest.action\n'
+                'jittest.action.upsert_pr_comment = lambda *a, **kw: "owned fixture"\n')
+            cli_env = {**env, 'HOME': str(root), 'USERPROFILE': str(root),
+                       'PYTHONPATH': str(bootstrap) + os.pathsep + str(ROOT / 'src'),
+                       'JITTEST_POLICY': 'strict', 'PYTHONUTF8': '1', 'PYTHONIOENCODING': 'utf-8'}
+            result = subprocess.run([sys.executable, '-m', 'jittest.cli', 'action', '--repo', str(repo),
+                                     '--sandbox', 'off'], cwd=root, env=cli_env, capture_output=True,
+                                    text=True, encoding='utf-8', timeout=30)
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            cli_data = json.loads((root / 'jittest-evidence/comparison-refusal.json').read_text())
+            self.assertFalse(cli_data['denominator_known'])

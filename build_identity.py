@@ -171,3 +171,26 @@ def validate_artifact(artifact: Path, target: str, provenance: dict) -> None:
         raise ValueError('unsupported build target')
     if actual != expected:
         raise ValueError('finished artifact build inputs differ from captured identity')
+
+
+
+def validate_editable_artifact(artifact: Path, root: Path) -> None:
+    """PEP 660 may point only at this live Git checkout, never freeze its bytes."""
+    import zipfile
+    with zipfile.ZipFile(artifact) as archive:
+        names = archive.namelist()
+        if len(names) != len(set(names)):
+            raise ValueError('duplicate editable artifact entry')
+        if any(name.startswith('jittest/') for name in names):
+            raise ValueError('editable artifact cannot copy runtime package or frozen provenance')
+        pointers = [name for name in names if name.endswith('.pth')]
+        if len(pointers) != 1:
+            raise ValueError('editable artifact requires exactly one live source pointer')
+        lines = archive.read(pointers[0]).decode('utf-8', errors='strict').splitlines()
+        if (len(lines) != 1 or lines[0].startswith(('import ', 'import\t'))
+                or not Path(lines[0]).is_absolute()
+                or Path(lines[0]).resolve() != (root / 'src').resolve()):
+            raise ValueError('editable pointer must contain only expected root/src, no import code')
+        # Unknown executable helpers are not an alternate import-code channel.
+        if any(not (name == pointers[0] or '.dist-info/' in name) for name in names):
+            raise ValueError('editable artifact has unexpected nonmetadata files')

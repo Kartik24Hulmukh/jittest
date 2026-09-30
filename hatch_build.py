@@ -17,9 +17,19 @@ class CustomBuildHook(BuildHookInterface):
             raise ValueError("build identity helper unavailable")
         identity = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(identity)
-        provenance = identity.build_provenance(root)
+        if version == "editable":
+            # PEP 660 points at live source, not copied immutable runtime bytes.
+            # Never let an archived resource override live Git identity later.
+            if not (root / ".git").exists() or (root / "src/jittest/_build_provenance.json").exists():
+                raise ValueError("editable builds require own Git source without archived provenance")
+            provenance = identity.git_provenance(root)
+        else:
+            provenance = identity.build_provenance(root)
         self._identity = identity
         self._provenance = provenance
+        self._temp = None
+        if version == "editable":
+            return
         # Keep generated files outside source; build must not dirty the checkout.
         self._temp = tempfile.TemporaryDirectory(prefix="jittest-build-")
         path = Path(self._temp.name) / "_build_provenance.json"
@@ -32,6 +42,10 @@ class CustomBuildHook(BuildHookInterface):
         try:
             if self._identity.source_manifest(Path(self.root)) != self._provenance["build_inputs"]:
                 raise ValueError("build inputs changed during build")
-            self._identity.validate_artifact(Path(artifact_path), self.target_name, self._provenance)
+            if version == "editable":
+                self._identity.validate_editable_artifact(Path(artifact_path), Path(self.root))
+            else:
+                self._identity.validate_artifact(Path(artifact_path), self.target_name, self._provenance)
         finally:
-            self._temp.cleanup()
+            if self._temp is not None:
+                self._temp.cleanup()

@@ -3,7 +3,6 @@ import importlib.util
 import io
 import json
 import os
-import shutil
 import subprocess
 import tarfile
 import tempfile
@@ -47,7 +46,8 @@ class BuildIdentity(unittest.TestCase):
 
     def archive(self):
         data = self.identity()
-        shutil.rmtree(self.root / '.git')
+        # Disconnect metadata without deleting Windows read-only Git objects.
+        (self.root / '.git').rename(self.root / '.fixture-git-metadata')
         (self.root / 'src/jittest/_build_provenance.json').write_text(json.dumps(data))
         return data
 
