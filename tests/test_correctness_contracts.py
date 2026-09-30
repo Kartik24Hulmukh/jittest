@@ -446,3 +446,22 @@ def test_refusal_receipt_binds_raw_candidate_bytes(pair, tmp_path):
     test.write_bytes(b'# CRLF refusal candidate\r\n')
     receipt = make_refusal_receipt(pair[0], pair[1], pair[2], test)
     assert receipt['provenance']['test_file_sha256'] == hashlib.sha256(test.read_bytes()).hexdigest()
+
+
+@pytest.mark.parametrize('identity', ['github.com/owner/repo', 'github.com.evil/owner/repo',
+                                     'https://evil.invalid/github.com/owner/repo',
+                                     'github.com/owner/repo?redirect=evil', 'local:untrusted'])
+def test_pr_lookup_requires_exact_canonical_identity(pair, tmp_path, identity):
+    class LookupObserved(Exception):
+        pass
+    with patch.dict(os.environ, {**platform_env(), 'GITHUB_REPOSITORY': ''}, clear=True), \
+         patch('jittest.verify.get_repo_canonical', return_value=identity), \
+         patch('jittest.verify.fetch_pr_base_head', side_effect=LookupObserved) as fetch:
+        if identity == 'github.com/owner/repo':
+            with pytest.raises(LookupObserved):
+                verify_test(pair[0], pr_number=42, test_file_path=pair[3])
+            fetch.assert_called_once_with('owner/repo', 42)
+        else:
+            with pytest.raises(VerifyRefusalError, match='canonical GitHub'):
+                verify_test(pair[0], pr_number=42, test_file_path=pair[3])
+            fetch.assert_not_called()

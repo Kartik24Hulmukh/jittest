@@ -894,7 +894,8 @@ def verify_test(
     # Resolve PR if base/head not provided
     if pr_number is not None and (not base_ref or not head_ref):
         canonical = get_repo_canonical(repo_path)
-        identity = canonical.removeprefix("github.com/") if canonical.startswith("github.com/") else os.getenv("GITHUB_REPOSITORY", "")
+        canonical_match = re.fullmatch(r"github\.com/([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)", canonical)
+        identity = canonical_match.group(1) if canonical_match else os.getenv("GITHUB_REPOSITORY", "")
         if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", identity):
             raise VerifyRefusalError("PR lookup requires a canonical GitHub owner/repository identity")
         remote_base, remote_head = fetch_pr_base_head(identity, pr_number)
