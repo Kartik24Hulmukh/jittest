@@ -22,9 +22,16 @@ from typing import Any
 from .diff import git_env
 from .github import fetch_pr_base_head, upsert_pr_comment
 from .receipt import get_repo_canonical, verify_receipt
+from .results import AttemptCensus
 from .sandbox import SandboxPlan, SandboxUnavailable, load_runtime_image, validate_image_ref
 from .sandbox import plan as plan_sandbox
-from .verify import RefusalReason, VerdictClass, make_refusal_receipt, verify_test
+from .verify import (
+    RefusalReason,
+    VerdictClass,
+    VerifyRefusalError,
+    make_refusal_receipt,
+    verify_test,
+)
 
 logger = logging.getLogger("jittest.action")
 
@@ -142,6 +149,26 @@ def run_action(
     policy: str | None = None,
     output_dir: Path | str = "jittest-evidence",
 ) -> int:
+    """Public Action invocation, including pending candidates on interruption."""
+    census = AttemptCensus(Path(output_dir).resolve() / "census", entrypoint="action")
+    try:
+        result = _run_action(repo_path, pr_number, sandbox_override, policy, output_dir, census)
+        census.finish()
+        return result
+    except BaseException as exc:
+        census.event("invocation_exception", error_type=type(exc).__name__)
+        census.finish("interrupted" if isinstance(exc, (KeyboardInterrupt, SystemExit)) else "failed")
+        raise
+
+
+def _run_action(
+    repo_path: Path | str = ".",
+    pr_number: int | str | None = None,
+    sandbox_override: str | None = None,
+    policy: str | None = None,
+    output_dir: Path | str = "jittest-evidence",
+    _census: AttemptCensus | None = None,
+) -> int:
     repo = Path(repo_path).resolve()
     out_dir = Path(output_dir).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -229,6 +256,20 @@ def run_action(
     except (OSError, ValueError, TypeError, subprocess.SubprocessError, RuntimeError) as exc:
         return comparison_refusal(exc)
     changed_tests = [f for f in all_changed if is_test_file(f)]
+    assert _census is not None
+    candidates = []
+    for selector in changed_tests:
+        source = None
+        candidate_path = repo / selector
+        try:
+            if candidate_path.resolve().is_relative_to(repo) and candidate_path.is_file():
+                source = candidate_path.read_bytes()
+        except OSError:
+            pass
+        candidates.append(AttemptCensus.candidate(selector=selector, base=base_sha,
+                          head=head_sha, source=source, base_ref=base_sha, head_ref=head_sha))
+    _census.select(candidates)
+
 
     if not changed_tests:
         msg = (
@@ -282,7 +323,8 @@ def run_action(
         )
         out_dir.mkdir(parents=True, exist_ok=True)
         results: list[dict[str, Any]] = []
-        for test_rel in changed_tests:
+        for candidate_index, test_rel in enumerate(changed_tests):
+            _census.start_candidate(candidate_index)
             test_path = repo / test_rel
             posix_rel = Path(test_rel).as_posix()
             path_digest = hashlib.sha256(posix_rel.encode("utf-8")).hexdigest()[:12]
@@ -292,6 +334,7 @@ def run_action(
                 message=f"isolation required for untrusted {trust} context but no backend is available",
                 phase="plan",
             )
+            refusal_written = False
             with contextlib.suppress(Exception):
                 make_refusal_receipt(
                     repo_path=repo,
@@ -302,6 +345,7 @@ def run_action(
                     sbx_plan=sbx_plan,
                     output_path=out_artifact,
                 )
+                refusal_written = True
             results.append({
                 "file": test_rel,
                 "verdict": VerdictClass.INCONCLUSIVE,
@@ -310,6 +354,8 @@ def run_action(
                 "wall_clock_s": 0.0,
                 "artifact": str(out_artifact),
             })
+            _census.finish_candidate(candidate_index, disposition="refused_sandbox_unavailable",
+                                     artifact=str(out_artifact) if refusal_written else None)
 
         table_lines = [
             "<!-- jittest-report -->",
@@ -337,7 +383,7 @@ def run_action(
             return 1
         return 0  # advisory
 
-    def _verify_one(test_rel: str) -> dict[str, Any]:
+    def _verify_candidate(test_rel: str) -> dict[str, Any]:
         test_path = repo / test_rel
         if not test_path.exists():
             return {
@@ -386,6 +432,25 @@ def run_action(
                 "wall_clock_s": evidence.get("wall_clock_s", 0.0),
                 "artifact": str(out_artifact),
             }
+        except VerifyRefusalError as exc:
+            logger.error("Verification refused for %s: %s", test_rel, exc.reason.code)
+            _census.event("verification_refused", selector=test_rel, refusal=exc.reason.to_dict(),
+                          phases=exc.verification_phases)
+            refusal_written = False
+            try:
+                make_refusal_receipt(repo_path=repo, base_ref=base_sha, head_ref=head_sha,
+                    test_file_path=test_path, refusal=exc.reason, sbx_plan=exc.sandbox_plan or sbx_plan,
+                    output_path=out_artifact, verification_phases=exc.verification_phases)
+                refusal_written = True
+            except Exception as receipt_exc:
+                _census.event("refusal_receipt_exception", error_type=type(receipt_exc).__name__)
+            return {
+                "file": test_rel, "verdict": VerdictClass.INCONCLUSIVE,
+                "disposition": "ENV_SETUP_FAILED", "proven_catch": False,
+                "wall_clock_s": 0.0, "artifact": str(out_artifact) if refusal_written else "",
+                "_census_disposition": "refused_" + exc.reason.code,
+                "_census_phases": exc.verification_phases,
+            }
         except SandboxUnavailable as exc:
             logger.error("Sandbox isolation required but unavailable: %s", exc)
             return {
@@ -397,6 +462,7 @@ def run_action(
                 "artifact": "",
             }
         except Exception as exc:
+            _census.event("verification_exception", selector=test_rel, error_type=type(exc).__name__)
             logger.error("Failed verification for %s: %s", test_rel, exc)
             return {
                 "file": test_rel,
@@ -407,7 +473,19 @@ def run_action(
                 "artifact": "",
             }
 
-    results = [_verify_one(t) for t in changed_tests]
+    def _verify_one(index: int, test_rel: str) -> dict[str, Any]:
+        _census.start_candidate(index)
+        result = _verify_candidate(test_rel)
+        phases = result.get("_census_phases", [])
+        artifact = result.get("artifact")
+        if artifact:
+            with contextlib.suppress(OSError, ValueError, TypeError):
+                phases = json.loads(Path(artifact).read_text(encoding="utf-8")).get("verification_phases", [])
+        _census.finish_candidate(index, disposition=result.get("_census_disposition", result["disposition"]), phases=phases,
+                                 artifact=artifact if artifact and Path(artifact).is_file() else None)
+        return result
+
+    results = [_verify_one(index, t) for index, t in enumerate(changed_tests)]
 
     refusal_tests: list[dict[str, Any]] = [
         r for r in results if r["disposition"] in REFUSAL_DISPOSITIONS or r["verdict"] == VerdictClass.INCONCLUSIVE

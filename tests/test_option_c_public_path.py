@@ -4,6 +4,7 @@ Planning tests deliberately stop before provisioning: not a Docker E2E proof.
 """
 from __future__ import annotations
 
+import json
 from unittest import mock
 
 try:
@@ -120,5 +121,16 @@ def test_action_invalid_pin_reports_refusal_without_candidate_execution(tmp_path
     assert plan.call_args.kwargs["runtime_image"] == ""
     provision.assert_not_called()
     assert "ENV_SETUP_FAILED" in comment.call_args.args[0]
-    # Document the current evidence gap rather than asserting an absent receipt.
-    assert not list(out.glob("*.json"))
+    # The former receipt gap is closed, but planning refusal is not execution.
+    receipts = list(out.glob("*.json"))
+    assert len(receipts) == 1
+    evidence = json.loads(receipts[0].read_text())
+    assert evidence["schema_version"] == "2.1"
+    assert evidence["disposition"] == "refused_image_digest_required"
+    assert evidence["refusal"]["phase"] == "plan"
+    assert evidence["proven_catch"] is False
+    assert evidence["base_execution"]["outcome"] == "NOTRUN"
+    assert evidence["head_execution"]["outcome"] == "NOTRUN"
+    assert evidence["verification_phases"] == []
+    checked = A.verify_receipt(evidence, expected_base=base, expected_head=head)
+    assert checked.signature_valid is True

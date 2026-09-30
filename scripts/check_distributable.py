@@ -74,7 +74,36 @@ def reconcile_sdist(sdist: Path, wheel: Path) -> dict:
     return IDENTITY.validate_manifest(dict(sorted(build_inputs.items())), provenance)
 
 
-def rehearse_receipts(python: Path, work: Path, env: dict, expected_build: dict | None = None) -> dict:
+def assert_attempt_census(snapshot: dict, journal: Path, *, expected_base: str,
+                          expected_head: str, expected_sources: dict[str, str]) -> None:
+    """Independent consumer check of exported census, never a semantic oracle."""
+    if snapshot.get("schema_version") != "default-attempt-census-1.0":
+        raise ValueError("missing census schema")
+    if snapshot.get("state") != "finished" or snapshot.get("denominator_known") is not True:
+        raise ValueError("census not complete with a known denominator")
+    body = journal.read_bytes()
+    records = [json.loads(line) for line in body.splitlines()]
+    if (hashlib.sha256(body).hexdigest() != snapshot.get("journal_sha256")
+            or len(records) != snapshot.get("journal_records")
+            or [x.get("sequence") for x in records] != list(range(1, len(records) + 1))
+            or any(x.get("run_id") != snapshot.get("run_id") for x in records)):
+        raise ValueError("census journal digest or sequence mismatch")
+    candidates = snapshot.get("candidates", [])
+    if {c["selector"] for c in candidates} != set(expected_sources) or len(candidates) != len(expected_sources):
+        raise ValueError("census candidate denominator mismatch")
+    for candidate in candidates:
+        material = {k: candidate[k] for k in ("selector", "base_sha", "head_sha", "base_ref",
+                    "head_ref", "candidate_sha256", "candidate_bytes")}
+        digest = hashlib.sha256(json.dumps(material, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        if (candidate["base_sha"] != expected_base or candidate["head_sha"] != expected_head
+                or candidate["candidate_sha256"] != expected_sources[candidate["selector"]]
+                or candidate["material_sha256"] != digest
+                or candidate["state"] != "finished" or not candidate["disposition"]):
+            raise ValueError("census candidate material or disposition mismatch")
+
+
+def rehearse_receipts(python: Path, work: Path, env: dict, expected_build: dict | None = None,
+                      evidence_out: Path | None = None) -> dict:
     """Only our own harmless fixture executes on host; not a confinement proof."""
     repo = work / "fixture"
     repo.mkdir()
@@ -115,6 +144,16 @@ def rehearse_receipts(python: Path, work: Path, env: dict, expected_build: dict 
                    "--sandbox-mode", "off", "--signing-key", str(key),
                    "--output", str(receipt), "--json"])
     data = json.loads(receipt.read_text())
+    census = data.get("attempt_census", {})
+    census_dir = work / "census" / census.get("run_id", "missing")
+    snapshot = json.loads((census_dir / "snapshot.json").read_text())
+    if snapshot != census:
+        raise ValueError("installed receipt census differs from snapshot")
+    assert_attempt_census(snapshot, census_dir / "journal.jsonl", expected_base=base,
+                          expected_head=head, expected_sources={"test_calc.py": hashlib.sha256(test.read_bytes()).hexdigest()})
+    if not census["candidates"][0]["execution_observed"]:
+        raise ValueError("installed CLI census has no observed execution")
+
     if data["verdict"] != "proven_catch":
         raise ValueError("installed verifier failed harmless assertion regression")
     if expected_build is not None:
@@ -139,13 +178,41 @@ def rehearse_receipts(python: Path, work: Path, env: dict, expected_build: dict 
     bad_signer = checks.copy()
     bad_signer[bad_signer.index("--expected-signer") + 1] = "f" * 64
     command(cli + ["verify-receipt", str(receipt), *bad_signer], 3)
+    action_env = {**env, "JITTEST_BASE": base, "JITTEST_HEAD": head,
+                  "JITTEST_REPO_PATH": str(repo), "JITTEST_SANDBOX_MODE": "off",
+                  "JITTEST_POLICY": "strict", "GITHUB_EVENT_NAME": "push",
+                  "JITTEST_OUTPUT_DIR": str(work / "action-evidence")}
+    # Make the test file genuinely changed in HEAD, as the Action selects diffs.
+    test.write_text(test.read_text() + "# harmless Action candidate modification\n")
+    git("add", "test_calc.py")
+    git("commit", "-qm", "changed candidate for installed Action")
+    action_head = git("rev-parse", "HEAD")
+    action_env["JITTEST_HEAD"] = action_head
+    result = subprocess.run([str(python), "-m", "jittest.action"], cwd=work,
+                            env=action_env, timeout=60, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise ValueError("installed Action census rehearsal failed: " + result.stderr[-500:])
+    action_snapshots = list((work / "action-evidence" / "census").glob("*/snapshot.json"))
+    action_snapshot = next(json.loads(p.read_text()) for p in action_snapshots
+                           if json.loads(p.read_text())["entrypoint"] == "action")
+    assert_attempt_census(action_snapshot,
+                          work / "action-evidence" / "census" / action_snapshot["run_id"] / "journal.jsonl",
+                          expected_base=base, expected_head=action_head,
+                          expected_sources={"test_calc.py": hashlib.sha256(test.read_bytes()).hexdigest()})
     data["wall_clock_s"] = 99999
     tampered = work / "tampered.json"
     tampered.write_text(json.dumps(data))
     command(cli + ["verify-receipt", str(tampered), *checks], 2)
+    if evidence_out is not None:
+        import shutil
+        evidence_out.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(receipt, evidence_out / "receipt.json")
+        shutil.copytree(work / "census", evidence_out / "cli-census", dirs_exist_ok=True)
+        shutil.copytree(work / "action-evidence", evidence_out / "action-evidence", dirs_exist_ok=True)
     return {"fresh_assertion_roundtrip": True, "tamper_wrong_signer_wrong_head_rejected": True,
             "unconfined_claim_rejected_when_required": True,
             "packaged_identity_preserved_in_signed_receipt": expected_build is not None,
+            "actual_cli_and_action_attempt_census": True,
             "qualification_scope": "own_harmless_host_fixture_not_confined_execution"}
 
 
@@ -189,7 +256,8 @@ def main() -> int:
             cwd=work, env=env, check=True, timeout=30, capture_output=True, text=True)
         if str(work / "venv") not in probe.stdout:
             raise ValueError("source checkout shadowed installed wheel")
-        receipt_rehearsal = rehearse_receipts(python, work, env, provenance)
+        receipt_rehearsal = rehearse_receipts(python, work, env, provenance,
+                                               args.out.resolve().parent / "distributable-evidence")
     manifest = {
         "qualification_scope": "exact_package_bytes_clean_install_receipt_contract_not_confined_e2e",
         "version": version,
