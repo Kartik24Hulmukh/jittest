@@ -30,6 +30,11 @@ def _minimal_receipt() -> dict:
                     "isolated": True, "network_denied": True, "notes": []},
         "base_execution": ex,
         "head_execution": {**ex, "outcome": "FAIL", "exit_code": 1, "failure_kind": "assertion"},
+        "verification_phases": [
+            {"phase": phase, "revision": "b" * 40, "test_sha256": "c" * 64,
+             "outcome": "FAIL", "failure_kind": "assertion"}
+            for phase in ("head", "head_rerun_2")
+        ],
         "rerun_agreement": True, "wall_clock_s": 1.5, "provider_cost_usd": 0.0,
     }
 

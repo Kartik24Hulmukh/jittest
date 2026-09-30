@@ -17,6 +17,12 @@ on:
       - "src/jittest/env.py"
       - "src/jittest/provision.py"
       - "scripts/verify_registry_live.py"
+      - "scripts/prove_installed_option_c.py"
+      - "scripts/check_distributable.py"
+      - "hatch_build.py"
+      - "pyproject.toml"
+      - "src/jittest/receipt.py"
+      - "src/jittest/action.py"
       - "tests/test_provision_boundaries.py"
       - "tests/test_sandbox_adversarial.py"
       - ".github/workflows/option-c-proof.yml"
@@ -92,3 +98,38 @@ jobs:
         with:
           name: registry-live-proof-${{ github.sha }}
           path: registry-live-proof.json
+
+  installed-wheel:
+    needs: registry-live
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: registry-live-proof-${{ github.sha }}
+          path: registry-proof/
+      - name: Build the exact candidate wheel without publication
+        run: |
+          python -m pip install build
+          python -m build --wheel --outdir dist
+      - name: Installed-wheel BASE-image proof must run, never skip
+        shell: bash
+        run: |
+          IMAGE=$(python -c 'import json; d=json.load(open("registry-proof/registry-live-proof.json")); assert d["status"]=="RUN" and d["verified"] is True; print(d["pinned_ref"])')
+          WHEEL=$(find dist -maxdepth 1 -name '*.whl' -type f)
+          python scripts/prove_installed_option_c.py \
+            --wheel "$WHEEL" --image "$IMAGE" \
+            --out installed-option-c-proof.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: installed-option-c-proof-${{ github.sha }}
+          path: |
+            installed-option-c-proof.json
+            dist/*.whl

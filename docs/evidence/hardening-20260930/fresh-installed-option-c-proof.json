@@ -1,0 +1,600 @@
+{
+  "base_sha": "10195c44725a72fd6648055af4c5bef580891928",
+  "canary_receipt": {
+    "base_execution": {
+      "environment": {
+        "cache_key": "",
+        "cached": false,
+        "exclude_newer_cutoff": "",
+        "has_project_dependencies": true,
+        "image_digest": "sha256:9e87977b867847e186d066f531ef783b006d582a985c341c269446088d90f2c4",
+        "interpreter_version": "",
+        "inventory_probed": true,
+        "lockfile_sha256": "",
+        "provisioning": "option_c_trusted_image",
+        "python_path": "python",
+        "resolved_versions": [
+          "pip==25.0.1"
+        ],
+        "runtime_image": "docker.io/library/python@sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b",
+        "venv_dir": ""
+      },
+      "exit_code": 0,
+      "failure_kind": "none",
+      "outcome": "PASS",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "f57537af6c7b2291d61f9a7a86a21a8b4a7bca6e140ffb842aabc9ff18bfebfd"
+    },
+    "base_failure_kind": "none",
+    "base_reproduced": true,
+    "catch_direction": "none",
+    "disposition": "head_passed",
+    "exclude_newer_cutoff": "",
+    "head_execution": {
+      "environment": {
+        "cache_key": "",
+        "cached": false,
+        "exclude_newer_cutoff": "",
+        "has_project_dependencies": true,
+        "image_digest": "sha256:9e87977b867847e186d066f531ef783b006d582a985c341c269446088d90f2c4",
+        "interpreter_version": "",
+        "inventory_probed": true,
+        "lockfile_sha256": "",
+        "provisioning": "option_c_trusted_image",
+        "python_path": "python",
+        "resolved_versions": [
+          "pip==25.0.1"
+        ],
+        "runtime_image": "docker.io/library/python@sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b",
+        "venv_dir": ""
+      },
+      "exit_code": 0,
+      "failure_kind": "none",
+      "outcome": "PASS",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "f57537af6c7b2291d61f9a7a86a21a8b4a7bca6e140ffb842aabc9ff18bfebfd"
+    },
+    "integrity": {
+      "command_sha256": "46e4a5f488b7bdcf47559e5c98360445ec06ddce423cd906d899f76b40c4f54c",
+      "dependencies_sha256": "f96c161ba4989c18ccefdde8ed8f3f918dbf70b90199e0b2775ac8f911bdae3e",
+      "exit_code": 1,
+      "image_digest": "sha256:9e87977b867847e186d066f531ef783b006d582a985c341c269446088d90f2c4",
+      "incomplete": false,
+      "non_reproducible": false,
+      "output_sha256": "451159e66e5f59a7f35470c79b8581114b6c9d3ae7bc4e17bed9fde08d11f690",
+      "policy_sha256": "04043e4f2a0f012dd32618ec75382aba732cf5847bbdecda41ae586a927c3a63",
+      "record_digest": "ec760938ebffbc08387811d44c422dc5e13240d813ffc3853132c66d38312ef5",
+      "refusal_reason": "",
+      "reproducibility_note": "",
+      "schema_version": "integrity-1.0",
+      "source_sha256": "3e35a3e87e0599402c3e54b40c1cc2d745ed755291c8b678cb76797beb101ffa"
+    },
+    "interpreter_version": "",
+    "inventory_note": null,
+    "inventory_probed": true,
+    "output_guard": {
+      "files": 4,
+      "mode": "observe",
+      "ok": true,
+      "scanned": true,
+      "total_bytes": 956,
+      "violations": []
+    },
+    "proven_catch": false,
+    "provenance": {
+      "base_sha": "10195c44725a72fd6648055af4c5bef580891928",
+      "head_sha": "d717e49cfe1b462f18c2c71b0295522fa5b7d7d8",
+      "rel_path": ".",
+      "repo_canonical": "github.com/jittest-fixtures/installed-option-c",
+      "repo_path": "/tmp/jt-installed-option-c-zs4vl744/fixture",
+      "test_file_name": "test_calc.py",
+      "test_file_sha256": "3e35a3e87e0599402c3e54b40c1cc2d745ed755291c8b678cb76797beb101ffa",
+      "tool_branch": "",
+      "tool_build_provenance": {
+        "source_sha": "160291d09bef2c7a7491dead4d92eec69fe68c97",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tool_commit_sha": "160291d09bef2c7a7491dead4d92eec69fe68c97",
+      "tool_dirty": false,
+      "tool_tree_sha": ""
+    },
+    "provider_cost_usd": 0.0,
+    "readiness": {
+      "evaluated": false,
+      "mode": "observe",
+      "reason": "unsupported_manifest:pyproject.toml"
+    },
+    "refusal": null,
+    "rerun_agreement": true,
+    "resolved_versions": [
+      "pip==25.0.1"
+    ],
+    "sandbox": {
+      "backend": "docker",
+      "image": "docker.io/library/python@sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b",
+      "image_digest": "sha256:9e87977b867847e186d066f531ef783b006d582a985c341c269446088d90f2c4",
+      "isolated": true,
+      "mode": "required",
+      "network_denied": true,
+      "notes": [
+        "candidates executed under docker with network egress denied inside the maintainer-pinned runtime image docker.io/library/python@sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b"
+      ],
+      "runtime_image": "docker.io/library/python@sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b"
+    },
+    "schema_version": "2.1",
+    "signature": {
+      "algorithm": "Ed25519",
+      "value": "AQHt502X0SRwkSUMbhNZbj+/R9U2+EoDKLXV92dXzDEVVJUyZ/Rbaryx8zOw8iWmloOyKmVzI4E7rLeOhbvcBg==",
+      "verifying_key": "03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8"
+    },
+    "tool": "jittest verify",
+    "verdict": "non_discriminating",
+    "verdict_text": "Non-discriminating: the test passed on both base and head.",
+    "verification_phases": [
+      {
+        "dependencies_sha256": "f96c161ba4989c18ccefdde8ed8f3f918dbf70b90199e0b2775ac8f911bdae3e",
+        "exit_code": 0,
+        "failure_kind": "",
+        "outcome": "PASS",
+        "output_guard": {
+          "files": 4,
+          "mode": "observe",
+          "ok": true,
+          "scanned": true,
+          "total_bytes": 957,
+          "violations": []
+        },
+        "phase": "base",
+        "readiness": {
+          "evaluated": false,
+          "mode": "observe",
+          "reason": "unsupported_manifest:pyproject.toml"
+        },
+        "revision": "10195c44725a72fd6648055af4c5bef580891928",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "f57537af6c7b2291d61f9a7a86a21a8b4a7bca6e140ffb842aabc9ff18bfebfd",
+        "test_sha256": "3e35a3e87e0599402c3e54b40c1cc2d745ed755291c8b678cb76797beb101ffa"
+      },
+      {
+        "dependencies_sha256": "f96c161ba4989c18ccefdde8ed8f3f918dbf70b90199e0b2775ac8f911bdae3e",
+        "exit_code": 0,
+        "failure_kind": "",
+        "outcome": "PASS",
+        "output_guard": {
+          "files": 4,
+          "mode": "observe",
+          "ok": true,
+          "scanned": true,
+          "total_bytes": 956,
+          "violations": []
+        },
+        "phase": "head",
+        "readiness": {
+          "evaluated": false,
+          "mode": "observe",
+          "reason": "unsupported_manifest:pyproject.toml"
+        },
+        "revision": "d717e49cfe1b462f18c2c71b0295522fa5b7d7d8",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "f57537af6c7b2291d61f9a7a86a21a8b4a7bca6e140ffb842aabc9ff18bfebfd",
+        "test_sha256": "3e35a3e87e0599402c3e54b40c1cc2d745ed755291c8b678cb76797beb101ffa"
+      }
+    ],
+    "wall_clock_s": 5.4305
+  },
+  "consumer": {
+    "artifact": "/tmp/jt-installed-option-c-zs4vl744/receipt.json",
+    "execution_trust": "CONFINED",
+    "expected_signer": "03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8",
+    "provenance_status": "MATCHED",
+    "reason": "SIGNATURE_VALID \u00b7 SIGNER_TRUSTED (fingerprint: 56475aa75463474c) \u00b7 SCHEMA_VALID \u00b7 PROVENANCE_MATCHED",
+    "schema_status": "VALID",
+    "semantic_valid": true,
+    "signature_valid": true,
+    "signer_status": "TRUSTED",
+    "valid": true
+  },
+  "containers_after": [],
+  "containers_before": [],
+  "fixture_only_not_universal_safety": true,
+  "head_image_override_ignored": true,
+  "head_sha": "d717e49cfe1b462f18c2c71b0295522fa5b7d7d8",
+  "host_key_environment_network_canaries_passed": true,
+  "image": "docker.io/library/python@sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b",
+  "passed": true,
+  "pip_version": "25.0.1",
+  "qualification_scope": "installed_wheel_dependency_bearing_public_required_path",
+  "receipt": {
+    "base_execution": {
+      "environment": {
+        "cache_key": "",
+        "cached": false,
+        "exclude_newer_cutoff": "",
+        "has_project_dependencies": true,
+        "image_digest": "sha256:9e87977b867847e186d066f531ef783b006d582a985c341c269446088d90f2c4",
+        "interpreter_version": "",
+        "inventory_probed": true,
+        "lockfile_sha256": "",
+        "provisioning": "option_c_trusted_image",
+        "python_path": "python",
+        "resolved_versions": [
+          "pip==25.0.1"
+        ],
+        "runtime_image": "docker.io/library/python@sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b",
+        "venv_dir": ""
+      },
+      "exit_code": 0,
+      "failure_kind": "none",
+      "outcome": "PASS",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "f57537af6c7b2291d61f9a7a86a21a8b4a7bca6e140ffb842aabc9ff18bfebfd"
+    },
+    "base_failure_kind": "none",
+    "base_reproduced": true,
+    "catch_direction": "regression",
+    "disposition": "catching",
+    "exclude_newer_cutoff": "",
+    "head_execution": {
+      "environment": {
+        "cache_key": "",
+        "cached": false,
+        "exclude_newer_cutoff": "",
+        "has_project_dependencies": true,
+        "image_digest": "sha256:9e87977b867847e186d066f531ef783b006d582a985c341c269446088d90f2c4",
+        "interpreter_version": "",
+        "inventory_probed": true,
+        "lockfile_sha256": "",
+        "provisioning": "option_c_trusted_image",
+        "python_path": "python",
+        "resolved_versions": [
+          "pip==25.0.1"
+        ],
+        "runtime_image": "docker.io/library/python@sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b",
+        "venv_dir": ""
+      },
+      "exit_code": 1,
+      "failure_kind": "assertion",
+      "outcome": "FAIL",
+      "stderr_sha256": "fe383f4473a0b5c56502512967488804fda2feb861f6c8e05ba8cd195249e61e",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "integrity": {
+      "command_sha256": "46e4a5f488b7bdcf47559e5c98360445ec06ddce423cd906d899f76b40c4f54c",
+      "dependencies_sha256": "f96c161ba4989c18ccefdde8ed8f3f918dbf70b90199e0b2775ac8f911bdae3e",
+      "exit_code": 0,
+      "image_digest": "sha256:9e87977b867847e186d066f531ef783b006d582a985c341c269446088d90f2c4",
+      "incomplete": false,
+      "non_reproducible": false,
+      "output_sha256": "219a4981f093e155133269b9e421155c15d9f1c3fcf712b27e863ed9fdfbcab5",
+      "policy_sha256": "04043e4f2a0f012dd32618ec75382aba732cf5847bbdecda41ae586a927c3a63",
+      "record_digest": "c31fd4d79a19367e1bcbede7b0a35ec03608dee5a7cd29665158e105924a0aeb",
+      "refusal_reason": "",
+      "reproducibility_note": "",
+      "schema_version": "integrity-1.0",
+      "source_sha256": "ffd1b69424c5ec5b8c8692509aeb321c536a9bedf1b1e03aa55392a1e250d64e"
+    },
+    "interpreter_version": "",
+    "inventory_note": null,
+    "inventory_probed": true,
+    "output_guard": {
+      "files": 4,
+      "mode": "observe",
+      "ok": true,
+      "scanned": true,
+      "total_bytes": 956,
+      "violations": []
+    },
+    "proven_catch": true,
+    "provenance": {
+      "base_sha": "10195c44725a72fd6648055af4c5bef580891928",
+      "head_sha": "d717e49cfe1b462f18c2c71b0295522fa5b7d7d8",
+      "rel_path": ".",
+      "repo_canonical": "github.com/jittest-fixtures/installed-option-c",
+      "repo_path": "/tmp/jt-installed-option-c-zs4vl744/fixture",
+      "test_file_name": "test_calc.py",
+      "test_file_sha256": "ffd1b69424c5ec5b8c8692509aeb321c536a9bedf1b1e03aa55392a1e250d64e",
+      "tool_branch": "",
+      "tool_build_provenance": {
+        "source_sha": "160291d09bef2c7a7491dead4d92eec69fe68c97",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tool_commit_sha": "160291d09bef2c7a7491dead4d92eec69fe68c97",
+      "tool_dirty": false,
+      "tool_tree_sha": ""
+    },
+    "provider_cost_usd": 0.0,
+    "readiness": {
+      "evaluated": false,
+      "mode": "observe",
+      "reason": "unsupported_manifest:pyproject.toml"
+    },
+    "refusal": null,
+    "rerun_agreement": true,
+    "resolved_versions": [
+      "pip==25.0.1"
+    ],
+    "sandbox": {
+      "backend": "docker",
+      "image": "docker.io/library/python@sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b",
+      "image_digest": "sha256:9e87977b867847e186d066f531ef783b006d582a985c341c269446088d90f2c4",
+      "isolated": true,
+      "mode": "required",
+      "network_denied": true,
+      "notes": [
+        "candidates executed under docker with network egress denied inside the maintainer-pinned runtime image docker.io/library/python@sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b"
+      ],
+      "runtime_image": "docker.io/library/python@sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b"
+    },
+    "schema_version": "2.1",
+    "signature": {
+      "algorithm": "Ed25519",
+      "value": "3boMzJs40NHDNpXU1b33pWXO9IUfVXohTBLwao2R7ADFgTmAyb4jrCi+B7tGY0LUpXllgOVI96PdCOOQ0uAqCQ==",
+      "verifying_key": "03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8"
+    },
+    "tool": "jittest verify",
+    "verdict": "proven_catch",
+    "verdict_text": "Regression catch proven: the test passed on base and failed on head.",
+    "verification_phases": [
+      {
+        "dependencies_sha256": "f96c161ba4989c18ccefdde8ed8f3f918dbf70b90199e0b2775ac8f911bdae3e",
+        "exit_code": 0,
+        "failure_kind": "",
+        "outcome": "PASS",
+        "output_guard": {
+          "files": 4,
+          "mode": "observe",
+          "ok": true,
+          "scanned": true,
+          "total_bytes": 957,
+          "violations": []
+        },
+        "phase": "base",
+        "readiness": {
+          "evaluated": false,
+          "mode": "observe",
+          "reason": "unsupported_manifest:pyproject.toml"
+        },
+        "revision": "10195c44725a72fd6648055af4c5bef580891928",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "f57537af6c7b2291d61f9a7a86a21a8b4a7bca6e140ffb842aabc9ff18bfebfd",
+        "test_sha256": "ffd1b69424c5ec5b8c8692509aeb321c536a9bedf1b1e03aa55392a1e250d64e"
+      },
+      {
+        "dependencies_sha256": "f96c161ba4989c18ccefdde8ed8f3f918dbf70b90199e0b2775ac8f911bdae3e",
+        "exit_code": 1,
+        "failure_kind": "assertion",
+        "outcome": "FAIL",
+        "output_guard": {
+          "files": 4,
+          "mode": "observe",
+          "ok": true,
+          "scanned": true,
+          "total_bytes": 956,
+          "violations": []
+        },
+        "phase": "head",
+        "readiness": {
+          "evaluated": false,
+          "mode": "observe",
+          "reason": "unsupported_manifest:pyproject.toml"
+        },
+        "revision": "d717e49cfe1b462f18c2c71b0295522fa5b7d7d8",
+        "stderr_sha256": "fe383f4473a0b5c56502512967488804fda2feb861f6c8e05ba8cd195249e61e",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "test_sha256": "ffd1b69424c5ec5b8c8692509aeb321c536a9bedf1b1e03aa55392a1e250d64e"
+      },
+      {
+        "dependencies_sha256": "f96c161ba4989c18ccefdde8ed8f3f918dbf70b90199e0b2775ac8f911bdae3e",
+        "exit_code": 1,
+        "failure_kind": "assertion",
+        "outcome": "FAIL",
+        "output_guard": {
+          "files": 4,
+          "mode": "observe",
+          "ok": true,
+          "scanned": true,
+          "total_bytes": 956,
+          "violations": []
+        },
+        "phase": "head_rerun_2",
+        "readiness": {
+          "evaluated": false,
+          "mode": "observe",
+          "reason": "unsupported_manifest:pyproject.toml"
+        },
+        "revision": "d717e49cfe1b462f18c2c71b0295522fa5b7d7d8",
+        "stderr_sha256": "95ed0c56305bc94736643c4aebff75e7c429e2ca35076e9f158be165c5ac7c60",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "test_sha256": "ffd1b69424c5ec5b8c8692509aeb321c536a9bedf1b1e03aa55392a1e250d64e"
+      }
+    ],
+    "wall_clock_s": 3.7261
+  },
+  "seconds": 31.232037705000003,
+  "status": "RUN",
+  "timeout_cleanup_passed": true,
+  "timeout_receipt": {
+    "base_execution": {
+      "environment": {
+        "cache_key": "",
+        "cached": false,
+        "exclude_newer_cutoff": "",
+        "has_project_dependencies": true,
+        "image_digest": "sha256:9e87977b867847e186d066f531ef783b006d582a985c341c269446088d90f2c4",
+        "interpreter_version": "",
+        "inventory_probed": true,
+        "lockfile_sha256": "",
+        "provisioning": "option_c_trusted_image",
+        "python_path": "python",
+        "resolved_versions": [
+          "pip==25.0.1"
+        ],
+        "runtime_image": "docker.io/library/python@sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b",
+        "venv_dir": ""
+      },
+      "exit_code": -1,
+      "failure_kind": "timeout",
+      "outcome": "TIMEOUT",
+      "stderr_sha256": "dedcc9789fa044f6e6457008f48e211c6ec15d221ca6c014c3fe59ea627acb3a",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "base_failure_kind": "timeout",
+    "base_reproduced": false,
+    "catch_direction": "none",
+    "disposition": "base_uncollectable",
+    "exclude_newer_cutoff": "",
+    "head_execution": {
+      "environment": {
+        "cache_key": "",
+        "cached": false,
+        "exclude_newer_cutoff": "",
+        "has_project_dependencies": true,
+        "image_digest": "sha256:9e87977b867847e186d066f531ef783b006d582a985c341c269446088d90f2c4",
+        "interpreter_version": "",
+        "inventory_probed": true,
+        "lockfile_sha256": "",
+        "provisioning": "option_c_trusted_image",
+        "python_path": "python",
+        "resolved_versions": [
+          "pip==25.0.1"
+        ],
+        "runtime_image": "docker.io/library/python@sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b",
+        "venv_dir": ""
+      },
+      "exit_code": -1,
+      "failure_kind": "timeout",
+      "outcome": "TIMEOUT",
+      "stderr_sha256": "dedcc9789fa044f6e6457008f48e211c6ec15d221ca6c014c3fe59ea627acb3a",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "integrity": {
+      "command_sha256": "46e4a5f488b7bdcf47559e5c98360445ec06ddce423cd906d899f76b40c4f54c",
+      "dependencies_sha256": "f96c161ba4989c18ccefdde8ed8f3f918dbf70b90199e0b2775ac8f911bdae3e",
+      "exit_code": 1,
+      "image_digest": "sha256:9e87977b867847e186d066f531ef783b006d582a985c341c269446088d90f2c4",
+      "incomplete": false,
+      "non_reproducible": false,
+      "output_sha256": "3b7546ed79e3e5a7907381b093c5a182cbf364c5dd0443dfa956c8cca271cc33",
+      "policy_sha256": "04043e4f2a0f012dd32618ec75382aba732cf5847bbdecda41ae586a927c3a63",
+      "record_digest": "d6ca57966088fe2b365dee85ac308eb7b9bab837b74dea22c182b6b555d0a1d1",
+      "refusal_reason": "",
+      "reproducibility_note": "",
+      "schema_version": "integrity-1.0",
+      "source_sha256": "500242fbf5583ad8da615311b2eace83b35fd040ddb3674e86081853c7c5e4d8"
+    },
+    "interpreter_version": "",
+    "inventory_note": null,
+    "inventory_probed": true,
+    "output_guard": {
+      "files": 4,
+      "mode": "observe",
+      "ok": true,
+      "scanned": true,
+      "total_bytes": 956,
+      "violations": []
+    },
+    "proven_catch": false,
+    "provenance": {
+      "base_sha": "10195c44725a72fd6648055af4c5bef580891928",
+      "head_sha": "d717e49cfe1b462f18c2c71b0295522fa5b7d7d8",
+      "rel_path": ".",
+      "repo_canonical": "github.com/jittest-fixtures/installed-option-c",
+      "repo_path": "/tmp/jt-installed-option-c-zs4vl744/fixture",
+      "test_file_name": "test_calc.py",
+      "test_file_sha256": "500242fbf5583ad8da615311b2eace83b35fd040ddb3674e86081853c7c5e4d8",
+      "tool_branch": "",
+      "tool_build_provenance": {
+        "source_sha": "160291d09bef2c7a7491dead4d92eec69fe68c97",
+        "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tool_commit_sha": "160291d09bef2c7a7491dead4d92eec69fe68c97",
+      "tool_dirty": false,
+      "tool_tree_sha": ""
+    },
+    "provider_cost_usd": 0.0,
+    "readiness": {
+      "evaluated": false,
+      "mode": "observe",
+      "reason": "unsupported_manifest:pyproject.toml"
+    },
+    "refusal": null,
+    "rerun_agreement": true,
+    "resolved_versions": [
+      "pip==25.0.1"
+    ],
+    "sandbox": {
+      "backend": "docker",
+      "image": "docker.io/library/python@sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b",
+      "image_digest": "sha256:9e87977b867847e186d066f531ef783b006d582a985c341c269446088d90f2c4",
+      "isolated": true,
+      "mode": "required",
+      "network_denied": true,
+      "notes": [
+        "candidates executed under docker with network egress denied inside the maintainer-pinned runtime image docker.io/library/python@sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b"
+      ],
+      "runtime_image": "docker.io/library/python@sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b"
+    },
+    "schema_version": "2.1",
+    "signature": {
+      "algorithm": "Ed25519",
+      "value": "Tdcm311eZp0NFiAqON2k+jrK6Z5bsCtqV4d0LI6G9ftxRxw1gWtS9QnmpkKQCatornaT8DKiYBDHqZ/B5sHqCw==",
+      "verifying_key": "03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8"
+    },
+    "tool": "jittest verify",
+    "verdict": "inconclusive",
+    "verdict_text": "Inconclusive: verification refused because execution could not be completed safely.",
+    "verification_phases": [
+      {
+        "dependencies_sha256": "f96c161ba4989c18ccefdde8ed8f3f918dbf70b90199e0b2775ac8f911bdae3e",
+        "exit_code": -1,
+        "failure_kind": "unknown",
+        "outcome": "TIMEOUT",
+        "output_guard": {
+          "files": 4,
+          "mode": "observe",
+          "ok": true,
+          "scanned": true,
+          "total_bytes": 957,
+          "violations": []
+        },
+        "phase": "base",
+        "readiness": {
+          "evaluated": false,
+          "mode": "observe",
+          "reason": "unsupported_manifest:pyproject.toml"
+        },
+        "revision": "10195c44725a72fd6648055af4c5bef580891928",
+        "stderr_sha256": "dedcc9789fa044f6e6457008f48e211c6ec15d221ca6c014c3fe59ea627acb3a",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "test_sha256": "500242fbf5583ad8da615311b2eace83b35fd040ddb3674e86081853c7c5e4d8"
+      },
+      {
+        "dependencies_sha256": "f96c161ba4989c18ccefdde8ed8f3f918dbf70b90199e0b2775ac8f911bdae3e",
+        "exit_code": -1,
+        "failure_kind": "unknown",
+        "outcome": "TIMEOUT",
+        "output_guard": {
+          "files": 4,
+          "mode": "observe",
+          "ok": true,
+          "scanned": true,
+          "total_bytes": 956,
+          "violations": []
+        },
+        "phase": "head",
+        "readiness": {
+          "evaluated": false,
+          "mode": "observe",
+          "reason": "unsupported_manifest:pyproject.toml"
+        },
+        "revision": "d717e49cfe1b462f18c2c71b0295522fa5b7d7d8",
+        "stderr_sha256": "dedcc9789fa044f6e6457008f48e211c6ec15d221ca6c014c3fe59ea627acb3a",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "test_sha256": "500242fbf5583ad8da615311b2eace83b35fd040ddb3674e86081853c7c5e4d8"
+      }
+    ],
+    "wall_clock_s": 11.7368
+  },
+  "verified_digest": "sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b",
+  "wheel_sha256": "756a60d2d46dc9d992655dfb32b51fb3698fc0a49494d558f42a573e9d2e78b0"
+}

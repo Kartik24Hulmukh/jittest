@@ -48,7 +48,7 @@ Prints:
 ```text
 jittest verify-receipt: SIGNATURE_VALID · SIGNER_UNVERIFIED — integrity only, not authenticity
 ```
-And exits with code **3** (non-zero) to signal that authorship has not been established.
+Without `--strict-signer`, a valid receipt can exit **0** with signer **UNVERIFIED**: integrity only, not established authorship. Add `--strict-signer` to reject an unspecified/unverified signer (exit **3**). Schema, semantic and requested provenance/confinement failures have their own nonzero exits; see `SCHEMA.md`.
 
 ## Allowlist File Format
 
@@ -66,3 +66,4 @@ An allowlist file contains one allowed hex key or fingerprint prefix per line. L
 
 The private signing key for published project receipts is currently held locally on developer hardware, not inside an HSM or automated CI secret store. Evidence receipts produced by repository maintainers are signed using this developer-held key.
 
+The official project signer applies only to project-produced artifacts. Local/partner receipts use their own signer; obtain that public key through a trusted channel. A key embedded in the receipt cannot establish its own authenticity. Signature and signer checks do not rerun execution, establish test sufficiency, or independently attest confinement.

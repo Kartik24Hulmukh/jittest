@@ -1,0 +1,1713 @@
+{
+  "benchmark_correspondence_second_phase": {
+    "instruction": "After locking phase-one labels, separately assess defect-trigger correspondence.",
+    "labels": null,
+    "status": "not_started"
+  },
+  "case_mapping": [
+    {
+      "case_id": "739100812f4de40abb9d8c10",
+      "json_pointer": "/manifest/python_sampling_frame/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "d177e11d5572270e594089d0",
+      "json_pointer": "/manifest/python_sampling_frame/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "57a072a9a3b1f0f2d0b34cbd",
+      "json_pointer": "/manifest/python_sampling_frame/2",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "4082109489c4484d448278be",
+      "json_pointer": "/manifest/python_sampling_frame/3",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "85842f6247e29fd8729e9c5a",
+      "json_pointer": "/manifest/python_sampling_frame/4",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "6690f7ed1bb84c7b32d898c2",
+      "json_pointer": "/manifest/python_sampling_frame/5",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "049fe7a8737f87dc306d0c20",
+      "json_pointer": "/manifest/python_sampling_frame/6",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "e02ed478132cda3bf28cc88a",
+      "json_pointer": "/manifest/python_sampling_frame/7",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "7f4b71e165fd7bc6ba2e3c28",
+      "json_pointer": "/manifest/python_sampling_frame/8",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "f9f437dcfa632b4be81e3988",
+      "json_pointer": "/manifest/python_sampling_frame/9",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "755a2286136daeb86f0fa902",
+      "json_pointer": "/manifest/python_sampling_frame/10",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "8954f366fd57cdee3310b9e7",
+      "json_pointer": "/manifest/python_sampling_frame/11",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "5a282461e65bd9563cfc10c8",
+      "json_pointer": "/manifest/python_sampling_frame/12",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "a6d7ac7f013c9e3a6d86d4e0",
+      "json_pointer": "/manifest/python_sampling_frame/13",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "bcd8aca47817275e089f7ec7",
+      "json_pointer": "/manifest/python_sampling_frame/14",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "42860105931c1d95224b395d",
+      "json_pointer": "/manifest/python_sampling_frame/15",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "b093337bac778023bbbea5fa",
+      "json_pointer": "/manifest/python_sampling_frame/16",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "c2000872e5881906273bcf29",
+      "json_pointer": "/manifest/python_sampling_frame/17",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "afd8604563ba4a3b81cc492b",
+      "json_pointer": "/manifest/python_sampling_frame/18",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "4a4b1497f1dd37060e8942d6",
+      "json_pointer": "/manifest/python_sampling_frame/19",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "ea189df822ceae7c0449400d",
+      "json_pointer": "/manifest/python_sampling_frame/20",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "dcb31ace2967a8e99ce79e4b",
+      "json_pointer": "/manifest/python_sampling_frame/21",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "03f61bf2e0974f114b4bc43f",
+      "json_pointer": "/manifest/python_sampling_frame/22",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "af388894b5310a9aaf4711df",
+      "json_pointer": "/manifest/python_sampling_frame/23",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "a94c05ac965f7dd6abfb48a6",
+      "json_pointer": "/manifest/python_sampling_frame/24",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "6d498d8fbd12138e5f9719b1",
+      "json_pointer": "/manifest/python_sampling_frame/25",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "3b31cb114e9eabbc36b71474",
+      "json_pointer": "/manifest/python_sampling_frame/26",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "8dcc84c5e8d0604577dacc58",
+      "json_pointer": "/manifest/python_sampling_frame/27",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "925abd0718aab425fee4b268",
+      "json_pointer": "/manifest/python_sampling_frame/28",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "82155834b0301c72ee5c6bc3",
+      "json_pointer": "/manifest/python_sampling_frame/29",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "d1d311578fedee0e76a02a57",
+      "json_pointer": "/manifest/python_sampling_frame/30",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "dfdfe691dd07c832e46f4200",
+      "json_pointer": "/manifest/python_sampling_frame/31",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "3929cfd45dc6dbc84ee77b0f",
+      "json_pointer": "/manifest/python_sampling_frame/32",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "9079a67378f67bcb258c316d",
+      "json_pointer": "/manifest/python_sampling_frame/33",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "3c4292f5b01fbb3025ca9751",
+      "json_pointer": "/manifest/python_sampling_frame/34",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "a4a57d877a4f608e15f27f40",
+      "json_pointer": "/manifest/python_sampling_frame/35",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "8f33c0ee5e036957053a67b3",
+      "json_pointer": "/manifest/python_sampling_frame/36",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "c55512c6b449b850206dd7c4",
+      "json_pointer": "/manifest/python_sampling_frame/37",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "e3011bbb2d9d890408097235",
+      "json_pointer": "/manifest/python_sampling_frame/38",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "3872ffab8a5a8c453d2114e0",
+      "json_pointer": "/manifest/python_sampling_frame/39",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "3ac527ef9b96b6b396f0c513",
+      "json_pointer": "/manifest/python_sampling_frame/40",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "0c1b3f4262bae6d4331bc6b2",
+      "json_pointer": "/manifest/python_sampling_frame/41",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "69ee8cd4dfaa31033e3521d3",
+      "json_pointer": "/manifest/python_sampling_frame/42",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "77e098f32415b0b32fd1cc71",
+      "json_pointer": "/manifest/python_sampling_frame/43",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "ccec073dafa6bcf158eb2c1e",
+      "json_pointer": "/manifest/python_sampling_frame/44",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "9b1ffcccb232b2ea0e703605",
+      "json_pointer": "/manifest/python_sampling_frame/45",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "07b24e8246b6a9ac3ff776e6",
+      "json_pointer": "/manifest/python_sampling_frame/46",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "ff09019601e449a775a69585",
+      "json_pointer": "/manifest/python_sampling_frame/47",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "145a50a17186f5fc434e1bf7",
+      "json_pointer": "/manifest/python_sampling_frame/48",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "974ce96e0c9823bce48e62d7",
+      "json_pointer": "/manifest/python_sampling_frame/49",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "20b82c6ce7d02fecf7669170",
+      "json_pointer": "/manifest/python_sampling_frame/50",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "9f8c880457f62d10de0b46d1",
+      "json_pointer": "/manifest/python_sampling_frame/51",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "2a383badd0d41b27e819b45e",
+      "json_pointer": "/manifest/python_sampling_frame/52",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "2ac989e4a546c3d85acbf716",
+      "json_pointer": "/manifest/python_sampling_frame/53",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "52947707c5b10ce907c62f81",
+      "json_pointer": "/manifest/python_sampling_frame/54",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "a5f4076739e52acdd66fa4d8",
+      "json_pointer": "/results/3/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "f80eb0755bddab5ca7dcefc4",
+      "json_pointer": "/results/3/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "53e74e7992e541323e505cce",
+      "json_pointer": "/results/3/telemetry/4",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "f2b0ad91270f74bdcddc0bf3",
+      "json_pointer": "/results/4/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "287027044709a536b9e4748c",
+      "json_pointer": "/results/8/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "e2036cda44815797ab2d5558",
+      "json_pointer": "/results/8/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "9e190a759b48a12887d41dfb",
+      "json_pointer": "/results/11/telemetry/4",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "0727216527cf8cd7df91dbe6",
+      "json_pointer": "/results/12/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "5897c22063b24cff7787c658",
+      "json_pointer": "/results/16/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "22cb5e1c55bf370d8ca618b2",
+      "json_pointer": "/results/17/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "28f9a26e4c169ba9a3e5097f",
+      "json_pointer": "/results/21/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "6eaa093bcb6cca38b9616e67",
+      "json_pointer": "/results/30/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "71bfc4589f3b5e2749b4a9a2",
+      "json_pointer": "/results/31/telemetry/2",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "d7b14e843328588f2e55f688",
+      "json_pointer": "/results/36/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "e55b313f2030be83cb4fb3c5",
+      "json_pointer": "/results/36/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "373fa9eefc50aae36d9f0a03",
+      "json_pointer": "/results/36/telemetry/4",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "case_id": "a75a23c1e5f144e69029a62e",
+      "json_pointer": "/bug_results/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "6dd15f35334f29070eb7499e",
+      "json_pointer": "/bug_results/1",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "c083b26ac0171efcc3e582b9",
+      "json_pointer": "/bug_results/2",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "f3bc989c67534dbdc117473c",
+      "json_pointer": "/bug_results/3",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "7e653686e2bffe048b4896f4",
+      "json_pointer": "/bug_results/4",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "d12056632ee0e391e9b3f1a3",
+      "json_pointer": "/bug_results/5",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "d8bee7ed2b23cf4c0259c8d5",
+      "json_pointer": "/bug_results/6",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "818d854aea4151f285b2a837",
+      "json_pointer": "/bug_results/7",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "a0797d4817030732b3127c6f",
+      "json_pointer": "/bug_results/8",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "c8c7c1c2839a10c2a55021b3",
+      "json_pointer": "/bug_results/9",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "53d9aa35cf880902218c9a60",
+      "json_pointer": "/bug_results/10",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "2d2873a5f5f6aecb548d4f2c",
+      "json_pointer": "/bug_results/11",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "a717d89c548d0fddd412e017",
+      "json_pointer": "/bug_results/12",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "3914425d7aae8e1ca78c8d0c",
+      "json_pointer": "/bug_results/13",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "483d7c0b861f171231fd11e2",
+      "json_pointer": "/bug_results/14",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "8cdf324138e547f61f8d0a02",
+      "json_pointer": "/bug_results/15",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "1fad062afc3f05bb7838c504",
+      "json_pointer": "/bug_results/16",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "ecb21308d19eb0e8c8b1d76d",
+      "json_pointer": "/bug_results/17",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "5f4e4baa7e3aa858e58a1c7c",
+      "json_pointer": "/bug_results/18",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "02afae58a77d33c5e3ff13a8",
+      "json_pointer": "/bug_results/19",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "e5b683b19ab06b0ff635421a",
+      "json_pointer": "/bug_results/20",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "7488b0d54e1ca49d7643b59d",
+      "json_pointer": "/bug_results/21",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "ad553782e9e268b4ca1b1ff0",
+      "json_pointer": "/bug_results/22",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "b1cc3e7f96eee4cf9a138249",
+      "json_pointer": "/bug_results/23",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "589af29d8009a4cedcb4bcd8",
+      "json_pointer": "/bug_results/24",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "156bb4f1853a2f022062291a",
+      "json_pointer": "/bug_results/1/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "9f47b8731be944db1d55c78c",
+      "json_pointer": "/bug_results/1/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "e42544d9d24c810269fde465",
+      "json_pointer": "/bug_results/1/telemetry/3",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "07318528a2377661a2a14871",
+      "json_pointer": "/bug_results/1/telemetry/8",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "c8982ec0c9b311ac012e4106",
+      "json_pointer": "/bug_results/2/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "427961e1d1c012e5db0f9681",
+      "json_pointer": "/bug_results/3/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "ec659cd465fc156c3b56d29b",
+      "json_pointer": "/bug_results/4/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "8939047aab08baf8b15fbd41",
+      "json_pointer": "/bug_results/4/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "d6cf0faec6739f09e23274be",
+      "json_pointer": "/bug_results/6/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "ededf85cbaff88a86ee4c7c8",
+      "json_pointer": "/bug_results/7/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "bd19577e28b541cd9228b394",
+      "json_pointer": "/bug_results/8/telemetry/3",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "51810125b1c77bf7f9d3ffd6",
+      "json_pointer": "/bug_results/10/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "29426f54f7aeb62768fabb09",
+      "json_pointer": "/bug_results/11/telemetry/4",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "1cef063b211b8dd949a1ad4a",
+      "json_pointer": "/bug_results/12/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "8ca5fe99c1086680e657f2a5",
+      "json_pointer": "/bug_results/15/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "057a761a98966a156304dd2c",
+      "json_pointer": "/bug_results/18/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "4d86cd2384bc6f5271872397",
+      "json_pointer": "/bug_results/19/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "3cad180aeed50b476f76b138",
+      "json_pointer": "/bug_results/21/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "0ac2aa24188d3e0440254c4b",
+      "json_pointer": "/bug_results/22/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "case_id": "4fb4e9392f893f2a1adbac9a",
+      "json_pointer": "/bug_results/24/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    }
+  ],
+  "custody_warning": "Not a secret key; do not reuse these publicly mapped IDs for real blinded review.",
+  "distribution": "public_reference_mapping_not_private_custody",
+  "input_sha256": {
+    "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json": "6f53e740e7783c639ac53cdd5df10248df4e38401790128cc625bd4fa6a36969",
+    "docs/evidence/ga73-20260930/ci-default-bugs/ga73-fx.xml": "f95b3803d0f531bfc205f101974090d7454e29b8e4d1ea9db179ef09a64ad931",
+    "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-canary-fx.xml": "f95b3803d0f531bfc205f101974090d7454e29b8e4d1ea9db179ef09a64ad931",
+    "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json": "9028a73dafb95d5f35f1fe2e53baf1bd8fe549bcd440f66c774847b52c2616c4"
+  },
+  "schema_version": 1,
+  "typed_outcomes": [
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/0/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/1/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/1/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/1/telemetry/2",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/1/telemetry/3",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/1/telemetry/4",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/2/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/2/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/2/telemetry/2",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/2/telemetry/3",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/results/3/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/results/3/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/3/telemetry/2",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/3/telemetry/3",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/results/3/telemetry/4",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/results/4/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/4/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "safety_rejected",
+      "head_outcome": "",
+      "json_pointer": "/results/5/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "safety_rejected",
+      "head_outcome": "",
+      "json_pointer": "/results/5/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "safety_rejected",
+      "head_outcome": "",
+      "json_pointer": "/results/5/telemetry/2",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "safety_rejected",
+      "head_outcome": "",
+      "json_pointer": "/results/5/telemetry/3",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/6/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/7/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/7/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/results/8/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/results/8/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/8/telemetry/2",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "fail",
+      "disposition": "head_failed_base_failed_latent",
+      "head_outcome": "fail",
+      "json_pointer": "/results/8/telemetry/3",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/8/telemetry/4",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/8/telemetry/5",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/9/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/10/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/10/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/10/telemetry/2",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/10/telemetry/3",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/10/telemetry/4",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/11/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "fail",
+      "disposition": "head_failed_base_failed_latent",
+      "head_outcome": "fail",
+      "json_pointer": "/results/11/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "fail",
+      "disposition": "head_failed_base_failed_latent",
+      "head_outcome": "fail",
+      "json_pointer": "/results/11/telemetry/2",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "parse_failed",
+      "head_outcome": "",
+      "json_pointer": "/results/11/telemetry/3",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/results/11/telemetry/4",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/12/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/results/12/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/13/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/13/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/13/telemetry/2",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/13/telemetry/3",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "fail",
+      "disposition": "head_failed_base_failed_latent",
+      "head_outcome": "fail",
+      "json_pointer": "/results/13/telemetry/4",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "fail",
+      "disposition": "head_failed_base_failed_latent",
+      "head_outcome": "fail",
+      "json_pointer": "/results/13/telemetry/5",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "fail",
+      "disposition": "head_failed_base_failed_latent",
+      "head_outcome": "fail",
+      "json_pointer": "/results/13/telemetry/6",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "fail",
+      "disposition": "head_failed_base_failed_latent",
+      "head_outcome": "fail",
+      "json_pointer": "/results/13/telemetry/7",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/14/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/14/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/14/telemetry/2",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/15/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/15/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/results/16/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/results/17/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/18/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/19/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/20/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/results/21/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/22/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/22/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/22/telemetry/2",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/23/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/24/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/24/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/24/telemetry/2",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/24/telemetry/3",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/25/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/26/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/26/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/27/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/28/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/29/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/30/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/results/30/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "head_uncollectable",
+      "head_outcome": "error",
+      "json_pointer": "/results/31/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/31/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/results/31/telemetry/2",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/31/telemetry/3",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "safety_rejected",
+      "head_outcome": "",
+      "json_pointer": "/results/32/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/32/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/33/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/33/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/34/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "parse_failed",
+      "head_outcome": "",
+      "json_pointer": "/results/35/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/35/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/results/36/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/results/36/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "safety_rejected",
+      "head_outcome": "",
+      "json_pointer": "/results/36/telemetry/2",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "safety_rejected",
+      "head_outcome": "",
+      "json_pointer": "/results/36/telemetry/3",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/results/36/telemetry/4",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "timed_out",
+      "head_outcome": "",
+      "json_pointer": "/results/36/telemetry/5",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "timed_out",
+      "head_outcome": "",
+      "json_pointer": "/results/36/telemetry/6",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "timed_out",
+      "head_outcome": "",
+      "json_pointer": "/results/36/telemetry/7",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "timed_out",
+      "head_outcome": "",
+      "json_pointer": "/results/36/telemetry/8",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/37/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/38/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/results/39/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "safety_rejected",
+      "head_outcome": "",
+      "json_pointer": "/bug_results/0/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "safety_rejected",
+      "head_outcome": "",
+      "json_pointer": "/bug_results/0/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "safety_rejected",
+      "head_outcome": "",
+      "json_pointer": "/bug_results/0/telemetry/2",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "safety_rejected",
+      "head_outcome": "",
+      "json_pointer": "/bug_results/0/telemetry/3",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "safety_rejected",
+      "head_outcome": "",
+      "json_pointer": "/bug_results/0/telemetry/4",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "fail",
+      "disposition": "head_failed_base_failed_latent",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/0/telemetry/5",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "safety_rejected",
+      "head_outcome": "",
+      "json_pointer": "/bug_results/0/telemetry/6",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "head_passed",
+      "head_outcome": "pass",
+      "json_pointer": "/bug_results/0/telemetry/7",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/1/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/1/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "fail",
+      "disposition": "head_failed_base_failed_latent",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/1/telemetry/2",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/1/telemetry/3",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "safety_rejected",
+      "head_outcome": "",
+      "json_pointer": "/bug_results/1/telemetry/4",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "safety_rejected",
+      "head_outcome": "",
+      "json_pointer": "/bug_results/1/telemetry/5",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "safety_rejected",
+      "head_outcome": "",
+      "json_pointer": "/bug_results/1/telemetry/6",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "safety_rejected",
+      "head_outcome": "",
+      "json_pointer": "/bug_results/1/telemetry/7",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/1/telemetry/8",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/2/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/3/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/4/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/4/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "head_passed",
+      "head_outcome": "pass",
+      "json_pointer": "/bug_results/5/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "head_passed",
+      "head_outcome": "pass",
+      "json_pointer": "/bug_results/5/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "fail",
+      "disposition": "head_failed_base_failed_latent",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/5/telemetry/2",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "head_passed",
+      "head_outcome": "pass",
+      "json_pointer": "/bug_results/5/telemetry/3",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "fail",
+      "disposition": "head_failed_base_failed_latent",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/6/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/6/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/7/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "fail",
+      "disposition": "head_failed_base_failed_latent",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/8/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "fail",
+      "disposition": "head_failed_base_failed_latent",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/8/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "fail",
+      "disposition": "head_failed_base_failed_latent",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/8/telemetry/2",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/8/telemetry/3",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/10/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/bug_results/11/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/bug_results/11/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "fail",
+      "disposition": "head_failed_base_failed_latent",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/11/telemetry/2",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "fail",
+      "disposition": "head_failed_base_failed_latent",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/11/telemetry/3",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/11/telemetry/4",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/12/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/bug_results/13/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/15/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/bug_results/16/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/bug_results/17/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "fail",
+      "disposition": "head_failed_base_failed_latent",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/17/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "fail",
+      "disposition": "head_failed_base_failed_latent",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/17/telemetry/2",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/bug_results/17/telemetry/3",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/bug_results/17/telemetry/4",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/18/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/19/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "model_declined",
+      "head_outcome": "",
+      "json_pointer": "/bug_results/19/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/21/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "safety_rejected",
+      "head_outcome": "",
+      "json_pointer": "/bug_results/22/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/22/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "fail",
+      "disposition": "head_failed_base_failed_latent",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/23/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "fail",
+      "disposition": "head_failed_base_failed_latent",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/23/telemetry/1",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "fail",
+      "disposition": "head_failed_base_failed_latent",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/23/telemetry/2",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "",
+      "disposition": "safety_rejected",
+      "head_outcome": "",
+      "json_pointer": "/bug_results/23/telemetry/3",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    },
+    {
+      "base_outcome": "pass",
+      "disposition": "catching",
+      "head_outcome": "fail",
+      "json_pointer": "/bug_results/24/telemetry/0",
+      "source": "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json"
+    }
+  ]
+}

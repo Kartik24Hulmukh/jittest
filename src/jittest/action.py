@@ -13,6 +13,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -20,6 +21,7 @@ from typing import Any
 
 from .diff import git_env
 from .github import fetch_pr_base_head, upsert_pr_comment
+from .receipt import get_repo_canonical, verify_receipt
 from .sandbox import SandboxPlan, SandboxUnavailable, load_runtime_image, validate_image_ref
 from .sandbox import plan as plan_sandbox
 from .verify import RefusalReason, VerdictClass, make_refusal_receipt, verify_test
@@ -31,6 +33,7 @@ TEST_FILE_PATTERNS = ("test_", "_test.py")
 REFUSAL_DISPOSITIONS = {
     "base_uncollectable",
     "head_uncollectable",
+    "head_uncollectable_base_passed",
     "ENV_SETUP_FAILED",
     "SANDBOX_UNAVAILABLE",
     "TIMEOUT",
@@ -53,20 +56,35 @@ def is_test_file(path_str: str) -> bool:
 
 
 def get_changed_files(repo_path: Path, base_sha: str, head_sha: str) -> list[str]:
-    try:
-        res = subprocess.run(
-            ["git", "-C", str(repo_path), "diff", "--name-only", f"{base_sha}..{head_sha}"],
-            capture_output=True,
-            text=True,
-            errors="replace",
-            check=True,
-            env=git_env(),
-        )
-        files = [line.strip() for line in res.stdout.splitlines() if line.strip()]
-        return files
-    except Exception as exc:
-        logger.error("Failed to run git diff: %s", exc)
-        return []
+    # A failed comparison is not a successful empty diff.
+    res = subprocess.run(
+        ["git", "-C", str(repo_path), "diff", "--name-only", f"{base_sha}..{head_sha}"],
+        capture_output=True, text=True, errors="replace", check=True, env=git_env(),
+    )
+    return [line for line in res.stdout.splitlines() if line]
+
+
+def _resolve_commit(repo: Path, ref: str) -> str:
+    """Resolve locally available commit objects without executing checkout code."""
+    res = subprocess.run(
+        ["git", "-C", str(repo), "rev-parse", "--verify", "--end-of-options", f"{ref}^{{commit}}"],
+        capture_output=True, text=True, errors="replace", check=True, env=git_env(),
+    )
+    sha = res.stdout.strip()
+    if not re.fullmatch(r"[0-9a-fA-F]{40}", sha):
+        raise ValueError("comparison revision did not resolve to a commit SHA")
+    return sha
+
+
+def _event_payload() -> dict[str, Any]:
+    event_path = os.getenv("GITHUB_EVENT_PATH")
+    if not event_path:
+        return {}
+    with open(event_path, encoding="utf-8") as fh:
+        payload = json.load(fh)
+    if not isinstance(payload, dict):
+        raise ValueError("GitHub event must be an object")
+    return payload
 
 
 def get_trust_context() -> str:
@@ -98,6 +116,22 @@ def get_trust_context() -> str:
     return "unknown"
 
 
+def _report_summary(body: str, *, pr_number: str | None = None) -> str:
+    """Always retain a bounded runner summary, even when commenting is denied."""
+    summary_path = os.getenv("GITHUB_STEP_SUMMARY")
+    if summary_path:
+        try:
+            with open(summary_path, "a", encoding="utf-8") as fh:
+                fh.write(body[:65536] + "\n")
+        except OSError as exc:
+            logger.warning("Could not write GitHub step summary: %s", exc)
+    try:
+        return upsert_pr_comment(body, pr_number=pr_number)
+    except (OSError, ValueError, TypeError, RuntimeError, subprocess.SubprocessError) as exc:
+        logger.warning("Could not publish PR comment: %s", exc)
+        return "comment unavailable; verification policy unchanged"
+
+
 def run_action(
     repo_path: Path | str = ".",
     pr_number: int | str | None = None,
@@ -117,57 +151,80 @@ def run_action(
         logger.warning("Unknown policy '%s'; falling back to 'advisory'", policy_str)
         policy_str = "advisory"
 
-    # Resolve PR number from env if not passed
-    if pr_number is None:
-        pr_number = (
-            os.getenv("JITTEST_PR_NUMBER")
-            or (os.getenv("GITHUB_REF", "").split("/")[-2] if "pull" in os.getenv("GITHUB_REF", "") else None)
+    def comparison_refusal(exc: Exception) -> int:
+        logger.error("Comparison refused: %s", exc)
+        msg = (
+            "<!-- jittest-report -->\n"
+            "### 🛡️ `jittest verify` PR Check\n\n"
+            "**REFUSED: comparison unavailable**. Base/head resolution or Git diff failed; "
+            "the changed-test denominator is unknown. No test execution or catch was declared.\n"
         )
+        # Do not publish raw Git diagnostics (which may contain private paths).
+        (out_dir / "comparison-refusal.json").write_text(json.dumps({
+            "verdict": "inconclusive", "disposition": "refused_comparison_unavailable",
+            "proven_catch": False, "denominator_known": False,
+        }, indent=2) + "\n", encoding="utf-8")
+        _report_summary(msg, pr_number=str(pr_number) if pr_number else None)
+        annotation = "warning" if policy_str == "advisory" else "error"
+        print(f"::{annotation}::jittest verify: comparison refused; no test-free diff established", file=sys.stderr)
+        return 0 if policy_str == "advisory" else 1
 
-    # Fetch base and head SHAs
-    base_sha = os.getenv("JITTEST_BASE") or os.getenv("GITHUB_BASE_SHA")
-    head_sha = os.getenv("JITTEST_HEAD") or os.getenv("GITHUB_HEAD_SHA")
+    try:
+        payload = _event_payload()
+        pr = payload.get("pull_request")
+        if pr is not None and not isinstance(pr, dict):
+            raise ValueError("pull_request event must be an object")
+        # Composite inputs export an empty string by default. Treat it as absent.
+        pr_number = str(pr_number or os.getenv("JITTEST_PR_NUMBER") or "").strip() or None
+        if pr_number is None:
+            match = re.fullmatch(r"refs/pull/(\d+)/(?:head|merge)", os.getenv("GITHUB_REF", ""))
+            event_number = (pr or {}).get("number") or payload.get("number")
+            pr_number = str(event_number) if pr and event_number else (match.group(1) if match else None)
+        if pr_number is not None and not re.fullmatch(r"[1-9][0-9]*", pr_number):
+            raise ValueError("invalid PR number")
 
-    if pr_number and (not base_sha or not head_sha):
-        try:
-            base_sha, head_sha = fetch_pr_base_head(str(repo), pr_number)
-        except Exception as exc:
-            logger.warning("Could not fetch PR base/head: %s", exc)
-
-    if not head_sha:
-        try:
-            head_sha = subprocess.check_output(
-                ["git", "-C", str(repo), "rev-parse", "HEAD"],
-                text=True, errors="replace", env=git_env()
-            ).strip()
-        except Exception:
-            head_sha = "HEAD"
-
-    if not base_sha:
-        for candidate_ref in ("origin/main", "origin/master", "main", "master"):
-            try:
-                res = subprocess.run(
-                    ["git", "-C", str(repo), "merge-base", candidate_ref, head_sha],
-                    capture_output=True, text=True, errors="replace", check=True, env=git_env()
-                )
-                cand_sha = res.stdout.strip()
-                if cand_sha:
-                    base_sha = cand_sha
-                    break
-            except Exception:
-                continue
-        if not base_sha:
-            try:
-                res = subprocess.run(
-                    ["git", "-C", str(repo), "rev-parse", f"{head_sha}~1"],
-                    capture_output=True, text=True, errors="replace", check=True, env=git_env()
-                )
-                base_sha = res.stdout.strip()
-            except Exception:
-                base_sha = "HEAD~1"
-
-    # Extract changed test files
-    all_changed = get_changed_files(repo, base_sha, head_sha)
+        base_sha = os.getenv("JITTEST_BASE") or os.getenv("GITHUB_BASE_SHA")
+        head_sha = os.getenv("JITTEST_HEAD") or os.getenv("GITHUB_HEAD_SHA")
+        pr_context = bool(pr_number or pr is not None or os.getenv("GITHUB_EVENT_NAME", "").startswith("pull_request"))
+        if pr is not None and (not base_sha or not head_sha):
+            for side in ("base", "head"):
+                obj = pr.get(side)
+                if not isinstance(obj, dict) or not isinstance(obj.get("sha"), str) or not re.fullmatch(r"[0-9a-fA-F]{40}", obj["sha"]):
+                    raise ValueError("PR event must contain exact base/head commit SHAs")
+            base_sha = base_sha or pr["base"]["sha"]
+            head_sha = head_sha or pr["head"]["sha"]
+        if pr_context and (not base_sha or not head_sha):
+            identity = os.getenv("GITHUB_REPOSITORY", "")
+            if not pr_number or not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", identity):
+                raise ValueError("PR comparison requires exact SHAs or a canonical GitHub repository identity")
+            remote_base, remote_head = fetch_pr_base_head(identity, pr_number)
+            if not all(isinstance(x, str) and re.fullmatch(r"[0-9a-fA-F]{40}", x) for x in (remote_base, remote_head)):
+                raise ValueError("PR resolver did not return exact commit SHAs")
+            base_sha = base_sha or remote_base
+            head_sha = head_sha or remote_head
+        if not pr_context:
+            head_sha = head_sha or _resolve_commit(repo, "HEAD")
+            if not base_sha:
+                for candidate_ref in ("origin/main", "origin/master", "main", "master"):
+                    try:
+                        base_sha = subprocess.check_output(
+                            ["git", "-C", str(repo), "merge-base", candidate_ref, head_sha],
+                            text=True, errors="replace", env=git_env(), stderr=subprocess.DEVNULL,
+                        ).strip()
+                        if base_sha:
+                            break
+                    except subprocess.CalledProcessError:
+                        continue
+                base_sha = base_sha or f"{head_sha}~1"
+        # Exact local objects must exist. Never replace an unavailable PR head
+        # with the checkout's synthetic merge commit or silently fetch code.
+        if not base_sha or not head_sha:
+            raise ValueError("both comparison revisions are required")
+        base_sha = _resolve_commit(repo, base_sha)
+        head_sha = _resolve_commit(repo, head_sha)
+        all_changed = get_changed_files(repo, base_sha, head_sha)
+    except (OSError, ValueError, TypeError, subprocess.SubprocessError, RuntimeError) as exc:
+        return comparison_refusal(exc)
     changed_tests = [f for f in all_changed if is_test_file(f)]
 
     if not changed_tests:
@@ -176,7 +233,7 @@ def run_action(
             "### 🛡️ `jittest verify` PR Check\n\n"
             "**Zero test files modified** in PR diff. Verification skipped.\n"
         )
-        status = upsert_pr_comment(msg, pr_number=str(pr_number) if pr_number else None)
+        status = _report_summary(msg, pr_number=str(pr_number) if pr_number else None)
         print(f"jittest action: {status}")
         return 0
 
@@ -271,7 +328,7 @@ def run_action(
             f"**Total Changed Tests Evaluated**: {len(results)} | **Proven Catches**: 0 | **Policy**: `{policy_str}`"
         )
         comment_body = "\n".join(table_lines)
-        upsert_pr_comment(comment_body, pr_number=str(pr_number) if pr_number else None)
+        _report_summary(comment_body, pr_number=str(pr_number) if pr_number else None)
 
         if policy_str in ("strict", "block-on-refusal"):
             return 1
@@ -303,6 +360,21 @@ def run_action(
                 output_path=out_artifact,
                 sandbox_mode=sbx_mode,
             )
+            # The producer's boolean is not a consumer proof. Check the signed
+            # receipt independently and bind it to this exact pair and candidate.
+            accepted = verify_receipt(
+                evidence, expected_base=base_sha, expected_head=head_sha,
+                expected_test_sha256=hashlib.sha256(test_path.read_bytes()).hexdigest(),
+                expected_repo=get_repo_canonical(repo),
+            )
+            if evidence.get("schema_version") != "2.1" or not accepted.valid:
+                logger.error("Producer receipt rejected by independent consumer verification for %s", test_rel)
+                return {
+                    "file": test_rel, "verdict": VerdictClass.INCONCLUSIVE,
+                    "disposition": "refused_invalid_receipt", "proven_catch": False,
+                    "wall_clock_s": evidence.get("wall_clock_s", 0.0),
+                    "artifact": str(out_artifact),
+                }
             return {
                 "file": test_rel,
                 "verdict": evidence["verdict"],
@@ -363,11 +435,11 @@ def run_action(
     if refusal_tests:
         table_lines.append("")
         table_lines.append(
-            f"⚠️ **Execution / Setup Note**: {len(refusal_tests)} test(s) experienced setup, sandbox, or collection refusals. No positive regression catch was declared."
+            f"⚠️ **Execution / Setup Note**: {len(refusal_tests)} test(s) experienced setup, sandbox, or collection refusals. These refusals were not counted as positive regression catches."
         )
 
     comment_body = "\n".join(table_lines)
-    comment_status = upsert_pr_comment(comment_body, pr_number=str(pr_number) if pr_number else None)
+    comment_status = _report_summary(comment_body, pr_number=str(pr_number) if pr_number else None)
     print(f"\njittest action PR Comment: {comment_status}")
 
     # Honest policy exit codes:
@@ -375,9 +447,9 @@ def run_action(
     # 2. 'strict': exit 0 only if pc_count >= 1 or zero tests changed; exit 1 otherwise.
     # 3. 'block-on-refusal': exit 1 if any refusal occurred; exit 0 otherwise.
     if policy_str == "strict":
-        if len(results) == 0 or pc_count >= 1:
+        if not refusal_tests and (len(results) == 0 or pc_count >= 1):
             return 0
-        print("::error::jittest verify: strict policy failed — zero proven catches found", file=sys.stderr)
+        print("::error::jittest verify: strict policy failed — refusals or zero proven catches found", file=sys.stderr)
         return 1
 
     if policy_str == "block-on-refusal":

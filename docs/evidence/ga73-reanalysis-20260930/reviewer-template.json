@@ -1,0 +1,2327 @@
+{
+  "blinding": "public_template_not_actually_blinded",
+  "cases": [
+    {
+      "assertion_validity": null,
+      "case_id": "02afae58a77d33c5e3ff13a8",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "03f61bf2e0974f114b4bc43f",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "049fe7a8737f87dc306d0c20",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "057a761a98966a156304dd2c",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "0727216527cf8cd7df91dbe6",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "07318528a2377661a2a14871",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "07b24e8246b6a9ac3ff776e6",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "0ac2aa24188d3e0440254c4b",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "0c1b3f4262bae6d4331bc6b2",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "145a50a17186f5fc434e1bf7",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "156bb4f1853a2f022062291a",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "1cef063b211b8dd949a1ad4a",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "1fad062afc3f05bb7838c504",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "20b82c6ce7d02fecf7669170",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "22cb5e1c55bf370d8ca618b2",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "287027044709a536b9e4748c",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "28f9a26e4c169ba9a3e5097f",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "29426f54f7aeb62768fabb09",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "2a383badd0d41b27e819b45e",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "2ac989e4a546c3d85acbf716",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "2d2873a5f5f6aecb548d4f2c",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "373fa9eefc50aae36d9f0a03",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "3872ffab8a5a8c453d2114e0",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "3914425d7aae8e1ca78c8d0c",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "3929cfd45dc6dbc84ee77b0f",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "3ac527ef9b96b6b396f0c513",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "3b31cb114e9eabbc36b71474",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "3c4292f5b01fbb3025ca9751",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "3cad180aeed50b476f76b138",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "4082109489c4484d448278be",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "427961e1d1c012e5db0f9681",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "42860105931c1d95224b395d",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "483d7c0b861f171231fd11e2",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "4a4b1497f1dd37060e8942d6",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "4d86cd2384bc6f5271872397",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "4fb4e9392f893f2a1adbac9a",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "51810125b1c77bf7f9d3ffd6",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "52947707c5b10ce907c62f81",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "53d9aa35cf880902218c9a60",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "53e74e7992e541323e505cce",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "57a072a9a3b1f0f2d0b34cbd",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "5897c22063b24cff7787c658",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "589af29d8009a4cedcb4bcd8",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "5a282461e65bd9563cfc10c8",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "5f4e4baa7e3aa858e58a1c7c",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "6690f7ed1bb84c7b32d898c2",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "69ee8cd4dfaa31033e3521d3",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "6d498d8fbd12138e5f9719b1",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "6dd15f35334f29070eb7499e",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "6eaa093bcb6cca38b9616e67",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "71bfc4589f3b5e2749b4a9a2",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "739100812f4de40abb9d8c10",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "7488b0d54e1ca49d7643b59d",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "755a2286136daeb86f0fa902",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "77e098f32415b0b32fd1cc71",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "7e653686e2bffe048b4896f4",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "7f4b71e165fd7bc6ba2e3c28",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "818d854aea4151f285b2a837",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "82155834b0301c72ee5c6bc3",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "85842f6247e29fd8729e9c5a",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "8939047aab08baf8b15fbd41",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "8954f366fd57cdee3310b9e7",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "8ca5fe99c1086680e657f2a5",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "8cdf324138e547f61f8d0a02",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "8dcc84c5e8d0604577dacc58",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "8f33c0ee5e036957053a67b3",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "9079a67378f67bcb258c316d",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "925abd0718aab425fee4b268",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "974ce96e0c9823bce48e62d7",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "9b1ffcccb232b2ea0e703605",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "9e190a759b48a12887d41dfb",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "9f47b8731be944db1d55c78c",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "9f8c880457f62d10de0b46d1",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "a0797d4817030732b3127c6f",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "a4a57d877a4f608e15f27f40",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "a5f4076739e52acdd66fa4d8",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "a6d7ac7f013c9e3a6d86d4e0",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "a717d89c548d0fddd412e017",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "a75a23c1e5f144e69029a62e",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "a94c05ac965f7dd6abfb48a6",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "ad553782e9e268b4ca1b1ff0",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "af388894b5310a9aaf4711df",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "afd8604563ba4a3b81cc492b",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "b093337bac778023bbbea5fa",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "b1cc3e7f96eee4cf9a138249",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "bcd8aca47817275e089f7ec7",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "bd19577e28b541cd9228b394",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "c083b26ac0171efcc3e582b9",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "c2000872e5881906273bcf29",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "c55512c6b449b850206dd7c4",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "c8982ec0c9b311ac012e4106",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "c8c7c1c2839a10c2a55021b3",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "ccec073dafa6bcf158eb2c1e",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "d12056632ee0e391e9b3f1a3",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "d177e11d5572270e594089d0",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "d1d311578fedee0e76a02a57",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "d6cf0faec6739f09e23274be",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "d7b14e843328588f2e55f688",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "d8bee7ed2b23cf4c0259c8d5",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "dcb31ace2967a8e99ce79e4b",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "dfdfe691dd07c832e46f4200",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "e02ed478132cda3bf28cc88a",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "e2036cda44815797ab2d5558",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "e3011bbb2d9d890408097235",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "e42544d9d24c810269fde465",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "e55b313f2030be83cb4fb3c5",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "e5b683b19ab06b0ff635421a",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "ea189df822ceae7c0449400d",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "ec659cd465fc156c3b56d29b",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "ecb21308d19eb0e8c8b1d76d",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "ededf85cbaff88a86ee4c7c8",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "f2b0ad91270f74bdcddc0bf3",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "f3bc989c67534dbdc117473c",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "f80eb0755bddab5ca7dcefc4",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "candidate_assertion",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "f9f437dcfa632b4be81e3988",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    },
+    {
+      "assertion_validity": null,
+      "case_id": "ff09019601e449a775a69585",
+      "change_intent": null,
+      "independence_attestation": null,
+      "material": {
+        "candidate_sha256": null,
+        "exact_candidate_bytes": null,
+        "execution_and_rerun_receipts": null,
+        "neutral_base_head_tree_ids": null,
+        "supported_contract_and_docs": null
+      },
+      "packet_status": "template_only_unadjudicatable_from_retained_archive",
+      "population_ground_truth": null,
+      "rationale_and_evidence_refs": [],
+      "report_usefulness": null,
+      "review_status": "not_started",
+      "review_type": "population",
+      "reviewer_id": null
+    }
+  ],
+  "custody_warning": "Public mapping permits unblinding; real review requires separate private custody.",
+  "schema_version": 1
+}

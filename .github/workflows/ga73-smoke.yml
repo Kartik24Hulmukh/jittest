@@ -1,13 +1,6 @@
 name: ga73-isolated-smoke
 on:
-  push:
-    branches: [harden/jittest-v1-launch]
-    paths:
-      - 'src/jittest/**'
-      - 'eval/ga73_smoke.py'
-      - 'eval/preflight_model.py'
-      - 'docker/ga73-smoke/**'
-      - '.github/workflows/ga73-smoke.yml'
+  # Paid corpus sweeps are deliberate dispatches, not every source repair.
   workflow_dispatch:
 permissions:
   contents: read

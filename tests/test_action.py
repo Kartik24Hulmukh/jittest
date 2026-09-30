@@ -10,11 +10,32 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from jittest.action import get_trust_context, is_test_file, run_action
+from jittest.action import get_trust_context, is_test_file
+from jittest.action import run_action as _run_action
 from jittest.sandbox import SandboxPlan
 
 
+def run_action(*args, **kwargs):
+    # No default evidence path may leak test artifacts into the checkout.
+    with tempfile.TemporaryDirectory() as output:
+        kwargs.setdefault("output_dir", output)
+        return _run_action(*args, **kwargs)
+
+
 class TestActionHelpers(unittest.TestCase):
+    def setUp(self):
+        # These are isolated policy/sandbox unit tests. Real git resolution,
+        # signed receipt validation and subprocess entrypoints are covered by
+        # test_correctness_contracts.py, not fictitious temporary checkouts.
+        for patcher in (
+            patch.dict(os.environ, {"JITTEST_BASE": "a" * 40, "JITTEST_HEAD": "b" * 40,
+                                    "GITHUB_EVENT_PATH": "", "GITHUB_EVENT_NAME": ""}),
+            patch("jittest.action._resolve_commit", side_effect=lambda repo, ref: ref),
+            patch("jittest.action.verify_receipt", return_value=type("Accepted", (), {"valid": True})()),
+        ):
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
     def test_is_test_file(self):
         self.assertTrue(is_test_file("test_basic.py"))
         self.assertTrue(is_test_file("app_test.py"))
@@ -84,7 +105,7 @@ class TestActionHelpers(unittest.TestCase):
     def test_run_action_sandbox_threading(self, mock_verify, mock_comment, mock_diff):
         mock_diff.return_value = ["tests/test_foo.py"]
         mock_comment.return_value = "posted"
-        mock_verify.return_value = ({"verdict": "proven_catch", "disposition": "catching", "proven_catch": True, "wall_clock_s": 1.0}, 0)
+        mock_verify.return_value = ({"schema_version": "2.1", "verdict": "proven_catch", "disposition": "catching", "proven_catch": True, "wall_clock_s": 1.0}, 0)
 
         docker_plan = SandboxPlan(backend="docker", mode="required")
 
@@ -180,19 +201,19 @@ class TestActionHelpers(unittest.TestCase):
             test_file.write_text("def test_dummy(): pass\n", encoding="utf-8")
 
             # Case A: Proven catch
-            mock_verify.return_value = ({"verdict": "proven_catch", "disposition": "catching", "proven_catch": True, "wall_clock_s": 1.0}, 0)
+            mock_verify.return_value = ({"schema_version": "2.1", "verdict": "proven_catch", "disposition": "catching", "proven_catch": True, "wall_clock_s": 1.0}, 0)
             self.assertEqual(run_action(repo_path=tmpdir, policy="advisory"), 0)
             self.assertEqual(run_action(repo_path=tmpdir, policy="strict"), 0)
             self.assertEqual(run_action(repo_path=tmpdir, policy="block-on-refusal"), 0)
 
             # Case B: Non-discriminating / Refuted (no catch, clean run)
-            mock_verify.return_value = ({"verdict": "refuted", "disposition": "latent_failure", "proven_catch": False, "wall_clock_s": 1.0}, 1)
+            mock_verify.return_value = ({"schema_version": "2.1", "verdict": "refuted", "disposition": "latent_failure", "proven_catch": False, "wall_clock_s": 1.0}, 1)
             self.assertEqual(run_action(repo_path=tmpdir, policy="advisory"), 0)
             self.assertEqual(run_action(repo_path=tmpdir, policy="strict"), 1)
             self.assertEqual(run_action(repo_path=tmpdir, policy="block-on-refusal"), 0)
 
             # Case C: Refusal (ENV_SETUP_FAILED / uncollectable)
-            mock_verify.return_value = ({"verdict": "inconclusive", "disposition": "ENV_SETUP_FAILED", "proven_catch": False, "wall_clock_s": 0.0}, 1)
+            mock_verify.return_value = ({"schema_version": "2.1", "verdict": "inconclusive", "disposition": "ENV_SETUP_FAILED", "proven_catch": False, "wall_clock_s": 0.0}, 1)
             self.assertEqual(run_action(repo_path=tmpdir, policy="advisory"), 0)
             self.assertEqual(run_action(repo_path=tmpdir, policy="strict"), 1)
             self.assertEqual(run_action(repo_path=tmpdir, policy="block-on-refusal"), 1)

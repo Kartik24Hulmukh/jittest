@@ -399,7 +399,7 @@ def validate_schema(evidence: dict, require_signature: bool = True) -> SchemaRes
 
     if schema_version in ("1.0", "2.0"):
         verdict = evidence.get("verdict")
-        if verdict is not None and verdict not in VALID_VERDICTS:
+        if verdict is not None and (not isinstance(verdict, str) or verdict not in VALID_VERDICTS):
             errors.append(f"unknown verdict '{verdict}', expected one of {sorted(VALID_VERDICTS)}")
         elif "proven_catch" in evidence:
             pc = evidence.get("proven_catch")
@@ -412,14 +412,14 @@ def validate_schema(evidence: dict, require_signature: bool = True) -> SchemaRes
         prov = evidence.get("provenance")
         if isinstance(prov, dict):
             for sha_field in ("base_sha", "head_sha"):
-                if sha_field in prov and prov[sha_field] and not HEX_40_RE.match(prov[sha_field]):
+                if sha_field in prov and prov[sha_field] and (not isinstance(prov[sha_field], str) or not HEX_40_RE.match(prov[sha_field])):
                     errors.append(
                         f"provenance field '{sha_field}' must be 40-character hex SHA, got '{prov[sha_field]}'"
                     )
             if (
                 "test_file_sha256" in prov
                 and prov["test_file_sha256"]
-                and not HEX_64_RE.match(prov["test_file_sha256"])
+                and (not isinstance(prov["test_file_sha256"], str) or not HEX_64_RE.match(prov["test_file_sha256"]))
             ):
                 errors.append(
                     f"provenance field 'test_file_sha256' must be 64-character hex SHA, got '{prov['test_file_sha256']}'"
@@ -467,14 +467,14 @@ def validate_schema(evidence: dict, require_signature: bool = True) -> SchemaRes
         if (
             "test_file_sha256" in prov
             and isinstance(prov["test_file_sha256"], str)
-            and not HEX_64_RE.match(prov["test_file_sha256"])
+            and (not isinstance(prov["test_file_sha256"], str) or not HEX_64_RE.match(prov["test_file_sha256"]))
         ):
             errors.append(
                 f"provenance field 'test_file_sha256' must be a 64-character hex SHA-256, got '{prov['test_file_sha256']}'"
             )
 
     verdict = evidence.get("verdict")
-    if verdict not in VALID_VERDICTS:
+    if not isinstance(verdict, str) or verdict not in VALID_VERDICTS:
         errors.append(f"unknown verdict '{verdict}', expected one of {sorted(VALID_VERDICTS)}")
     elif "proven_catch" in evidence:
         pc = evidence.get("proven_catch")
@@ -517,9 +517,45 @@ def validate_semantics(evidence: dict) -> SemanticResult:
     ):
         errors.append(f"rerun_agreement=False forbids catch verdict '{verdict}'")
 
+    if str(evidence.get("schema_version", "")) == "2.1" and verdict == "proven_catch":
+        phases = evidence.get("verification_phases")
+        prov = evidence.get("provenance")
+        prov = prov if isinstance(prov, dict) else {}
+        head_sha = prov.get("head_sha")
+        test_sha = prov.get("test_file_sha256")
+        if rerun_agreement is not True:
+            errors.append("proven_catch requires rerun_agreement=True")
+        if not isinstance(phases, list):
+            errors.append("proven_catch requires recorded head executions and a rerun")
+        else:
+            runs = [p for p in phases if isinstance(p, dict) and
+                    isinstance(p.get("phase"), str) and
+                    (p["phase"] == "head" or re.fullmatch(r"head_rerun_(?:[2-9]|[1-9][0-9]+)", p["phase"]))]
+            names = [p["phase"] for p in runs]
+            if len(runs) < 2 or names.count("head") != 1 or "head_rerun_2" not in names or len(set(names)) != len(names):
+                errors.append("proven_catch requires distinct head and head_rerun_2 records")
+            for run in runs:
+                if (run.get("outcome") != "FAIL" or run.get("failure_kind") != "assertion" or
+                        run.get("revision") != head_sha or run.get("test_sha256") != test_sha):
+                    errors.append("proven_catch head/rerun records must match assertion failure, head SHA and test SHA")
+                    break
+
     sbx = evidence.get("sandbox")
     if isinstance(sbx, dict) and sbx.get("backend") == "none" and sbx.get("mode") == "required":
-        errors.append("sandbox backend 'none' with mode 'required' is invalid")
+        # No-backend is a valid signed refusal, never a valid execution claim.
+        base = evidence.get("base_execution")
+        head = evidence.get("head_execution")
+        phases = evidence.get("verification_phases", [])
+        unexecuted_refusal = (
+            has_refusal and verdict == "inconclusive" and evidence.get("proven_catch") is False
+            and isinstance(base, dict) and base.get("outcome") == "NOTRUN"
+            and isinstance(head, dict) and head.get("outcome") == "NOTRUN"
+            and isinstance(phases, list) and all(
+                isinstance(p, dict) and p.get("outcome") in (None, "NOTRUN") for p in phases
+            )
+        )
+        if not unexecuted_refusal:
+            errors.append("sandbox backend 'none' with mode 'required' is invalid for execution")
 
     base_exec = evidence.get("base_execution")
     head_exec = evidence.get("head_execution")

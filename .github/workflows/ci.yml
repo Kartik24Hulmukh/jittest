@@ -58,7 +58,7 @@ jobs:
           JITTEST_SANDBOX_BACKEND: none
           JITTEST_FIXTURE_WHEELHOUSE: ${{ runner.temp }}/jittest-wheels
         run: |
-          pip install pytest pytest-timeout hypothesis
+          pip install pytest pytest-timeout hypothesis httpx
           # Three independent guards, because a wedged *descendant* - not pytest
           # itself - is what hung this job for 30 minutes on Linux:
           #   1. output goes to a FILE, never to the step's stdout pipe. An
@@ -187,6 +187,8 @@ jobs:
       - run: pip install build twine
       - run: python -m build
       - run: twine check dist/*
+      - name: Rehearse the exact distributable and independent receipt consumer
+        run: python scripts/check_distributable.py --dist dist --out dist/candidate-manifest.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dist
@@ -277,6 +279,17 @@ jobs:
 
           echo "JITTEST_BASE=$BASE_SHA" >> $GITHUB_ENV
           echo "JITTEST_HEAD=$HEAD_SHA" >> $GITHUB_ENV
+
+      - name: Rehearse remote Action archive installation with declared identity
+        shell: bash
+        run: |
+          mkdir -p "${RUNNER_TEMP}/remote-action-archive"
+          git archive HEAD | tar -x -C "${RUNNER_TEMP}/remote-action-archive"
+          python -m venv "${RUNNER_TEMP}/remote-action-venv"
+          "${RUNNER_TEMP}/remote-action-venv/bin/python" scripts/install_action.py \
+            --source "${RUNNER_TEMP}/remote-action-archive" \
+            --repository "${{ github.repository }}" --ref "${{ github.sha }}"
+          "${RUNNER_TEMP}/remote-action-venv/bin/python" -c 'from jittest.verify import _jittest_version_and_sha; import os; assert _jittest_version_and_sha()[1] == os.environ["GITHUB_SHA"]'
 
       - name: Run composite action against consumer repo in strict policy mode
         uses: ./

@@ -27,7 +27,7 @@ EXIT_CODES: dict[int, str] = {
 }
 
 HINTS: dict[int, str] = {
-    0: "nothing to do; cite the receipt by its test_file_sha256 and head_sha.",
+    0: "requested checks passed; verify signer trust, expected PR provenance and confinement before accepting the claim.",
     2: "fetch the original artifact from the CI run; do not trust a re-serialised copy.",
     3: "pass --expected-signer with the CI signing key fingerprint listed in docs/KEYS.md.",
     4: "regenerate with jittest >= 0.3.5; schema 2.0 receipts prove integrity, not execution trust.",
@@ -38,7 +38,7 @@ HINTS: dict[int, str] = {
 
 VERDICT_TEXT: dict[str, str] = {
     "proven_catch": "the candidate test PASSES on base and FAILS (assertion) on head: it catches the change",
-    "reproduction_catch": "the candidate test reproduces a reported failure on head that base does not exhibit",
+    "reproduction_catch": "the candidate test FAILS (assertion) on base and PASSES on head: it reproduces the repaired failure",
     "collection_catch": "the candidate test collects on base but head breaks collection or import",
     "refuted": "the candidate test fails on both revisions; the claimed catch is refuted",
     "non_discriminating": "the candidate test passes on both revisions; it proves nothing about the change",
