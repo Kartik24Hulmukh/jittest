@@ -1,0 +1,56 @@
+{
+  "record_type": "founder_operator_template",
+  "template_only": true,
+  "status": "UNFILLED_NOT_RUN",
+  "inspected_source_baseline": "6ca6698444718bdb58316d76f8c92ca9deccfacb",
+  "founder_inputs": {
+    "owner_ref": null,
+    "availability_hours_per_week": null,
+    "budget_runway_constraint_ref": null,
+    "support_owner_ref": null,
+    "real_review_task_ref": null,
+    "current_alternative_ref": null,
+    "disproof_criterion": null,
+    "protocol_window_ref": null
+  },
+  "execution_authority_ref": null,
+  "actual_tool_sha": null,
+  "actual_artifact_sha256": null,
+  "runtime_digest": null,
+  "expected_public_signer_ref": null,
+  "budgets": {
+    "queue_admission_seconds": null,
+    "provisioning_seconds": null,
+    "execution_seconds": null,
+    "cleanup_seconds": null,
+    "whole_job_seconds": null,
+    "external_supervisor_policy_ref": null
+  },
+  "stopwatch_events_utc": {
+    "task_start": null,
+    "install_complete": null,
+    "runtime_signer_enrollment_complete": null,
+    "admission_requested": null,
+    "admitted": null,
+    "rejected_or_refused": null,
+    "paired_execution_complete": null,
+    "independent_receipt_accepted": null,
+    "first_meaningful_result_understood": null,
+    "review_decision_complete": null
+  },
+  "observations": {
+    "assistance_minutes": null,
+    "unaided_session": null,
+    "admission_outcome": null,
+    "refusal_reason": null,
+    "base_executed": null,
+    "head_executed": null,
+    "consumer_exit": null,
+    "receipt_ref": null,
+    "uncertainty_explanation_ref": null,
+    "decision_changed": null,
+    "incremental_value_vs_baseline_ref": null,
+    "adverse_event_ref": null
+  },
+  "privacy_note": "Unobserved fields remain null; no synthetic successful session or inferred founder commitment."
+}

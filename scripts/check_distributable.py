@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 import subprocess
@@ -14,17 +15,24 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+SPEC = importlib.util.spec_from_file_location("jittest_build_identity", ROOT / "build_identity.py")
+if SPEC is None or SPEC.loader is None:
+    raise ValueError("build identity helper unavailable")
+IDENTITY = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(IDENTITY)
 
 
 def reconcile(wheel: Path, root: Path = ROOT) -> dict[str, str]:
-    """No missing, changed or unexpected Python package files are accepted."""
+    """No missing, changed or unexpected runtime package files are accepted."""
     source = {
         "jittest/" + p.relative_to(root / "src/jittest").as_posix(): p.read_bytes()
-        for p in (root / "src/jittest").rglob("*.py")
+        for p in (root / "src/jittest").rglob("*")
+        if p.is_file() and IDENTITY.is_build_input(p.relative_to(root).as_posix())
     }
     with zipfile.ZipFile(wheel) as archive:
         packaged = {n: archive.read(n) for n in archive.namelist()
-                    if n.startswith("jittest/") and n.endswith(".py")}
+                    if n.startswith("jittest/") and not n.endswith("/")
+                    and n != "jittest/_build_provenance.json"}
     if source != packaged:
         raise ValueError("wheel package bytes do not match source")
     return {n: hashlib.sha256(b).hexdigest() for n, b in sorted(source.items())}
@@ -34,25 +42,39 @@ def reconcile_sdist(sdist: Path, wheel: Path) -> dict:
     """Require sdist package bytes and runtime build identity to match the wheel."""
     with zipfile.ZipFile(wheel) as archive:
         packaged = {n: archive.read(n) for n in archive.namelist()
-                    if n.startswith("jittest/") and
-                    (n.endswith(".py") or n == "jittest/_build_provenance.json")}
+                    if n.startswith("jittest/") and not n.endswith("/")}
         provenance = json.loads(packaged["jittest/_build_provenance.json"])
     with tarfile.open(sdist) as archive:
         sources = {}
+        build_inputs = {}
         for member in archive.getmembers():
             parts = Path(member.name).parts
+            relative = "/".join(parts[1:])
+            if IDENTITY.is_build_input(relative):
+                if member.issym() or member.islnk():
+                    raise ValueError("sdist build inputs cannot be symlinks")
+                if member.isfile():
+                    if relative in build_inputs:
+                        raise ValueError("duplicate source archive build input")
+                    stream = archive.extractfile(member)
+                    if stream is None:
+                        raise ValueError("missing source archive build input")
+                    build_inputs[relative] = hashlib.sha256(stream.read()).hexdigest()
             if len(parts) >= 4 and parts[1:3] == ("src", "jittest") and member.isfile():
                 name = "/".join(parts[2:])
-                if name.endswith(".py") or name == "jittest/_build_provenance.json":
+                if IDENTITY.is_build_input(relative) or name == "jittest/_build_provenance.json":
                     if name in sources:
                         raise ValueError("duplicate source archive member")
-                    sources[name] = archive.extractfile(member).read()
+                    stream = archive.extractfile(member)
+                    if stream is None:
+                        raise ValueError("missing source archive package input")
+                    sources[name] = stream.read()
     if sources != packaged:
         raise ValueError("sdist package bytes or build identity differ from wheel")
-    return provenance
+    return IDENTITY.validate_manifest(dict(sorted(build_inputs.items())), provenance)
 
 
-def rehearse_receipts(python: Path, work: Path, env: dict) -> dict:
+def rehearse_receipts(python: Path, work: Path, env: dict, expected_build: dict | None = None) -> dict:
     """Only our own harmless fixture executes on host; not a confinement proof."""
     repo = work / "fixture"
     repo.mkdir()
@@ -95,6 +117,13 @@ def rehearse_receipts(python: Path, work: Path, env: dict) -> dict:
     data = json.loads(receipt.read_text())
     if data["verdict"] != "proven_catch":
         raise ValueError("installed verifier failed harmless assertion regression")
+    if expected_build is not None:
+        expected_identity = {key: expected_build[key] for key in ("source_sha", "working_diff_sha256")}
+        observed = data["provenance"]
+        if (observed.get("tool_build_provenance") != expected_identity
+                or observed.get("tool_commit_sha") != expected_identity["source_sha"]
+                or observed.get("tool_dirty") is not (expected_identity["working_diff_sha256"] != IDENTITY.EMPTY_SHA256)):
+            raise ValueError("installed signed receipt lost or changed packaged build identity")
     signer = "03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8"
     if data["signature"]["verifying_key"] != signer:
         raise ValueError("producer signer differs from externally fixed test key")
@@ -116,6 +145,7 @@ def rehearse_receipts(python: Path, work: Path, env: dict) -> dict:
     command(cli + ["verify-receipt", str(tampered), *checks], 2)
     return {"fresh_assertion_roundtrip": True, "tamper_wrong_signer_wrong_head_rejected": True,
             "unconfined_claim_rejected_when_required": True,
+            "packaged_identity_preserved_in_signed_receipt": expected_build is not None,
             "qualification_scope": "own_harmless_host_fixture_not_confined_execution"}
 
 
@@ -131,9 +161,10 @@ def main() -> int:
     wheel = wheels[0].resolve()
     source_files = reconcile(wheel)
     provenance = reconcile_sdist(sdists[0], wheel)
-    source_sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
-    diff_hash = hashlib.sha256(subprocess.check_output(["git", "diff", "HEAD"], cwd=ROOT)).hexdigest()
-    if provenance != {"source_sha": source_sha, "working_diff_sha256": diff_hash}:
+    expected_provenance = IDENTITY.build_provenance(ROOT)
+    source_sha = expected_provenance["source_sha"]
+    diff_hash = expected_provenance["working_diff_sha256"]
+    if provenance != expected_provenance:
         raise ValueError("packaged source identity differs from current build source")
     version = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["version"]
     env = {k: v for k, v in os.environ.items()
@@ -158,7 +189,7 @@ def main() -> int:
             cwd=work, env=env, check=True, timeout=30, capture_output=True, text=True)
         if str(work / "venv") not in probe.stdout:
             raise ValueError("source checkout shadowed installed wheel")
-        receipt_rehearsal = rehearse_receipts(python, work, env)
+        receipt_rehearsal = rehearse_receipts(python, work, env, provenance)
     manifest = {
         "qualification_scope": "exact_package_bytes_clean_install_receipt_contract_not_confined_e2e",
         "version": version,

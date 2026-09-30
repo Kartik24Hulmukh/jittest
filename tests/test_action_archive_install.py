@@ -35,6 +35,21 @@ class ActionArchiveInstall(unittest.TestCase):
             with self.assertRaises(ValueError):
                 INSTALLER.reconcile_archive(a, b)
 
+    def test_identity_helper_must_match_remote_archive(self):
+        with tempfile.TemporaryDirectory() as temp:
+            a, b = Path(temp) / 'archive', Path(temp) / 'checkout'
+            a.mkdir()
+            b.mkdir()
+            for root in (a, b):
+                (root / 'build_identity.py').write_bytes(b'# reviewed helper\n')
+            INSTALLER.reconcile_archive(a, b)
+            (a / 'build_identity.py').write_bytes(b'# changed helper\n')
+            with self.assertRaises(ValueError):
+                INSTALLER.reconcile_archive(a, b)
+            (a / 'build_identity.py').unlink()
+            with self.assertRaises(ValueError):
+                INSTALLER.reconcile_archive(a, b)
+
     def test_failed_fetch_or_mismatch_never_installs(self):
         with tempfile.TemporaryDirectory() as temp, patch.object(INSTALLER, 'fetch_action_source', side_effect=subprocess.CalledProcessError(128, 'git')), patch.object(INSTALLER.subprocess, 'run') as run:
             with self.assertRaises(subprocess.CalledProcessError):
