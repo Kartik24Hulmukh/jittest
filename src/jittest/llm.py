@@ -12,6 +12,7 @@ import http.client
 import json
 import os
 import random
+import re
 import time
 import urllib.error
 import urllib.request
@@ -19,6 +20,7 @@ from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 from urllib.parse import urlsplit
+from uuid import uuid4
 
 from ._billing import BillingTotals, billing_refusal
 from ._litellm import LiteLLMBackend
@@ -175,12 +177,19 @@ class HTTPLLM(BaseLLM):
                  cache_path: Path | str | None = None,
                  request_ceiling: int | None = None,
                  min_request_interval: float | None = None,
-                 http_timeout: float | None = None):
+                 http_timeout: float | None = None,
+                 dispatch_ledger: list[dict] | None = None,
+                 dispatch_context: dict | None = None):
         super().__init__(model, budget_usd, temperature)
         provider, _, name = model.partition("/")
         if not name:
             provider, name = ("anthropic" if "claude" in model else "openai"), model
         self._billing_totals = BillingTotals()
+        # Explicit opt-in, caller-owned retention. Never infer metadata from prompts.
+        self.dispatch_ledger = dispatch_ledger
+        self.dispatch_context = dict(dispatch_context or {})
+        self._invocation_id: str | None = None
+        self._dispatch_event: dict | None = None
         self.provider = provider
         self.model_name = name
         # With an explicit API base (e.g. NVIDIA NIM) the full namespaced model
@@ -289,6 +298,60 @@ class HTTPLLM(BaseLLM):
         # how one 429 becomes a stampede of them.
         return random.uniform(0.0, min(base, self.max_sleep))
 
+    def _safe_identifier(self, value: object) -> str | None:
+        # Only identifiers, never a header/body dump. A provider can echo our key.
+        if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}", value):
+            return None
+        if self.api_key and self.api_key in value:
+            return None
+        return value
+
+    def _event(self, kind: str, retry_index: int | None = None) -> dict | None:
+        if self.dispatch_ledger is None:
+            return None
+        context = self.dispatch_context
+        event = {
+            "schema_version": 1, "event_type": kind,
+            "run_id": self._safe_identifier(context.get("run_id")),
+            "target_id": self._safe_identifier(context.get("target_id")),
+            "stage": context.get("stage") if context.get("stage") in ("generator", "assessor") else None,
+            "invocation_id": self._invocation_id,
+            "dispatch_id": uuid4().hex if kind == "dispatch" else None,
+            "retry_index": retry_index,
+            "dispatch_timestamp_utc": datetime.now(UTC).isoformat() if kind == "dispatch" else None,
+            "provider_request_id": None, "http_status": None,
+            "transport_status": "started" if kind == "dispatch" else "not_dispatched",
+            "received_body": False, "body_parse_status": "not_attempted",
+            "content_parse_status": "not_attempted", "usage_parse_status": "not_attempted",
+            "credit_debit_eur": None, "provider_equivalent_eur": None,
+            "debit_observation_status": "unknown",
+            "fx_receipt_sha256": None, "sanitized_statement_line_id": None,
+        }
+        self.dispatch_ledger.append(event)
+        return event
+
+    @staticmethod
+    def _observe_body(event: dict | None, body: object) -> None:
+        if event is None:
+            return
+        event["body_parse_status"] = "parsed" if isinstance(body, dict) else "failed"
+        if not isinstance(body, dict):
+            return
+        observation = BillingTotals()
+        observation.add(body.get("billing_cost"))
+        bill = observation.as_dict()
+        if bill["provider_billing_complete"]:
+            event["provider_equivalent_eur"] = bill["provider_cost_eur"]
+            if bill["provider_paid_with"] == ["credits"]:
+                event["credit_debit_eur"] = bill["provider_credit_debit_eur"]
+                event["debit_observation_status"] = "observed"
+            else:
+                event["debit_observation_status"] = "noncredit"
+
+    def _mark_response(self, **values: str) -> None:
+        if self._dispatch_event is not None:
+            self._dispatch_event.update(values)
+
     def _post(self, url: str, payload: dict, headers: dict) -> dict:
         data = json.dumps(payload).encode("utf-8")
         last: Exception | None = None
@@ -298,18 +361,45 @@ class HTTPLLM(BaseLLM):
             self._pace()
             req = urllib.request.Request(url, data=data, headers=headers, method="POST")
             self._last_request_at = time.monotonic()
+            event = self._event("dispatch", attempt)
+            self._dispatch_event = event
             try:
                 with urllib.request.urlopen(req, timeout=self.http_timeout) as resp:
+                    if event is not None:
+                        event["transport_status"] = "response_received"
+                        event["http_status"] = getattr(resp, "status", None)
+                        response_headers = getattr(resp, "headers", None)
+                        if response_headers is not None:
+                            event["provider_request_id"] = self._safe_identifier(
+                                response_headers.get("x-request-id") or response_headers.get("request-id"))
+                    raw = resp.read()
+                    if event is not None:
+                        event["received_body"] = True
                     try:
-                        body = json.loads(resp.read().decode("utf-8"))
+                        body = json.loads(raw.decode("utf-8"))
+                        self._observe_body(event, body)
                         if not isinstance(body, dict):
                             raise ValueError("response must be an object")
                     except (UnicodeError, ValueError) as exc:
+                        if event is not None:
+                            event["body_parse_status"] = "failed"
                         raise LLMError("malformed provider JSON response") from exc
                     return body
             except urllib.error.HTTPError as exc:
                 last, last_code = exc, exc.code
+                if event is not None:
+                    event["transport_status"] = "http_error"
+                    event["http_status"] = exc.code
+                    if exc.headers is not None:
+                        event["provider_request_id"] = self._safe_identifier(
+                            exc.headers.get("x-request-id") or exc.headers.get("request-id"))
                 detail = exc.read(4096).decode("utf-8", "ignore")
+                if event is not None:
+                    event["received_body"] = True
+                    try:
+                        self._observe_body(event, json.loads(detail))
+                    except ValueError:
+                        event["body_parse_status"] = "failed"
                 if billing_refusal(exc.code, detail):
                     raise QuotaExhaustedError("billing refusal: account credits/quota exhausted") from exc
                 if exc.code not in _RETRYABLE:
@@ -324,15 +414,21 @@ class HTTPLLM(BaseLLM):
                 # of URLError, not a subclass, so it used to escape the loop
                 # entirely and end the run on the first slow response.
                 last, last_code = exc, None
+                if event is not None:
+                    event["transport_status"] = "timeout"
                 self.timeout_retries += 1
             except urllib.error.URLError as exc:
                 last, last_code = exc, None
+                if event is not None:
+                    event["transport_status"] = "timeout" if isinstance(exc.reason, TimeoutError) else "transport_error"
             except (http.client.HTTPException, ConnectionError) as exc:
                 # RemoteDisconnected is ConnectionResetError + BadStatusLine and is
                 # not a URLError, so it escaped this loop and ended the run on the
                 # first reset. A dropped connection is the cheapest thing here to
                 # retry and the most expensive thing to lose.
                 last, last_code = exc, None
+                if event is not None:
+                    event["transport_status"] = "transport_error"
                 if attempt < self.max_attempts - 1:
                     self.transport_retries += 1
             if attempt == self.max_attempts - 1:
@@ -359,6 +455,24 @@ class HTTPLLM(BaseLLM):
 
     def complete(self, system: str, user: str, n: int = 1,
                  temperature: float | None = None) -> list[str]:
+        self._invocation_id = uuid4().hex
+        self._dispatch_event = None
+        before = len(self.dispatch_ledger) if self.dispatch_ledger is not None else 0
+        try:
+            return self._complete(system, user, n, temperature)
+        except BudgetExceeded:
+            self._event("budget_refusal")
+            raise
+        except Exception:
+            if self.dispatch_ledger is not None and len(self.dispatch_ledger) == before:
+                self._event("pre_dispatch_error")
+            raise
+        finally:
+            self._invocation_id = None
+            self._dispatch_event = None
+
+    def _complete(self, system: str, user: str, n: int = 1,
+                  temperature: float | None = None) -> list[str]:
         if self._unpriced:
             # max_targets * candidates_per_target + assessor calls (worst case)
             ceiling = self.request_ceiling
@@ -374,7 +488,13 @@ class HTTPLLM(BaseLLM):
             .encode()).hexdigest()
         cached = self.cache.get(key)
         if cached is not None:
-            return json.loads(cached)
+            cache_event = self._event("cache_hit")
+            if cache_event is not None:
+                cache_event["body_parse_status"] = "failed"
+            result = json.loads(cached)
+            if cache_event is not None:
+                cache_event["body_parse_status"] = "parsed"
+            return result
 
         outputs: list[str] = []
         for _ in range(max(1, n)):
@@ -388,14 +508,19 @@ class HTTPLLM(BaseLLM):
                      "x-api-key": self.api_key or "",
                      "anthropic-version": "2023-06-01"},
                 )
+                self._billing_totals.add(body.get("billing_cost"))
+                self.usage.provider_billing = self._billing_totals.as_dict()
+                self._mark_response(content_parse_status="failed")
                 blocks = body.get("content", [])
                 if (not isinstance(blocks, list) or any(not isinstance(b, dict) for b in blocks)
                         or any(not isinstance(b.get("text", ""), str) for b in blocks if b.get("type") == "text")):
                     raise LLMError("malformed message response")
                 text = "".join(b.get("text", "") for b in blocks if b.get("type") == "text")
+                self._mark_response(content_parse_status="parsed", usage_parse_status="failed")
                 usage = body.get("usage") or {}
                 if not isinstance(usage, dict):
                     raise LLMError("malformed provider usage")
+                self._mark_response(usage_parse_status="parsed")
                 self._account_response(usage.get("input_tokens"),
                                        usage.get("output_tokens"),
                                        system + user, text)
@@ -409,6 +534,9 @@ class HTTPLLM(BaseLLM):
                     {"content-type": "application/json",
                      "authorization": f"Bearer {self.api_key or ''}"},
                 )
+                self._billing_totals.add(body.get("billing_cost"))
+                self.usage.provider_billing = self._billing_totals.as_dict()
+                self._mark_response(content_parse_status="failed")
                 choices = body.get("choices", [])
                 if not isinstance(choices, list):
                     raise LLMError("malformed completion choices")
@@ -420,9 +548,11 @@ class HTTPLLM(BaseLLM):
                         raise LLMError("malformed completion content")
                 else:
                     text = ""
+                self._mark_response(content_parse_status="parsed", usage_parse_status="failed")
                 usage = body.get("usage") or {}
                 if not isinstance(usage, dict):
                     raise LLMError("malformed provider usage")
+                self._mark_response(usage_parse_status="parsed")
                 prompt_tokens = usage.get("prompt_tokens")
                 total_tokens = usage.get("total_tokens")
                 completion_tokens = usage.get("completion_tokens")
@@ -433,8 +563,6 @@ class HTTPLLM(BaseLLM):
                 else:
                     out_tokens = completion_tokens
                 self._account_response(prompt_tokens, out_tokens, system + user, text)
-            self._billing_totals.add(body.get("billing_cost"))
-            self.usage.provider_billing = self._billing_totals.as_dict()
             outputs.append(text or "")
 
         self.cache.put(key, json.dumps(outputs))
