@@ -28,7 +28,8 @@ class ReleaseAcceptanceContract(unittest.TestCase):
         with TemporaryDirectory() as temp:
             root = Path(temp)
             (root / "src/jittest").mkdir(parents=True)
-            (root / "src/jittest/__init__.py").write_text("version = '1'\n")
+            # The contract is byte equality, not platform text newline equality.
+            (root / "src/jittest/__init__.py").write_bytes(b"version = '1'\n")
             wheel = root / "example.whl"
             for content in ("version = '1'\n", "changed", None):
                 with zipfile.ZipFile(wheel, "w") as archive:

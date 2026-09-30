@@ -19,6 +19,13 @@ from jittest.receipt import get_repo_canonical, sign_evidence, validate_schema, 
 from jittest.verify import VerifyRefusalError, verify_test
 
 
+def platform_env():
+    """Only OS/process necessities, never inherited API or signing credentials."""
+    names = ('PATH', 'SystemRoot', 'SYSTEMROOT', 'COMSPEC', 'PATHEXT',
+             'USERPROFILE', 'HOMEDRIVE', 'HOMEPATH', 'TEMP', 'TMP', 'HOME')
+    return {name: os.environ[name] for name in names if name in os.environ}
+
+
 def git(repo, *args):
     return subprocess.check_output(['git', '-C', str(repo), *args], text=True).strip()
 
@@ -38,7 +45,7 @@ def pair(tmp_path):
     base = git(repo, 'rev-parse', 'HEAD')
     git(repo, 'checkout', '-qb', 'pr')
     (repo / 'app.py').write_text('def value():\n    return 2\n')
-    test.write_text(test.read_text() + '# changed test\n')
+    test.write_text(test.read_text(encoding="utf-8") + '# changed test\n')
     git(repo, 'add', '.')
     git(repo, 'commit', '-qm', 'head')
     head = git(repo, 'rev-parse', 'HEAD')
@@ -115,7 +122,7 @@ def noncatch_receipt(pair):
 
 def run_consumer(pair, tmp_path, env=None, policy='block-on-refusal', pr=None):
     repo = pair[0]
-    environ = {'GITHUB_EVENT_NAME': 'push', 'JITTEST_BASE': pair[1], 'JITTEST_HEAD': pair[2]}
+    environ = {**platform_env(), 'GITHUB_EVENT_NAME': 'push', 'JITTEST_BASE': pair[1], 'JITTEST_HEAD': pair[2]}
     environ.update(env or {})
     with patch.dict(os.environ, environ, clear=True), \
          patch('jittest.action.upsert_pr_comment', return_value='local') as comment, \
@@ -192,13 +199,13 @@ import jittest.action, jittest.verify, jittest.receipt, jittest.github
 jittest.verify.provision_environment = lambda *a, **kw: {"python_path": sys.executable}
 jittest.receipt.get_or_create_signing_key = lambda *a, **kw: bytes(range(32))
 def comment(body, **kw):
-    Path(os.environ["FIXTURE_COMMENT"]).write_text(body + "\\nPR=" + str(kw.get("pr_number")))
+    Path(os.environ["FIXTURE_COMMENT"]).write_text(body + "\\nPR=" + str(kw.get("pr_number")), encoding="utf-8")
     return "local fixture"
 jittest.action.upsert_pr_comment = comment
 jittest.github.upsert_pr_comment = comment
 ''')
     source = os.getenv('JITTEST_CONTRACT_SOURCE_ROOT') or str(Path(__file__).resolve().parents[1] / 'src')
-    env = {'PATH': os.environ['PATH'], 'HOME': str(tmp_path), 'PYTHONPATH': str(bootstrap) + os.pathsep + source,
+    env = {**platform_env(), 'HOME': str(tmp_path), 'USERPROFILE': str(tmp_path), 'PYTHONPATH': str(bootstrap) + os.pathsep + source,
            'JITTEST_FORCE_MINIRUNNER': '1', 'JITTEST_REPO_PATH': str(repo),
            'JITTEST_PR_NUMBER': '', 'GITHUB_REF': 'refs/pull/42/merge',
            'GITHUB_REPOSITORY': 'owner/repo', 'GITHUB_EVENT_NAME': 'pull_request',
@@ -213,13 +220,13 @@ jittest.github.upsert_pr_comment = comment
     output = tmp_path / ('jittest-evidence' if entrypoint == 'jittest.cli' else 'out')
     receipts = list(output.glob('evidence-*.json'))
     assert len(receipts) == 1, result.stdout + result.stderr
-    evidence = json.loads(receipts[0].read_text())
+    evidence = json.loads(receipts[0].read_text(encoding="utf-8"))
     assert evidence['provenance']['base_sha'] == base
     assert evidence['provenance']['head_sha'] == head
     assert evidence['provenance']['head_sha'] != merge
     assert evidence['verdict'] == 'proven_catch'
     assert verify_receipt(evidence, expected_base=base, expected_head=head).valid
-    assert 'PR=42' in (tmp_path / 'comment.txt').read_text()
+    assert 'PR=42' in (tmp_path / 'comment.txt').read_text(encoding="utf-8")
 
 
 @pytest.mark.parametrize('alter', ['absent', 'duplicate', 'wrong_revision', 'wrong_test', 'different_failure'])
@@ -270,7 +277,7 @@ def test_consumer_rejects_invalid_signed_producer_receipt(pair, tmp_path, policy
     evidence.pop('signature')
     invalid = sign_evidence(evidence)
     repo = pair[0]
-    with patch.dict(os.environ, {'GITHUB_EVENT_NAME': 'push', 'JITTEST_BASE': pair[1], 'JITTEST_HEAD': pair[2]}, clear=True), \
+    with patch.dict(os.environ, {**platform_env(), 'GITHUB_EVENT_NAME': 'push', 'JITTEST_BASE': pair[1], 'JITTEST_HEAD': pair[2]}, clear=True), \
          patch('jittest.action.upsert_pr_comment', return_value='local') as comment, \
          patch('jittest.action.verify_test', return_value=(invalid, 0)):
         code = action.run_action(repo, policy=policy, sandbox_override='off', output_dir=tmp_path / 'out')
@@ -333,7 +340,7 @@ def test_installed_wheel_producer_and_consumer_contract(pair, tmp_path):
 @pytest.mark.parametrize('scenario', ['empty_diff', 'diff_failed', 'invalid_receipt', 'sandbox_refused'])
 def test_step_summary_survives_denied_comments(pair, tmp_path, scenario):
     summary = tmp_path / 'summary.md'
-    env = {'GITHUB_EVENT_NAME': 'push', 'JITTEST_BASE': pair[1], 'JITTEST_HEAD': pair[2],
+    env = {**platform_env(), 'GITHUB_EVENT_NAME': 'push', 'JITTEST_BASE': pair[1], 'JITTEST_HEAD': pair[2],
            'GITHUB_STEP_SUMMARY': str(summary)}
     from contextlib import ExitStack
 
@@ -352,7 +359,7 @@ def test_step_summary_survives_denied_comments(pair, tmp_path, scenario):
             stack.enter_context(patch('jittest.action.plan_sandbox', return_value=SandboxPlan(backend='none', mode='required')))
         code = action.run_action(pair[0], policy='strict', sandbox_override='off', output_dir=tmp_path / 'out')
     assert code == (0 if scenario == 'empty_diff' else 1)
-    text = summary.read_text()
+    text = summary.read_text(encoding="utf-8")
     assert 'jittest' in text
     assert len(text) <= 65537
     if scenario != 'empty_diff':
@@ -371,14 +378,14 @@ def unavailable(*a, **kw):
 jittest.verify.plan_sandbox = unavailable
 ''')
     source = str(Path(__file__).resolve().parents[1] / 'src')
-    env = {'PATH': os.environ['PATH'], 'HOME': str(tmp_path), 'PYTHONPATH': str(bootstrap) + os.pathsep + source}
+    env = {**platform_env(), 'HOME': str(tmp_path), 'USERPROFILE': str(tmp_path), 'PYTHONPATH': str(bootstrap) + os.pathsep + source}
     output = tmp_path / 'refusal.json'
     result = subprocess.run([sys.executable, '-m', 'jittest.cli', 'verify', '--repo', str(repo),
                              '--base', base, '--head', head, '--test', str(test),
                              '--sandbox-mode', 'required', '--output', str(output), '--json'],
                             cwd=tmp_path, env=env, text=True, capture_output=True, timeout=30)
     assert result.returncode == 2
-    evidence = json.loads(output.read_text())
+    evidence = json.loads(output.read_text(encoding="utf-8"))
     assert evidence['verdict'] == 'inconclusive'
     assert evidence['proven_catch'] is False
     assert evidence['refusal']['code'] == 'sandbox_unavailable'
@@ -407,3 +414,35 @@ def test_body_import_error_is_not_behavioral_and_receipt_remains_valid(pair, tmp
     assert code != 0
     assert evidence['proven_catch'] is False
     assert verify_receipt(evidence).valid
+
+
+def test_crlf_receipt_binds_original_and_executed_bytes(pair, tmp_path):
+    repo, base, head, test = pair
+    test.write_bytes(test.read_bytes().replace(b'\r\n', b'\n').replace(b'\n', b'\r\n'))
+    git(repo, 'config', 'core.autocrlf', 'false')
+    git(repo, 'add', '.')
+    git(repo, 'commit', '-qm', 'exact CRLF candidate')
+    head = git(repo, 'rev-parse', 'HEAD')
+    evidence, code = produce((repo, base, head, test), tmp_path)
+    expected = hashlib.sha256(test.read_bytes()).hexdigest()
+    assert code == 0
+    assert evidence['provenance']['test_file_sha256'] == expected
+    assert all(phase['test_sha256'] == expected for phase in evidence['verification_phases'])
+    assert verify_receipt(evidence, strict_signer=True,
+                          expected_signer='03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8',
+                          expected_base=base, expected_head=head,
+                          expected_test_sha256=expected, expected_repo=get_repo_canonical(repo)).valid
+
+
+def test_non_utf8_candidate_is_explicit_refusal(pair, tmp_path):
+    pair[3].write_bytes(b'# invalid UTF-8\xff\n')
+    with pytest.raises(VerifyRefusalError, match='not UTF-8'):
+        produce(pair, tmp_path)
+
+
+def test_refusal_receipt_binds_raw_candidate_bytes(pair, tmp_path):
+    from jittest.verify import make_refusal_receipt
+    test = pair[3]
+    test.write_bytes(b'# CRLF refusal candidate\r\n')
+    receipt = make_refusal_receipt(pair[0], pair[1], pair[2], test)
+    assert receipt['provenance']['test_file_sha256'] == hashlib.sha256(test.read_bytes()).hexdigest()

@@ -1,0 +1,6 @@
+# Signed/forensic artifacts must survive checkout byte-for-byte.
+docs/evidence/** -text
+# Deterministic analysis-code hashes and packaged source on every platform.
+*.py text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf

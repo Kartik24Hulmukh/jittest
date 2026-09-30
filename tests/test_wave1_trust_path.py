@@ -164,7 +164,8 @@ class TestWave1D6UniqueEvidenceNames(unittest.TestCase):
             with (
                 patch.dict(os.environ, {
                     "JITTEST_BASE": base, "JITTEST_HEAD": head,
-                    "JITTEST_PR_NUMBER": "", "GITHUB_REF": "", "GITHUB_EVENT_NAME": "",
+                    "JITTEST_PR_NUMBER": "", "GITHUB_REF": "", "GITHUB_EVENT_NAME": "push",
+                    "GITHUB_EVENT_PATH": "",
                     "JITTEST_SIGNING_KEY": str(Path(tmp) / "fixture-key.pem"),
                     "GITHUB_STEP_SUMMARY": str(Path(tmp) / "summary.md"),
                 }),

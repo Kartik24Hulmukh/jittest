@@ -205,7 +205,7 @@ def build_packet(archives: dict, input_hashes: dict) -> tuple[dict, dict]:
         key.append({"case_id": case_id, "source": source, "json_pointer": pointer})
 
     for cohort, archive in archives.items():
-        source = str(INPUTS[cohort])
+        source = INPUTS[cohort].as_posix()
         row_key = "results" if cohort == "click" else "bug_results"
         # Population review includes nonreports AND static risk skips.
         if cohort == "click":
@@ -242,16 +242,16 @@ def build_packet(archives: dict, input_hashes: dict) -> tuple[dict, dict]:
 def verify_baseline(root: Path, baseline: dict) -> None:
     # RESULTS wording is intentionally changed; its pre-edit hash remains in the manifest.
     for name, expected in baseline["files"].items():
-        if name.startswith(str(RAW) + "/") and sha256((root / name).read_bytes()) != expected:
+        if name.startswith(RAW.as_posix() + "/") and sha256((root / name).read_bytes()) != expected:
             raise ValueError(f"immutable raw baseline changed: {name}")
 
 
 def build(root: Path) -> dict[str, dict]:
-    baseline = json.loads((root / OUT / "baseline-sha256.json").read_text())
+    baseline = json.loads((root / OUT / "baseline-sha256.json").read_text(encoding="utf-8"))
     verify_baseline(root, baseline)
-    hashes = {str(p): sha256((root / p).read_bytes())
+    hashes = {p.as_posix(): sha256((root / p).read_bytes())
               for p in [*INPUTS.values(), *FX.values()]}
-    archives = {k: json.loads((root / p).read_text()) for k, p in INPUTS.items()}
+    archives = {k: json.loads((root / p).read_text(encoding="utf-8")) for k, p in INPUTS.items()}
     for k, p in FX.items():
         rate = next(el.attrib["rate"] for el in ET.fromstring((root / p).read_bytes()).iter()
                     if el.attrib.get("currency") == "USD")
@@ -327,10 +327,10 @@ def main() -> None:
         serialized = json.dumps(value, indent=2, sort_keys=True) + "\n"
         target = args.root / OUT / name
         if args.check:
-            if target.read_text() != serialized:
+            if target.read_text(encoding="utf-8") != serialized:
                 raise ValueError(f"stale derived artifact: {name}")
         else:
-            target.write_text(serialized)
+            target.write_bytes(serialized.encode("utf-8"))
     print("GA73 reanalysis verified; GA remains unproven.")
 
 

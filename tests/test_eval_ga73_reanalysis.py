@@ -100,16 +100,16 @@ def test_packet_is_template_only_complete_and_blinded():
 
 
 def test_raw_baseline_hashes_unchanged():
-    baseline = json.loads((ROOT / REANALYSIS.OUT / "baseline-sha256.json").read_text())
+    baseline = json.loads((ROOT / REANALYSIS.OUT / "baseline-sha256.json").read_text(encoding="utf-8"))
     REANALYSIS.verify_baseline(ROOT, baseline)
     damaged = copy.deepcopy(baseline)
-    damaged["files"][str(REANALYSIS.INPUTS["click"])] = "0" * 64
+    damaged["files"][REANALYSIS.INPUTS["click"].as_posix()] = "0" * 64
     with pytest.raises(ValueError, match="immutable raw baseline changed"):
         REANALYSIS.verify_baseline(ROOT, damaged)
 
 
 def test_billing_contract_rejects_malformed_and_noncredit_accounting():
-    archive = json.loads((ROOT / REANALYSIS.INPUTS["click"]).read_text())
+    archive = json.loads((ROOT / REANALYSIS.INPUTS["click"]).read_text(encoding="utf-8"))
     rows = archive["results"]
     rows[0]["provider_billing"]["provider_paid_with"] = ["energy"]
     with pytest.raises(ValueError, match="billing contract"):
@@ -122,12 +122,12 @@ def test_billing_contract_rejects_malformed_and_noncredit_accounting():
 
 def test_deterministic_checked_in_outputs():
     for name, value in REANALYSIS.build(ROOT).items():
-        assert (ROOT / REANALYSIS.OUT / name).read_text() == (
+        assert (ROOT / REANALYSIS.OUT / name).read_text(encoding="utf-8") == (
             json.dumps(value, indent=2, sort_keys=True) + "\n")
 
 
 def test_cost_contract_has_no_fabricated_dispatches_or_reconciliation():
-    contract = json.loads((ROOT / REANALYSIS.OUT / "cost-reconciliation-contract.json").read_text())
+    contract = json.loads((ROOT / REANALYSIS.OUT / "cost-reconciliation-contract.json").read_text(encoding="utf-8"))
     assert contract["events"] == []
     assert contract["owner_supplied_statement"] is None
     assert contract["total_reconciled_provider_usd"] is None

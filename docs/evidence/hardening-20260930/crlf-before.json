@@ -1,0 +1,9 @@
+WARNING: Sandbox disabled. Candidate tests will run unconfined.
+{
+  "producer_exit": 0,
+  "verdict": "proven_catch",
+  "test_raw_sha256": "52140584bfbd4acf19bdd7a99384cd60cf12027a38d4f49f15d1170f9a919a45",
+  "receipt_test_sha256": "840d744bb847538167d82a4ae9c8453a6c1a0321dbdb6aa6677610b8d1a7b5e2",
+  "consumer_valid": false,
+  "provenance_status": "MISMATCH"
+}

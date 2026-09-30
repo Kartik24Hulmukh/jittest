@@ -644,7 +644,9 @@ def run_test(workdir: Path, test_code: str, timeout_s: int = 120,
         candidate = target_dir / f"{CANDIDATE_PREFIX}{token}.py"
     else:
         candidate = workdir / f"{CANDIDATE_PREFIX}{token}.py"
-    candidate.write_text(test_code, encoding="utf-8")
+    # Preserve the exact UTF-8 bytes bound by the producer/consumer receipt.
+    # Text-mode newline conversion changes signed CRLF candidates on Windows.
+    candidate.write_bytes(test_code.encode("utf-8"))
     if sbx is not None and sbx.isolated and sbx.backend in ("docker", "podman", "bubblewrap"):
         runner = detect_isolated_runner(workdir, sbx, timeout_s, python_path)
     else:

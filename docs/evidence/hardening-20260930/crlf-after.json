@@ -1,0 +1,8 @@
+{
+  "producer_exit": 0,
+  "verdict": "proven_catch",
+  "test_raw_sha256": "52140584bfbd4acf19bdd7a99384cd60cf12027a38d4f49f15d1170f9a919a45",
+  "receipt_test_sha256": "52140584bfbd4acf19bdd7a99384cd60cf12027a38d4f49f15d1170f9a919a45",
+  "consumer_valid": true,
+  "provenance_status": "MATCHED"
+}

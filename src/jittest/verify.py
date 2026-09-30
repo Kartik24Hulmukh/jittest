@@ -350,7 +350,7 @@ def make_refusal_receipt(
         test_file_name = t_path.name
         if t_path.exists() and t_path.is_file():
             with contextlib.suppress(Exception):
-                test_file_sha = _hash_str(t_path.read_text(encoding="utf-8"))
+                test_file_sha = hashlib.sha256(t_path.read_bytes()).hexdigest()
 
     tool_root = Path(__file__).resolve().parent.parent.parent
     _, tool_commit_sha = _jittest_version_and_sha()
@@ -931,10 +931,14 @@ def verify_test(
         raise VerifyRefusalError(f"test path is outside repository: {test_path}") from None
 
     test_path = resolved_test
-    test_code = test_path.read_text(encoding="utf-8")
+    test_bytes = test_path.read_bytes()
+    try:
+        test_code = test_bytes.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise VerifyRefusalError(f"test file is not UTF-8: {test_path}") from exc
     if not test_code.strip():
         raise VerifyRefusalError(f"test file is empty: {test_path}")
-    test_file_sha256 = _hash_str(test_code)
+    test_file_sha256 = hashlib.sha256(test_bytes).hexdigest()
 
     resolved_base = resolve_revision(repo_path, base_ref)
     resolved_head = resolve_revision(repo_path, head_ref)
