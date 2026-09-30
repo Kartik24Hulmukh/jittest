@@ -26,15 +26,22 @@ class EditablePointerContract(unittest.TestCase):
             expected = str((root / 'src').resolve())
             for pointer in (expected, expected + '\nimport os', 'import os',
                             str(root / 'other'), expected + '\n' + str(root / 'other'),
-                            os.path.relpath(root / 'src', Path.cwd())):
+                            'src'):
                 with self.subTest(pointer=pointer):
                     with zipfile.ZipFile(wheel, 'w') as archive:
                         archive.writestr('_editable_impl_jittest.pth', pointer)
                     if pointer == expected:
                         IDENTITY.validate_editable_artifact(wheel, root)
                     else:
-                        with self.assertRaises(ValueError):
-                            IDENTITY.validate_editable_artifact(wheel, root)
+                        previous_cwd = Path.cwd()
+                        try:
+                            if pointer == 'src':
+                                os.chdir(root)
+                                self.assertEqual(Path(pointer).resolve(), (root / 'src').resolve())
+                            with self.assertRaises(ValueError):
+                                IDENTITY.validate_editable_artifact(wheel, root)
+                        finally:
+                            os.chdir(previous_cwd)
 
     def test_copied_runtime_frozen_identity_and_import_helpers_refuse(self):
         with tempfile.TemporaryDirectory() as d:
