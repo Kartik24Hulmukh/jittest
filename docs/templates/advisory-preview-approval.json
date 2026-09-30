@@ -1,0 +1,70 @@
+{
+  "record_type": "approval_template",
+  "template_only": true,
+  "status": "UNFILLED_NOT_AUTHORIZED",
+  "inspected_source_baseline": "6ca6698444718bdb58316d76f8c92ca9deccfacb",
+  "proposed_version": "0.4.2rc1",
+  "version_choice_approved": null,
+  "channel_approved": null,
+  "final_integrated_candidate_sha": null,
+  "preparation_scope_approval_ref": null,
+  "execution_runner_scope_approval_ref": null,
+  "build": {
+    "workflow": ".github/workflows/release.yml",
+    "run_id": null,
+    "attempt": null,
+    "checkout_sha": null,
+    "artifact_id": null,
+    "manifest_sha256": null
+  },
+  "distributions": {
+    "wheel": {
+      "filename": null,
+      "bytes": null,
+      "sha256": null
+    },
+    "sdist": {
+      "filename": null,
+      "bytes": null,
+      "sha256": null
+    }
+  },
+  "acceptance": {
+    "exact_head_ci_ref": null,
+    "clean_wheel_independent_consumer_ref": null,
+    "actual_sdist_rebuild_ref": null,
+    "remote_action_archive_ref": null,
+    "same_wheel_real_daemon_ref": null,
+    "negative_controls_ref": null,
+    "publication_disabled_rehearsal_ref": null
+  },
+  "operator_trust": {
+    "runtime_digest": null,
+    "runtime_inventory_ref": null,
+    "base_authority_sha": null,
+    "expected_public_signer_ref": null,
+    "signer_custodian_ref": null,
+    "rotation_revocation_ref": null,
+    "whole_job_budget_policy_ref": null
+  },
+  "publishing_controls": {
+    "protected_pypi_environment_reviewers_ref": null,
+    "trusted_publisher_identity_ref": null,
+    "approved_digest_preupload_enforcement_ref": null,
+    "prerelease_floating_tag_policy_ref": null
+  },
+  "authorization": {
+    "approver_ref": null,
+    "timestamp": null,
+    "exact_record_sha256": null,
+    "immutable_tag_push": null,
+    "pypi_upload": null,
+    "github_release": null,
+    "floating_v0_movement": null,
+    "public_outreach": null,
+    "paid_evaluation": null,
+    "customer_execution": null
+  },
+  "support_withdrawal_owner_ref": null,
+  "privacy_note": "No credentials or private keys; identity and approvals belong in approved private storage."
+}
