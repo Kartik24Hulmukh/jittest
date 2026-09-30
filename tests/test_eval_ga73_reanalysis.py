@@ -3,9 +3,13 @@
 import copy
 import importlib.util
 import json
+import unittest
 from pathlib import Path
 
-import pytest
+try:
+    import pytest
+except ImportError:
+    raise unittest.SkipTest("evaluation fixture suite requires pytest") from None
 
 ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location("ga73_reanalysis", ROOT / "eval/ga73_reanalysis.py")

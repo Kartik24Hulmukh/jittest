@@ -4,11 +4,15 @@ import json
 import os
 import subprocess
 import sys
+import unittest
 from copy import deepcopy
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
+try:
+    import pytest
+except ImportError:
+    raise unittest.SkipTest("correctness fixture suite requires pytest") from None
 
 from jittest import action
 from jittest.receipt import get_repo_canonical, sign_evidence, validate_schema, verify_receipt

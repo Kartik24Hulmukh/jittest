@@ -60,3 +60,9 @@ The frozen full suite passed **1,414 tests, 10 explicit skips and 214 subtests**
 The installed Option-C gate is wired to an actual registry/daemon-dependent CI lane, with no skip-success path. Its offline no-daemon refusal and workflow contract tests passed; fresh real-daemon results are still pending, not inferred from this workspace.
 
 Raw failure logs are byte-preserved in `raw-failure-logs.zip`; `raw-failure-log-sha256.json` binds each original member. Archiving avoids reformatting forensic whitespace.
+
+### Fresh hosted daemon proof and CI-discovered test-framework defect
+
+Actual run https://github.com/Kartik24Hulmukh/jittest/actions/runs/36732701721 completed all three jobs: registry-live, wrapper/phase proof, and installed-wheel proof. The installed-wheel record is `RUN`/passed, 31.232 seconds, pip25.0.1, authoritative Python image digest `sha256:44ff437bba879d4941b710a369a8f19266aea34b29002807f0c487fabc9eec9b`. Both-revision isolation canaries, BASE authority/HEAD override, fresh signed assertion catch plus external consumer, real timeout/descendant cleanup passed; running containers before/after were empty. Raw JSON and full wheel artifact are preserved. The artifact was built at the hosted PR merge checkout160291d09bef2c7a7491dead4d92eec69fe68c97; local committed buildfc3ffa971a66d581c1f4d316ecba5bd02d5ec0e7 has a different provenance-bearing wheel hash, not a byte-identity claim between those Git revisions.
+
+The clean committed local full suite passed **1,416 tests,10 skips,214 subtests** in169.43seconds. Hosted zero-dependency discovery then exposed two newly added pytest-only fixture modules importing pytest unconditionally. This was a test-framework packaging compatibility failure, not a passing gate. Imports now explicitly skip those optional fixture suites in stdlib-only discovery; the full pytest lane still runs them. Final-head hosted CI must pass before merge.
