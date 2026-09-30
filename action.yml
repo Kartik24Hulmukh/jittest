@@ -45,6 +45,9 @@ runs:
 
     - name: Install jittest in isolated venv
       shell: bash
+      env:
+        JITTEST_ACTION_REPOSITORY: ${{ github.action_repository }}
+        JITTEST_ACTION_REF: ${{ github.action_ref }}
       run: |
         python -m venv "${RUNNER_TEMP}/jittest-action-venv"
         if [ -f "${RUNNER_TEMP}/jittest-action-venv/bin/python" ]; then
@@ -55,7 +58,9 @@ runs:
           PIP_BIN="${RUNNER_TEMP}/jittest-action-venv/Scripts/pip.exe"
         fi
         "$PIP_BIN" install --upgrade pip
-        "$PIP_BIN" install "${{ github.action_path }}"
+        "$PY_BIN" "${{ github.action_path }}/scripts/install_action.py" \
+          --source "${{ github.action_path }}" \
+          --repository "$JITTEST_ACTION_REPOSITORY" --ref "$JITTEST_ACTION_REF"
 
     - name: Run jittest verify action
       shell: bash

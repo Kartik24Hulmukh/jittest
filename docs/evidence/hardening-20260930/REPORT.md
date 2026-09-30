@@ -78,3 +78,9 @@ Paid GA cohort workflows now require deliberate workflow_dispatch rather than au
 ### Security-check follow-up
 
 CodeQL's PR check flagged the canonical GitHub prefix-removal expression. The existing exact owner/repository validation already rejected arbitrary-position host strings; rather than suppressing the finding, PR lookup now derives the owner/repository from one anchored full canonical match. Five boundary cases cover the true canonical host, lookalike host, embedded host, query-suffix injection and local identity, proving invalid values never reach the lookup boundary. Focused correctness tests passed84with1optional-wheel-pathskip; final security check remains required before merge.
+
+### Remote Action archive acceptance
+
+A real archive of candidate783baabc (no.git) failed pip's build hook with `build requires Git source identity or archived build provenance`. Local `uses: ./` and clean wheels did not cover this installation shape. The composite installer now fetches only its declared GitHub repository/ref, byte-reconciles executable build inputs against the downloaded archive, and installs that identified checkout. Ref drift, extra/changed build inputs and invalid identities fail closed; no SHA is invented from the consumer repository. Local checkouts and provenance-bearing sdists retain their existing path. Ambient Git overrides/hooks/global credentials are excluded from the public Action fetch/build environment.
+
+A real public783baabc archive installed successfully into a new venv through the repaired helper; installed tool identity matched that exact commit. CI also rehearses the remote-archive layout with its exact hosted SHA. Four installer tests plus four boundary subtests passed. The final local full suite passed1,428tests,10explicit skips,218subtests in173.73seconds. Scoped Ruff and mypy53modules pass. Publication/version mappings remain unchanged; final-head hosted checks are required before merge.

@@ -280,6 +280,17 @@ jobs:
           echo "JITTEST_BASE=$BASE_SHA" >> $GITHUB_ENV
           echo "JITTEST_HEAD=$HEAD_SHA" >> $GITHUB_ENV
 
+      - name: Rehearse remote Action archive installation with declared identity
+        shell: bash
+        run: |
+          mkdir -p "${RUNNER_TEMP}/remote-action-archive"
+          git archive HEAD | tar -x -C "${RUNNER_TEMP}/remote-action-archive"
+          python -m venv "${RUNNER_TEMP}/remote-action-venv"
+          "${RUNNER_TEMP}/remote-action-venv/bin/python" scripts/install_action.py \
+            --source "${RUNNER_TEMP}/remote-action-archive" \
+            --repository "${{ github.repository }}" --ref "${{ github.sha }}"
+          "${RUNNER_TEMP}/remote-action-venv/bin/python" -c 'from jittest.verify import _jittest_version_and_sha; import os; assert _jittest_version_and_sha()[1] == os.environ["GITHUB_SHA"]'
+
       - name: Run composite action against consumer repo in strict policy mode
         uses: ./
         with:

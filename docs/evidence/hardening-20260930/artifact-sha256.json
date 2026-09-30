@@ -1,6 +1,7 @@
 {
-  "REPORT.md": "68525413877e78a7182331fe87cccc96f5e1b72e00920c442edcea8ffcc852e2",
+  "REPORT.md": "fc2de981ac40a1ac11a63aca55056715490a824e190694cf63d49831e0aa6ad5",
   "accepted-source-pytest.xml": "5d41849df14e525611a01406670aaee9c27125bfb099ae2184d8f5c152214a16",
+  "archive-source-pytest.xml": "9fde806a0a9f5e7957985a863fdcf224cfc25b4592cd44550d244b9585b4e861",
   "baseline-persona.json": "f968ef3081f77f1c6140e9f128176d9b3eef6cd42f65b45cb3a8b86ecc3d891f",
   "baseline-pytest.xml": "fba29f8cb719f5d80e24d30bf0b26ed4cfb56e4e357c8b6b45d27b8ef077b29b",
   "candidate-persona.json": "958c48c1d763ff94bce8ede648f2a2149e19a3cd60532eb55c0c8dd52608262c",
@@ -15,6 +16,7 @@
   "platform-source-pytest.xml": "eb8c6bb3026d8dfe285efcf98675ff2e8684234950fc4a361130896008b1c939",
   "raw-failure-log-sha256.json": "430f1edf91086899dc554359e27d35320fcf9fda9a71b9ec704a85763c002f11",
   "raw-failure-logs.zip": "ac230de6e12409d3e71e3dc0c454348f1f86e00e220c1c60cff9e0923cd7ccb9",
+  "remote-action-rehearsal-logs.zip": "9d91c4313a725642186507e68420395bab16cd030128ce78478a95c858880dc7",
   "routing-baseline-four.json": "dcc0d83f3a198eb3c59939c1d70a8dc2d8d8e4c39bfa0f29bffe8986272b285f",
   "routing-bounded-100.json": "e6d86cfdb0b0e015f0dce28b664dfba36a43c99a1dc104f79283cb8ac04f7ead",
   "routing-failed-100.json": "6333e3065b30e16dc080450bc16a65e6905b5140465d30d509feaa82b1bd984c"
