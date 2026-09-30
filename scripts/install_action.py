@@ -15,7 +15,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-BUILD_PATHS = ('src', 'scripts', 'pyproject.toml', 'hatch_build.py', 'action.yml')
+BUILD_PATHS = ('src', 'scripts', 'pyproject.toml', 'hatch_build.py', 'build_identity.py', 'action.yml')
 
 
 def build_inputs(root: Path) -> dict[str, bytes]:

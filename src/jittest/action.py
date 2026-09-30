@@ -58,10 +58,13 @@ def is_test_file(path_str: str) -> bool:
 def get_changed_files(repo_path: Path, base_sha: str, head_sha: str) -> list[str]:
     # A failed comparison is not a successful empty diff.
     res = subprocess.run(
-        ["git", "-C", str(repo_path), "diff", "--name-only", f"{base_sha}..{head_sha}"],
-        capture_output=True, text=True, errors="replace", check=True, env=git_env(),
+        ["git", "-C", str(repo_path), "diff", "--name-only", "-z", f"{base_sha}..{head_sha}"],
+        capture_output=True, check=True, env=git_env(),
     )
-    return [line for line in res.stdout.splitlines() if line]
+    # Git's text format C-quotes Unicode/control characters; splitlines can
+    # fabricate a zero-test denominator. NUL fields are raw path bytes. Reject
+    # undecodable paths rather than replacing bytes or silently losing tests.
+    return [name.decode("utf-8", errors="strict") for name in res.stdout.split(b"\0") if name]
 
 
 def _resolve_commit(repo: Path, ref: str) -> str:

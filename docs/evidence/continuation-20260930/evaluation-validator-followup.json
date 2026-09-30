@@ -1,0 +1,38 @@
+{
+  "source_parent_sha": "5108ddb849785d395a61953e82e312f4a1a97895",
+  "frozen_adverse_baseline": {
+    "new_schema_tests": 9,
+    "failure_instances_including_subtests": 40,
+    "attribute_error_instances": 4,
+    "log_sha256": "691660eee2586bc183097eb7fd06a62f1c874587cd802e0f94b24e964680b3df",
+    "billing_source_sha256": "fd954151a0eefef68c89494648ea4ae750c9596e95d04d3848667b8482bea1e8",
+    "schema_test_source_at_freeze_sha256": "f639665cd1ad682c2754a9f2e2d9c2bef915bd7b3f618ae0ec16129db582299b"
+  },
+  "final_combined_selection": {
+    "passed": 194,
+    "optional_skips": 1,
+    "subtests_passed": 62,
+    "seconds": 23.98,
+    "log_sha256": "83592b04ae3a32d026bb2d6abd7c0e53b9fcf049543a71604486ca3d97ed8434",
+    "xml_sha256": "e6c1d25df4d32f478012b3c4d9769888d4cde88583b73b3391d0557797392a94"
+  },
+  "dedicated_stdlib_unittest": {
+    "passed": 33,
+    "log_sha256": "e2e621c1581e12161d0e5c90ebb036011613faff84e2f0811a48cf63b4b6f046"
+  },
+  "ruff": "passed",
+  "diff_check": "passed",
+  "frozen_final_sources_unchanged_through_tests": true,
+  "source_hashes": {
+    "src/jittest/_billing.py": "c5c9f5dc57f3b9c2b5d9b8dc8b1fa02f13db294af9c63194b9dd66c3ee6e153d",
+    "src/jittest/llm.py": "aa1f7e3a2b60b264eeea92dbf06c66af7b8826b68c31ac5a77785534c31d4ad5",
+    "tests/test_billing_dispatch_contract.py": "154f914c060a091fd1dc81de24e2b5450e42733e74d5fa1dea3388ea7f9114f6"
+  },
+  "meaningful_source_refinement_round": 4,
+  "transport_source_changed": false,
+  "wallet_invoice_reconciled": false,
+  "total_reconciled_provider_usd": null,
+  "ci_runtime_expense_usd": null,
+  "field_fpr": null,
+  "independent_field_recall": null
+}

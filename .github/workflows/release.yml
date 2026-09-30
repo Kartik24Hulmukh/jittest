@@ -136,7 +136,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Refuse prerelease advancement of stable v0
+        id: release-channel
+        run: python scripts/check_floating_tag.py "$GITHUB_REF"
+
       - name: Force-update v0 tag to this commit
+        if: steps.release-channel.outputs.stable == 'true'
         run: |
           git tag -f v0
           git push origin v0 --force

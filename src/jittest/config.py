@@ -211,7 +211,7 @@ def normalise_values(values: dict) -> tuple[dict, list[str]]:
                 continue
             try:
                 value = kind(raw)
-            except (TypeError, ValueError):
+            except (TypeError, ValueError, OverflowError):
                 notes.append(f"`{key}` must be a number, got {raw!r}; using default {default}")
                 clean[key] = default
                 continue

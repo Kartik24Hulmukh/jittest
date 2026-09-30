@@ -1,0 +1,77 @@
+{
+  "record_type": "customer_opportunity_template",
+  "template_only": true,
+  "status": "UNFILLED_NO_CONSENT_OR_OBSERVATION",
+  "authority": {
+    "owner_ref": null,
+    "written_consent_ref": null,
+    "consent_date": null,
+    "repository_runtime_scope_ref": null,
+    "execution_authorization_ref": null,
+    "retention_redaction_optout_ref": null
+  },
+  "protocol": {
+    "protocol_id": null,
+    "sampling_window_ref": null,
+    "eligibility_rule_ref": null,
+    "cheap_comparator_ref": null,
+    "comparison_order_learning_effect_ref": null,
+    "stop_criterion_ref": null
+  },
+  "opportunity": {
+    "id": null,
+    "observed_at_utc": null,
+    "repository_ref": null,
+    "base_sha": null,
+    "head_sha": null,
+    "changed_python_tests": null,
+    "eligible": null,
+    "eligibility_or_skip_reason": null,
+    "later_eligible_opportunity_ref": null
+  },
+  "attempt": {
+    "id": null,
+    "tool_version": null,
+    "tool_sha": null,
+    "artifact_sha256": null,
+    "test_byte_sha256": null,
+    "runtime_digest": null,
+    "queue_seconds": null,
+    "service_seconds": null,
+    "cleanup_seconds": null,
+    "total_elapsed_seconds": null,
+    "admission_outcome": null,
+    "base_executed": null,
+    "head_executed": null,
+    "verdict": null,
+    "refusal_or_error": null,
+    "receipt_ref": null,
+    "receipt_sha256": null,
+    "independent_consumer_result": null,
+    "expected_public_signer_ref": null
+  },
+  "human_observation": {
+    "founder_assisted": null,
+    "assistance_minutes": null,
+    "unaided_completion": null,
+    "first_meaningful_result_minutes": null,
+    "uncertainty_comprehension_ref": null,
+    "baseline_review_minutes": null,
+    "tool_assisted_review_minutes": null,
+    "usefulness_label": null,
+    "labeler_independence_ref": null,
+    "decision_changed": null,
+    "decision_evidence_ref": null,
+    "incremental_contribution_ref": null,
+    "observed_second_use_ref": null,
+    "optout_reason": null,
+    "adverse_event_ref": null
+  },
+  "cost": {
+    "ci_runtime_cost_receipt_ref": null,
+    "separately_approved_provider_cost_receipt_ref": null,
+    "unreconciled_items_ref": null,
+    "actual_invoice_payment_ref": null
+  },
+  "privacy_note": "Template is not consent, a participant, or a completed trial. Keep private records out of the public repo; null is unknown, not zero."
+}

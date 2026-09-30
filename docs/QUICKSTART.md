@@ -30,7 +30,15 @@ Expected: exit 0, valid signature, trusted project signer. This public sample is
 
 ## 3. Run a selected test on base and head
 
-For the unpublished candidate, install an **exact reviewed commit SHA**, not mutable `main`; the published `0.4.1` lacks the later boundaries and BASE runtime wiring listed in `RELEASE-ARTIFACTS.md`. The host package supports Python 3.11–3.13. Linux CI with a working Docker/Podman backend is the recommended first confined execution environment; the approved runtime supplies the candidate Python and dependencies.
+For the inspected repaired source baseline, use **`6ca6698444718bdb58316d76f8c92ca9deccfacb`**, not mutable `main`; the published `0.4.1` lacks the later boundaries and BASE runtime wiring listed in `RELEASE-ARTIFACTS.md`. The host package supports Python 3.11–3.13. Linux CI with a working Docker/Podman backend is the recommended first confined execution environment; the approved runtime supplies the candidate Python and dependencies.
+
+Install this source snapshot in a separate environment, not over the published offline-consumer environment:
+
+```bash
+python -m pip install git+https://github.com/Kartik24Hulmukh/jittest@6ca6698444718bdb58316d76f8c92ca9deccfacb
+```
+
+This is unreleased engineering source whose package metadata still says `0.4.1`, not a replacement upload for published `0.4.1`. It includes the later PR232 installed-wheel provenance and remote-archive Action installation repairs; a future integrated candidate needs a new approved version, full SHA, and exact artifact acceptance. For a candidate Action evaluation, pin `uses: Kartik24Hulmukh/jittest@6ca6698444718bdb58316d76f8c92ca9deccfacb` instead of the published `v0.4.1` example below. Do not switch that example silently or treat a source pin as publication approval. See [ADVISORY-PREVIEW-ACCEPTANCE.md](ADVISORY-PREVIEW-ACCEPTANCE.md) before execution.
 
 Before running untrusted code, require isolation and review [ISOLATION.md](ISOLATION.md). For dependency-bearing projects the candidate needs a trusted, digest-pinned runtime selected from the **BASE** configuration or a deliberate operator override; see [RUNTIME-IMAGES.md](RUNTIME-IMAGES.md). No published general-purpose runtime catalog is provided. DB/network-dependent fixtures and broad packaging/ABI resolution are not supported claims.
 

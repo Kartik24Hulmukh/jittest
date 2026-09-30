@@ -1,0 +1,68 @@
+{
+  "source_sha": "6ca6698444718bdb58316d76f8c92ca9deccfacb",
+  "source_files_sha256": [
+    "0caebe4c0fd9150068c2c74c82433230ac915ea239b63143eb2434229e6f522e  src/jittest/llm.py",
+    "9fc440aeb542af959099e44e89b0c20b82278506b3a8b1ca21bba3bbf58a3c44  src/jittest/_billing.py",
+    "e43dd60ec5b19135989533b3a900e5f67a5604fa21943fb138665d6a4cbb5948  src/jittest/_llmbase.py"
+  ],
+  "legacy_provider_billing_tests": {
+    "tests": 11,
+    "errors": 0,
+    "failures": 0,
+    "log_sha256": "7a8f630f4b7505a775d4b082a905890dd0c763315350dd325804ab5b69bc7d36"
+  },
+  "new_contract_baseline": {
+    "tests": 18,
+    "error_instances_including_subtests": 21,
+    "outcome": "failed",
+    "interpretation": "missing ledger API plus independently reproduced charged malformed response accounting loss",
+    "log_sha256": "185daf5b42043e0739bc46cd6d6898f3e0bfc32e4d0a9cbb039e1309580cb658"
+  },
+  "artifact_only_inspection": {
+    "inspected_sha": "6ca6698444718bdb58316d76f8c92ca9deccfacb",
+    "original_evidence_files_checked": 60,
+    "original_hash_mismatches": [],
+    "public_template_cases": 116,
+    "public_template_types": {
+      "population": 80,
+      "candidate_assertion": 36
+    },
+    "template_missing_candidate_bytes": 116,
+    "template_review_status": {
+      "not_started": 116
+    },
+    "cost_events": 0,
+    "cohorts": {
+      "click": {
+        "rows": 40,
+        "responses": 113,
+        "typed_outcomes": 101,
+        "catching_candidates": 16,
+        "catching_with_source_hash": 16,
+        "catching_with_source_path": 16,
+        "paired_rows": 12,
+        "report_bearing_rows": 0
+      },
+      "bugs": {
+        "rows": 25,
+        "responses": 78,
+        "typed_outcomes": 58,
+        "catching_candidates": 20,
+        "catching_with_source_hash": 20,
+        "catching_with_source_path": 20,
+        "paired_rows": 20,
+        "report_bearing_rows": 12
+      }
+    },
+    "validation_archive": {
+      "sha256": "277a7fa0d8ddf154e4f73ec809b3def9cd297443ad7ff3744b73eaadbdfc5540",
+      "verified_manifest_members": 13,
+      "hash_mismatches": [],
+      "checks": 37,
+      "conclusions": {
+        "success": 33,
+        "skipped": 4
+      }
+    }
+  }
+}

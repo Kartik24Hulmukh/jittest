@@ -1,0 +1,37 @@
+{
+  "source_base_sha": "6ca6698444718bdb58316d76f8c92ca9deccfacb",
+  "scope": "trusted owned fixtures and local HTTP transport; no paid provider or foreign corpus execution",
+  "combined_pytest": {
+    "passed": 185,
+    "skipped": 1,
+    "subtests_passed": 13,
+    "time_seconds": 24.2,
+    "skips": [
+      {
+        "name": "tests.test_production_transport",
+        "message": "collection skipped"
+      }
+    ],
+    "xml_sha256": "244a8dbc352954ba1a9aac4dd83e5860ad3b9c0a550f22f1a36d17cf4e57d032",
+    "log_sha256": "e94b66a370b704fadaa6f3b343d1a7019397f9c43009f12229420056eea8348d"
+  },
+  "zero_dependency_dedicated_unittest": {
+    "passed": 24,
+    "log_sha256": "a77e48e4fd2c3971ad4d17a71c27929a5d7bba75ab55a53c4edb7ba082e943d0"
+  },
+  "ruff": "passed",
+  "git_diff_check": "passed",
+  "source_files_after_sha256": {
+    "src/jittest/llm.py": "aa1f7e3a2b60b264eeea92dbf06c66af7b8826b68c31ac5a77785534c31d4ad5",
+    "src/jittest/_billing.py": "fd954151a0eefef68c89494648ea4ae750c9596e95d04d3848667b8482bea1e8",
+    "tests/test_billing_dispatch_contract.py": "882ccde266e9fc7b54a9f096f711cd1730dbad1f7bfa18e8c1ccce5cdc73f670"
+  },
+  "source_fix_rounds": 3,
+  "whole_suite_rerun": false,
+  "wallet_invoice_reconciled": false,
+  "total_reconciled_provider_usd": null,
+  "ci_runtime_expense_usd": null,
+  "field_fpr": null,
+  "independently_labeled_recall": null,
+  "public_default_action_census_implemented": false
+}

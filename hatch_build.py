@@ -1,10 +1,8 @@
 """Archive source identity for installed verifiers without a Git checkout."""
 from __future__ import annotations
 
-import hashlib
+import importlib.util
 import json
-import re
-import subprocess
 import tempfile
 from pathlib import Path
 
@@ -14,20 +12,24 @@ from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 class CustomBuildHook(BuildHookInterface):
     def initialize(self, version, build_data):
         root = Path(self.root)
-        archived = root / "src/jittest/_build_provenance.json"
-        if (root / ".git").exists():
-            sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root,
-                                          text=True).strip()
-            diff = subprocess.check_output(["git", "diff", "HEAD"], cwd=root)
-            provenance = {"source_sha": sha, "working_diff_sha256": hashlib.sha256(diff).hexdigest()}
-        elif archived.exists():
-            provenance = json.loads(archived.read_text())
+        spec = importlib.util.spec_from_file_location("jittest_build_identity", root / "build_identity.py")
+        if spec is None or spec.loader is None:
+            raise ValueError("build identity helper unavailable")
+        identity = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(identity)
+        if version == "editable":
+            # PEP 660 points at live source, not copied immutable runtime bytes.
+            # Never let an archived resource override live Git identity later.
+            if not (root / ".git").exists() or (root / "src/jittest/_build_provenance.json").exists():
+                raise ValueError("editable builds require own Git source without archived provenance")
+            provenance = identity.git_provenance(root)
         else:
-            raise ValueError("build requires Git source identity or archived build provenance")
-        if not re.fullmatch(r"[0-9a-f]{40}", provenance.get("source_sha", "")):
-            raise ValueError("invalid archived source SHA")
-        if not re.fullmatch(r"[0-9a-f]{64}", provenance.get("working_diff_sha256", "")):
-            raise ValueError("invalid archived diff SHA256")
+            provenance = identity.build_provenance(root)
+        self._identity = identity
+        self._provenance = provenance
+        self._temp = None
+        if version == "editable":
+            return
         # Keep generated files outside source; build must not dirty the checkout.
         self._temp = tempfile.TemporaryDirectory(prefix="jittest-build-")
         path = Path(self._temp.name) / "_build_provenance.json"
@@ -37,4 +39,13 @@ class CustomBuildHook(BuildHookInterface):
         build_data.setdefault("force_include", {})[str(path)] = destination
 
     def finalize(self, version, build_data, artifact_path):
-        self._temp.cleanup()
+        try:
+            if self._identity.source_manifest(Path(self.root)) != self._provenance["build_inputs"]:
+                raise ValueError("build inputs changed during build")
+            if version == "editable":
+                self._identity.validate_editable_artifact(Path(artifact_path), Path(self.root))
+            else:
+                self._identity.validate_artifact(Path(artifact_path), self.target_name, self._provenance)
+        finally:
+            if self._temp is not None:
+                self._temp.cleanup()
