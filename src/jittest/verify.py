@@ -53,6 +53,7 @@ from .execute import (
 from .execution_paths import contained_execution_path, relative_execution_path
 from .github import fetch_pr_base_head
 from .receipt import get_repo_canonical, sign_evidence
+from .results import AttemptCensus
 from .sandbox import SandboxPlan, SandboxUnavailable, load_runtime_image, validate_image_ref
 from .sandbox import plan as plan_sandbox
 
@@ -810,6 +811,10 @@ def _run_guarded_phase(
                                   (env_info or {}).get("resolved_versions") or [],
                                   sort_keys=True, separators=(",", ":")))}
     records.append(record)
+    census = getattr(records, "census", None)
+    if census is not None:
+        census.phases.append(record)
+        census.event("phase_started", phase=phase, revision=revision, test_sha256=record["test_sha256"])
     try:
         record["readiness"] = _readiness_block(workdir, env_info) or {
             "evaluated": False, "mode": _p0_mode(READINESS_ENV),
@@ -820,6 +825,8 @@ def _run_guarded_phase(
                       stdout_sha256=_hash_str(result.stdout),
                       stderr_sha256=_hash_str(result.stderr))
         record["output_guard"] = _output_guard_block(workdir)
+        if census is not None:
+            census.event("phase_finished", observation=record)
         return result
     except VerifyRefusalError as exc:
         # Preserve typed policy refusals, including through health-probe fallbacks.
@@ -879,6 +886,56 @@ def verify_test(
     no_sandbox: bool = False,
     sandbox_mode: str | None = None,
     signing_key_path: Path | str | None = None,
+) -> tuple[dict[str, Any], int]:
+    """Public verification with an additive, truthful invocation census."""
+    repo = Path(repo_path).resolve()
+    selector = str(test_file_path) if test_file_path is not None else ""
+    file_part = selector.split("::", 1)[0]
+    source = None
+    path = Path(file_part)
+    if not path.is_absolute():
+        path = repo / path
+    # Do not retain source or read a caller's out-of-repository secret file.
+    try:
+        if path.resolve().is_relative_to(repo) and path.is_file():
+            source = path.read_bytes()
+    except OSError:
+        pass
+    census = AttemptCensus(Path(output_path).resolve().parent / "census" if output_path else None,
+                           entrypoint="verify")
+    census.select([AttemptCensus.candidate(selector=selector, base=None, head=None,
+                  source=source, base_ref=base_ref, head_ref=head_ref)])
+    census.start_candidate(0)
+    try:
+        return _verify_test(repo_path, base_ref, head_ref, test_file_path, pr_number, rel_path,
+                            kind, output_path, timeout_s, reruns, no_sandbox, sandbox_mode,
+                            signing_key_path, _census=census)
+    except BaseException as exc:
+        disposition = ("refused_" + exc.reason.code if isinstance(exc, VerifyRefusalError)
+                       else "interrupted" if isinstance(exc, (KeyboardInterrupt, SystemExit))
+                       else "execution_exception")
+        census.finish_candidate(0, disposition=disposition,
+                                phases=getattr(exc, "verification_phases", []) or census.phases,
+                                error_type=type(exc).__name__)
+        census.finish("interrupted" if isinstance(exc, (KeyboardInterrupt, SystemExit)) else "failed")
+        raise
+
+
+def _verify_test(
+    repo_path: Path | str,
+    base_ref: str | None = None,
+    head_ref: str | None = None,
+    test_file_path: Path | str | None = None,
+    pr_number: int | str | None = None,
+    rel_path: str = ".",
+    kind: str = "bug",
+    output_path: Path | str | None = None,
+    timeout_s: int = 120,
+    reruns: int = 2,
+    no_sandbox: bool = False,
+    sandbox_mode: str | None = None,
+    signing_key_path: Path | str | None = None,
+    _census: AttemptCensus | None = None,
 ) -> tuple[dict[str, Any], int]:
     """Run paired base/head verification and generate Ed25519 signed evidence artifact.
 
@@ -948,6 +1005,9 @@ def verify_test(
     if not resolved_head:
         raise VerifyRefusalError(f"head revision not found: {head_ref}")
 
+    if _census is not None:
+        _census.bind_candidate(0, base=resolved_base, head=resolved_head, source=test_bytes)
+
     rel_path = str(relative_execution_path(rel_path))
     selected_root = repo_path / rel_path
     if not test_path.is_relative_to(selected_root):
@@ -1015,7 +1075,9 @@ def verify_test(
     rel_test = test_path.relative_to(repo_path)
 
     # P0 state-machine observations (readiness preflight / output boundary guard)
-    phase_records: list[dict[str, Any]] = []
+    class PhaseRecords(list):
+        census = _census
+    phase_records: list[dict[str, Any]] = PhaseRecords()
 
     # 1. ALWAYS provision and execute BASE first (never short-circuit)
     base_run = None
@@ -1375,6 +1437,11 @@ def verify_test(
         if head_err:
             err_msgs.append(f"head: {head_err}")
         evidence_dict["error"] = "; ".join(err_msgs)
+
+    if _census is not None:
+        _census.finish_candidate(0, disposition=evidence_dict["disposition"], phases=phase_records,
+                                 artifact=str(output_path) if output_path else None)
+        evidence_dict["attempt_census"] = _census.finish()
 
     # Cryptographically sign the evidence dictionary with Ed25519 key
     signed_evidence = sign_evidence(evidence_dict, key_path=signing_key_path)

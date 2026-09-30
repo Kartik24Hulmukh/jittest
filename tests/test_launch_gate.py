@@ -14,6 +14,8 @@ assert SPEC is not None and SPEC.loader is not None
 launch_gate = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(launch_gate)
 
+BLOCKED_ACCEPTANCE = launch_gate.load_acceptance()
+
 GOOD_SOAK = {
     "leak_slope_limit_kib_per_1k_ops": 1.0,
     "leak_slope_kib_per_1k_ops": 0.01,
@@ -133,15 +135,16 @@ class ReceiptClassification(unittest.TestCase):
 class GaReadyIsDerivedNotDeclared(unittest.TestCase):
     def test_open_blockers_keep_ga_false(self):
         self.assertFalse(launch_gate.derive_ga_ready(launch_gate.GA_BLOCKERS))
-        self.assertTrue(launch_gate.derive_ga_ready([]))
+        self.assertFalse(launch_gate.derive_ga_ready([]))
 
     def test_decision_matrix(self):
         ok = {"a": {"ok": True}}
         bad = {"a": {"ok": True}, "b": {"ok": False}}
         self.assertEqual(
-            launch_gate.build_report(ok, launch_gate.GA_BLOCKERS)["decision"], "GO_LAUNCH_NOT_GA"
+            launch_gate.build_report(ok, launch_gate.GA_BLOCKERS, BLOCKED_ACCEPTANCE)["decision"], "GO_LAUNCH_NOT_GA"
         )
-        self.assertEqual(launch_gate.build_report(ok, [])["decision"], "GO_GA")
+        self.assertEqual(launch_gate.build_report(ok, [], BLOCKED_ACCEPTANCE)["decision"],
+                         "GO_LAUNCH_NOT_GA")
         self.assertEqual(launch_gate.build_report(bad, [])["decision"], "NO_GO")
         self.assertEqual(
             launch_gate.build_report(bad, launch_gate.GA_BLOCKERS)["decision"], "NO_GO"
@@ -281,7 +284,8 @@ class IndependentRuntimeBlockers(unittest.TestCase):
         gate = launch_gate.gate_runtime_blockers()
         self.assertTrue(gate["ok"])
         self.assertEqual(gate["blockers"], [])
-        report = launch_gate.build_report({"tests": {"ok": True}, "runtime_blockers": gate}, [])
+        report = launch_gate.build_report({"tests": {"ok": True}, "runtime_blockers": gate}, [],
+                                          BLOCKED_ACCEPTANCE)
         self.assertNotEqual(report["decision"], "NO_GO")
 
     def test_runtime_blockers_mechanism_still_fails_closed(self):
@@ -293,7 +297,8 @@ class IndependentRuntimeBlockers(unittest.TestCase):
             gate = launch_gate.gate_runtime_blockers()
             self.assertFalse(gate["ok"])
             self.assertEqual({row["issue"] for row in gate["blockers"]}, {999999})
-            report = launch_gate.build_report({"tests": {"ok": True}, "runtime_blockers": gate}, [])
+            report = launch_gate.build_report({"tests": {"ok": True}, "runtime_blockers": gate}, [],
+                                          BLOCKED_ACCEPTANCE)
             self.assertEqual(report["decision"], "NO_GO")
 
     def test_closed_option_c_issue_is_not_a_ga_blocker(self):

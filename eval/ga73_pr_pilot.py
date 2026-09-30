@@ -11,6 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from eval.false_positives import changed_python_files, summarize_rows  # noqa: E402
+from eval.ga73_collection import collection_screen  # noqa: E402
 from jittest.config import load_config  # noqa: E402
 from jittest.diff import extract_targets, git_diff  # noqa: E402
 from jittest.llm import build_llm  # noqa: E402
@@ -126,8 +127,9 @@ def main() -> int:
                 evidence['abort'] = report.diff_status
                 break
         telemetry = [t for r in rows for t in r['telemetry']]
-        bad = sum(str(t.get('disposition', '')).startswith('head_uncollectable') for t in telemetry)
-        healthy = bool(telemetry) and bad / len(telemetry) < 0.20
+        screen = collection_screen(telemetry)
+        healthy = screen['healthy_collection']
+        evidence['collection_screen'] = screen
         paired = any(t.get('head_outcome') in ('pass', 'fail') and t.get('base_outcome') in ('pass', 'fail') for t in telemetry)
         evidence.update(healthy_collection=healthy, execution_pair_present=paired)
         evidence['collection_qualified'] = (len(rows) == 40 and evidence['summary']['publishable'] and healthy and paired)

@@ -305,7 +305,7 @@ jobs:
           python - <<'PY'
           import json, glob, sys, os
           evidence_dir = os.environ.get("RUNNER_TEMP", "/tmp") + "/consumer-evidence"
-          files = glob.glob(evidence_dir + "/*.json")
+          files = glob.glob(evidence_dir + "/evidence-*.json")
           if not files:
               sys.exit(f"FAIL: No evidence JSON generated in {evidence_dir}")
 
@@ -343,7 +343,51 @@ jobs:
           if reproduction_catches == 0:
               sys.exit("FAIL: Zero reproduction catches found in consumer action run!")
 
-          print("SUCCESS: consumer-action-e2e verified both regression and reproduction catches.")
+          from pathlib import Path
+          import hashlib
+          from scripts.check_distributable import assert_attempt_census
+          snapshots = list(Path(evidence_dir).glob("census/*/snapshot.json"))
+          action_censuses = [(p, json.loads(p.read_text())) for p in snapshots
+                            if json.loads(p.read_text())["entrypoint"] == "action"]
+          assert len(action_censuses) == 1, "missing or duplicate Action census"
+          census_path, census = action_censuses[0]
+          repo = Path(os.environ["RUNNER_TEMP"]) / "consumer-repo"
+          sources = {name: hashlib.sha256((repo / name).read_bytes()).hexdigest()
+                     for name in ("tests/test_calc.py", "tests/test_mul.py")}
+          assert_attempt_census(census, census_path.with_name("journal.jsonl"),
+                                expected_base=os.environ["JITTEST_BASE"],
+                                expected_head=os.environ["JITTEST_HEAD"], expected_sources=sources)
+          assert all(c["execution_observed"] for c in census["candidates"])
+          for f in files:
+              receipt = json.loads(Path(f).read_text())
+              signed_census = receipt["attempt_census"]
+              assert signed_census == json.loads((Path(evidence_dir) / "census" /
+                     signed_census["run_id"] / "snapshot.json").read_text())
+          print("SUCCESS: real Action receipts and exact candidate census verified.")
+          PY
+
+      - name: Retrieve the actual Action artifacts in the same job
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: jittest-evidence
+          path: ${{ runner.temp }}/retrieved-consumer-evidence
+
+      - name: Assert retrieved artifacts exactly match local evidence
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, os
+          from pathlib import Path
+          root = Path(os.environ["RUNNER_TEMP"])
+          def material(directory):
+              return {p.relative_to(directory).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+                      for p in directory.rglob("*") if p.is_file()}
+          local = material(root / "consumer-evidence")
+          retrieved = material(root / "retrieved-consumer-evidence")
+          assert local and local == retrieved, "uploaded/downloaded evidence bytes differ"
+          assert any(p.endswith("snapshot.json") for p in retrieved)
+          assert any(p.endswith("journal.jsonl") for p in retrieved)
+          print("Actual same-job retrieved receipt/snapshot/journal hashes matched.")
           PY
 
   mypy-safety:

@@ -6,8 +6,13 @@ contract can be reviewed without reading the pipeline.
 """
 from __future__ import annotations
 
+import hashlib
 import json
+import os
+import uuid
 from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
 
 from . import __version__
 from .assess import Assessment
@@ -231,3 +236,101 @@ class Report:
                 for f in self.latent_findings
             ],
         }
+
+
+class AttemptCensus:
+    """Observed invocation ledger, not a semantic evaluation or ground truth.
+
+    Journal records are fsynced before an atomic snapshot is published. Each
+    invocation owns a unique directory, so concurrent invocations cannot merge
+    denominators. Pending entries after abrupt termination remain pending.
+    """
+
+    def __init__(self, directory: Path | None, *, entrypoint: str):
+        self.directory = directory
+        self.data: dict[str, Any] = {
+            "schema_version": "default-attempt-census-1.0", "run_id": uuid.uuid4().hex,
+            "entrypoint": entrypoint, "denominator_known": False,
+            "candidates": [], "state": "started", "journal_records": 0,
+            "journal_sha256": hashlib.sha256(b"").hexdigest(),
+        }
+        self.phases: list[dict[str, Any]] = []
+        self._journal = hashlib.sha256()
+        if directory is not None:
+            self.directory = directory / self.data["run_id"]
+            self.directory.mkdir(parents=True, exist_ok=False)
+        self.event("invocation_started")
+
+    @staticmethod
+    def candidate(*, selector: str, base: str | None, head: str | None,
+                  source: bytes | None, base_ref: str | None = None,
+                  head_ref: str | None = None) -> dict[str, Any]:
+        material = {"selector": selector, "base_sha": base, "head_sha": head,
+                    "base_ref": base_ref, "head_ref": head_ref,
+                    "candidate_sha256": hashlib.sha256(source).hexdigest() if source is not None else None,
+                    "candidate_bytes": len(source) if source is not None else None}
+        digest = hashlib.sha256(json.dumps(material, sort_keys=True,
+                                separators=(",", ":")).encode()).hexdigest()
+        return {**material, "material_sha256": digest, "state": "pending",
+                "disposition": None, "execution_observed": False}
+
+    def select(self, candidates: list[dict[str, Any]], *, known: bool = True) -> None:
+        self.data["candidates"] = candidates
+        self.data["denominator_known"] = known
+        self.event("candidates_selected", candidates=candidates, denominator_known=known)
+
+    def event(self, event: str, **fields: Any) -> None:
+        record = {"sequence": self.data["journal_records"] + 1,
+                  "run_id": self.data["run_id"], "event": event, **fields}
+        line = (json.dumps(record, sort_keys=True, separators=(",", ":")) + "\n").encode()
+        if self.directory is not None:
+            with (self.directory / "journal.jsonl").open("ab") as stream:
+                stream.write(line)
+                stream.flush()
+                os.fsync(stream.fileno())
+        self._journal.update(line)
+        self.data["journal_records"] = record["sequence"]
+        self.data["journal_sha256"] = self._journal.hexdigest()
+        self._snapshot()
+
+    def bind_candidate(self, index: int, *, base: str, head: str, source: bytes) -> None:
+        candidate = self.data["candidates"][index]
+        material = self.candidate(selector=candidate["selector"], base=base, head=head,
+                                  source=source, base_ref=candidate["base_ref"],
+                                  head_ref=candidate["head_ref"])
+        candidate.update({k: v for k, v in material.items()
+                          if k not in ("state", "disposition", "execution_observed")})
+        self.event("candidate_material_bound", candidate_index=index, material=material)
+
+    def start_candidate(self, index: int) -> None:
+        self.data["candidates"][index]["state"] = "attempted"
+        self.event("candidate_started", candidate_index=index)
+
+    def finish_candidate(self, index: int, *, disposition: str,
+                         phases: list[dict[str, Any]] | None = None,
+                         artifact: str | None = None, error_type: str | None = None) -> None:
+        candidate = self.data["candidates"][index]
+        candidate.update(state="finished", disposition=disposition,
+                         execution_observed=any("outcome" in p for p in (phases or [])))
+        if artifact is not None:
+            candidate["artifact"] = artifact
+        self.event("candidate_finished", candidate_index=index, disposition=disposition,
+                   phases=phases or [], artifact=artifact, error_type=error_type)
+
+    def finish(self, state: str = "finished") -> dict[str, Any]:
+        self.data["state"] = state
+        self.event("invocation_finished", state=state)
+        return self.snapshot()
+
+    def snapshot(self) -> dict[str, Any]:
+        return json.loads(json.dumps(self.data))
+
+    def _snapshot(self) -> None:
+        if self.directory is not None:
+            temporary = self.directory / "snapshot.tmp"
+            with temporary.open("w", encoding="utf-8") as stream:
+                json.dump(self.data, stream, indent=2, sort_keys=True)
+                stream.write("\n")
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(temporary, self.directory / "snapshot.json")

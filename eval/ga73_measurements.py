@@ -16,6 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from eval.false_positives import changed_python_files, select_pairs, summarize_rows  # noqa: E402
+from eval.ga73_collection import collection_screen  # noqa: E402
 from eval.run_bugsinpy import discover, ensure_repo, evaluate_one, summarize  # noqa: E402
 from jittest.config import load_config  # noqa: E402
 from jittest.llm import build_llm  # noqa: E402
@@ -84,8 +85,9 @@ def main() -> int:
                 break
         if args.bugs_only:
             telemetry = [t for row in evidence["bug_results"] for t in row["telemetry"]]
-            bad = sum(str(t.get("disposition", "")).startswith("head_uncollectable") for t in telemetry)
-            healthy = bool(telemetry) and bad / len(telemetry) < 0.20
+            screen = collection_screen(telemetry)
+            healthy = screen["healthy_collection"]
+            evidence["bug_collection_screen"] = screen
             paired = any(t.get("head_outcome") in ("pass", "fail") and
                          t.get("base_outcome") in ("pass", "fail") for t in telemetry)
             qualified = (len(bug_rows) == 25 and evidence["bug_summary"]["completion_rate"] >= 0.8
@@ -140,10 +142,9 @@ def main() -> int:
         bs, fs = evidence["bug_summary"], evidence["fp_summary"]
         bug_tel = [t for r in evidence["bug_results"] for t in r["telemetry"]]
         fp_tel = [t for r in rows for t in r["telemetry"]]
-        def collection_ok(telemetry: list[dict]) -> bool:
-            bad = sum(str(t.get("disposition", "")).startswith("head_uncollectable") for t in telemetry)
-            return bool(telemetry) and bad / len(telemetry) < 0.20
-        healthy = collection_ok(bug_tel) and collection_ok(fp_tel)
+        bug_screen, fp_screen = collection_screen(bug_tel), collection_screen(fp_tel)
+        healthy = bug_screen["healthy_collection"] and fp_screen["healthy_collection"]
+        evidence.update(bug_collection_screen=bug_screen, fp_collection_screen=fp_screen)
         paired = any(t.get("head_outcome") in ("pass", "fail") and
                      t.get("base_outcome") in ("pass", "fail") for t in bug_tel)
         evidence["healthy_collection"] = healthy

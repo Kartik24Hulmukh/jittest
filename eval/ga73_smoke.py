@@ -15,6 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from eval.ga73_collection import collection_screen  # noqa: E402
 from eval.preflight_model import preflight_model  # noqa: E402
 from eval.run_bugsinpy import discover, ensure_repo, evaluate_one, summarize  # noqa: E402
 from jittest.sandbox import plan, validate_image_ref  # noqa: E402
@@ -27,13 +28,15 @@ def acceptance(rows: list[dict]) -> dict:
     paired = [t for t in telemetry if t.get("head_outcome") in ("pass", "fail")
               and t.get("base_outcome") in ("pass", "fail")]
     uncollectable = sum(str(t.get("disposition", "")).startswith("head_uncollectable") for t in telemetry)
+    collection = collection_screen(telemetry)
     gates = {"pytest_runner": bool(rows) and all(r.get("runner") == "pytest" for r in rows),
              "deps_installed": bool(rows) and all(r.get("deps_status") == "installed" for r in rows),
-             "healthy_collection": bool(telemetry) and uncollectable / len(telemetry) < 0.20,
+             "healthy_collection": collection["healthy_collection"],
              "base_head_pair": bool(paired),
              "all_selected_measured": len(rows) == 3 and all(r.get("model_requests", 0) > 0 for r in rows)}
     return {**gates, "passed": all(gates.values()), "paired_candidates": len(paired),
-            "head_uncollectable": uncollectable, "telemetry_count": len(telemetry)}
+            "head_uncollectable": uncollectable, "telemetry_count": len(telemetry),
+            "collection_screen": collection}
 
 
 def main() -> int:

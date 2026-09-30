@@ -10,6 +10,8 @@ permissions:
 
 jobs:
   build:
+    outputs:
+      build-attempt: ${{ steps.approval-candidate.outputs.build-attempt }}
     runs-on: ubuntu-latest
     if: github.ref_name != 'v0'
     timeout-minutes: 15
@@ -57,6 +59,14 @@ jobs:
       - name: Rehearse the exact wheel in a clean environment
         run: python scripts/check_distributable.py --dist dist --out dist/candidate-manifest.json
 
+      - name: Bind exact release bytes and requested effects (not an approval)
+        id: approval-candidate
+        env:
+          BUILD_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          python scripts/check_release_approval.py --dist dist --create --build-attempt "$BUILD_ATTEMPT"
+          echo "build-attempt=$BUILD_ATTEMPT" >> "$GITHUB_OUTPUT"
+
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
@@ -64,9 +74,13 @@ jobs:
           path: dist/
 
   publish:
+    outputs:
+      build-attempt: ${{ needs.build.outputs.build-attempt }}
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Hosted prerequisites: independent reviewers, prevent self-review/bypass,
+    # environment-only digest variable, and no org/repo same-name collision.
     environment: pypi
     # Dry-run safety: a workflow_dispatch run builds and tests but must never
     # upload, even when dispatched against a tag. Only a tag PUSH publishes.
@@ -74,10 +88,22 @@ jobs:
     permissions:
       id-token: write        # PyPI Trusted Publishing via OIDC
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dist
           path: dist/
+
+      - name: Require externally approved exact bytes before PyPI publication
+        env:
+          JITTEST_RELEASE_APPROVAL_SHA256: ${{ vars.JITTEST_RELEASE_APPROVAL_SHA256 }}
+          BUILD_ATTEMPT: ${{ needs.build.outputs.build-attempt }}
+        run: python scripts/check_release_approval.py --dist dist --effect pypi --build-attempt "$BUILD_ATTEMPT"
 
       - name: Publish distributions only, not the rehearsal manifest
         run: |
@@ -89,12 +115,17 @@ jobs:
           packages-dir: publish-dist/
 
   verify-published:
+    environment: pypi
+    outputs:
+      build-attempt: ${{ needs.publish.outputs.build-attempt }}
     needs: publish
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
@@ -102,10 +133,16 @@ jobs:
         with:
           name: dist
           path: dist/
+      - name: Recheck downloaded bytes and external approval before registry check
+        env:
+          JITTEST_RELEASE_APPROVAL_SHA256: ${{ vars.JITTEST_RELEASE_APPROVAL_SHA256 }}
+          BUILD_ATTEMPT: ${{ needs.publish.outputs.build-attempt }}
+        run: python scripts/check_release_approval.py --dist dist --effect pypi --build-attempt "$BUILD_ATTEMPT"
       - name: Match public registry bytes to the approved build
         run: python scripts/check_published_bytes.py --dist dist
 
   github-release:
+    environment: pypi
     needs: verify-published
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
@@ -114,10 +151,20 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dist
           path: dist/
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Require externally approved exact bytes before GitHub release
+        env:
+          JITTEST_RELEASE_APPROVAL_SHA256: ${{ vars.JITTEST_RELEASE_APPROVAL_SHA256 }}
+          BUILD_ATTEMPT: ${{ needs.verify-published.outputs.build-attempt }}
+        run: python scripts/check_release_approval.py --dist dist --effect github_release --build-attempt "$BUILD_ATTEMPT"
       - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           files: dist/*
@@ -125,6 +172,7 @@ jobs:
           body_path: CHANGELOG.md
 
   update-floating-tag:
+    environment: pypi
     needs: [verify-published, github-release]
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -136,9 +184,24 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: dist
+          path: dist/
+
       - name: Refuse prerelease advancement of stable v0
         id: release-channel
         run: python scripts/check_floating_tag.py "$GITHUB_REF"
+
+      - name: Require externally approved exact bytes before floating tag update
+        if: steps.release-channel.outputs.stable == 'true'
+        env:
+          JITTEST_RELEASE_APPROVAL_SHA256: ${{ vars.JITTEST_RELEASE_APPROVAL_SHA256 }}
+          BUILD_ATTEMPT: ${{ needs.verify-published.outputs.build-attempt }}
+        run: python scripts/check_release_approval.py --dist dist --effect floating_v0 --build-attempt "$BUILD_ATTEMPT"
 
       - name: Force-update v0 tag to this commit
         if: steps.release-channel.outputs.stable == 'true'

@@ -33,12 +33,15 @@ ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src"
 sys.path.insert(0, str(SRC))
 
+sys.path.insert(0, str(ROOT))
+
+from eval.ga73_acceptance import ValidatedAcceptance, load_acceptance  # noqa: E402
 from jittest.integrity import canonical_json  # noqa: E402
 
 LAUNCH_WINDOW = "2026-09-28/2026-10-31"
 
-# Open GA blockers. ga_ready is derived from this list being empty, so the only
-# way to flip it is to close the issues and delete the rows in the same PR.
+# Open GA blockers are necessary but insufficient: source-bound human labels
+# and wallet/CI acceptance must also be validated before GO_GA.
 GA_BLOCKERS = [
     {"issue": 73, "title": "real catch-rate / FPR / USD-per-PR evaluation"},
 ]
@@ -67,6 +70,7 @@ FOCUSED_SUITES = [
     "tests/test_cli_explain.py",
     "tests/test_anti_fabrication_lint.py",
     "tests/test_launch_gate.py",
+    "tests/test_ga73_acceptance.py",
 ]
 
 RECEIPT_DIRS = ["docs/evidence/quadrants", "docs/evidence/pr"]
@@ -210,16 +214,24 @@ def gate_tests(full: bool) -> dict:
     return {"ok": code == 0, "mode": "full" if full else "focused", "summary": summary[-1:]}
 
 
-def derive_ga_ready(blockers: list[dict]) -> bool:
-    return not blockers
+def derive_ga_ready(blockers: list[dict], acceptance: dict | None = None) -> bool:
+    return (not blockers and type(acceptance) is ValidatedAcceptance
+            and acceptance.get("ok") is True and acceptance.get("status") == "accepted"
+            and acceptance.get("ga_ready") is True)
 
 
-def build_report(gates: dict, blockers: list[dict]) -> dict:
+def build_report(gates: dict, blockers: list[dict], acceptance: dict | None = None) -> dict:
     all_ok = bool(gates) and all(g.get("ok") is True for g in gates.values())
     missing_tools = sorted(
         {g["tool_missing"] for g in gates.values() if g.get("tool_missing")}
     )
-    ga_ready = derive_ga_ready(blockers)
+    # Missing acceptance is an invalid gate, even if someone removes issue #73.
+    acceptance = acceptance if type(acceptance) is ValidatedAcceptance else {
+        "ok": False, "status": "invalid", "ga_ready": False,
+        "problems": ["GA73 acceptance missing or not validator-produced"],
+    }
+    all_ok = all_ok and acceptance.get("ok") is True
+    ga_ready = derive_ga_ready(blockers, acceptance)
     if missing_tools:
         # Distinct from NO_GO: the source tree may be fine, the toolchain is not.
         decision = "NO_GO_TOOL_MISSING"
@@ -234,6 +246,7 @@ def build_report(gates: dict, blockers: list[dict]) -> dict:
         "launch_window": LAUNCH_WINDOW,
         "gates": gates,
         "ga_blockers": blockers,
+        "ga73_acceptance": acceptance,
         "ga_ready": ga_ready,
         "decision": decision,
         "tool_missing": missing_tools,
@@ -247,6 +260,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--full", action="store_true", help="run the full pytest suite")
     ap.add_argument("--skip-tests", action="store_true", help="skip the pytest gate")
     ap.add_argument("--json", type=Path, help="write the report here")
+    ap.add_argument("--ga73-acceptance", type=Path,
+                    help="source-bound acceptance manifest; default is explicit blocked checkpoint")
     args = ap.parse_args(argv)
 
     started = time.time()
@@ -264,7 +279,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         gates["tests"] = {"ok": False, "mode": "skipped",
                           "detail": ["tests are required for launch approval"]}
-    report = build_report(gates, GA_BLOCKERS)
+    report = build_report(gates, GA_BLOCKERS, load_acceptance(args.ga73_acceptance))
     report["volatile"] = {"elapsed_s": round(time.time() - started, 1), "python": sys.version}
 
     for name, gate in gates.items():
