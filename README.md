@@ -21,7 +21,7 @@ developer fatigue is the category's documented failure mode). Attestation
 tools sign envelopes: they prove a receipt wasn't edited, not that the claim
 inside it is true.
 
-jittest does neither. **jittest recomputes the claim.**
+`jittest verify` executes the selected test on both revisions. `verify-receipt` checks the signed record offline; it does not rerun the tests or prove full correctness.
 
 ## What it does
 
@@ -48,22 +48,16 @@ The official project public key and fingerprint are published in [`docs/KEYS.md`
 > The published package on PyPI is `0.4.1` (tag `v0.4.1`, source `ef08ddbc`; wheel SHA-256 `d33eaa33…`, verified byte-identical to the tag — see [docs/RELEASE-ARTIFACTS.md](docs/RELEASE-ARTIFACTS.md)). Code on `main` is an unpublished candidate: the per-phase boundaries (#196), path containment (#197), BASE pin wiring (#200) and `jittest.prod` observability (#201) are **not** in any published artifact. `pip install jittest` installs `0.4.1`, not this development SHA. Evaluate development changes by exact commit SHA.
 
 ```bash
-pip install jittest
+python -m pip install jittest==0.4.1
 
-# verify one of this repo's own published receipts with official key fingerprint
-curl -sLO https://raw.githubusercontent.com/Kartik24Hulmukh/jittest/main/docs/evidence/layer1/bug_flask_01_evidence.json
-jittest verify-receipt bug_flask_01_evidence.json --expected-signer 4059d799af91096f
+# Consume public JSON only; this does not execute the historical repository.
+curl -fSL -o bug_flask_01_evidence.json https://raw.githubusercontent.com/Kartik24Hulmukh/jittest/bf642162a3059b3ec116c2d0db9333892fa6c9f7/docs/evidence/layer1/bug_flask_01_evidence.json
+jittest verify-receipt bug_flask_01_evidence.json --expected-signer 4059d799af91096f --strict-signer --json
 ```
 
-Then recompute the measurement behind it end to end — the sweep script clones
-its three public fixture repos (flask, requests, youtube-dl) itself:
+Expected: signature valid and project signer trusted. This is **legacy, unconfined evidence**; provenance is not checked by this command. Adding `--require-confined` must reject it (exit 7). Signature validity is not a correctness or safety guarantee. For a fresh receipt, use the verifier-only [Quickstart](docs/QUICKSTART.md) and independently supplied commit/test/repository expectations.
 
-```bash
-git clone https://github.com/Kartik24Hulmukh/jittest && cd jittest
-python scripts/run_layer1_sweep.py
-```
-
-Don't trust. Recompute.
+Historical corpus reproduction is separate research work, not onboarding. Do not execute arbitrary historical repositories on your host; review the supported confinement and runtime requirements first.
 
 ## The measured status — we publish our denominator
 
@@ -120,12 +114,14 @@ jobs:
 ```
 
 > [!NOTE]
-> The default action policy is `advisory`, which executes checks and posts PR comments/annotations but **never fails the build** (always exits 0). To use jittest as a blocking CI merge gate that fails on unproven regressions or environment refusals, explicitly specify `policy: "strict"` (requires at least 1 `proven_catch`) or `policy: "block-on-refusal"`.
+> `advisory` does not block on behavioral verdicts or refusals; setup/tooling failures can still fail a job. A green advisory job does **not** mean regression-free code. Published `0.4.1` `strict` requires at least one positive catch (including a bug-fix reproduction) unless no tests changed and can succeed with a catch plus another refusal. The unpublished candidate additionally rejects refusals under `strict`. Neither behavior is a conventional regression blocker. `block-on-refusal` blocks refusals but permits catches. Start advisory; understand this truth table before choosing either policy. Code-only PRs skip the automatic Action path.
 
 
 ## Security & Isolation
 
-jittest executes code. Container and namespace isolation follows **Contract Option D** (Restricted support: containers execute stdlib-only candidate tests; dependency-bearing tests refuse cleanly with `isolation contract cannot import project dependencies in container mode`). Discovery is purely static AST/text inspection (`discover_manifest`) with zero candidate code execution. Preflight checks and package installer commands are wrapped inside the isolation boundary with minimal allowlisted environment (`PATH`, `HOME=/tmp/jt-home`, `PYTHONDONTWRITEBYTECODE`, `PYTHONNOUSERSITE`, `PYTHONSAFEPATH`, `LANG`). CI secrets (`GITHUB_TOKEN`, `*_SECRET`, `*_KEY`) are never exposed to candidate execution. For the complete isolation contract, threat model, and verified daemon status, see [`docs/ISOLATION.md`](docs/ISOLATION.md).
+jittest executes code. For untrusted PRs use `sandbox-mode: required`; no usable backend means refusal, never host fallback. Discovery is static; candidate interpreter/preflight/test execution belongs inside the boundary. The default container lane is stdlib-only (Option D). The **unpublished candidate** also supports maintainer-controlled, digest-pinned BASE runtime images (Option C); configuring a pin only in HEAD cannot authorize it. See [runtime requirements](docs/RUNTIME-IMAGES.md) and the [isolation threat model](docs/ISOLATION.md).
+
+The first recommended confined path is Linux CI with a working Docker/Podman backend and an approved runtime. Host Python supports 3.11–3.13; candidate Python and dependencies come from the image. No general dependency/ABI resolver, DB/network fixtures, or whole-runner security guarantee is promised. Signed confinement metadata is a producer claim, not an independent daemon attestation.
 
 `jittest verify --allow-unconfined` (alias of `--no-sandbox`) is for non-production debugging only.
 

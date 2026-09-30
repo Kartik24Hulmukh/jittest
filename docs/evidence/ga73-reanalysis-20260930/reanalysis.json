@@ -1,0 +1,232 @@
+{
+  "adjudicated_defect_recall": null,
+  "adjudicated_fpr": null,
+  "analysis_code_sha256": "f4245785c49709e576a02280252adfee1635ff635eff7545ddde731db07721a7",
+  "baseline_commit": "bf642162a3059b3ec116c2d0db9333892fa6c9f7",
+  "ci_runtime_expense_usd": null,
+  "cohorts": {
+    "bugs": {
+      "attempted": 25,
+      "candidate_reports": 13,
+      "catching_model_assessments_not_human_labels": {
+        "intended_change": 3,
+        "real_regression": 13,
+        "unclear": 4
+      },
+      "conditional_mechanical_catch_rate": {
+        "denominator": 22,
+        "numerator": 16,
+        "population": "response-bearing cohort rows only",
+        "rate": "0.7272727272727272727272727273"
+      },
+      "credit_debits": {
+        "attempted_denominator": 25,
+        "billing_completeness": "complete_only_for_responses_reaching_archived_accounting",
+        "fx_usd_per_eur": "1.1355",
+        "received_response_credit_debits_eur": "0.06703426",
+        "received_response_credit_debits_usd": "0.076117402230",
+        "response_bearing_denominator": 22,
+        "unobserved_debits": "unknown_not_zero",
+        "usd_per_attempted": "0.0030446960892",
+        "usd_per_response_bearing": "0.003459881919545454545454545455",
+        "wallet_invoice_reconciled": false
+      },
+      "dispositions": {
+        "catching": 20,
+        "head_failed_base_failed_latent": 14,
+        "head_passed": 4,
+        "model_declined": 8,
+        "safety_rejected": 12
+      },
+      "execution_screen": {
+        "head_collection_failure_rate": {
+          "denominator": 38,
+          "numerator": 0,
+          "population": "candidates with any recorded execution outcome",
+          "rate": "0"
+        },
+        "head_collection_screen": "below_20_percent",
+        "interpretation": "Descriptive screening only; not runner or assertion validity.",
+        "no_recorded_execution_outcome": 20,
+        "oracle_entering_candidates": 38,
+        "outcome_pairs": {
+          "fail|fail": 14,
+          "not_recorded|not_recorded": 20,
+          "not_recorded|pass": 4,
+          "pass|fail": 20
+        },
+        "paired_pass_fail_outcomes": 34,
+        "telemetry_rows": 58,
+        "unpaired_or_partial_outcomes": 4
+      },
+      "legacy_collection_qualified": true,
+      "legacy_qualification_not_semantic_validation": true,
+      "mechanically_catching_candidates": 20,
+      "mechanically_caught_rows": {
+        "denominator": 25,
+        "numerator": 16,
+        "population": "all attempted cohort rows",
+        "rate": "0.64"
+      },
+      "paired_execution_rows": {
+        "denominator": 25,
+        "numerator": 20,
+        "population": "all attempted cohort rows",
+        "rate": "0.8"
+      },
+      "project_mix": {
+        "PySnooper": 3,
+        "tqdm": 9,
+        "youtube-dl": 13
+      },
+      "received_responses": 78,
+      "response_bearing": {
+        "denominator": 25,
+        "numerator": 22,
+        "population": "all attempted cohort rows",
+        "rate": "0.88"
+      },
+      "rows_with_reports": {
+        "denominator": 25,
+        "numerator": 12,
+        "population": "all attempted cohort rows",
+        "rate": "0.48"
+      }
+    },
+    "click": {
+      "attempted": 40,
+      "bound_assumptions": "Independent common-rate sampling not demonstrated; not labeled FPR.",
+      "candidate_reports": 0,
+      "catching_excerpts_with_minirunner": 14,
+      "catching_model_assessments_not_human_labels": {
+        "intended_change": 15,
+        "unclear": 1
+      },
+      "conditional_mechanical_catch_rate": {
+        "denominator": 40,
+        "numerator": 11,
+        "population": "response-bearing cohort rows only",
+        "rate": "0.275"
+      },
+      "credit_debits": {
+        "attempted_denominator": 40,
+        "billing_completeness": "complete_only_for_responses_reaching_archived_accounting",
+        "fx_usd_per_eur": "1.1355",
+        "received_response_credit_debits_eur": "0.08981148",
+        "received_response_credit_debits_usd": "0.101980935540",
+        "response_bearing_denominator": 40,
+        "unobserved_debits": "unknown_not_zero",
+        "usd_per_attempted": "0.0025495233885",
+        "usd_per_response_bearing": "0.0025495233885",
+        "wallet_invoice_reconciled": false
+      },
+      "dispositions": {
+        "catching": 16,
+        "head_failed_base_failed_latent": 7,
+        "head_uncollectable": 1,
+        "model_declined": 64,
+        "parse_failed": 2,
+        "safety_rejected": 7,
+        "timed_out": 4
+      },
+      "exact_one_sided_zero_event_upper_95_screening_only": 0.0721575245055146,
+      "execution_screen": {
+        "head_collection_failure_rate": {
+          "denominator": 24,
+          "numerator": 1,
+          "population": "candidates with any recorded execution outcome",
+          "rate": "0.04166666666666666666666666667"
+        },
+        "head_collection_screen": "below_20_percent",
+        "interpretation": "Descriptive screening only; not runner or assertion validity.",
+        "no_recorded_execution_outcome": 77,
+        "oracle_entering_candidates": 24,
+        "outcome_pairs": {
+          "fail|fail": 7,
+          "not_recorded|error": 1,
+          "not_recorded|not_recorded": 77,
+          "pass|fail": 16
+        },
+        "paired_pass_fail_outcomes": 23,
+        "telemetry_rows": 101,
+        "unpaired_or_partial_outcomes": 1
+      },
+      "generation_invocations_not_http_attempts": 101,
+      "legacy_collection_qualified": true,
+      "legacy_proxy_fields": [
+        "false_positive_rate",
+        "publishable",
+        "comments_per_100_prs"
+      ],
+      "legacy_qualification_not_semantic_validation": true,
+      "legacy_screened_out_distinct_category": 55,
+      "manifest_identity_check": "matched_archived_applied_heads_not_new_git_parent_verification",
+      "mechanically_catching_candidates": 16,
+      "mechanically_caught_rows": {
+        "denominator": 40,
+        "numerator": 11,
+        "population": "all attempted cohort rows",
+        "rate": "0.275"
+      },
+      "no_call_proofs": 20,
+      "paired_execution_rows": {
+        "denominator": 40,
+        "numerator": 12,
+        "population": "all attempted cohort rows",
+        "rate": "0.3"
+      },
+      "received_responses": 113,
+      "response_bearing": {
+        "denominator": 40,
+        "numerator": 40,
+        "population": "all attempted cohort rows",
+        "rate": "1"
+      },
+      "risk_eligibility": {
+        "denominator": 55,
+        "numerator": 40,
+        "population": "Python-changing PR sampling frame",
+        "rate": "0.7272727272727272727272727273"
+      },
+      "rows_with_reports": {
+        "denominator": 40,
+        "numerator": 0,
+        "population": "all attempted cohort rows",
+        "rate": "0"
+      },
+      "rule_of_three_upper_95_screening_only": "0.075",
+      "screening_pr_report_rate": {
+        "denominator": 40,
+        "numerator": 0,
+        "population": "all attempted cohort rows",
+        "rate": "0"
+      },
+      "static_risk_skips": 15
+    }
+  },
+  "comparison_plan": {
+    "disposition": "prose",
+    "reason": "Audit contracts, not a comparative visualization; incompatible populations."
+  },
+  "cost_scope": "received_response_credit_debits_only",
+  "ga_ready": false,
+  "independent_labels": "absent",
+  "input_sha256": {
+    "docs/evidence/ga73-20260930/ci-default-bugs/ga73-default-bugs.json": "6f53e740e7783c639ac53cdd5df10248df4e38401790128cc625bd4fa6a36969",
+    "docs/evidence/ga73-20260930/ci-default-bugs/ga73-fx.xml": "f95b3803d0f531bfc205f101974090d7454e29b8e4d1ea9db179ef09a64ad931",
+    "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-canary-fx.xml": "f95b3803d0f531bfc205f101974090d7454e29b8e4d1ea9db179ef09a64ad931",
+    "docs/evidence/ga73-20260930/ci-pr-qualified/ga73-pr-pilot.json": "9028a73dafb95d5f35f1fe2e53baf1bd8fe549bcd440f66c774847b52c2616c4"
+  },
+  "label_status": "unadjudicated",
+  "packet_counts": {
+    "candidate_assertion": 36,
+    "population": 80
+  },
+  "qualification_scope": "limited_response_and_collection_screening",
+  "runner_identity": "not_explicitly_archived",
+  "sampling_frame_type": "historical_sorted_bugs_and_conditional_single_project_prs",
+  "schema_version": 1,
+  "suppressed_candidate_review_material": "incomplete",
+  "surfaced_claim_precision": null,
+  "total_reconciled_provider_usd": null
+}

@@ -1,9 +1,10 @@
-"""Melious model router: catalogue-aware failover with hard deadlines.
+"""Melious model router: catalogue-aware failover with bounded request budgets.
 
 The router is the production transport for melious/* models via HTTPLLM: it
 validates HTTPS endpoints, bounds max_tokens, fails over retired models,
-escalates truncated responses, and never hangs (transport errors map to
-TransportError; deadlines are checked before and after each request).
+escalates truncated responses, and limits concurrent dispatch per model.
+Transport errors map to TransportError; budgets are checked before and after
+each request. HTTP phase timeouts are not hard wall-clock cancellation.
 
 Import this module directly (jittest.melious) — it intentionally does NOT
 shadow jittest.llm, which remains the provider-agnostic LLM layer.
@@ -15,6 +16,7 @@ import math
 import os
 import threading
 import time
+import weakref
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -112,7 +114,12 @@ class MeliousRouter:
         default_deadline: float = 120.0,
         max_tokens: int = 1024,
         temperature: float = 0.0,
+        max_inflight_per_model: int = 8,
     ) -> None:
+        if (isinstance(max_inflight_per_model, bool)
+                or not isinstance(max_inflight_per_model, int)
+                or not 1 <= max_inflight_per_model <= 100):
+            raise ValueError("max_inflight_per_model must be an integer in 1..100")
         self.api_key = api_key if api_key is not None else os.environ.get("MELIOUS_API_KEY", "")
         self.base = _validate_base(base)
         self.transport = transport
@@ -121,6 +128,11 @@ class MeliousRouter:
         self.temperature = temperature
         self._client: Any | None = None
         self._client_lock = threading.RLock()
+        # Active callers retain their slot; completed arbitrary model names do
+        # not accumulate process-lifetime scheduler state.
+        self._model_slots: weakref.WeakValueDictionary[str, threading.BoundedSemaphore] = (
+            weakref.WeakValueDictionary())
+        self.max_inflight_per_model = max_inflight_per_model
 
     def _ensure_client(self) -> Any:
         # httpx clients are thread-safe; construction and publication must also
@@ -178,7 +190,42 @@ class MeliousRouter:
         max_tokens: int | None = None,
         truncation_escalation: bool = True,
     ) -> ModelResult:
-        """Complete ``prompt`` on ``model`` with failover and a hard deadline."""
+        """Complete with per-model backpressure; queue time consumes the budget."""
+        if not isinstance(model, str) or not model or len(model) > 256:
+            raise ValueError("model must be a nonempty bounded string")
+        if not isinstance(prompt, str):
+            raise ValueError("prompt must be text")
+        budget = deadline if deadline is not None else self.default_deadline
+        if isinstance(budget, bool) or not isinstance(budget, (int, float)):
+            raise DeadlineExceeded("deadline must be finite and positive")
+        if not math.isfinite(budget) or budget <= 0:
+            raise DeadlineExceeded("deadline must be finite and positive")
+        self._preflight(model)
+        started = time.perf_counter()
+        with self._client_lock:
+            slot = self._model_slots.setdefault(
+                model, threading.BoundedSemaphore(self.max_inflight_per_model))
+        if not slot.acquire(timeout=min(budget, threading.TIMEOUT_MAX)):
+            raise DeadlineExceeded("model dispatch queue exhausted request budget (0 network calls)")
+        try:
+            remaining = budget - (time.perf_counter() - started)
+            if remaining <= 0:
+                raise DeadlineExceeded("model dispatch queue exhausted request budget (0 network calls)")
+            return self._complete(model, prompt, deadline=remaining, max_tokens=max_tokens,
+                                  truncation_escalation=truncation_escalation)
+        finally:
+            slot.release()
+
+    def _complete(
+        self,
+        model: str,
+        prompt: str,
+        *,
+        deadline: float | None = None,
+        max_tokens: int | None = None,
+        truncation_escalation: bool = True,
+    ) -> ModelResult:
+        """Internal dispatcher; the caller owns and always releases a model slot."""
         t0 = time.perf_counter()
         budget = deadline if deadline is not None else self.default_deadline
         if not math.isfinite(budget) or budget <= 0:

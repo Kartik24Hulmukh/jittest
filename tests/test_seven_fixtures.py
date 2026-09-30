@@ -287,9 +287,9 @@ class SevenFixturesTest(unittest.TestCase):
         self.assertFalse(evidence["proven_catch"])
         self.assertEqual(exit_code, 1)
 
-    def test_fixture_10_typeerror_reproduction_catch(self):
+    def test_fixture_10_typeerror_is_not_assertion_reproduction_proof(self):
         """10. base raises TypeError from the code under test -> head PASS
-        MUST yield reproduction_catch, NOT base_uncollectable."""
+        An observed exception is retained but cannot become assertion proof."""
         base_sha = self._commit({
             "calc.py": "def add(a, b):\n    raise TypeError('unsupported operand type(s)')\n",
         }, "base raising TypeError in code under test")
@@ -305,10 +305,10 @@ class SevenFixturesTest(unittest.TestCase):
             test_file_path=self.repo / "tests" / "test_calc.py",
             sandbox_mode="off",
         )
-        self.assertEqual(evidence["verdict"], VerdictClass.REPRODUCTION_CATCH)
-        self.assertEqual(evidence["disposition"], Disposition.REPRODUCTION_CATCH)
-        self.assertTrue(evidence["proven_catch"])
-        self.assertEqual(exit_code, 0)
+        self.assertEqual(evidence["verdict"], VerdictClass.INCONCLUSIVE)
+        self.assertEqual(evidence["disposition"], Disposition.BASE_UNCOLLECTABLE)
+        self.assertFalse(evidence["proven_catch"])
+        self.assertEqual(exit_code, 1)
         self.assertEqual(evidence["base_failure_kind"], "error")
 
 

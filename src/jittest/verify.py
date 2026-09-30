@@ -35,6 +35,7 @@ import subprocess
 import tempfile
 import time
 from dataclasses import dataclass
+from importlib import resources
 from pathlib import Path
 from typing import Any
 
@@ -52,7 +53,7 @@ from .execute import (
 from .execution_paths import contained_execution_path, relative_execution_path
 from .github import fetch_pr_base_head
 from .receipt import get_repo_canonical, sign_evidence
-from .sandbox import load_runtime_image, validate_image_ref
+from .sandbox import SandboxPlan, SandboxUnavailable, load_runtime_image, validate_image_ref
 from .sandbox import plan as plan_sandbox
 
 __all__ = [
@@ -152,6 +153,62 @@ def verdict_text_for(verdict_class: str) -> str:
     if verdict_class == VerdictClass.NON_DISCRIMINATING:
         return "Non-discriminating: the test passed on both base and head."
     return "Inconclusive: verification refused because execution could not be completed safely."
+
+
+def _jittest_version_and_sha() -> tuple[str, str]:
+    """Use wheel-embedded source identity, never an unrelated installation cwd.
+
+    A missing resource is permitted only for a genuine source checkout. A bad
+    resource is a refusal rather than invented provenance or a checkout fallback.
+    """
+    from . import __version__
+
+    resource = resources.files("jittest").joinpath("_build_provenance.json")
+    if resource.is_file():
+        try:
+            data = json.loads(resource.read_text(encoding="utf-8"))
+            sha = data.get("source_sha") if isinstance(data, dict) else None
+            diff_sha = data.get("working_diff_sha256") if isinstance(data, dict) else None
+            if not isinstance(sha, str) or not re.fullmatch(r"[0-9a-fA-F]{40}", sha):
+                raise ValueError("build source_sha must be an exact 40-hex commit")
+            if not isinstance(diff_sha, str) or not re.fullmatch(r"[0-9a-fA-F]{64}", diff_sha):
+                raise ValueError("build working_diff_sha256 must be an exact SHA-256")
+            return __version__, sha.lower()
+        except (OSError, ValueError, TypeError) as exc:
+            raise VerifyRefusalError(RefusalReason(
+                code="tool_provenance_unavailable", message="installed build provenance is invalid", phase="prepare",
+            )) from exc
+    tool_file = Path(__file__).resolve()
+    tool_root = tool_file.parent.parent.parent
+    try:
+        if (tool_root / "src" / "jittest" / "verify.py").resolve() != tool_file:
+            raise ValueError("not a source checkout")
+        root = subprocess.check_output(
+            ["git", "-C", str(tool_root), "rev-parse", "--show-toplevel"],
+            text=True, errors="replace", env=git_env(), stderr=subprocess.DEVNULL,
+        ).strip()
+        if Path(root).resolve() != tool_root:
+            raise ValueError("not the tool source repository")
+        sha = subprocess.check_output(
+            ["git", "-C", str(tool_root), "rev-parse", "HEAD"],
+            text=True, errors="replace", env=git_env(), stderr=subprocess.DEVNULL,
+        ).strip()
+        if not re.fullmatch(r"[0-9a-fA-F]{40}", sha):
+            raise ValueError("source HEAD is not an exact commit")
+        return __version__, sha.lower()
+    except (OSError, ValueError, subprocess.SubprocessError) as exc:
+        raise VerifyRefusalError(RefusalReason(
+            code="tool_provenance_unavailable", message="tool source identity unavailable; rebuild with provenance", phase="prepare",
+        )) from exc
+
+
+def _embedded_build_provenance() -> dict[str, str] | None:
+    resource = resources.files("jittest").joinpath("_build_provenance.json")
+    if not resource.is_file():
+        return None
+    # _jittest_version_and_sha validates this resource before callers use it.
+    data = json.loads(resource.read_text(encoding="utf-8"))
+    return {"source_sha": data["source_sha"], "working_diff_sha256": data["working_diff_sha256"]}
 
 
 def _get_git_sha(repo_path: Path, ref: str) -> str:
@@ -296,9 +353,11 @@ def make_refusal_receipt(
                 test_file_sha = _hash_str(t_path.read_text(encoding="utf-8"))
 
     tool_root = Path(__file__).resolve().parent.parent.parent
-    tool_commit_sha = _get_git_sha(tool_root, "HEAD")
+    _, tool_commit_sha = _jittest_version_and_sha()
+    build_provenance = _embedded_build_provenance()
     tool_branch = _get_git_branch(tool_root)
-    tool_dirty = _get_git_dirty(tool_root)
+    tool_dirty = (build_provenance["working_diff_sha256"] != hashlib.sha256(b"").hexdigest()
+                  if build_provenance else _get_git_dirty(tool_root))
     tool_tree_sha = _get_git_sha(tool_root, "HEAD^{tree}")
 
     resolved_base = resolve_revision(repo, base_ref) or base_ref
@@ -332,6 +391,7 @@ def make_refusal_receipt(
             "test_file_name": test_file_name,
             "test_file_sha256": test_file_sha,
             "tool_commit_sha": tool_commit_sha,
+            "tool_build_provenance": build_provenance,
             "tool_branch": tool_branch,
             "tool_dirty": tool_dirty,
             "tool_tree_sha": tool_tree_sha,
@@ -756,7 +816,7 @@ def _run_guarded_phase(
             "reason": "no_supported_requirements_manifest",
         }
         result = run_test(Path(workdir), test_code, **run_kwargs)
-        record.update(outcome=result.outcome.name, exit_code=result.returncode,
+        record.update(outcome=result.outcome.name, failure_kind=result.failure_kind.value, exit_code=result.returncode,
                       stdout_sha256=_hash_str(result.stdout),
                       stderr_sha256=_hash_str(result.stderr))
         record["output_guard"] = _output_guard_block(workdir)
@@ -826,12 +886,20 @@ def verify_test(
         (evidence_dict, exit_code)
         exit_code is 0 if verdict in ('proven_catch', 'reproduction_catch'), 1 otherwise.
     """
+    if isinstance(reruns, bool) or not isinstance(reruns, int) or reruns < 2:
+        raise VerifyRefusalError("reruns must be an integer >= 2 for paired proof verification")
     start_time = time.monotonic()
     repo_path = Path(repo_path).resolve()
 
     # Resolve PR if base/head not provided
     if pr_number is not None and (not base_ref or not head_ref):
-        base_ref, head_ref = fetch_pr_base_head(str(repo_path), pr_number)
+        canonical = get_repo_canonical(repo_path)
+        identity = canonical.removeprefix("github.com/") if canonical.startswith("github.com/") else os.getenv("GITHUB_REPOSITORY", "")
+        if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", identity):
+            raise VerifyRefusalError("PR lookup requires a canonical GitHub owner/repository identity")
+        remote_base, remote_head = fetch_pr_base_head(identity, pr_number)
+        base_ref = base_ref or remote_base
+        head_ref = head_ref or remote_head
 
     if not base_ref or not head_ref:
         raise VerifyRefusalError("both base and head revisions are required")
@@ -905,18 +973,23 @@ def verify_test(
                 message="BASE runtime image must be pinned by @sha256:<64 hex digits>",
                 phase="plan",
             ))
-    sbx_plan = plan_sandbox(mode=effective_sandbox_mode, probe=True,
-                           runtime_image=runtime_image)
+    try:
+        sbx_plan = plan_sandbox(mode=effective_sandbox_mode, probe=True,
+                               runtime_image=runtime_image)
+    except SandboxUnavailable as exc:
+        reason = RefusalReason(code="sandbox_unavailable", message="required sandbox backend unavailable", phase="plan")
+        refusal = VerifyRefusalError(reason)
+        refusal.sandbox_plan = SandboxPlan(backend="none", mode=effective_sandbox_mode)
+        refusal.verification_phases = [{"phase": "plan", "refused": True}]
+        raise refusal from exc
 
     if effective_sandbox_mode == "required" and getattr(sbx_plan, "backend", "none") == "none":
-        raise VerifyRefusalError(
-            RefusalReason(
-                code="sandbox_unavailable",
-                message="sandbox isolation required but unavailable",
-                phase="plan",
-                details="; ".join(getattr(sbx_plan, "notes", []) or []),
-            )
-        )
+        refusal = VerifyRefusalError(RefusalReason(
+            code="sandbox_unavailable", message="sandbox isolation required but unavailable", phase="plan",
+        ))
+        refusal.sandbox_plan = sbx_plan
+        refusal.verification_phases = [{"phase": "plan", "refused": True}]
+        raise refusal
 
     # A silently degraded sandbox is more dangerous than an explicitly disabled one:
     # nobody chose it, so nobody knows to compensate. The artifact already records
@@ -927,9 +1000,11 @@ def verify_test(
 
     # Tool repository provenance (scoped strictly to tool source tree)
     tool_root = Path(__file__).resolve().parent.parent.parent
-    tool_commit_sha = _get_git_sha(tool_root, "HEAD")
+    _, tool_commit_sha = _jittest_version_and_sha()
+    build_provenance = _embedded_build_provenance()
     tool_branch = _get_git_branch(tool_root)
-    tool_dirty = _get_git_dirty(tool_root)
+    tool_dirty = (build_provenance["working_diff_sha256"] != hashlib.sha256(b"").hexdigest()
+                  if build_provenance else _get_git_dirty(tool_root))
     tool_tree_sha = _get_git_sha(tool_root, "HEAD^{tree}")
 
     rel_test = test_path.relative_to(repo_path)
@@ -996,29 +1071,29 @@ def verify_test(
         head_err = exc
 
     head_runs = [head_run1] if head_run1 else []
-    rerun_agreement = True
+    rerun_agreement = True  # non-catch paths; failed-head agreement is computed below
 
-    # Rerun on HEAD if failed to check flakiness
-    if head_run1 and head_run1.outcome is Outcome.FAIL and reruns > 1 and not head_err:
+    # Honor the requested number of executions. Agreement requires matching
+    # outcome AND failure classification, not merely two generic FAIL outcomes.
+    if head_run1 and head_run1.outcome is Outcome.FAIL and not head_err:
+        rerun_agreement = False
         try:
-            with Worktree(repo_path, resolved_head) as head_dir:
-                head_workdir = contained_execution_path(head_dir, rel_path, directory=True)
-                head_python = head_env_info.get("python_path") if head_env_info else None
-                head_run2 = _run_guarded_phase(
-                    head_workdir,
-                    test_code,
-                    timeout_s=timeout_s,
-                    sbx=sbx_plan,
-                    phase="head_rerun_2", revision=resolved_head,
-                    env_info=head_env_info, records=phase_records,
-                    python_path=head_python,
-                    rel_test_path=execution_test,
-                    node_id=node_id,
-                )
-                head_runs.append(head_run2)
+            for run_index in range(2, reruns + 1):
+                with Worktree(repo_path, resolved_head) as head_dir:
+                    head_workdir = contained_execution_path(head_dir, rel_path, directory=True)
+                    head_python = head_env_info.get("python_path") if head_env_info else None
+                    head_runs.append(_run_guarded_phase(
+                        head_workdir, test_code, timeout_s=timeout_s, sbx=sbx_plan,
+                        phase=f"head_rerun_{run_index}", revision=resolved_head,
+                        env_info=head_env_info, records=phase_records,
+                        python_path=head_python, rel_test_path=execution_test, node_id=node_id,
+                    ))
         except EnvSetupError:
             pass
-        rerun_agreement = len(head_runs) > 1 and (head_runs[0].outcome == head_runs[1].outcome)
+        rerun_agreement = len(head_runs) == reruns and all(
+            run.outcome == head_run1.outcome and run.failure_kind == head_run1.failure_kind
+            for run in head_runs[1:]
+        )
 
     # Determine base_failure_kind (assertion | error | timeout | collection | none)
     if base_err is not None or base_run is None:
@@ -1105,7 +1180,13 @@ def verify_test(
         exit_code = 1
     elif base_run.outcome is Outcome.PASS:
         if head_run1.outcome is Outcome.FAIL:
-            if not rerun_agreement:
+            if head_failure_kind != "assertion":
+                disposition = Disposition.HEAD_UNCOLLECTABLE_BASE_PASSED
+                verdict_class = (VerdictClass.COLLECTION_CATCH if head_failure_kind == "collection"
+                                 else VerdictClass.INCONCLUSIVE)
+                is_proven_catch = False
+                exit_code = 1
+            elif not rerun_agreement:
                 disposition = Disposition.HEAD_FLAKY
                 verdict_class = VerdictClass.INCONCLUSIVE
                 is_proven_catch = False
@@ -1123,7 +1204,7 @@ def verify_test(
         elif head_run1.outcome in (Outcome.ERROR, Outcome.NOTRUN, Outcome.TIMEOUT):
             disposition = Disposition.HEAD_UNCOLLECTABLE_BASE_PASSED
             verdict_class = (
-                VerdictClass.COLLECTION_CATCH
+                VerdictClass.COLLECTION_CATCH if head_failure_kind == "collection" else VerdictClass.INCONCLUSIVE
             )  # Split collection catch from behavioral catch
             is_proven_catch = False  # NEVER count collection breakage as a behavioral catch
             exit_code = 1
@@ -1137,7 +1218,7 @@ def verify_test(
             # Candidate for reproduction_catch (bug fixed on head, caught at base)
             # Guard (a): The base failure must be an assertion failure or an exception from the code
             # under test during the test body, NOT a collection/import/syntax/env error.
-            if base_failure_kind == "collection" or base_run.outcome in (
+            if base_failure_kind != "assertion" or base_run.outcome in (
                 Outcome.ERROR,
                 Outcome.TIMEOUT,
                 Outcome.NOTRUN,
@@ -1247,6 +1328,7 @@ def verify_test(
             "test_file_name": test_path.name,
             "test_file_sha256": test_file_sha256,
             "tool_commit_sha": tool_commit_sha,
+            "tool_build_provenance": build_provenance,
             "tool_branch": tool_branch,
             "tool_dirty": tool_dirty,
             "tool_tree_sha": tool_tree_sha,

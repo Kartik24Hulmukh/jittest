@@ -147,19 +147,31 @@ class TestWave1D6UniqueEvidenceNames(unittest.TestCase):
             (repo / "tests" / "a" / "test_same.py").write_text("def test_a(): assert True\n", encoding="utf-8")
             (repo / "tests" / "b" / "test_same.py").write_text("def test_b(): assert True\n", encoding="utf-8")
             out_dir = repo / "evidence"
-
-            def mock_verify(*args, **kwargs):
-                out = kwargs.get("output_path")
-                if out:
-                    Path(out).write_text("{}", encoding="utf-8")
-                return {"verdict": "proven_catch", "disposition": "PROVEN_CATCH", "proven_catch": True, "wall_clock_s": 0.1}, 0
+            def git(*args):
+                return subprocess.check_output(["git", "-C", str(repo), *args], text=True).strip()
+            git("config", "user.name", "Jittest Fixture")
+            git("config", "user.email", "fixture@example.invalid")
+            git("config", "commit.gpgsign", "false")
+            git("add", ".")
+            git("commit", "-qm", "base")
+            base = git("rev-parse", "HEAD")
+            for path in (repo / "tests").rglob("test_same.py"):
+                path.write_text(path.read_text() + "\n# changed harmless test\n")
+            git("add", ".")
+            git("commit", "-qm", "head")
+            head = git("rev-parse", "HEAD")
 
             with (
-                patch("jittest.action.get_changed_files", return_value=["tests/a/test_same.py", "tests/b/test_same.py"]),
-                patch("jittest.action.verify_test", side_effect=mock_verify),
+                patch.dict(os.environ, {
+                    "JITTEST_BASE": base, "JITTEST_HEAD": head,
+                    "JITTEST_PR_NUMBER": "", "GITHUB_REF": "", "GITHUB_EVENT_NAME": "",
+                    "JITTEST_SIGNING_KEY": str(Path(tmp) / "fixture-key.pem"),
+                    "GITHUB_STEP_SUMMARY": str(Path(tmp) / "summary.md"),
+                }),
+                patch("jittest.action._event_payload", return_value={}),
                 patch("jittest.action.upsert_pr_comment", return_value="comment posted"),
             ):
-                rc = run_action(repo_path=repo, output_dir=out_dir)
+                rc = run_action(repo_path=repo, sandbox_override="off", output_dir=out_dir)
 
             self.assertEqual(rc, 0)
             artifacts = list(out_dir.glob("evidence-*.json"))

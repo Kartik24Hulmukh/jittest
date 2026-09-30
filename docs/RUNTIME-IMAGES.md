@@ -20,24 +20,20 @@ Option C solves this by requiring maintainers to pin an immutable, pre-baked con
 
 ## 3. Configuration Surface
 
-Maintainers configure runtime images through their repository's `pyproject.toml` or the GitHub Action workflow input.
+This describes the **unpublished candidate**, not PyPI `0.4.1` (see `RELEASE-ARTIFACTS.md`). Maintainers configure runtime images through the trusted BASE repository configuration or an explicit operator environment override. The Action has **no `runtime-image` input**. Install/evaluate candidate source only by exact reviewed commit SHA.
 
-### Option A: `pyproject.toml` (Recommended)
+### Option A: BASE `pyproject.toml` (Recommended)
+
+**Not a runnable pin:** the following digest is a placeholder. Replace it with an image you built and validated through a trusted maintainer process. A HEAD-only pin is not authoritative.
 
 ```toml
 [tool.jittest.runtime]
 image = "ghcr.io/pallets/flask-test-runtime@sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 ```
 
-### Option B: GitHub Action Input (`action.yml`)
+### Option B: Operator Environment Variable
 
-```yaml
-- uses: Kartik24Hulmukh/jittest@v0.3.5
-  with:
-    runtime-image: "ghcr.io/pallets/flask-test-runtime@sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-```
-
-### Option C: Environment Variable
+This is a trusted operator override, not a candidate-controlled setting. The digest below is also a placeholder.
 
 ```bash
 export JITTEST_RUNTIME_IMAGE="ghcr.io/pallets/flask-test-runtime@sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
@@ -99,7 +95,7 @@ If the resolved digest differs from the pinned SHA256, execution aborts with ref
 
 ## 5. In-Container Execution Boundary
 
-Candidate execution occurs inside an ephemeral container configured with defense-in-depth confinement:
+Candidate execution occurs inside an ephemeral container configured with defense-in-depth confinement. This is illustrative, not a copy-paste command: `HOST_UID:HOST_GID` represents the nonroot host identity; a root host uses `65534:65534`. The disposable worktree is writable, while the package mount and container root are read-only:
 
 ```bash
 docker run --rm \
@@ -111,10 +107,10 @@ docker run --rm \
   --memory 2g \
   --cpus 2 \
   --ulimit nofile=1024:1024 \
-  --user 65534:65534 \
-  -v /path/to/worktree:/workspace:ro \
+  --user HOST_UID:HOST_GID \
+  -v /path/to/worktree:/workspace:rw \
   -v /opt/jittest:/opt/jittest:ro \
-  --tmpfs /tmp:rw,noexec,nosuid,size=64m \
+  --tmpfs /tmp:rw,exec,nosuid,size=512m \
   -e PATH=/opt/venv/bin:/usr/local/bin:/usr/bin:/bin \
   -e HOME=/tmp/jt-home \
   -e LANG=C.UTF-8 \
@@ -130,36 +126,21 @@ docker run --rm \
 ### Boundary Constraints
 - **Network Severed**: `--network none` ensures zero outbound or inbound network calls.
 - **Root Filesystem Immutable**: `--read-only` prevents modification of system binaries or libraries.
-- **Least Privilege**: `--cap-drop ALL` strips all Linux capabilities; `--user 65534:65534` forces execution as `nobody:nogroup`.
+- **Least Privilege**: `--cap-drop ALL` strips all Linux capabilities; execution uses a nonroot host UID/GID (or `65534:65534` when the host is root).
 - **Resource Hardening**: Process tree is bounded to 256 PIDs, 2 GB RAM, and 2 CPU cores.
 - **Signing Authority Isolation**: The Ed25519 signing private key resides strictly on the host runner (`~/.jittest/verify_ed25519.pem`) and is never mounted into the container.
 
 ---
 
-## 6. Dependency Readiness Probe
+## 6. Dependency Readiness Scope
 
-Before differential test execution, JitTest executes a readiness probe inside the container:
-```bash
-python3 -c "import <top_level_module>"
-```
-If the module fails to import (e.g. missing dependencies), the command exits with non-zero and JitTest produces a refusal receipt:
-- **Verdict**: `inconclusive`
-- **Disposition**: `refused_image_missing_dependencies`
-- **Refusal Object**:
-  ```json
-  {
-    "code": "image_missing_dependencies",
-    "phase": "provision",
-    "message": "Pinned runtime image is missing required project dependencies",
-    "details": "ModuleNotFoundError: No module named 'flask'"
-  }
-  ```
+The candidate enumerates installed distribution names/versions in the approved image with `importlib.metadata` before readiness; this inventory probe does not mount or import the candidate. With required readiness (`JITTEST_READINESS=required`), the supported requirements syntax is checked against that inventory. Missing, failed, malformed or empty inventory produces a typed refusal, never automatic compatibility.
 
----
+This is not a complete packaging/ABI resolver or a guarantee that a project imports successfully. Unsupported packaging shapes can refuse; ordinary import/collection failures still appear in execution results. No promise is made for arbitrary lockfile formats, native extensions, DB/network fixtures or every dependency-bearing repository. See the actual receipt's refusal code and phase rather than assuming all failures are `image_missing_dependencies`.
 
 ## 7. How to Build and Publish a Runtime Image
 
-Maintainers can build and publish runtime images using GitHub Actions:
+Maintainers can build and publish runtime images using a separately approved trusted build process. **Never build an untrusted PR Dockerfile or install its requirements on the host to make verification work.** The following is a maintainer-controlled example, not an image built or published by this review:
 
 ```dockerfile
 # Dockerfile.jittest
@@ -218,4 +199,4 @@ When Option C is active, the generated Ed25519 receipt records the image provena
   }
 }
 ```
-Receipt verifiers using `jittest verify-receipt --require-confined` will confirm that execution was strictly confined within the trusted runtime image.
+`jittest verify-receipt --require-confined` enforces the signed confinement classification. It does not inspect the runtime daemon, re-execute tests, or independently prove that a producer really used this boundary. Trust the signer and verify externally supplied provenance. Containers share the host kernel; use disposable least-privilege CI runners and maintain the engine/kernel.

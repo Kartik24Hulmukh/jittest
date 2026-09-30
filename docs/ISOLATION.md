@@ -1,15 +1,15 @@
 # JitTest Isolation Contract
 
-## 1. Overview & Selected Contract: Option D (D1 - Waived)
+## 1. Scope: default Option D and candidate Option C
 
 - **Defect D1 Status**: **WAIVED via Option D** (honest refusal for dependency-bearing repos; stdlib-only in container; not a full fix for Flask/Django/requests).
 - **Scope**:
-  - **Stdlib-only execution in containers**: Candidate tests that require only standard library modules execute inside container isolation (`docker` or `podman`) or unprivileged Linux namespaces (`bubblewrap`) with `--network none`, unprivileged user, and read-only worktree mounts.
-  - **Explicit refusal on dependency-bearing repositories**: Any candidate test targeting a repository that declares external dependencies (e.g. `requirements.txt`, `pyproject.toml`, lockfiles) refuses execution with:
+  - **Stdlib-only execution in containers**: Candidate tests that require only standard library modules execute inside container isolation (`docker` or `podman`) or unprivileged Linux namespaces (`bubblewrap`) with `--network none`, unprivileged user, and writable disposable worktrees (the tool package and container root are read-only).
+  - **Default Option D refusal on dependency-bearing repositories without an approved runtime**: Any candidate test targeting a repository that declares external dependencies (e.g. `requirements.txt`, `pyproject.toml`, lockfiles) refuses execution with:
     ```text
     jittest verify: refused - isolation contract cannot import project dependencies in container mode
     ```
-- **Brutal Truth**: Option D is an honest refusal, not a general fix. Docker/Podman container mode cannot execute tests for repos with dependencies like Flask, Django, or requests because the host virtual environment is not bind-mounted into the container (which would violate glibc/wheel ABI compatibility). JitTest refuses cleanly instead of falsely claiming isolated execution. This makes it a safer alpha verifier, but not yet an end-to-end product for dependency-bearing pytest repos.
+- **Brutal Truth**: Option D is an honest refusal, not a general fix. Docker/Podman container mode cannot execute tests for repos with dependencies like Flask, Django, or requests because the host virtual environment is not bind-mounted into the container (which would violate glibc/wheel ABI compatibility). JitTest refuses cleanly instead of falsely claiming isolated execution. The unpublished candidate adds Option C: a trusted digest-pinned BASE runtime plus image-bound inventory. That does not guarantee compatibility with arbitrary packaging, ABI, database or network-dependent tests. See `RUNTIME-IMAGES.md`; only an exact reviewed candidate SHA provides this later behavior.
 
 ## 2. Provisioning Boundary & Threat Model (D2 - Closed in J1)
 
@@ -42,4 +42,10 @@
 - **Missing Backend in Fork/Unknown Context**: If trust context is `fork` or `unknown` and no isolation backend is available, `jittest action` emits `::error::`, writes a signed refusal receipt (disposition `refused_sandbox_unavailable`), posts a `REFUSED` PR summary table, and under `advisory` policy exits 0 (or exits 1 under `strict` or `block-on-refusal`).
 - **Internal PR Resolution under 'auto'**: For trusted internal PRs where capability degradation is acceptable, specifying `sandbox-mode: auto` resolves according to runner capability (container if available, unconfined with warning if absent).
 - **Advisory Verifier**: JitTest Mode A is an advisory verifier for pull requests adding or modifying tests, not a blocking production merge gate.
-- **Release Pin**: The published package on PyPI is `v0.3.4`. Source code on `main` is an unpublished release candidate and must be referenced strictly by exact commit SHA.
+- **Release Pin**: The published package on PyPI is `0.4.1` (`v0.4.1`, source `ef08ddbc`); see `RELEASE-ARTIFACTS.md` for the verified mapping and missing candidate features. Source code on `main` is an unpublished release candidate and must be referenced strictly by exact reviewed commit SHA.
+
+## 5. What confinement does not establish
+
+`verify-receipt --require-confined` validates signed producer metadata, not an independent live-daemon attestation. A signature proves payload integrity and, with a trusted expectation, signer identity; it does not prove test sufficiency or full code correctness. Retained real-daemon evidence is tied to its recorded source/environment and is not a fresh test of every later revision.
+
+Containers share the host kernel; writable worktrees and temporary storage allow candidate file creation. Resource flags limit individual containers, not aggregate runner admission/fairness. Bubblewrap binds essential system paths including `/opt` read-only; read-only access is not confidentiality. Keep secrets out of all mounted directories (including checkout and tool/venv paths), use disposable least-privilege runners, and do not present `auto`/`off` as safe for untrusted code. Environment filtering alone is not a sandbox.

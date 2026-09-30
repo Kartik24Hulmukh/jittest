@@ -68,6 +68,11 @@ def _evidence_21() -> dict:
             "stdout_sha256": "0" * 64,
             "stderr_sha256": "1" * 64,
         },
+        "verification_phases": [
+            {"phase": phase, "revision": "b" * 40, "test_sha256": "c" * 64,
+             "outcome": "FAIL", "failure_kind": "assertion"}
+            for phase in ("head", "head_rerun_2")
+        ],
         "rerun_agreement": True,
         "wall_clock_s": 1.23,
     }

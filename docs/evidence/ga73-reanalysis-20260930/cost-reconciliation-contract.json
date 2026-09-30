@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "status": "contract_only_no_reconciled_total",
+  "cost_scope": "received_response_credit_debits_only",
+  "event_required_fields": [
+    "run_id",
+    "target_id",
+    "invocation_id",
+    "stage",
+    "dispatch_id",
+    "retry_index",
+    "dispatch_timestamp_utc",
+    "provider_request_id",
+    "transport_status",
+    "received_body",
+    "content_parse_status",
+    "usage_parse_status",
+    "credit_debit_eur",
+    "debit_observation_status",
+    "fx_receipt_sha256",
+    "sanitized_statement_line_id"
+  ],
+  "stage_enum": ["generator", "assessor"],
+  "transport_status_enum": ["response_received", "timeout", "transport_error"],
+  "debit_observation_status_enum": ["observed", "unknown", "owner_reconciled"],
+  "events": [],
+  "nondispatch_event_contract": {
+    "event_types": ["cache_hit", "budget_refusal", "pre_dispatch_error"],
+    "instruction": "Record separately from actual HTTP dispatches; never invent dispatch IDs."
+  },
+  "join_rules": [
+    "One distinct dispatch_id per actual HTTP dispatch/retry, including assessor dispatches.",
+    "Attach received billing independently of content parsing; unknown debit is null, never zero.",
+    "Provider request ID and sanitized statement-line ID permit owner reconciliation; retain missing IDs as missing.",
+    "Multiple dispatches may map to a consolidated invoice line only with an explicit allocation receipt; never duplicate its debit.",
+    "Reject duplicate dispatch IDs, duplicate allocated debits, nonfinite amounts, currency mismatches and conflicting joins.",
+    "Keep unassigned statement lines and unobserved dispatch debits unresolved; a run window alone does not prove attribution.",
+    "Separate provider credit debit, energy/noncredit payment, list-price estimates and CI/runtime expense.",
+    "Mark total complete only when every charged statement line and actual dispatch in the frozen run scope is reconciled."
+  ],
+  "owner_supplied_statement": null,
+  "statement_required_fields": [
+    "sanitized_statement_sha256",
+    "currency",
+    "period_start_utc",
+    "period_end_utc",
+    "opening_balance",
+    "closing_balance",
+    "topups",
+    "refunds",
+    "other_activity",
+    "provider_lines_and_allocation_receipts"
+  ],
+  "total_reconciled_provider_usd": null,
+  "ci_runtime_expense_usd": null,
+  "publication_contract": [
+    "Received-response USD is an observed subset, not total charged spend.",
+    "Publish reconciled provider and CI/runtime totals separately, only after complete attribution.",
+    "For each published total retain attempted and response-bearing denominators.",
+    "Preserve generator/assessor errors and retries even if no usable completion exists."
+  ]
+}

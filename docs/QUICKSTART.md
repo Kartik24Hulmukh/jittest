@@ -1,14 +1,14 @@
 # Quickstart
 
-Five minutes. No API key needed for the first three steps.
+Verifier-only onboarding. No model API key or paid call is required.
 
 ## 1. Install
 
 ```bash
-pip install jittest
+python -m pip install jittest==0.4.1
 ```
 
-No dependencies are pulled in. Python 3.11+ and `git` are the only requirements.
+No runtime package dependencies are pulled in. Offline receipt consumption needs Python 3.11+; paired execution additionally needs Git and a usable isolation/runtime environment.
 
 > The current public package and immutable Action tag are `0.4.1` (source
 > `ef08ddbc`; see `RELEASE-ARTIFACTS.md`). The source on `main` is a release
@@ -16,63 +16,38 @@ No dependencies are pulled in. Python 3.11+ and `git` are the only requirements.
 > an unreleased candidate only by an exact commit SHA—never by mutable `main` or
 > a floating major tag.
 
-## 2. Check the environment
+## 2. Verify a public receipt offline
+
+No model key, provider account, candidate execution or paid call is needed:
 
 ```bash
-cd your-repo
-jittest doctor
+curl -fSL -o bug_flask_01_evidence.json https://raw.githubusercontent.com/Kartik24Hulmukh/jittest/bf642162a3059b3ec116c2d0db9333892fa6c9f7/docs/evidence/layer1/bug_flask_01_evidence.json
+jittest verify-receipt bug_flask_01_evidence.json --expected-signer 4059d799af91096f --strict-signer --json
+jittest explain bug_flask_01_evidence.json --expected-signer 4059d799af91096f --strict-signer
 ```
 
-```
-jittest 0.2.1 doctor
-  [ok  ] python >= 3.11 - 3.13.1
-  [ok  ] git available - git version 2.45.2
-  [ok  ] inside a git repository - /home/you/your-repo
-  [ok  ] test runner: pytest
-  [warn] model API key present - only --dry-run will work
-  [ok  ] model z-ai/glm-5.2, budget $1.00, max targets 5
-  [ok  ] ledger /home/you/your-repo/.jittest/ledger.db
-  [ok  ] 15 ignore pattern(s)
-```
+Expected: exit 0, valid signature, trusted project signer. This public sample is **legacy and unconfined**, with provenance unchecked. It demonstrates offline receipt consumption, not fresh confined execution or proof of full correctness. Adding `--require-confined` must return exit 7. A changed payload must return 2; a wrong expected signer must return 3.
 
-## 3. Dry run — free, no key, no network
+## 3. Run a selected test on base and head
 
-```bash
-jittest run --base main --head HEAD --dry-run
-```
+For the unpublished candidate, install an **exact reviewed commit SHA**, not mutable `main`; the published `0.4.1` lacks the later boundaries and BASE runtime wiring listed in `RELEASE-ARTIFACTS.md`. The host package supports Python 3.11–3.13. Linux CI with a working Docker/Podman backend is the recommended first confined execution environment; the approved runtime supplies the candidate Python and dependencies.
 
-This runs everything except the model: the diff parser, the risk ranker, both
-git worktrees and the oracle. You will see which symbols jittest would have
-spent money on, and why. If it is targeting the wrong things, tune
-`risk_threshold` and `ignore` before you spend anything.
+Before running untrusted code, require isolation and review [ISOLATION.md](ISOLATION.md). For dependency-bearing projects the candidate needs a trusted, digest-pinned runtime selected from the **BASE** configuration or a deliberate operator override; see [RUNTIME-IMAGES.md](RUNTIME-IMAGES.md). No published general-purpose runtime catalog is provided. DB/network-dependent fixtures and broad packaging/ABI resolution are not supported claims.
 
-## 4. A real run
+The following is a command **outline**, not a runnable fixture or image pin. Replace every uppercase value with independently obtained repository values. Use the actual maintainer's public signer expectation, not the project's official signer for your locally signed output. Never export the private signing key.
 
-```bash
-export JITTEST_API_KEY=sk-...
-export JITTEST_API_BASE=https://integrate.api.nvidia.com/v1   # NVIDIA-compatible endpoint, optional
-# export JITTEST_MODEL_PRICE=0.60,2.20                       # only if your model is not in the built-in price table
-jittest run --base main --head HEAD --budget 0.50
+```text
+jittest verify --repo REPO --base FULL_BASE_SHA --head FULL_HEAD_SHA --test TEST_FILE
+  --sandbox-mode required --output receipt.json
+jittest verify-receipt receipt.json --expected-signer TRUSTED_PUBLIC_KEY --strict-signer
+  --expected-base FULL_BASE_SHA --expected-head FULL_HEAD_SHA
+  --expected-test-sha256 TEST_SHA256 --expected-repo REPO_ID --require-confined --json
+jittest explain receipt.json --expected-signer TRUSTED_PUBLIC_KEY --strict-signer --require-confined
 ```
 
-```
-jittest v0.2.1  0f9e8d7c...a1b2c3d4
-  3 symbol(s) analysed | 7 candidate(s) | 1 catching | $0.214
+`verify`'s behavioral exit and `verify-receipt`'s evidence-check exit answer different questions. Preserve and explain any artifact even when execution refuses or finds no distinguishing behavior. `--require-confined` checks signed execution metadata; it does not independently inspect a daemon or rerun tests. Missing runtime/backend support is an honest refusal, not a reason to use `--no-sandbox` for an untrusted PR.
 
-  [REGRESSION] billing/calc.py::apply_discount
-    Removing the clamp lets a discount above 100% return a negative price.
-    oracle: catching: passes on base, fails on head
-    reproduce: git checkout a1b2c3d4e5f6 && pytest billing/calc.py -q   # expect FAIL
-```
-
-A run that finds nothing is the common case and is not a failure. Most diffs do
-not contain a regression.
-
-For untrusted pull requests, require sandbox isolation so candidate tests never
-fall back to the bare runner. A required backend that is absent or broken is an
-honest refusal, not a verified result.
-
-## 5. Add the verifier to CI
+## 4. Add the verifier to CI
 
 Start in advisory mode. This collects signed receipts without claiming that the
 workflow is already a production merge gate.
@@ -100,35 +75,22 @@ jobs:
 ```
 
 `fetch-depth: 0` matters because the verifier needs both commits. Advisory mode
-reports evidence but does not block the build. Move to a blocking policy only
-after you have measured refusal and false-fire behavior on your repository.
+reports evidence without blocking on verdicts/refusals; setup errors can still fail.
+Only changed Python test files are automatically selected; code-only PRs skip.
+Published `0.4.1` `strict` requires a positive catch (or skips if no tests changed);
+the unpublished candidate additionally rejects refusals under `strict`.
+`block-on-refusal` blocks refusals but permits catches. Neither is a conventional
+block-on-regression policy. Measure behavior before selecting either.
 
 For fork pull requests, GitHub normally gives `pull_request` workflows a
 read-only token and withholds ordinary secrets. Treat PR comments as best effort;
-the uploaded receipt and job summary are the reliable channels. Do not switch to
+use uploaded evidence and any emitted job summary rather than depending on comments. Do not switch to
 `pull_request_target` and execute an untrusted checkout just to obtain write
 permissions.
 
-## 6. Tell it when it was right or wrong
+## Optional: legacy generator research
 
-```bash
-jittest stats
-jittest outcome 9f3a2b7c1d0e4f58 fixed_code
-jittest outcome 4c1e8a02b7d63f91 false_positive --note "assertion was on a private helper"
-```
-
-This is the highest-value thing you can do with two seconds. It is the only
-honest measure of precision, and it is what a future risk model learns from.
-
-## Tuning
-
-| Symptom | Fix |
-| --- | --- |
-| Too expensive | lower `max_targets`, lower `candidates_per_target`, raise `risk_threshold`, or use a cheaper model |
-| Targets the wrong files | add globs to `.jittestignore` |
-| Never finds anything | lower `risk_threshold`, raise `candidates_per_target`, check `--dry-run` output for what is being targeted |
-| Slow | lower `--timeout`, lower `--reruns` to 1 (at the cost of flakiness protection) |
-| "could not be collected" everywhere | your package is probably not importable from the repo root; check `jittest doctor` and your `src/` layout |
+`jittest doctor`, `run --dry-run`, `stats` and `outcome` describe the separate generator/ledger workflow, not verifier activation or evidence acceptance. `run` can call a paid model; it is not needed here. Do not interpret generator telemetry as retained verifier use. A dry run is not a proof of confinement. See the CLI help before opting into this research workflow.
 
 ## Uninstall cleanly
 
@@ -137,4 +99,4 @@ rm -rf .jittest/      # ledger and response cache, both local
 pip uninstall jittest
 ```
 
-Nothing leaves your machine except the model calls themselves.
+Receipt consumption is offline. The verifier can access GitHub or a container registry when requested; the optional generator makes model calls. There is no default phone-home. Receipts can include repository identity, paths and runtime references; review/redact them before sharing.

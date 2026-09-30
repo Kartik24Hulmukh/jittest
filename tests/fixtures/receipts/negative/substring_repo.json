@@ -36,9 +36,25 @@
   },
   "rerun_agreement": true,
   "wall_clock_s": 1.5,
+  "verification_phases": [
+    {
+      "phase": "head",
+      "revision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "test_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "outcome": "FAIL",
+      "failure_kind": "assertion"
+    },
+    {
+      "phase": "head_rerun_2",
+      "revision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "test_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "outcome": "FAIL",
+      "failure_kind": "assertion"
+    }
+  ],
   "signature": {
     "algorithm": "Ed25519",
-    "verifying_key": "74545a9c15ce0602720de6f2e0a03fb95399aed8085291f62490874a1bb9a130",
-    "value": "15fqDwcHsaN8xOf75/kuYZJCoRKmrSRQlowsKEK5F45IRgAJG+2DO2ppYDtot28tbfHRmzSmMjevzegApk87AQ=="
+    "verifying_key": "03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8",
+    "value": "Gay/xssM3rO3kMnNK7bdOB9wKB4IoV0diiOlC/1sqGmofKnpp0VQOqQdLEAH+YKiv/AZv6TMt+5A/DGw2kcQDw=="
   }
 }

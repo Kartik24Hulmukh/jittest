@@ -1,0 +1,2735 @@
+{
+  "sha": "bf642162a3059b3ec116c2d0db9333892fa6c9f7",
+  "working_diff_sha256": "8ecfeba290bae38a675adfa745a3edfa2dbb35734bf08d24f3525b7f18fa22e4",
+  "calls_requested": 100,
+  "workers": 100,
+  "max_tokens": 256,
+  "truncation_escalation": false,
+  "seconds": 8.892091945000004,
+  "successful_completions": 100,
+  "failed_checks": 0,
+  "passed": true,
+  "latency_includes_failures": true,
+  "p50_seconds": 2.554949356999998,
+  "p95_seconds": 6.931854364999992,
+  "p99_seconds": 8.104054866000013,
+  "throughput_calls_per_second": 11.245947592369385,
+  "rss_start_kib": 20852,
+  "rss_end_kib": 38564,
+  "threads_before": 1,
+  "threads_after": 1,
+  "cost_caveat": "Provider-reported token counts times list prices, not wallet reconciliation or USD per PR. Failed calls may have unobserved spend.",
+  "rows": [
+    {
+      "case": "catalogue",
+      "status": "ok",
+      "model_count": 63,
+      "missing": []
+    },
+    {
+      "case": "completion",
+      "index": 0,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 0.5383141419999902,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 23,
+        "total_tokens": 46,
+        "cached_tokens": 0,
+        "reasoning_tokens": 19
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000092",
+        "provider_credit_debit_eur": "0.000092",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 16,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 0.5521998090000011,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 6,
+        "total_tokens": 30,
+        "cached_tokens": 0,
+        "reasoning_tokens": 1
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000042",
+        "provider_credit_debit_eur": "0.000042",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 8,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 0.6039398830000096,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000099",
+        "provider_credit_debit_eur": "0.000099",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 12,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 0.6418842460000178,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000099",
+        "provider_credit_debit_eur": "0.000099",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 28,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 0.6356736810000143,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000099",
+        "provider_credit_debit_eur": "0.000099",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 24,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 0.6705902820000347,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000099",
+        "provider_credit_debit_eur": "0.000099",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 4,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 0.7415545530000145,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000099",
+        "provider_credit_debit_eur": "0.000099",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 1,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 0.7993867220000084,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 14,
+        "total_tokens": 37,
+        "cached_tokens": 0,
+        "reasoning_tokens": 10
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000079",
+        "provider_credit_debit_eur": "0.0000079",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 19,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 0.9302377189999902,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 36,
+        "total_tokens": 59,
+        "cached_tokens": 0,
+        "reasoning_tokens": 29
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000956",
+        "provider_credit_debit_eur": "0.0000956",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 7,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 0.9649075789999983,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 36,
+        "total_tokens": 59,
+        "cached_tokens": 0,
+        "reasoning_tokens": 29
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000956",
+        "provider_credit_debit_eur": "0.0000956",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 3,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 0.9907896459999961,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 36,
+        "total_tokens": 59,
+        "cached_tokens": 0,
+        "reasoning_tokens": 29
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000956",
+        "provider_credit_debit_eur": "0.0000956",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 29,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 1.036751522999964,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 89,
+        "total_tokens": 113,
+        "cached_tokens": 0,
+        "reasoning_tokens": 84
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000380",
+        "provider_credit_debit_eur": "0.0000380",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 11,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 1.0909348449999925,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0001172",
+        "provider_credit_debit_eur": "0.0001172",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 13,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 1.115924394999979,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 84,
+        "total_tokens": 108,
+        "cached_tokens": 0,
+        "reasoning_tokens": 79
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000360",
+        "provider_credit_debit_eur": "0.0000360",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 23,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 1.127116349000005,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0001172",
+        "provider_credit_debit_eur": "0.0001172",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 32,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.1408853529999874,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000099",
+        "provider_credit_debit_eur": "0.000099",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 17,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 1.197961366999948,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 114,
+        "total_tokens": 138,
+        "cached_tokens": 0,
+        "reasoning_tokens": 109
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000480",
+        "provider_credit_debit_eur": "0.0000480",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 40,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.2052151010000216,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000099",
+        "provider_credit_debit_eur": "0.000099",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 36,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.2342491840000207,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000099",
+        "provider_credit_debit_eur": "0.000099",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 56,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.2591855300000248,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000099",
+        "provider_credit_debit_eur": "0.000099",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 25,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 1.3259539780000296,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 16,
+        "total_tokens": 40,
+        "cached_tokens": 0,
+        "reasoning_tokens": 11
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000088",
+        "provider_credit_debit_eur": "0.0000088",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 48,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.3261808199999905,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000099",
+        "provider_credit_debit_eur": "0.000099",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 15,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 1.3869890779999992,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 36,
+        "total_tokens": 59,
+        "cached_tokens": 0,
+        "reasoning_tokens": 29
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000956",
+        "provider_credit_debit_eur": "0.0000956",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 27,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 1.3944297559999654,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0001172",
+        "provider_credit_debit_eur": "0.0001172",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 20,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.455931425000017,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 82,
+        "total_tokens": 106,
+        "cached_tokens": 0,
+        "reasoning_tokens": 77
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000270",
+        "provider_credit_debit_eur": "0.000270",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 21,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 1.483240185999989,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 86,
+        "total_tokens": 110,
+        "cached_tokens": 0,
+        "reasoning_tokens": 81
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000368",
+        "provider_credit_debit_eur": "0.0000368",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 5,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 1.5776551449999943,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 92,
+        "total_tokens": 116,
+        "cached_tokens": 0,
+        "reasoning_tokens": 87
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000392",
+        "provider_credit_debit_eur": "0.0000392",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 31,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 1.5680796689999852,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 36,
+        "total_tokens": 59,
+        "cached_tokens": 0,
+        "reasoning_tokens": 29
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000956",
+        "provider_credit_debit_eur": "0.0000956",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 9,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 1.6196489480000196,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 95,
+        "total_tokens": 119,
+        "cached_tokens": 0,
+        "reasoning_tokens": 90
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000404",
+        "provider_credit_debit_eur": "0.0000404",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 52,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.6415425870000036,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000099",
+        "provider_credit_debit_eur": "0.000099",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 44,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.699608579000028,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000099",
+        "provider_credit_debit_eur": "0.000099",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 60,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.7331900450000148,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000099",
+        "provider_credit_debit_eur": "0.000099",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 64,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.8276329930000088,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000099",
+        "provider_credit_debit_eur": "0.000099",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 68,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.8456560150000314,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000099",
+        "provider_credit_debit_eur": "0.000099",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 76,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 1.8924781879999841,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000099",
+        "provider_credit_debit_eur": "0.000099",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 35,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 1.9532063030000018,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0001172",
+        "provider_credit_debit_eur": "0.0001172",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 39,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 2.0028839739999853,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0001172",
+        "provider_credit_debit_eur": "0.0001172",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 80,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 2.0087608430000046,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000099",
+        "provider_credit_debit_eur": "0.000099",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 43,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 2.063438187000031,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0001172",
+        "provider_credit_debit_eur": "0.0001172",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 10,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 2.0955138109999893,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001036",
+        "provider_credit_debit_eur": "0.001036",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 30,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 2.091774771999951,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 48,
+        "total_tokens": 183,
+        "cached_tokens": 0,
+        "reasoning_tokens": 35
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001050",
+        "provider_credit_debit_eur": "0.001050",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 47,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 2.1115903869999784,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0001172",
+        "provider_credit_debit_eur": "0.0001172",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 51,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 2.1296623829999817,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0001172",
+        "provider_credit_debit_eur": "0.0001172",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 84,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 2.239330516999985,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000099",
+        "provider_credit_debit_eur": "0.000099",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 88,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 2.3146362509999676,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000099",
+        "provider_credit_debit_eur": "0.000099",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 92,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 2.337893163999979,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000099",
+        "provider_credit_debit_eur": "0.000099",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 55,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 2.3815839069999925,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 47,
+        "total_tokens": 70,
+        "cached_tokens": 0,
+        "reasoning_tokens": 40
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0001220",
+        "provider_credit_debit_eur": "0.0001220",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 72,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 2.403660240000022,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 134,
+        "total_tokens": 158,
+        "cached_tokens": 0,
+        "reasoning_tokens": 129
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000426",
+        "provider_credit_debit_eur": "0.000426",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 59,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 2.4637395670000046,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0001172",
+        "provider_credit_debit_eur": "0.0001172",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 14,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 2.554949356999998,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001036",
+        "provider_credit_debit_eur": "0.001036",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 63,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 2.635672139999997,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0001172",
+        "provider_credit_debit_eur": "0.0001172",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 18,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 2.946925851000003,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001036",
+        "provider_credit_debit_eur": "0.001036",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 22,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 2.972368705000008,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001036",
+        "provider_credit_debit_eur": "0.001036",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 2,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 3.026523434000012,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 48,
+        "total_tokens": 183,
+        "cached_tokens": 0,
+        "reasoning_tokens": 35
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001050",
+        "provider_credit_debit_eur": "0.001050",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 37,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 3.012348689000021,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 70,
+        "total_tokens": 94,
+        "cached_tokens": 0,
+        "reasoning_tokens": 65
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000304",
+        "provider_credit_debit_eur": "0.0000304",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 75,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 3.0676835630000028,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 36,
+        "total_tokens": 59,
+        "cached_tokens": 0,
+        "reasoning_tokens": 29
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000956",
+        "provider_credit_debit_eur": "0.0000956",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 6,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 3.1291796590000445,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 48,
+        "total_tokens": 183,
+        "cached_tokens": 0,
+        "reasoning_tokens": 35
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001050",
+        "provider_credit_debit_eur": "0.001050",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 57,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 3.148609760999989,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 71,
+        "total_tokens": 95,
+        "cached_tokens": 0,
+        "reasoning_tokens": 66
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000308",
+        "provider_credit_debit_eur": "0.0000308",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 33,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 3.167366114999993,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 116,
+        "total_tokens": 140,
+        "cached_tokens": 0,
+        "reasoning_tokens": 111
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000488",
+        "provider_credit_debit_eur": "0.0000488",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 61,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 3.1863416709999797,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 75,
+        "total_tokens": 99,
+        "cached_tokens": 0,
+        "reasoning_tokens": 70
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000324",
+        "provider_credit_debit_eur": "0.0000324",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 67,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 3.259774990999972,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 47,
+        "total_tokens": 70,
+        "cached_tokens": 0,
+        "reasoning_tokens": 40
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0001220",
+        "provider_credit_debit_eur": "0.0001220",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 45,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 3.295992100000035,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 95,
+        "total_tokens": 119,
+        "cached_tokens": 0,
+        "reasoning_tokens": 90
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000404",
+        "provider_credit_debit_eur": "0.0000404",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 53,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 3.322764803000041,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 93,
+        "total_tokens": 117,
+        "cached_tokens": 0,
+        "reasoning_tokens": 88
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000396",
+        "provider_credit_debit_eur": "0.0000396",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 41,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 3.346357382000008,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 118,
+        "total_tokens": 142,
+        "cached_tokens": 0,
+        "reasoning_tokens": 113
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000496",
+        "provider_credit_debit_eur": "0.0000496",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 83,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 3.359890335999978,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 36,
+        "total_tokens": 59,
+        "cached_tokens": 0,
+        "reasoning_tokens": 29
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000956",
+        "provider_credit_debit_eur": "0.0000956",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 49,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 3.385854595000012,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 95,
+        "total_tokens": 119,
+        "cached_tokens": 0,
+        "reasoning_tokens": 90
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000404",
+        "provider_credit_debit_eur": "0.0000404",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 87,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 3.402004371999965,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0001172",
+        "provider_credit_debit_eur": "0.0001172",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 71,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 3.429911027000003,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0001172",
+        "provider_credit_debit_eur": "0.0001172",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 79,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 3.4583550639999885,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0001172",
+        "provider_credit_debit_eur": "0.0001172",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 91,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 3.487451404000012,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 48,
+        "total_tokens": 71,
+        "cached_tokens": 0,
+        "reasoning_tokens": 41
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0001244",
+        "provider_credit_debit_eur": "0.0001244",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 96,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 3.6008954589999576,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 120,
+        "total_tokens": 144,
+        "cached_tokens": 0,
+        "reasoning_tokens": 115
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000384",
+        "provider_credit_debit_eur": "0.000384",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 95,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 3.692752491999954,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0001172",
+        "provider_credit_debit_eur": "0.0001172",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 65,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 4.0483783959999755,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 17,
+        "total_tokens": 41,
+        "cached_tokens": 0,
+        "reasoning_tokens": 12
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000092",
+        "provider_credit_debit_eur": "0.0000092",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 38,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 4.088376394000022,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001036",
+        "provider_credit_debit_eur": "0.001036",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 85,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 4.104937688000007,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 25,
+        "total_tokens": 49,
+        "cached_tokens": 0,
+        "reasoning_tokens": 20
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000124",
+        "provider_credit_debit_eur": "0.0000124",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 99,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 4.124071100000037,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 45,
+        "total_tokens": 68,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0001172",
+        "provider_credit_debit_eur": "0.0001172",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 89,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 4.25290414899996,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 57,
+        "total_tokens": 81,
+        "cached_tokens": 0,
+        "reasoning_tokens": 52
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000252",
+        "provider_credit_debit_eur": "0.0000252",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 34,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 4.293015991000004,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001036",
+        "provider_credit_debit_eur": "0.001036",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 93,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 4.3316368430000125,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 70,
+        "total_tokens": 94,
+        "cached_tokens": 0,
+        "reasoning_tokens": 65
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000304",
+        "provider_credit_debit_eur": "0.0000304",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 69,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 4.337033770999994,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 72,
+        "total_tokens": 96,
+        "cached_tokens": 0,
+        "reasoning_tokens": 67
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000312",
+        "provider_credit_debit_eur": "0.0000312",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 73,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 4.436543471999983,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 89,
+        "total_tokens": 113,
+        "cached_tokens": 0,
+        "reasoning_tokens": 84
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000380",
+        "provider_credit_debit_eur": "0.0000380",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 81,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 4.460441571999979,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 92,
+        "total_tokens": 116,
+        "cached_tokens": 0,
+        "reasoning_tokens": 87
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000392",
+        "provider_credit_debit_eur": "0.0000392",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 42,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 4.639355213999977,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001036",
+        "provider_credit_debit_eur": "0.001036",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 77,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 4.660228974999995,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 94,
+        "total_tokens": 118,
+        "cached_tokens": 0,
+        "reasoning_tokens": 89
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000400",
+        "provider_credit_debit_eur": "0.0000400",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 26,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 4.702619480999999,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001036",
+        "provider_credit_debit_eur": "0.001036",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 97,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 4.811255119999998,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 24,
+        "completion_tokens": 104,
+        "total_tokens": 128,
+        "cached_tokens": 0,
+        "reasoning_tokens": 99
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000440",
+        "provider_credit_debit_eur": "0.0000440",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 46,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 4.854811036000001,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001036",
+        "provider_credit_debit_eur": "0.001036",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 50,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 4.8850200509999695,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001036",
+        "provider_credit_debit_eur": "0.001036",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 58,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 5.689195714999983,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001036",
+        "provider_credit_debit_eur": "0.001036",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 62,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 5.9431584069999985,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001036",
+        "provider_credit_debit_eur": "0.001036",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 70,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 6.605128921000016,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001036",
+        "provider_credit_debit_eur": "0.001036",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 82,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 6.650487977000012,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001036",
+        "provider_credit_debit_eur": "0.001036",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 74,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 6.668277183000043,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001036",
+        "provider_credit_debit_eur": "0.001036",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 66,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 6.893135425000025,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001036",
+        "provider_credit_debit_eur": "0.001036",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 78,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 6.931854364999992,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001036",
+        "provider_credit_debit_eur": "0.001036",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 54,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 7.232770966999965,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 48,
+        "total_tokens": 183,
+        "cached_tokens": 0,
+        "reasoning_tokens": 35
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001050",
+        "provider_credit_debit_eur": "0.001050",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 86,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 7.4832401140000115,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001036",
+        "provider_credit_debit_eur": "0.001036",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 90,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 7.865113335999979,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001036",
+        "provider_credit_debit_eur": "0.001036",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 94,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 8.104054866000013,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 47,
+        "total_tokens": 182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 34
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001036",
+        "provider_credit_debit_eur": "0.001036",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 98,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 8.38703177100001,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 51,
+        "total_tokens": 186,
+        "cached_tokens": 0,
+        "reasoning_tokens": 38
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.001092",
+        "provider_credit_debit_eur": "0.001092",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "invalid_deadline",
+      "status": "ok",
+      "seconds": 2.9126000015367026e-05
+    }
+  ]
+}
