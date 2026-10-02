@@ -129,6 +129,26 @@ class AutoNeverPulls(unittest.TestCase):
         p = S.plan("auto", probe=False)
         self.assertEqual(p.backend, "docker")
 
+    def test_required_refuses_mutable_image_before_presence_or_probe(self):
+        called = []
+        S.detect_backend = lambda preferred="": "docker"
+        S._image_present = lambda *args: called.append("present") or True
+        S.probe_backend = lambda *args: called.append("probe") or (True, "")
+        with self.assertRaises(S.SandboxUnavailable):
+            S.plan("required", image="python:3.13-slim", probe=True)
+        self.assertEqual(called, [])
+
+    def test_auto_never_probes_or_pulls_mutable_image(self):
+        called = []
+        S.detect_backend = (
+            lambda preferred="": "none" if preferred == "bubblewrap" else "docker"
+        )
+        S._image_present = lambda *args: called.append("present") or True
+        S.probe_backend = lambda *args: called.append("probe") or (True, "")
+        plan = S.plan("auto", image="python:3.13-slim", probe=True)
+        self.assertEqual(plan.backend, "none")
+        self.assertEqual(called, [])
+
     def test_required_still_accepts_the_pull(self):
         """'required' is an explicit request for isolation. Refusing to fetch
         the image there would turn a working configuration into an error."""
