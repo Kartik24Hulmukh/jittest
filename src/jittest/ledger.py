@@ -19,6 +19,8 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from ._sqlite import connect_sqlite
+
 __all__ = ["Candidate", "Ledger", "HUMAN_OUTCOMES"]
 
 SCHEMA = """
@@ -99,7 +101,7 @@ class Ledger:
     def __init__(self, path: Path | str = ".jittest/ledger.db") -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.conn = sqlite3.connect(str(self.path))
+        self.conn = connect_sqlite(self.path)
         self.conn.row_factory = sqlite3.Row
         self.conn.executescript(SCHEMA)
         self.conn.commit()
@@ -114,41 +116,41 @@ class Ledger:
         self.close()
 
     def record(self, c: Candidate) -> int:
-        cur = self.conn.execute(
-            "INSERT INTO candidates (created, schema_version, repo, pr, base_rev,"
-            " head_rev, file_path, symbol, risk_score, risk_reasons, model, attempt,"
-            " test_hash, test_code, oracle_catching, oracle_reason, latent,"
-            " assess_verdict, assess_conf, assess_summary, reported, cost_usd, seconds)"
-            " VALUES (?,2,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-            (
-                time.time(), c.repo, c.pr, c.base_rev, c.head_rev, c.file_path,
-                c.symbol, c.risk_score, json.dumps(c.risk_reasons), c.model,
-                c.attempt, c.test_hash, c.test_code, int(c.oracle_catching),
-                c.oracle_reason, int(c.latent), c.assess_verdict, c.assess_conf,
-                c.assess_summary, int(c.reported), c.cost_usd, c.seconds,
-            ),
-        )
-        self.conn.commit()
+        with self.conn:
+            cur = self.conn.execute(
+                "INSERT INTO candidates (created, schema_version, repo, pr, base_rev,"
+                " head_rev, file_path, symbol, risk_score, risk_reasons, model, attempt,"
+                " test_hash, test_code, oracle_catching, oracle_reason, latent,"
+                " assess_verdict, assess_conf, assess_summary, reported, cost_usd, seconds)"
+                " VALUES (?,2,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                (
+                    time.time(), c.repo, c.pr, c.base_rev, c.head_rev, c.file_path,
+                    c.symbol, c.risk_score, json.dumps(c.risk_reasons), c.model,
+                    c.attempt, c.test_hash, c.test_code, int(c.oracle_catching),
+                    c.oracle_reason, int(c.latent), c.assess_verdict, c.assess_conf,
+                    c.assess_summary, int(c.reported), c.cost_usd, c.seconds,
+                ),
+            )
         return int(cur.lastrowid or 0)
 
     def mark_outcome(self, candidate_id: int, outcome: str, note: str = "") -> None:
         if outcome not in HUMAN_OUTCOMES:
             raise ValueError(f"outcome must be one of {HUMAN_OUTCOMES}")
-        self.conn.execute(
-            "UPDATE candidates SET human_outcome=?, human_note=?, human_at=? WHERE id=?",
-            (outcome, note, time.time(), candidate_id),
-        )
-        self.conn.commit()
+        with self.conn:
+            self.conn.execute(
+                "UPDATE candidates SET human_outcome=?, human_note=?, human_at=? WHERE id=?",
+                (outcome, note, time.time(), candidate_id),
+            )
 
     def mark_outcome_by_hash(self, test_hash: str, outcome: str, note: str = "") -> int:
         if outcome not in HUMAN_OUTCOMES:
             raise ValueError(f"outcome must be one of {HUMAN_OUTCOMES}")
-        cur = self.conn.execute(
-            "UPDATE candidates SET human_outcome=?, human_note=?, human_at=?"
-            " WHERE test_hash=?",
-            (outcome, note, time.time(), test_hash),
-        )
-        self.conn.commit()
+        with self.conn:
+            cur = self.conn.execute(
+                "UPDATE candidates SET human_outcome=?, human_note=?, human_at=?"
+                " WHERE test_hash=?",
+                (outcome, note, time.time(), test_hash),
+            )
         return cur.rowcount
 
     def stats(self) -> dict:

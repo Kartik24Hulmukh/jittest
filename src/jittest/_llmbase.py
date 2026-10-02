@@ -5,6 +5,7 @@ provide and everything a caller is allowed to catch, stated in one place.
 """
 from __future__ import annotations
 
+import threading
 from dataclasses import dataclass
 
 from ._llmjson import extract_json
@@ -38,6 +39,10 @@ class BaseLLM:
         self.budget_usd = budget_usd
         self.temperature = temperature
         self.usage = Usage()
+        # Usage, pacing, invocation metadata, and billing state are all
+        # instance-scoped. Keep their check -> dispatch -> account transaction
+        # indivisible when callers share a backend across threads.
+        self._dispatch_lock = threading.RLock()
 
     def complete(self, system: str, user: str, n: int = 1,
                  temperature: float | None = None) -> list[str]:

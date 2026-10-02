@@ -19,17 +19,18 @@ class LiteLLMBackend(BaseLLM):
     def complete(self, system: str, user: str, n: int = 1,
                  temperature: float | None = None) -> list[str]:  # pragma: no cover
         import litellm
-        self._guard_budget()
-        resp = litellm.completion(
-            model=self.model,
-            temperature=self.temperature if temperature is None else temperature,
-            messages=[{"role": "system", "content": system},
-                      {"role": "user", "content": user}],
-            n=n,
-        )
-        try:
-            self.usage.cost_usd += float(litellm.completion_cost(resp) or 0.0)
-        except Exception:
-            self.usage.priced = False
-        self.usage.calls += 1
-        return [c["message"]["content"] or "" for c in resp["choices"]]
+        with self._dispatch_lock:
+            self._guard_budget()
+            resp = litellm.completion(
+                model=self.model,
+                temperature=self.temperature if temperature is None else temperature,
+                messages=[{"role": "system", "content": system},
+                          {"role": "user", "content": user}],
+                n=n,
+            )
+            try:
+                self.usage.cost_usd += float(litellm.completion_cost(resp) or 0.0)
+            except Exception:
+                self.usage.priced = False
+            self.usage.calls += 1
+            return [c["message"]["content"] or "" for c in resp["choices"]]

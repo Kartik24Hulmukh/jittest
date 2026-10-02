@@ -1,6 +1,7 @@
 """Specification fixtures over real localhost HTTP; no paid provider or corpus code."""
 from __future__ import annotations
 
+import concurrent.futures
 import contextlib
 import json
 import os
@@ -208,6 +209,77 @@ class BillingDispatchContract(unittest.TestCase):
         self.assertEqual([e["event_type"] for e in events], ["dispatch", "cache_hit"])
         self.assertIsNone(events[1]["dispatch_id"])
         self.assertIsNone(events[1]["credit_debit_eur"])
+
+    def test_concurrent_same_key_cache_miss_has_one_dispatch(self):
+        events = []
+        with tempfile.TemporaryDirectory() as temp, provider(
+            [response(delay=.1), response()]
+        ) as seen:
+            path = Path(temp) / "cache.db"
+            clients = [self.client(events, cache_path=path) for _ in range(2)]
+            barrier = threading.Barrier(2)
+
+            def call(llm):
+                barrier.wait()
+                return llm.complete("same system", "same user")
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+                results = list(pool.map(call, clients))
+            for client in clients:
+                client.cache.conn.close()
+        self.assertEqual(results, [["OK"], ["OK"]])
+        self.assertEqual(len(seen), 1)
+        self.assertEqual(
+            sorted(event["event_type"] for event in events),
+            ["cache_hit", "dispatch"],
+        )
+
+    def test_singleflight_failure_releases_waiter(self):
+        events = []
+        with tempfile.TemporaryDirectory() as temp, provider(
+            [response({"error": "terminal"}, status=500, delay=.1), response()]
+        ) as seen:
+            path = Path(temp) / "cache.db"
+            clients = [self.client(events, cache_path=path) for _ in range(2)]
+            for client in clients:
+                client.max_attempts = 1
+            barrier = threading.Barrier(2)
+
+            def call(llm):
+                barrier.wait()
+                try:
+                    return llm.complete("same system", "same user")
+                except LLMError:
+                    return "failed"
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+                results = list(pool.map(call, clients))
+            later = clients[0].complete("same system", "same user")
+            for client in clients:
+                client.cache.conn.close()
+        self.assertCountEqual(results, ["failed", ["OK"]])
+        self.assertEqual(later, ["OK"])
+        self.assertEqual(len(seen), 2)
+        self.assertEqual([event["event_type"] for event in events].count("cache_hit"), 1)
+
+    def test_concurrent_budget_guard_allows_only_first_observed_spend(self):
+        events = []
+        with provider([response(delay=.1), response()]) as seen:
+            llm = self.client(events, budget_usd=.000001)
+            barrier = threading.Barrier(2)
+
+            def call(user):
+                barrier.wait()
+                try:
+                    return llm.complete("system", user)
+                except BudgetExceeded:
+                    return "budget"
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+                results = list(pool.map(call, ("one", "two")))
+        self.assertCountEqual(results, [["OK"], "budget"])
+        self.assertEqual(len(seen), 1)
+        self.assertEqual(llm.usage.calls, 1)
 
     def test_budget_refusal_has_no_dispatch_or_server_request(self):
         events = []
