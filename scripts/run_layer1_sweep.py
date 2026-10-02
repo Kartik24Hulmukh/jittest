@@ -30,6 +30,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
+from jittest.diff import git_env
 from jittest.execute import Worktree, resolve_revision
 from jittest.receipt import verify_receipt
 from jittest.verify import VerdictClass, verify_test
@@ -103,7 +104,7 @@ def get_target_test(row: dict[str, Any], repo_dir: Path) -> Path:
                     committed = subprocess.run(
                         ["git", "-C", str(SCRIPT_DIR), "cat-file", "-e",
                          f"HEAD:{fix_path.relative_to(SCRIPT_DIR).as_posix()}"],
-                        capture_output=True, check=False,
+                        capture_output=True, check=False, env=git_env(),
                     )
                 except OSError:
                     raise MaterialUnavailable("tool fixture inventory unavailable") from None
@@ -217,10 +218,31 @@ def pinned_material(row: dict[str, Any], repo: Path, out_dir: Path):
     with Worktree(repo, resolved) as worktree:
         selected = get_target_test(row, worktree)
         if selected.is_relative_to(worktree):
-            if not selected.resolve().is_relative_to(worktree.resolve()) or not selected.is_file():
+            if (not selected.resolve().is_relative_to(worktree.resolve())
+                    or not selected.is_file() or selected.is_symlink()):
                 raise MaterialUnavailable("pinned candidate path missing or outside worktree",
                                           source_sha=resolved, source_ref=ref)
-            data = selected.read_bytes()
+            # A checkout may smudge LF to CRLF (or apply a configured filter).
+            # The declared source is the immutable Git blob, not those bytes.
+            candidate_rel = selected.relative_to(worktree).as_posix()
+            try:
+                entry = subprocess.check_output(
+                    ["git", "-C", str(repo), "ls-tree", "-z", resolved, "--", candidate_rel],
+                    stderr=subprocess.DEVNULL, env=git_env(),
+                )
+                # core.symlinks=false can materialize a tracked symlink as an
+                # ordinary file, so filesystem inspection alone is insufficient.
+                if not entry.startswith((b"100644 blob ", b"100755 blob ")):
+                    raise MaterialUnavailable("pinned candidate is not a regular Git file",
+                                              source_sha=resolved, source_ref=ref)
+                data = subprocess.check_output(
+                    ["git", "-C", str(repo), "show", f"{resolved}:{candidate_rel}"],
+                    stderr=subprocess.DEVNULL, env=git_env(),
+                )
+            except (OSError, subprocess.SubprocessError):
+                raise MaterialUnavailable("pinned candidate Git blob unavailable",
+                                          source_sha=resolved, source_ref=ref) from None
+            selected.write_bytes(data)
             source_sha = resolved
             origin = "project_revision"
             tool_fixture_sha = None
@@ -237,7 +259,7 @@ def pinned_material(row: dict[str, Any], repo: Path, out_dir: Path):
             try:
                 data = subprocess.check_output(
                     ["git", "-C", str(SCRIPT_DIR), "show", f"{source_sha}:{fixture_rel}"],
-                    stderr=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL, env=git_env(),
                 )
             except subprocess.CalledProcessError:
                 raise MaterialUnavailable("committed tool fixture unavailable") from None
@@ -264,7 +286,8 @@ def pinned_material(row: dict[str, Any], repo: Path, out_dir: Path):
         yield worktree, selected, {
             "test_source_ref": material_ref, "test_source_sha": source_sha,
             "worktree_source_sha": resolved,
-            "candidate_sha256": digest, "candidate_material": str(retained),
+            "candidate_sha256": digest, "raw_git_blob_sha256": digest,
+            "candidate_material": str(retained),
             "candidate_origin": origin, "tool_fixture_sha256": tool_fixture_sha,
         }
 
@@ -275,7 +298,7 @@ def verify_row_task(item: tuple[int, int, dict[str, Any], Path, int]) -> dict[st
     kind = row.get("kind", "bug")
     repo_url = row["repository"]
     material = {"test_source_ref": row.get("test_source_ref"), "test_source_sha": None,
-                "candidate_sha256": None, "candidate_material": None,
+                "candidate_sha256": None, "raw_git_blob_sha256": None, "candidate_material": None,
                 "candidate_origin": None, "tool_fixture_sha256": None}
 
     try:

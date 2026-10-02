@@ -203,6 +203,72 @@ class Layer1Material(unittest.TestCase):
                 self.assertEqual(result["disposition"], "material_unavailable")
                 self.assertEqual(result["candidate_sha256"], digest)
 
+    def test_autocrlf_true_preserves_committed_lf_blob(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            repo, row, body = fixture(root)
+            git(repo, "config", "core.autocrlf", "true")
+            outer = (repo / "test_value.py").read_bytes()
+            with sweep.Worktree(repo, row["base_sha"]) as checkout:
+                self.assertEqual((checkout / "test_value.py").read_bytes(),
+                                 body.replace(b"\n", b"\r\n"))
+            with sweep.pinned_material(row, repo, root / "out") as (_, selected, metadata):
+                self.assertEqual(selected.read_bytes(), body)
+                self.assertEqual(metadata["raw_git_blob_sha256"], hashlib.sha256(body).hexdigest())
+                self.assertEqual(Path(metadata["candidate_material"]).read_bytes(), body)
+            self.assertEqual((repo / "test_value.py").read_bytes(), outer)
+
+    def test_autocrlf_true_preserves_actual_committed_crlf_blob(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            repo, row, body = fixture(root)
+            git(repo, "config", "core.autocrlf", "true")
+            crlf = body.replace(b"\n", b"\r\n")
+            (repo / ".gitattributes").write_bytes(b"test_value.py -text\n")
+            (repo / "test_value.py").write_bytes(crlf)
+            (repo / "app.py").write_bytes(b"def value():\n    return 1\n")
+            git(repo, "add", ".")
+            git(repo, "commit", "-qm", "actual CRLF source blob")
+            row["base_sha"] = row["test_source_ref"] = git(repo, "rev-parse", "HEAD")
+            stored = subprocess.check_output(
+                ["git", "-C", str(repo), "show", f"{row['base_sha']}:test_value.py"],
+            )
+            self.assertEqual(stored, crlf)
+            (repo / "app.py").write_bytes(b"def value():\n    return 2\n")
+            git(repo, "commit", "-qam", "buggy with CRLF candidate")
+            row["head_sha"] = git(repo, "rev-parse", "HEAD")
+            (repo / "test_value.py").write_bytes(b"def test_dirty():\n    assert False\n")
+            outer = (repo / "test_value.py").read_bytes()
+            out = root / "out"
+            out.mkdir()
+            with patch.object(sweep, "resolve_fixture_repo", return_value=repo), patch.dict(
+                os.environ, {"JITTEST_FORCE_MINIRUNNER": "1",
+                             "JITTEST_SIGNING_KEY_PATH": str(root / "signing.pem")},
+            ):
+                result = sweep.verify_row_task((1, 1, row, out, 10))
+            self.assertEqual(result["verdict"], "proven_catch")
+            self.assertEqual(result["raw_git_blob_sha256"], hashlib.sha256(crlf).hexdigest())
+            self.assertEqual(Path(result["candidate_material"]).read_bytes(), crlf)
+            receipt = json.loads((out / result["artifact"]).read_text())
+            self.assertEqual(receipt["provenance"]["test_file_sha256"], result["candidate_sha256"])
+            self.assertEqual((repo / "test_value.py").read_bytes(), outer)
+
+    def test_committed_symlink_refuses_even_without_filesystem_symlinks(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            repo, row, _ = fixture(root)
+            git(repo, "config", "core.symlinks", "false")
+            oid = subprocess.check_output(
+                ["git", "-C", str(repo), "hash-object", "-w", "--stdin"], input=b"app.py",
+            ).decode().strip()
+            git(repo, "update-index", "--cacheinfo", f"120000,{oid},test_value.py")
+            git(repo, "commit", "-qm", "owned committed symlink")
+            row["test_source_ref"] = git(repo, "rev-parse", "HEAD")
+            with self.assertRaises(sweep.MaterialUnavailable), sweep.pinned_material(
+                row, repo, root / "out",
+            ):
+                self.fail("committed symlink accepted as a candidate source")
+
 
 if __name__ == "__main__":
     unittest.main()

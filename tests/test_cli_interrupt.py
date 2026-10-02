@@ -3,6 +3,7 @@ import contextlib
 import hashlib
 import json
 import os
+import shlex
 import signal
 import subprocess
 import sys
@@ -28,6 +29,13 @@ class CliInterrupt(unittest.TestCase):
 
     @unittest.skipUnless(os.name == 'posix', 'requires POSIX SIGINT delivery')
     def test_real_sigint_preserves_interrupted_journal_and_cleans_worktrees(self):
+        self._real_sigint(inherited_ignore=False)
+
+    @unittest.skipUnless(os.name == 'posix', 'requires POSIX SIGINT delivery')
+    def test_real_sigint_with_inherited_ignore_from_background_bash(self):
+        self._real_sigint(inherited_ignore=True)
+
+    def _real_sigint(self, *, inherited_ignore):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             repo = root / 'repo'
@@ -35,6 +43,7 @@ class CliInterrupt(unittest.TestCase):
             tmp = root / 'tmp'
             tmp.mkdir()
             marker = root / 'started'
+            startup = root / 'startup.json'
             env = {name: os.environ[name] for name in ('PATH',) if name in os.environ}
             env.update(HOME=str(root), TMPDIR=str(tmp), PYTHONPATH=str(ROOT / 'src'),
                        PYTHONDONTWRITEBYTECODE='1', JITTEST_FORCE_MINIRUNNER='1',
@@ -62,9 +71,23 @@ class CliInterrupt(unittest.TestCase):
             git('commit', '-qam', 'head')
             head = git('rev-parse', 'HEAD')
             output = root / 'evidence.json'
-            command = [sys.executable, '-S', '-m', 'jittest', 'verify', '--repo', str(repo),
+            # Non-job-control background Bash ignores SIGINT. Python preserves
+            # that disposition; normalize only this signal-injection harness.
+            # The real public module, verification and cleanup still execute.
+            bootstrap = (
+                'import json,os,runpy,signal; from pathlib import Path; '
+                'before = repr(signal.getsignal(signal.SIGINT)); '
+                'signal.signal(signal.SIGINT, signal.default_int_handler); '
+                f'Path({str(startup)!r}).write_text(json.dumps(dict('
+                'pid=os.getpid(), before=before, '
+                'default_handler=signal.getsignal(signal.SIGINT) is signal.default_int_handler))); '
+                'runpy.run_module("jittest", run_name="__main__")'
+            )
+            command = [sys.executable, '-S', '-c', bootstrap, 'verify', '--repo', str(repo),
                        '--base', base, '--head', head, '--test', 'test_wait.py',
                        '--sandbox-mode', 'off', '--output', str(output)]
+            if inherited_ignore:
+                command = ['bash', '-c', shlex.join(command) + ' & p=$!; wait "$p"']
             process = subprocess.Popen(command, env=env, cwd=root, stdout=subprocess.PIPE,
                                        stderr=subprocess.PIPE, start_new_session=True)
             try:
@@ -73,8 +96,24 @@ class CliInterrupt(unittest.TestCase):
                     threading.Event().wait(.01)
                 self.assertTrue(marker.exists(), 'candidate must actually begin execution')
                 candidate_pids = json.loads(marker.read_text())
-                process.send_signal(signal.SIGINT)
-                stdout, stderr = process.communicate(timeout=10)
+                startup_data = json.loads(startup.read_text())
+                self.assertTrue(startup_data['default_handler'], startup_data)
+                if inherited_ignore:
+                    self.assertIn('SIG_IGN', startup_data['before'], startup_data)
+                os.kill(startup_data['pid'], signal.SIGINT)
+                try:
+                    stdout, stderr = process.communicate(timeout=10)
+                except subprocess.TimeoutExpired as exc:
+                    states = subprocess.run(
+                        ['ps', '-p', ','.join(map(str, [process.pid, startup_data['pid'], *candidate_pids])),
+                         '-o', 'pid=,ppid=,stat=,args='], capture_output=True, text=True,
+                        timeout=2, check=False,
+                    )
+                    census = {str(p.relative_to(root)): p.read_text()[:4096]
+                              for p in (root / 'census').glob('*/snapshot.json')}
+                    self.fail(json.dumps(dict(startup=startup_data, processes=states.stdout[:4096],
+                                              census=census,
+                                              stderr=(exc.stderr or b'')[-2048:].decode(errors='replace'))))
                 self.assertEqual(process.returncode, 130, (stdout, stderr))
                 for candidate_pid in candidate_pids:
                     state = subprocess.run(['ps', '-p', str(candidate_pid), '-o', 'stat='],
