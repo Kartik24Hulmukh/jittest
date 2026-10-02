@@ -47,6 +47,8 @@ Defect 35 arriving through a door the reset does not cover.
 from __future__ import annotations
 
 import contextlib
+import hashlib
+import json
 import os
 import re
 import shutil
@@ -248,6 +250,53 @@ def detect_runner(python_exe: str | Path | None = None, workdir: Path | None = N
     return [exe, "-m", "jittest._minirunner"]
 
 
+
+_PROBE_NOTE_PREFIX = "isolated_runner_probe "
+_PROBE_NOTE_LIMIT = 16
+_PROBE_NOTE_MAX_CHARS = 2500
+
+
+def _note_isolated_probe_failure(sbx: SandboxPlan, reason: str, returncode: int | None,
+                                 stdout=None, stderr=None, error: BaseException | None = None) -> None:
+    """Bounded diagnostic strings in existing signed notes, never test output.
+
+    Hash the complete available stream: raw bytes when supplied by a timeout,
+    otherwise the UTF-8 rendered text returned by _run_process. Redact the full
+    text BEFORE excerpting, including credentials that cross the excerpt edge.
+    Keep at most 16 probe notes, each at most 2500 characters including prefix.
+    """
+    if sum(note.startswith(_PROBE_NOTE_PREFIX) for note in sbx.notes) >= _PROBE_NOTE_LIMIT:
+        return
+
+    def stream(value):
+        if value is None:
+            return {"available": False}
+        raw = value if isinstance(value, bytes) else value.encode("utf-8", errors="replace")
+        text = raw.decode("utf-8", errors="replace") if isinstance(value, bytes) else value
+        safe = redact(text)
+        return {"available": True, "sha256": hashlib.sha256(raw).hexdigest(),
+                "sha256_of": "raw_bytes" if isinstance(value, bytes) else "utf8_rendered_text",
+                "bytes": len(raw), "excerpt": safe[:600], "excerpt_truncated": len(safe) > 600}
+
+    payload = {"reason": reason, "returncode": returncode,
+               "stdout": stream(stdout), "stderr": stream(stderr)}
+    if error is not None:
+        payload["error_type"] = redact(type(error).__name__)[:80]
+        payload["error_excerpt"] = redact(str(error))[:200]
+    note = _PROBE_NOTE_PREFIX + json.dumps(payload, sort_keys=True)
+    # JSON escaping may expand control/unicode characters; shrink excerpts, not
+    # the structured note, until its actual serialized length fits the budget.
+    while len(note) > _PROBE_NOTE_MAX_CHARS:
+        for name in ("stdout", "stderr"):
+            if payload[name].get("excerpt"):
+                excerpt = payload[name]["excerpt"]
+                payload[name]["excerpt"] = excerpt[:len(excerpt) // 2]
+                payload[name]["excerpt_truncated"] = True
+        if payload.get("error_excerpt"):
+            payload["error_excerpt"] = payload["error_excerpt"][:len(payload["error_excerpt"]) // 2]
+        note = _PROBE_NOTE_PREFIX + json.dumps(payload, sort_keys=True)
+    sbx.notes.append(note)
+
 def detect_isolated_runner(workdir: Path, sbx: SandboxPlan, timeout_s: int,
                            python_path: str | Path | None = None) -> list[str]:
     """Probe only a pinned image, inside confinement, never candidate code on host.
@@ -261,11 +310,14 @@ def detect_isolated_runner(workdir: Path, sbx: SandboxPlan, timeout_s: int,
         command, env = sandbox_wrap([exe, "-I", "-m", "pytest", "--version"],
                                     workdir, {}, sbx)
         try:
-            rc, _, _ = _run_process(command, str(workdir), env, min(timeout_s, 10))
+            rc, out, err = _run_process(command, str(workdir), env, min(timeout_s, 10))
             if rc == 0:
                 return [exe, "-m", "pytest", "-q", "-p", "no:cacheprovider"]
-        except (OSError, subprocess.TimeoutExpired):
-            pass
+            _note_isolated_probe_failure(sbx, "nonzero_exit", rc, out, err)
+        except subprocess.TimeoutExpired as exc:
+            _note_isolated_probe_failure(sbx, "timeout", None, exc.stdout, exc.stderr, exc)
+        except OSError as exc:
+            _note_isolated_probe_failure(sbx, "os_error", None, error=exc)
     return [exe, "-m", "jittest._minirunner"]
 
 
@@ -573,9 +625,11 @@ def _run_process(command: list[str], cwd: str, env: dict, timeout_s: int):
             close_fds=True,
             **popen_kwargs,
         )
+        timeout_error = None
         try:
             proc.wait(timeout=timeout_s)
-        except subprocess.TimeoutExpired:
+        except subprocess.TimeoutExpired as exc:
+            timeout_error = exc
             _kill_tree(proc, container_name=container_name, backend=container_backend)
             # Reap what we just signalled. If it will not die even now, say so by
             # timing out again rather than blocking the run forever.
@@ -591,9 +645,14 @@ def _run_process(command: list[str], cwd: str, env: dict, timeout_s: int):
             raise
         finally:
             stdout_f.seek(0)
-            out = stdout_f.read().decode("utf-8", errors="replace")
+            raw_out = stdout_f.read()
+            out = raw_out.decode("utf-8", errors="replace")
             stderr_f.seek(0)
-            err = stderr_f.read().decode("utf-8", errors="replace")
+            raw_err = stderr_f.read()
+            err = raw_err.decode("utf-8", errors="replace")
+            if timeout_error is not None:
+                timeout_error.output = raw_out
+                timeout_error.stderr = raw_err
         return proc.returncode, out or "", err or ""
 
 
