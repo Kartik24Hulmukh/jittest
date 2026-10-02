@@ -712,6 +712,16 @@ def _cmd_action(args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    try:
+        return _dispatch(argv)
+    except KeyboardInterrupt:
+        # Verification records its interrupted census before re-raising. Handle
+        # only the user-facing CLI boundary after its exception paths unwind.
+        print("jittest: interrupted", file=sys.stderr)
+        return 130
+
+
+def _dispatch(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "run":
         return _cmd_run(args)
