@@ -1,6 +1,6 @@
 # Advisory preview acceptance — prepared, not authorized
 
-**Inspected engineering source snapshot:** `0ebba4770af4cb90d95eb752175645288b9dd1c9` (PR234 merged). **Published package:** `0.4.1`, source `ef08ddbca551f5d3201cc3e839d1995202bb1934`. **Future release:** version, final integrated source SHA, build, artifact hashes, and publication approval are unfilled. A proposal such as `0.4.2rc1` is not a version bump or approval.
+**Inspected engineering source snapshot:** `6b29fb9ca4f252712dce6aaa77aff1bf42fa446e` (PR234 safeguards plus continuation runtime snapshot in PR235). **Published package:** `0.4.1`, source `ef08ddbca551f5d3201cc3e839d1995202bb1934`. **Future release:** version, final integrated source SHA, build, artifact hashes, and publication approval are unfilled. A proposal such as `0.4.2rc1` is not a version bump or approval.
 
 The baseline identifies reviewed source, not an assertion that every retained proof used these exact bytes. Existing CI reports and run artifacts must be read with their own checkout/tool SHA. Any integration or version change requires a new candidate identity and exact-head evidence. Published mapping remains [RELEASE-ARTIFACTS.md](RELEASE-ARTIFACTS.md); do not replace it with an engineering snapshot.
 
@@ -9,12 +9,14 @@ The baseline identifies reviewed source, not an assertion that every retained pr
 | Lane | Exact identity | What acceptance means |
 | --- | --- | --- |
 | Published offline receipt consumer | `jittest==0.4.1`, mapped published wheel | Sample signature/signer verification; legacy sample is unconfined with provenance unchecked. Not fresh execution, activation, or current-source qualification. |
-| Repaired source evaluation | Full baseline SHA above | Unpublished PR232 installation/provenance repairs plus PR234 evidence acceptance, release approval, default attempt census and collection screening; still engineering `0.4.1` metadata. |
+| Repaired source evaluation | Full baseline SHA above | Unpublished installation/provenance, GA evidence acceptance, release approval, default attempt census, collection screening, candidate interruption cleanup and pinned Git-blob benchmark material; still engineering `0.4.1` metadata. |
 | Future uploadable candidate | UNFILLED new approved version + integrated SHA + wheel/sdist hashes | Exact artifact and operational acceptance below; no previous candidate automatically qualifies it. |
 
 Use [Quickstart](QUICKSTART.md) for source-pinned installation. The patched composite [action.yml](../action.yml) invokes [scripts/install_action.py](../scripts/install_action.py): remote Action archives are reconciled to their declared repository/ref and installed from identified source. Do not bypass it with a consumer-repository SHA, mutable `main`, guessed archive identity, or an improvised pip fallback. Only real `action.yml` inputs are valid; there is no `runtime-image` or whole-job-timeout Action input.
 
-The snapshot above is deliberately immutable; it is not a claim that every later commit or published package is qualified. [Post-merge CI](https://github.com/Kartik24Hulmukh/jittest/actions/runs/36782837751) passed on that exact SHA. The retained [Option C proof](https://github.com/Kartik24Hulmukh/jittest/actions/runs/36780912909) and [consumer artifact proof](https://github.com/Kartik24Hulmukh/jittest/actions/runs/36780912972) used PR234 candidate `404885c41e4fd2f1865e1f6c7854d3c8ba6ce395`; its tree matches the snapshot, but the separately built wheel hashes differ with source provenance. Do not call those earlier wheels the snapshot wheel or reuse them for release approval. Issue #73 remains open for independent evidence.
+The snapshot above is deliberately immutable; it is not a claim that every later commit or published package is qualified. It contains the runtime repairs proposed in [PR235](https://github.com/Kartik24Hulmukh/jittest/pull/235); check the [final-head CI](https://github.com/Kartik24Hulmukh/jittest/pull/235/checks) and artifacts using each recorded actual SHA. A subsequent documentation-only commit changes source/tree identity and build provenance, even when runtime files match. No previous artifact automatically qualifies another source pin or release.
+
+Earlier main `0ebba4770af4cb90d95eb752175645288b9dd1c9` passed [post-merge CI](https://github.com/Kartik24Hulmukh/jittest/actions/runs/36782837751). The older [Option C proof](https://github.com/Kartik24Hulmukh/jittest/actions/runs/36780912909) and [consumer artifact proof](https://github.com/Kartik24Hulmukh/jittest/actions/runs/36780912972) used PR234 candidate `404885c41e4fd2f1865e1f6c7854d3c8ba6ce395`, whose tree matched that earlier main—not this continuation. Do not relabel their wheels or evidence as the snapshot above. Issue #73 remains open for independent evidence.
 
 ## 2. Operator prerequisites — stop when unfilled
 
