@@ -3,7 +3,9 @@
 Trusted package wheels only: no project checkout/Dockerfile/installer enters the
 build context. Registry publication is ONLY to a job-owned loopback registry.
 The existing verify_registry_live.py supplies verified official platform pins.
-This helper neither executes a project nor implements a dependency resolver.
+Preparation mode executes no project and implements no dependency resolver.
+--diagnostic runs bounded confined installed APIs on the hosted runner only;
+its supplemental output never replaces the original cohort outcomes.
 """
 from __future__ import annotations
 
@@ -52,6 +54,14 @@ print(json.dumps({
  'wheels': [{'filename': p.name, 'sha256': hashlib.sha256(p.read_bytes()).hexdigest(), 'bytes': p.stat().st_size} for p in sorted(Path('/opt/default-cohort-wheels').glob('*.whl'))]
 }))
 """
+
+# Original hosted artifact36998550280: immutable comparison data, not a claim
+# that a newly built registry image is byte-identical or the same runtime.
+ORIGINAL_BASE_IMAGE = 'docker.io/library/python@sha256:6b1f85a08c199d29d5b6d71ab9c27bd5b3b393492e01216a15758ff69c4be8b8'
+ORIGINAL_RUNTIME_IMAGE = 'localhost:5000/jittest-default-cohort@sha256:d13b7766e1f97836e35dfdf0d56512287f6a29118d1187f3031146795b1070a8'
+ORIGINAL_INVENTORY = {'packages': [{'name': 'asgiref', 'version': '3.8.1'}, {'name': 'attrs', 'version': '21.4.0'}, {'name': 'blinker', 'version': '1.9.0'}, {'name': 'click', 'version': '8.1.8'}, {'name': 'coverage', 'version': '7.6.12'}, {'name': 'greenlet', 'version': '3.1.1'}, {'name': 'iniconfig', 'version': '2.0.0'}, {'name': 'itsdangerous', 'version': '2.2.0'}, {'name': 'Jinja2', 'version': '3.1.6'}, {'name': 'markdown-it-py', 'version': '3.0.0'}, {'name': 'MarkupSafe', 'version': '3.0.2'}, {'name': 'mdurl', 'version': '0.1.2'}, {'name': 'packaging', 'version': '24.2'}, {'name': 'pip', 'version': '25.0.1'}, {'name': 'pluggy', 'version': '1.5.0'}, {'name': 'Pygments', 'version': '2.19.1'}, {'name': 'pytest', 'version': '7.4.4'}, {'name': 'pytest-cov', 'version': '3.0.0'}, {'name': 'pytest-timeout', 'version': '2.3.1'}, {'name': 'python-dotenv', 'version': '1.0.1'}, {'name': 'typing_extensions', 'version': '4.12.2'}, {'name': 'Werkzeug', 'version': '3.1.3'}], 'wheels': [{'bytes': 23118, 'filename': 'MarkupSafe-3.0.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'sha256': 'e17c96c14e19278594aa4841ec148115f9c7615a47382ecb6b82bd8fea3ab0c8'}, {'bytes': 23828, 'filename': 'asgiref-3.8.1-py3-none-any.whl', 'sha256': '3e1e3ecc849832fe52ccf2cb6686b7a55f82bb1d6aee72a58826471390335e47'}, {'bytes': 60567, 'filename': 'attrs-21.4.0-py2.py3-none-any.whl', 'sha256': '2d27e3784d7a565d36ab851fe94887c5eccd6a463168875832a1be79c82828b4'}, {'bytes': 8458, 'filename': 'blinker-1.9.0-py3-none-any.whl', 'sha256': 'ba0efaa9080b619ff2f3459d1d500c57bddea4a6b424b60a91141db6fd2f08bc'}, {'bytes': 98188, 'filename': 'click-8.1.8-py3-none-any.whl', 'sha256': '63c132bbbed01578a06712a2d1f497bb62d9c1c0d329b7903a866228027263b2'}, {'bytes': 242142, 'filename': 'coverage-7.6.12-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'sha256': 'bda1c5f347550c359f841d6614fb8ca42ae5cb0b74d39f8a1e204815ebe25750'}, {'bytes': 613077, 'filename': 'greenlet-3.1.1-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl', 'sha256': '1443279c19fca463fc33e65ef2a935a5b09bb90f978beab37729e1c3c6c25fe9'}, {'bytes': 5892, 'filename': 'iniconfig-2.0.0-py3-none-any.whl', 'sha256': 'b6a85871a79d2e3b22d2d1b94ac2824226a63c6b741c88f7ae975f18b6778374'}, {'bytes': 16234, 'filename': 'itsdangerous-2.2.0-py3-none-any.whl', 'sha256': 'c6242fc49e35958c8b15141343aa660db5fc54d4f13a1db01a3f5891b98700ef'}, {'bytes': 134899, 'filename': 'jinja2-3.1.6-py3-none-any.whl', 'sha256': '85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67'}, {'bytes': 87528, 'filename': 'markdown_it_py-3.0.0-py3-none-any.whl', 'sha256': '355216845c60bd96232cd8d8c40e8f9765cc86f46880e43a8fd22dc1a1a8cab1'}, {'bytes': 9979, 'filename': 'mdurl-0.1.2-py3-none-any.whl', 'sha256': '84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8'}, {'bytes': 65451, 'filename': 'packaging-24.2-py3-none-any.whl', 'sha256': '09abb1bccd265c01f4a3aa3f7a7db064b36514d2cba19a2f694fe6150451a759'}, {'bytes': 20556, 'filename': 'pluggy-1.5.0-py3-none-any.whl', 'sha256': '44e1ad92c8ca002de6377e165f3e0f1be63266ab4d554740532335b9d75ea669'}, {'bytes': 1225293, 'filename': 'pygments-2.19.1-py3-none-any.whl', 'sha256': '9ea1544ad55cecf4b8242fab6dd35a93bbce657034b0611ee383099054ab6d8c'}, {'bytes': 325287, 'filename': 'pytest-7.4.4-py3-none-any.whl', 'sha256': 'b090cdf5ed60bf4c45261be03239c2c1c22df034fbffe691abe93cd80cea01d8'}, {'bytes': 20981, 'filename': 'pytest_cov-3.0.0-py3-none-any.whl', 'sha256': '578d5d15ac4a25e5f961c938b85a05b09fdaae9deef3bb6de9a6e766622ca7a6'}, {'bytes': 14148, 'filename': 'pytest_timeout-2.3.1-py3-none-any.whl', 'sha256': '68188cb703edfc6a18fad98dc25a3c61e9f24d644b0b70f33af545219fc7813e'}, {'bytes': 19863, 'filename': 'python_dotenv-1.0.1-py3-none-any.whl', 'sha256': 'f7b63ef50f1b690dddf550d03497b66d609393b40b564ed0d674909a68ebf16a'}, {'bytes': 37438, 'filename': 'typing_extensions-4.12.2-py3-none-any.whl', 'sha256': '04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d'}, {'bytes': 224498, 'filename': 'werkzeug-3.1.3-py3-none-any.whl', 'sha256': '54b78bf3716d19a65be4fceccc0d1d7b89e608834989dfae50ea87564639213e'}]}
+DIAGNOSTIC_ROWS = ("bug_flask_01", "bug_flask_02", "ctrl_flask_01", "bug_rich_22")
+ORIGINAL_CANDIDATE_SHA256 = {'bug_flask_01': '43b4a6355ab16fd5c98a7d188eca102ee427928a2bed158782cb557dfdec37cc', 'bug_flask_02': '5e5338781123ba745e36c598b151d04eba785e694d34c451c490e4f626768de2', 'ctrl_flask_01': 'bf3b18ff51cc2891255f7efb70d320c0d034de51edcb9667d0f56494e9de2fd6', 'bug_rich_22': 'f72773293d8d00fd2f5994fe83e1046e075d64ee47de155e16f7279da9093dc9'}
 
 
 def digest(data: bytes) -> str:
@@ -262,6 +272,187 @@ def prepare(args: argparse.Namespace) -> None:
         raise RuntimeError("runtime_registry_cleanup_failed")
 
 
+def diagnose(args: argparse.Namespace) -> None:
+    """Supplemental confined API replay, never a replacement cohort verdict."""
+    output = args.output.resolve()
+    output.mkdir(parents=True, exist_ok=False)
+    contexts = [{"row_id": row, "phase": phase, "status": "selected_not_attempted"}
+                for row in DIAGNOSTIC_ROWS for phase in ("base", "head", "head_rerun_2")]
+    record = {"status": "NOT_RUN", "scope": "supplemental_guarded_API_diagnostics_only",
+        "original_hosted_run": 36998550280, "replacement_outcomes": False,
+        "signed_receipt": False, "manifest_sha256": MANIFEST_SHA256,
+        "original_base_image": ORIGINAL_BASE_IMAGE, "original_runtime_image": ORIGINAL_RUNTIME_IMAGE,
+        "original_inventory": ORIGINAL_INVENTORY, "phases": contexts,
+        "stream_encoding": "UTF-8 with replacement from RunResult strings; not undecoded OS bytes",
+        "declared_generation_calls": 0}
+    save(output / "diagnostic-census.json", record)
+    primary = args.runtime_proof.parent.parent / "cohort/census.json"
+    primary_before = digest(primary.read_bytes()) if primary.exists() else None
+    record["primary_census_before_sha256"] = primary_before
+    save(output / "diagnostic-census.json", record)
+    # Drop runner credentials/proxies/provider variables before any trusted API
+    # subprocess can execute. No credentials are put in mounts or raw logs.
+    allowed = {"PATH", "HOME", "TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL",
+        "JITTEST_RUNTIME_IMAGE", "JITTEST_SANDBOX_BACKEND", "JITTEST_FORCE_MINIRUNNER",
+        "JITTEST_READINESS", "JITTEST_OUTPUT_GUARD"}
+    clean = {k: v for k, v in os.environ.items() if k in allowed}
+    clean.update(GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM="1", GIT_TERMINAL_PROMPT="0")
+    os.environ.clear()
+    os.environ.update(clean)
+    baseline = None
+
+    def daemon_inventory(label: str) -> list[dict]:
+        result = subprocess.run(["docker", "ps", "-a", "--no-trunc", "--format", "{{json .}}"],
+                                capture_output=True, timeout=30)
+        (output / (label + ".jsonl")).write_bytes(result.stdout)
+        save(output / (label + ".status.json"), {"returncode": result.returncode})
+        if result.returncode:
+            raise RuntimeError("diagnostic_daemon_inventory_failed")
+        return [json.loads(line) for line in result.stdout.splitlines() if line.strip()]
+
+    try:
+        manifest = validate_material(args.manifest, args.repo_root, output)
+        (output / "preregistered_manifest.json").write_bytes(args.manifest.read_bytes())
+        runtime = json.loads(args.runtime_proof.read_bytes())
+        current = json.loads((args.runtime_proof.parent / "wheel-inventory.json").read_bytes())
+        def canonical(x: object) -> bytes:
+            return json.dumps(x, sort_keys=True, separators=(",", ":")).encode()
+        comparison = {"original_base_image": ORIGINAL_BASE_IMAGE,
+            "current_base_image": runtime.get("base_image"),
+            "base_pin_equal": runtime.get("base_image") == ORIGINAL_BASE_IMAGE,
+            "original_runtime_image": ORIGINAL_RUNTIME_IMAGE,
+            "actual_new_runtime_image": runtime.get("runtime_image"),
+            "runtime_pin_equal": runtime.get("runtime_image") == ORIGINAL_RUNTIME_IMAGE,
+            "runtime_identity_reuse_claim": False,
+            "original_inventory_sha256": digest(canonical(ORIGINAL_INVENTORY)),
+            "current_inventory_sha256": digest(canonical(current)),
+            "package_and_wheel_inventory_equal": current == ORIGINAL_INVENTORY}
+        save(output / "runtime-comparison.json", comparison)
+        record["runtime_comparison"] = comparison
+        if runtime.get("status") != "RUN" or not comparison["base_pin_equal"] or not comparison["package_and_wheel_inventory_equal"]:
+            raise ValueError("original_runtime_conditions_not_reproduced_no_diagnostic_execution")
+        image = runtime["runtime_image"]
+        if os.environ.get("JITTEST_RUNTIME_IMAGE") != image:
+            raise ValueError("diagnostic_operator_runtime_mismatch")
+        # Imports are ONLY trusted installed Jittest, never a public project.
+        import sys
+
+        import jittest
+        package = Path(jittest.__file__).resolve()
+        if not package.is_relative_to(Path(sys.prefix).resolve()):
+            raise ValueError("diagnostic_requires_installed_wheel_not_checkout")
+        from jittest.env import provision_environment
+        from jittest.execute import Worktree
+        from jittest.registry import verify_image_digest
+        from jittest.sandbox import plan
+        from jittest.verify import _run_guarded_phase
+        record["installed_tool"] = {"python": sys.executable, "package_file": str(package),
+            "build_provenance": json.loads((package.parent / "_build_provenance.json").read_bytes()),
+            "wheel_byte_identity_claim": False}
+        ok, _reason, verified = verify_image_digest("docker", image)
+        if not ok or verified != image.partition("@")[2]:
+            raise ValueError("diagnostic_authoritative_repo_digest_unverified")
+        baseline = daemon_inventory("containers-before")
+        sbx = plan("required", preferred="docker", runtime_image=image)
+        if sbx.backend != "docker" or sbx.mode != "required" or not sbx.isolated or not sbx.network_denied:
+            raise ValueError("diagnostic_required_docker_boundary_unavailable")
+        record["sandbox_plan"] = sbx.as_dict()
+        save(output / "diagnostic-census.json", record)
+        selected = {row["row_id"]: row for row in manifest["rows"]}
+        for row_id in DIAGNOSTIC_ROWS:
+            row = selected[row_id]
+            repo = (args.repo_root / row["repo_name"]).resolve()
+            # Regular Git blob custody, not checkout filter/smudge execution.
+            result = subprocess.run(["git", "-c", "core.hooksPath=/dev/null", "-C", str(repo),
+                "ls-tree", "-z", row["test_source_ref"], "--", row["test"]],
+                capture_output=True, timeout=60)
+            entry = result.stdout
+            if result.returncode or not entry.startswith((b"100644 blob ", b"100755 blob ")) or entry.count(b"\0") != 1:
+                raise ValueError("diagnostic_candidate_not_regular_git_blob")
+            blob = entry.split(b" ", 2)[2].split(b"\t", 1)[0].decode()
+            result = subprocess.run(["git", "-C", str(repo), "cat-file", "blob", blob],
+                                    capture_output=True, timeout=60)
+            if result.returncode:
+                raise ValueError("diagnostic_candidate_blob_unavailable")
+            candidate = result.stdout
+            if digest(candidate) != ORIGINAL_CANDIDATE_SHA256[row_id]:
+                raise ValueError("original_diagnostic_candidate_digest_changed")
+            code = candidate.decode("utf-8")
+            row_dir = output / row_id
+            row_dir.mkdir()
+            (row_dir / "candidate.py").write_bytes(candidate)
+            save(row_dir / "pins.json", {**row, "test_git_blob": blob,
+                "candidate_sha256": digest(candidate),
+                "original_candidate_sha256": ORIGINAL_CANDIDATE_SHA256[row_id],
+                "original_candidate_digest_equal": True, "source": "immutable_original_Git_blob"})
+            # Public verify creates a fresh Worktree/provisioning per phase,
+            # including HEAD rerun; never reuse candidate-mutated HEAD state.
+            for side, phase_name in (("base", "base"), ("head", "head"), ("head", "head_rerun_2")):
+                pending = [x for x in contexts if x["row_id"] == row_id and x["phase"] == phase_name]
+                records = []
+                try:
+                    with Worktree(repo, row[side + "_sha"]) as workdir:
+                        env = provision_environment(workdir, row[side + "_sha"], repo, sbx_plan=sbx)
+                        if env.get("provisioning") != "option_c_trusted_image":
+                            raise ValueError("diagnostic_non_image_provisioning_refused")
+                        for phase_context in pending:
+                            phase = phase_context["phase"]
+                            phase_dir = row_dir / phase
+                            phase_dir.mkdir()
+                            phase_context.update(status="attempt_started", revision=row[side + "_sha"],
+                                candidate_sha256=digest(candidate), test_path=row["test"],
+                                backend=sbx.backend, runtime_image=image, workdir=str(workdir))
+                            save(output / "diagnostic-census.json", record)
+                            try:
+                                result = _run_guarded_phase(workdir, code, phase=phase,
+                                    revision=row[side + "_sha"], env_info=env, records=records,
+                                    timeout_s=60, sbx=sbx, python_path=env.get("python_path"),
+                                    rel_test_path=row["test"], node_id=None)
+                                stdout = result.stdout.encode("utf-8", "replace")
+                                stderr = result.stderr.encode("utf-8", "replace")
+                                (phase_dir / "stdout").write_bytes(stdout)
+                                (phase_dir / "stderr").write_bytes(stderr)
+                                phase_context.update(status="RunResult_retained", outcome=result.outcome.name,
+                                    failure_kind=result.failure_kind.value, exit_code=result.returncode,
+                                    stdout_sha256=digest(stdout), stderr_sha256=digest(stderr),
+                                    stdout_bytes=len(stdout), stderr_bytes=len(stderr))
+                            except Exception as exc:
+                                phase_context.update(status="phase_exception_retained",
+                                    error_type=type(exc).__name__, error=str(exc))
+                            finally:
+                                save(phase_dir / "phase-context.json", phase_context)
+                                save(phase_dir / "guarded-records.json", records)
+                                save(output / "diagnostic-census.json", record)
+                except Exception as exc:
+                    for phase_context in pending:
+                        if phase_context["status"] == "selected_not_attempted":
+                            phase_context.update(status="setup_or_cleanup_exception_retained",
+                                error_type=type(exc).__name__, error=str(exc))
+                    save(row_dir / (phase_name + "-lifecycle-exception.json"),
+                         {"error_type": type(exc).__name__, "error": str(exc)})
+                    save(output / "diagnostic-census.json", record)
+        record["status"] = "DIAGNOSTICS_RETAINED_NOT_COHORT_REPLACEMENT"
+    except Exception as exc:
+        record.update(status="DIAGNOSTIC_REFUSED", error_type=type(exc).__name__, error=str(exc))
+        raise
+    finally:
+        if baseline is not None:
+            try:
+                after = daemon_inventory("containers-after-before-workflow-reconciliation")
+                new = sorted(x["ID"] for x in after if x["ID"] not in {x["ID"] for x in baseline})
+                record["cleanup_observation"] = {"new_surviving_container_ids": new,
+                    "scope": "Docker inventory only; workflow always performs scoped final reconciliation",
+                    "host_descendant_cleanup_claim": False}
+            except Exception as exc:
+                record["cleanup_observation"] = {"error_type": type(exc).__name__, "qualified": False}
+        primary_after = digest(primary.read_bytes()) if primary.exists() else None
+        record["primary_census_after_sha256"] = primary_after
+        record["primary_census_unchanged"] = primary_before == primary_after
+        save(output / "diagnostic-census.json", record)
+        save(output / "artifact-inventory.json", {p.relative_to(output).as_posix(): digest(p.read_bytes())
+            for p in sorted(output.rglob("*")) if p.is_file()})
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", type=Path, required=True)
@@ -271,9 +462,16 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--registry-name", required=True)
     parser.add_argument("--owner", required=True)
+    parser.add_argument("--diagnostic", action="store_true")
+    parser.add_argument("--runtime-proof", type=Path)
     args = parser.parse_args()
     try:
-        prepare(args)
+        if args.diagnostic:
+            if args.runtime_proof is None:
+                raise ValueError("diagnostic_runtime_proof_required")
+            diagnose(args)
+        else:
+            prepare(args)
     except Exception as exc:
         # Never print credential-bearing Docker/installer diagnostics to logs.
         print("default cohort runtime preparation refused: " + type(exc).__name__)
