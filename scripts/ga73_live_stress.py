@@ -49,6 +49,14 @@ def build_parser() -> argparse.ArgumentParser:
     return ap
 
 
+def routing_settings(args: argparse.Namespace) -> dict[str, int | float]:
+    """Canonical settings shared by dispatch and the retained evidence."""
+    return {
+        "deadline_seconds": args.deadline,
+        "max_inflight_per_model": args.max_inflight_per_model,
+    }
+
+
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
@@ -65,7 +73,10 @@ def main() -> int:
     rows: list[dict] = []
     start_rss, start_threads = rss_kib(), threading.active_count()
     t0 = time.monotonic()
-    with MeliousRouter(max_inflight_per_model=args.max_inflight_per_model) as router:
+    settings = routing_settings(args)
+    with MeliousRouter(
+        max_inflight_per_model=int(settings["max_inflight_per_model"])
+    ) as router:
         try:
             catalogue = router.list_models()
             missing = sorted(set(MODELS) - set(catalogue))
@@ -119,8 +130,7 @@ def main() -> int:
     elapsed = time.monotonic() - t0
     evidence = {"sha": sha, "working_diff_sha256": hashlib.sha256(diff).hexdigest(),
                 "calls_requested": args.calls, "workers": args.workers,
-                "deadline_seconds": args.deadline,
-                "max_inflight_per_model": args.max_inflight_per_model, "max_tokens": 256,
+                **settings, "max_tokens": 256,
                 "truncation_escalation": False, "seconds": elapsed,
                 "successful_completions": sum(r["status"] == "ok" for r in completions),
                 "failed_checks": failures, "passed": failures == 0 and len(completions) == args.calls,
