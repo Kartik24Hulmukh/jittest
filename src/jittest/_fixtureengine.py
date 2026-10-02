@@ -64,7 +64,10 @@ class _Fixture:
 
 def _unwrap_fixture(obj):
     """Real pytest's @pytest.fixture returns a FixtureFunctionDefinition that
-    is not callable; recover the underlying function from it."""
+    may itself be callable but rejects direct calls; recover its stored function."""
+    target = inspect.getattr_static(obj, "_fixture_function", None)
+    if callable(target):
+        return target
     if callable(obj):
         return obj
     for attr in ("func", "_fixture_function", "__wrapped__"):
@@ -83,13 +86,14 @@ def _unwrap_fixture(obj):
 
 
 def _fixture_marker_of(obj):
-    """The fixture marker from either the shim or a real pytest decorator."""
-    marker = getattr(obj, shim.FIXTURE_MARKER, None)
-    if marker is None:
-        marker = getattr(obj, "_pytestfixturefunction", None)
-    if marker is None:
-        marker = getattr(obj, "_fixture_function_marker", None)
-    return marker
+    """Read stored decorator metadata without evaluating lazy module objects."""
+    for attr in (shim.FIXTURE_MARKER, "_pytestfixturefunction", "_fixture_function_marker"):
+        marker = inspect.getattr_static(obj, attr, None)
+        # Static lookup returns descriptors themselves. They are not stored
+        # fixture metadata and must not send nonfixtures into dynamic unwrapping.
+        if marker is not None and inspect.getattr_static(type(marker), "__get__", None) is None:
+            return marker
+    return None
 
 
 def _fixtures_from(module) -> dict[str, _Fixture]:
