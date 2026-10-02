@@ -582,6 +582,13 @@ def _run_process(command: list[str], cwd: str, env: dict, timeout_s: int):
             with contextlib.suppress(subprocess.TimeoutExpired):
                 proc.wait(timeout=10)
             raise
+        except KeyboardInterrupt:
+            # SIGINT targets the CLI, not the candidate's separate session.
+            # Stop that session before worktrees unwind or the CLI exits.
+            _kill_tree(proc, container_name=container_name, backend=container_backend)
+            with contextlib.suppress(subprocess.TimeoutExpired):
+                proc.wait(timeout=10)
+            raise
         finally:
             stdout_f.seek(0)
             out = stdout_f.read().decode("utf-8", errors="replace")

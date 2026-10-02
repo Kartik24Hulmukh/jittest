@@ -18,15 +18,19 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
+import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 import threading
 import time
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
+from jittest.execute import Worktree, resolve_revision
 from jittest.receipt import verify_receipt
 from jittest.verify import VerdictClass, verify_test
 
@@ -58,6 +62,7 @@ DEFAULT_TEST_MAP = {
 
 print_lock = threading.Lock()
 repo_clone_lock = threading.Lock()
+material_lock = threading.Lock()
 
 
 def resolve_fixture_repo(repo_url: str) -> Path:
@@ -94,7 +99,15 @@ def get_target_test(row: dict[str, Any], repo_dir: Path) -> Path:
         if len(parts) >= 3:
             for fix_name in [f"fixture_{parts[1]}_{parts[2]}.py", f"test_{parts[1]}_{parts[2]}.py"]:
                 fix_path = SCRIPT_DIR / "tests" / "fixtures" / "v0.2_gate" / fix_name
-                if fix_path.exists():
+                try:
+                    committed = subprocess.run(
+                        ["git", "-C", str(SCRIPT_DIR), "cat-file", "-e",
+                         f"HEAD:{fix_path.relative_to(SCRIPT_DIR).as_posix()}"],
+                        capture_output=True, check=False,
+                    )
+                except OSError:
+                    raise MaterialUnavailable("tool fixture inventory unavailable") from None
+                if committed.returncode == 0:
                     return fix_path
 
     # 1. Check trigger command / trigger on buggy
@@ -132,9 +145,128 @@ def get_target_test(row: dict[str, Any], repo_dir: Path) -> Path:
             pass
 
     # 3. Fallback to repo default test
-    repo_name = repo_dir.name
-    rel_def = DEFAULT_TEST_MAP.get(repo_name, "tests/test_basic.py")
+    repo_name = row.get("repo_name") or PUBLIC_REPOS.get(row["repository"])
+    if repo_name not in DEFAULT_TEST_MAP:
+        raise MaterialUnavailable("no declared test path for repository")
+    rel_def = DEFAULT_TEST_MAP[repo_name]
     return repo_dir / rel_def
+
+
+class MaterialUnavailable(ValueError):
+    """The declared candidate cannot be frozen; never use the outer tip."""
+
+    def __init__(self, message: str, *, source_sha=None, source_ref=None):
+        super().__init__(message)
+        self.material = {}
+        if source_sha is not None:
+            self.material = {"test_source_sha": source_sha, "test_source_ref": source_ref}
+
+
+def validate_rows(rows) -> None:
+    seen = set()
+    for row in rows:
+        row_id = row.get("row_id") if isinstance(row, dict) else None
+        if not isinstance(row_id, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", row_id):
+            raise MaterialUnavailable("row_id must be a safe filename component")
+        if row_id in seen:
+            raise MaterialUnavailable("duplicate row_id would overwrite evidence")
+        seen.add(row_id)
+
+
+def material_revision(repo: Path, ref: str) -> str:
+    try:
+        resolved = resolve_revision(repo, ref)
+    except (OSError, subprocess.SubprocessError):
+        raise MaterialUnavailable("pinned test source revision unavailable") from None
+    if not resolved:
+        raise MaterialUnavailable("pinned test source revision unavailable")
+    return resolved
+
+
+def test_source_ref(row: dict[str, Any], base: str, head: str) -> str:
+    if not all(isinstance(ref, str) and ref.strip() for ref in (base, head)):
+        raise MaterialUnavailable("base and head revisions must be declared")
+    explicit = row.get("test_source_ref")
+    if "test_source_ref" in row:
+        if not isinstance(explicit, str) or not explicit.strip():
+            raise MaterialUnavailable("invalid explicit test_source_ref")
+        return explicit
+    if row.get("kind") == "control":
+        return head
+    if row.get("kind") == "bug":
+        reverse_fix = (
+            row.get("derivation_type") == "reverse_fix_local_git_object"
+            and row.get("real_fixed_sha") == base
+            and row.get("real_buggy_sha") == head
+        )
+        # The modern manifest declares its inverted fixed -> buggy direction
+        # through the exact head..base test-diff derivation.
+        command = row.get("derivation_command", "")
+        declared_diff = isinstance(command, str) and f" diff {head}..{base} " in command
+        if reverse_fix or declared_diff:
+            return base
+    raise MaterialUnavailable("candidate source direction is undeclared or ambiguous")
+
+
+@contextmanager
+def pinned_material(row: dict[str, Any], repo: Path, out_dir: Path):
+    base = row.get("derived_base_sha") or row.get("base_sha") or row.get("real_fixed_sha")
+    head = row.get("derived_head_sha") or row.get("head_sha") or row.get("real_buggy_sha")
+    ref = test_source_ref(row, base, head)
+    resolved = material_revision(repo, ref)
+    with Worktree(repo, resolved) as worktree:
+        selected = get_target_test(row, worktree)
+        if selected.is_relative_to(worktree):
+            if not selected.resolve().is_relative_to(worktree.resolve()) or not selected.is_file():
+                raise MaterialUnavailable("pinned candidate path missing or outside worktree",
+                                          source_sha=resolved, source_ref=ref)
+            data = selected.read_bytes()
+            source_sha = resolved
+            origin = "project_revision"
+            tool_fixture_sha = None
+            material_ref = ref
+        else:
+            # Dedicated existing tool fixtures are explicit external material,
+            # not a fallback to an arbitrary file in the caller's checkout.
+            fixture_root = SCRIPT_DIR / "tests" / "fixtures" / "v0.2_gate"
+            if not selected.resolve().is_relative_to(fixture_root.resolve()):
+                raise MaterialUnavailable("candidate path outside approved fixture roots",
+                                          source_sha=resolved, source_ref=ref)
+            fixture_rel = selected.relative_to(SCRIPT_DIR).as_posix()
+            source_sha = material_revision(SCRIPT_DIR, "HEAD")
+            try:
+                data = subprocess.check_output(
+                    ["git", "-C", str(SCRIPT_DIR), "show", f"{source_sha}:{fixture_rel}"],
+                    stderr=subprocess.DEVNULL,
+                )
+            except subprocess.CalledProcessError:
+                raise MaterialUnavailable("committed tool fixture unavailable") from None
+            tool_fixture_sha = hashlib.sha256(data).hexdigest()
+            selected = worktree / selected.name
+            if selected.exists():
+                raise MaterialUnavailable("tool fixture staging path collides with project file")
+            selected.write_bytes(data)
+            origin = "tool_fixture"
+            material_ref = f"{source_sha}:{fixture_rel}"
+        digest = hashlib.sha256(data).hexdigest()
+        # Content-addressed creation is safe across concurrent rows. Retain only
+        # new outputs, never modify the historical manifest/evidence archive.
+        material_dir = out_dir / "candidate-material"
+        material_dir.mkdir(parents=True, exist_ok=True)
+        retained = material_dir / f"{digest}.py"
+        with material_lock:
+            try:
+                with retained.open("xb") as stream:
+                    stream.write(data)
+            except FileExistsError:
+                if retained.read_bytes() != data:
+                    raise MaterialUnavailable("retained candidate digest collision") from None
+        yield worktree, selected, {
+            "test_source_ref": material_ref, "test_source_sha": source_sha,
+            "worktree_source_sha": resolved,
+            "candidate_sha256": digest, "candidate_material": str(retained),
+            "candidate_origin": origin, "tool_fixture_sha256": tool_fixture_sha,
+        }
 
 
 def verify_row_task(item: tuple[int, int, dict[str, Any], Path, int]) -> dict[str, Any]:
@@ -142,6 +274,9 @@ def verify_row_task(item: tuple[int, int, dict[str, Any], Path, int]) -> dict[st
     row_id = row["row_id"]
     kind = row.get("kind", "bug")
     repo_url = row["repository"]
+    material = {"test_source_ref": row.get("test_source_ref"), "test_source_sha": None,
+                "candidate_sha256": None, "candidate_material": None,
+                "candidate_origin": None, "tool_fixture_sha256": None}
 
     try:
         repo_dir = resolve_fixture_repo(repo_url)
@@ -149,6 +284,7 @@ def verify_row_task(item: tuple[int, int, dict[str, Any], Path, int]) -> dict[st
         with print_lock:
             print(f"[{idx:02d}/{total:02d}] {row_id} ERROR resolving repo {repo_url}: {exc}")
         return {
+            **material,
             "row_id": row_id,
             "kind": kind,
             "repository": repo_url,
@@ -167,21 +303,37 @@ def verify_row_task(item: tuple[int, int, dict[str, Any], Path, int]) -> dict[st
 
     base_sha = row.get("derived_base_sha") or row.get("base_sha") or row.get("real_fixed_sha")
     head_sha = row.get("derived_head_sha") or row.get("head_sha") or row.get("real_buggy_sha")
-    test_path = get_target_test(row, repo_dir)
+    test_file = ""
     out_file = out_dir / f"{row_id}_evidence.json"
 
     t0 = time.time()
     try:
-        evidence, code = verify_test(
-            repo_path=repo_dir,
-            base_ref=base_sha,
-            head_ref=head_sha,
-            test_file_path=test_path,
-            kind=kind,
-            output_path=out_file,
-            timeout_s=timeout_s,
-            no_sandbox=True,
-        )
+        validate_rows([row])
+        resolved_base = material_revision(repo_dir, base_sha)
+        resolved_head = material_revision(repo_dir, head_sha)
+        with pinned_material(row, repo_dir, out_dir) as (candidate_repo, test_path, material):
+            test_file = test_path.relative_to(candidate_repo).as_posix()
+            evidence, code = verify_test(
+                repo_path=candidate_repo,
+                base_ref=base_sha,
+                head_ref=head_sha,
+                test_file_path=test_path,
+                kind=kind,
+                output_path=out_file,
+                timeout_s=timeout_s,
+                no_sandbox=True,
+            )
+            if evidence.get("provenance", {}).get("test_file_sha256") != material["candidate_sha256"]:
+                raise MaterialUnavailable("receipt candidate hash does not match frozen material")
+            try:
+                actual_provenance = json.loads(out_file.read_text())["provenance"]
+            except (OSError, ValueError, KeyError):
+                raise MaterialUnavailable("persisted receipt provenance unavailable") from None
+            if any(actual_provenance.get(field) != expected for field, expected in (
+                ("test_file_sha256", material["candidate_sha256"]),
+                ("base_sha", resolved_base), ("head_sha", resolved_head),
+            )):
+                raise MaterialUnavailable("persisted receipt material or revisions mismatch")
         elapsed = time.time() - t0
         verdict = evidence["verdict"]
         disposition = evidence["disposition"]
@@ -196,12 +348,13 @@ def verify_row_task(item: tuple[int, int, dict[str, Any], Path, int]) -> dict[st
             print(f"[{idx:02d}/{total:02d}] {row_id} ({kind}) | {repo_dir.name} base={base_sha[:8]} head={head_sha[:8]} | test={test_path.name} => {verdict} ({disposition}) in {elapsed:.1f}s [sig={sig_ok}]")
 
         return {
+            **material,
             "row_id": row_id,
             "kind": kind,
             "repository": repo_url,
             "base_sha": base_sha,
             "head_sha": head_sha,
-            "test_file": str(test_path.relative_to(repo_dir) if test_path.is_relative_to(repo_dir) else test_path.name).replace("\\", "/"),
+            "test_file": test_file,
             "verdict": verdict,
             "disposition": disposition,
             "proven_catch": is_pc,
@@ -214,17 +367,20 @@ def verify_row_task(item: tuple[int, int, dict[str, Any], Path, int]) -> dict[st
         }
     except Exception as exc:
         elapsed = time.time() - t0
+        if isinstance(exc, MaterialUnavailable):
+            material.update(exc.material)
         with print_lock:
             print(f"[{idx:02d}/{total:02d}] {row_id} ({kind}) => EXCEPTION: {exc} in {elapsed:.1f}s")
         return {
+            **material,
             "row_id": row_id,
             "kind": kind,
             "repository": repo_url,
             "base_sha": base_sha,
             "head_sha": head_sha,
-            "test_file": str(test_path.name).replace("\\", "/"),
+            "test_file": test_file,
             "verdict": VerdictClass.INCONCLUSIVE,
-            "disposition": "env_setup_failed",
+            "disposition": "material_unavailable" if isinstance(exc, MaterialUnavailable) else "env_setup_failed",
             "proven_catch": False,
             "base_reproduced": False,
             "wall_clock_s": round(elapsed, 2),
@@ -482,6 +638,11 @@ def main():
         cohort_name = "Layer-1B Modern Cohort" if is_layer1b else "Frozen 83-Row Benchmark Cohort"
 
     rows = manifest_data if isinstance(manifest_data, list) else manifest_data.get("rows", manifest_data.get("benchmarks", []))
+    try:
+        validate_rows(rows)
+    except MaterialUnavailable as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        sys.exit(2)
     manifest_rel = str(manifest_path.relative_to(SCRIPT_DIR) if manifest_path.is_relative_to(SCRIPT_DIR) else manifest_path.name).replace("\\", "/")
     out_rel = str(out_dir.relative_to(SCRIPT_DIR) if out_dir.is_relative_to(SCRIPT_DIR) else out_dir.name).replace("\\", "/")
 
