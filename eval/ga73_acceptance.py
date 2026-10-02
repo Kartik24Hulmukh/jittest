@@ -10,6 +10,9 @@ from pathlib import Path
 from eval.ga73_reanalysis import INPUTS, OUT, build
 
 ROOT = Path(__file__).resolve().parents[1]
+MIN_DEFECT_RECALL = Decimal("0.25")
+MAX_FALSE_POSITIVE_RATE = Decimal("0.10")
+MAX_ALL_IN_USD_PER_ATTEMPTED = Decimal("1.00")
 
 
 class ValidatedAcceptance(dict):
@@ -235,6 +238,26 @@ def _cost(root, cost, population, archives, sources):
                 for kind, value in cohort_totals.items()}}
 
 
+def _policy_blockers(metrics, scope):
+    blockers = []
+    recall = Decimal(metrics["adjudicated_defect_recall"]["rate"])
+    fpr = Decimal(metrics["adjudicated_fpr"]["rate"])
+    per_attempted = metrics["all_in_usd_per_attempted"]
+    if recall <= MIN_DEFECT_RECALL:
+        blockers.append("defect_recall_not_above_launch_threshold")
+    if fpr >= MAX_FALSE_POSITIVE_RATE:
+        blockers.append("false_positive_rate_not_below_launch_threshold")
+    if any(
+        Decimal(per_attempted[kind]["mean_usd"])
+        >= MAX_ALL_IN_USD_PER_ATTEMPTED
+        for kind in ("bugs", "click")
+    ):
+        blockers.append("all_in_cost_not_below_launch_threshold")
+    if scope != "representative_default_product":
+        blockers.append("representative_default_product_scope_missing")
+    return blockers
+
+
 def validate(manifest, root=ROOT):
     """Missing/invalid input is NO_GO; well-formed null evidence is blocked, not GA."""
     try:
@@ -286,10 +309,33 @@ def validate(manifest, root=ROOT):
                                   "rate": str(Decimal(numerator) / len(eligible))}
         if totals:
             metrics.update(totals)
-        blocked = [name for name in ("labels", "cost") if manifest[name] is None]
-        return ValidatedAcceptance({"ok": True, "status": "blocked" if blocked else "accepted", "ga_ready": not blocked,
-                "blockers": blocked, "source_sha256": {k: v["sha256"] for k, v in expected.items()},
-                "metrics": metrics, "scope": "frozen_conditional_cohorts_only"})
+        scope = "frozen_conditional_cohorts_only"
+        missing = [name for name in ("labels", "cost") if manifest[name] is None]
+        blockers = list(missing)
+        if not missing:
+            # Schema v1 is permanently bound to purposive historical cohorts.
+            # Complete labels and invoices make those measurements valid, but
+            # cannot turn them into a representative default-product GA claim.
+            blockers.extend(_policy_blockers(metrics, scope))
+        return ValidatedAcceptance({
+            "ok": True,
+            # Status reports evidence completeness. Policy promotion remains
+            # separately and explicitly represented by ga_ready/blockers.
+            "status": "blocked" if missing else "accepted",
+            "ga_ready": not blockers,
+            "blockers": blockers,
+            "source_sha256": {k: v["sha256"] for k, v in expected.items()},
+            "metrics": metrics,
+            "scope": scope,
+            "policy": {
+                "defect_recall": f">{MIN_DEFECT_RECALL}",
+                "false_positive_rate": f"<{MAX_FALSE_POSITIVE_RATE}",
+                "all_in_usd_per_attempted": (
+                    f"<{MAX_ALL_IN_USD_PER_ATTEMPTED}"
+                ),
+                "representative_default_product_scope": True,
+            },
+        })
     except (ValueError, TypeError, KeyError, OSError, ArithmeticError, StopIteration, AttributeError):
         return {"ok": False, "status": "invalid", "ga_ready": False,
                 "problems": ["missing, malformed, unbound or incomplete GA73 evidence"]}

@@ -11,8 +11,12 @@ to human ground truth or total charged spend. Original evidence is unchanged.
   `NO_GO_TOOL_MISSING`).
 - A valid checkpoint with either labels or cost absent: `GO_LAUNCH_NOT_GA` when
   engineering gates pass. Deleting the static #73 blocker cannot change this.
-- Completed source-bound acceptance **and** no remaining static blockers **and**
-  all engineering gates passing: `GO_GA`. Acceptance alone does not close issues.
+- Completed source-bound schema-v1 acceptance validates only the frozen
+  conditional cohorts. It remains `GO_LAUNCH_NOT_GA` even when complete.
+  `GO_GA` additionally requires representative default-product evidence and
+  strict policy results: defect recall `> 0.25`, false-positive rate `< 0.10`,
+  and all-in cost `< $1.00` per attempted item in every evaluated cohort.
+  Acceptance alone does not close issues.
 - The frozen cohort rates remain conditional historical measurements, not
   universal recall or representative multi-project FPR. Other #73 requirements
   still need human issue review; this module is not an adoption or traction gate.

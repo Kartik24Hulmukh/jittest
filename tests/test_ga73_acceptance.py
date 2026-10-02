@@ -126,11 +126,18 @@ def test_synthetic_complete_evidence_recomputes_semantic_denominators(synthetic)
     result = acceptance.validate(manifest, root)
     assert result["ok"], result
     assert result["status"] == "accepted"
+    assert not result["ga_ready"]
     assert result["metrics"]["adjudicated_fpr"] == {"numerator": 0, "denominator": 2, "rate": "0"}
     assert result["metrics"]["adjudicated_defect_recall"] == {"numerator": 1, "denominator": 1, "rate": "1"}
     assert result["metrics"]["all_in_total_usd"] == "2.6"
     assert result["metrics"]["all_in_usd_per_attempted"]["click"]["mean_usd"] == "1.4"
-    assert launch_gate.build_report({"technical": {"ok": True}}, [], result)["decision"] == "GO_GA"
+    assert result["blockers"] == [
+        "all_in_cost_not_below_launch_threshold",
+        "representative_default_product_scope_missing",
+    ]
+    assert launch_gate.build_report(
+        {"technical": {"ok": True}}, [], result
+    )["decision"] == "GO_LAUNCH_NOT_GA"
     assert launch_gate.build_report({"technical": {"ok": True}}, [{"issue": 73}], result)["decision"] == "GO_LAUNCH_NOT_GA"
 
 
@@ -223,13 +230,65 @@ def test_hash_bound_cross_target_underallocation_refuses(synthetic):
 def test_plain_dict_cannot_impersonate_validator_result(synthetic):
     root, manifest = synthetic
     genuine = acceptance.validate(manifest, root)
-    assert genuine["ok"] and genuine["ga_ready"]
+    assert genuine["ok"] and not genuine["ga_ready"]
     plain_copy = json.loads(json.dumps(genuine))
     good = {"technical": {"ok": True}}
     assert launch_gate.build_report(good, [], plain_copy)["decision"] == "NO_GO"
     assert not launch_gate.derive_ga_ready([], plain_copy)
     forged = {"ok": True, "status": "accepted", "ga_ready": True}
     assert launch_gate.build_report(good, [], forged)["decision"] == "NO_GO"
+
+
+@pytest.mark.parametrize(
+    "recall,fpr,bug_cost,click_cost,scope,expected",
+    [
+        ("0.25", "0.09", "0.99", "0.99", "representative_default_product",
+         ["defect_recall_not_above_launch_threshold"]),
+        ("0.26", "0.10", "0.99", "0.99", "representative_default_product",
+         ["false_positive_rate_not_below_launch_threshold"]),
+        ("0.26", "0.09", "1.00", "0.99", "representative_default_product",
+         ["all_in_cost_not_below_launch_threshold"]),
+        ("0.26", "0.09", "0.99", "0.99", "frozen_conditional_cohorts_only",
+         ["representative_default_product_scope_missing"]),
+        ("0.26", "0.09", "0.99", "0.99", "representative_default_product", []),
+    ],
+)
+def test_policy_threshold_boundaries_are_strict(
+    recall, fpr, bug_cost, click_cost, scope, expected
+):
+    metrics = {
+        "adjudicated_defect_recall": {"rate": recall},
+        "adjudicated_fpr": {"rate": fpr},
+        "all_in_usd_per_attempted": {
+            "bugs": {"mean_usd": bug_cost},
+            "click": {"mean_usd": click_cost},
+        },
+    }
+    assert acceptance._policy_blockers(metrics, scope) == expected
+
+
+def test_complete_v1_below_thresholds_is_scope_blocked_end_to_end(
+    synthetic
+):
+    root, manifest = synthetic
+    cost = manifest["cost"]
+    cost["ci_total_usd"] = "0.4"
+    cost["ci_allocation_usd"] = {"bugs": "0.2", "click": "0.2"}
+    cost["ci_receipt"] = ref(root, "ci-below-threshold.json", {
+        "sources": manifest["sources"],
+        "currency": "USD",
+        "total_usd": "0.4",
+        "allocation_usd": cost["ci_allocation_usd"],
+    })
+    result = acceptance.validate(manifest, root)
+    assert result["ok"] and result["status"] == "accepted"
+    assert result["blockers"] == [
+        "representative_default_product_scope_missing",
+    ]
+    assert not result["ga_ready"]
+    assert launch_gate.build_report(
+        {"technical": {"ok": True}}, [], result
+    )["decision"] == "GO_LAUNCH_NOT_GA"
 
 
 def test_locked_decision_cannot_change_without_new_attestation(synthetic):
