@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import concurrent.futures
 import contextlib
+import hashlib
 import json
 import os
 import tempfile
@@ -210,6 +211,152 @@ class BillingDispatchContract(unittest.TestCase):
         self.assertIsNone(events[1]["dispatch_id"])
         self.assertIsNone(events[1]["credit_debit_eur"])
 
+    def test_cache_key_has_unambiguous_structured_boundaries(self):
+        with tempfile.TemporaryDirectory() as temp, provider(
+            [response(), response(request_id="request-2")]
+        ) as seen:
+            path = Path(temp) / "cache.db"
+            llm = self.client(cache_path=path)
+            self.assertEqual(llm.complete("a|b", "c"), ["OK"])
+            self.assertEqual(llm.complete("a", "b|c"), ["OK"])
+            llm.cache.conn.close()
+        self.assertEqual(len(seen), 2)
+
+    def test_cache_key_binds_endpoint_and_credential_scope(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "cache.db"
+            with provider([response()]) as first_seen:
+                first = self.client(cache_path=path)
+                self.assertEqual(first.complete("s", "u"), ["OK"])
+                first.cache.conn.close()
+            with provider([response(request_id="request-2")]) as second_seen:
+                second = self.client(cache_path=path)
+                self.assertEqual(second.complete("s", "u"), ["OK"])
+                second.cache.conn.close()
+            self.assertEqual(len(first_seen), 1)
+            self.assertEqual(len(second_seen), 1)
+
+            with provider([response(), response(request_id="request-3")]) as seen:
+                one = self.client(cache_path=path)
+                two = HTTPLLM(
+                    "melious/glm-5.3-flash",
+                    api_key="different-owned-fixture-key",
+                    cache_path=path,
+                )
+                one.complete("credential", "scope")
+                two.complete("credential", "scope")
+                one.cache.conn.close()
+                two.cache.conn.close()
+            self.assertEqual(len(seen), 2)
+
+    def test_cache_contract_version_forces_cold_miss(self):
+        with tempfile.TemporaryDirectory() as temp, provider(
+            [response(), response(request_id="request-2")]
+        ) as seen:
+            path = Path(temp) / "cache.db"
+            llm = self.client(cache_path=path)
+            llm.complete("s", "u")
+            with patch("jittest.llm._CACHE_CONTRACT_VERSION", 3):
+                llm.complete("s", "u")
+            llm.cache.conn.close()
+        self.assertEqual(len(seen), 2)
+
+    def test_legacy_v1_row_is_ignored(self):
+        with tempfile.TemporaryDirectory() as temp, provider([response()]) as seen:
+            llm = self.client(cache_path=Path(temp) / "cache.db")
+            legacy = hashlib.sha256(
+                f"{llm.provider}|{llm.model_name}|s|u|1|{llm.temperature}".encode()
+            ).hexdigest()
+            llm.cache.put(legacy, json.dumps(["LEGACY"]))
+            self.assertEqual(llm.complete("s", "u"), ["OK"])
+            llm.cache.conn.close()
+        self.assertEqual(len(seen), 1)
+
+    def test_v2_envelope_contains_only_bounded_provenance(self):
+        body = dict(
+            GOOD,
+            id="response-owned",
+            model="glm-returned",
+            created=123,
+            system_fingerprint="fp-owned",
+            authorization="owned-fixture-key",
+        )
+        with tempfile.TemporaryDirectory() as temp, provider([response(body)]):
+            llm = self.client(cache_path=Path(temp) / "cache.db")
+            self.assertEqual(llm.complete("secret prompt", "secret user"), ["OK"])
+            key = llm._cache_key("secret prompt", "secret user", 1, llm.temperature)
+            stored = json.loads(llm.cache.get(key))
+            llm.cache.conn.close()
+        self.assertEqual(stored["version"], 2)
+        self.assertEqual(stored["request_sha256"], key)
+        self.assertEqual(stored["outputs"], ["OK"])
+        self.assertEqual(stored["provenance"], [{
+            "created": 123,
+            "id": "response-owned",
+            "model": "glm-returned",
+            "system_fingerprint": "fp-owned",
+        }])
+        rendered = json.dumps(stored)
+        for secret in (
+            "owned-fixture-key", "authorization", "secret prompt", "secret user"
+        ):
+            self.assertNotIn(secret, rendered)
+
+    def test_v2_provenance_filters_provider_credential_echo(self):
+        body = dict(
+            GOOD,
+            id="prefix-owned-fixture-key-suffix",
+            model="owned-fixture-key",
+            created="owned-fixture-key",
+            system_fingerprint="owned-fixture-key",
+        )
+        with tempfile.TemporaryDirectory() as temp, provider([response(body)]):
+            llm = self.client(cache_path=Path(temp) / "cache.db")
+            llm.complete("s", "u")
+            key = llm._cache_key("s", "u", 1, llm.temperature)
+            stored = llm.cache.get(key)
+            llm.cache.conn.close()
+        self.assertNotIn("owned-fixture-key", stored)
+        self.assertEqual(json.loads(stored)["provenance"], [{}])
+
+    def test_v2_hit_rejects_wrong_digest_types_and_output_count(self):
+        with tempfile.TemporaryDirectory() as temp, provider([]) as seen:
+            llm = self.client(cache_path=Path(temp) / "cache.db")
+            key = llm._cache_key("s", "u", 1, llm.temperature)
+            invalid = [
+                {"version": 2, "request_sha256": "wrong", "outputs": ["OK"],
+                 "provenance": [{}]},
+                {"version": 2, "outputs": ["OK"], "provenance": [{}]},
+                {"version": 2, "request_sha256": key, "outputs": [1],
+                 "provenance": [{}]},
+                {"version": 2, "request_sha256": key,
+                 "outputs": ["OK", "extra"], "provenance": [{}, {}]},
+                {"version": 2, "request_sha256": key, "outputs": ["OK"],
+                 "provenance": ["not-an-object"]},
+                {"version": 2, "request_sha256": key, "outputs": ["OK"],
+                 "provenance": []},
+                {"version": 2, "request_sha256": key, "outputs": ["OK"],
+                 "provenance": [{}, {}]},
+                {"version": 2, "request_sha256": key, "outputs": ["OK"],
+                 "provenance": [{"unexpected": "value"}]},
+                {"version": 2, "request_sha256": key, "outputs": ["OK"],
+                 "provenance": [{"id": {"nested": "value"}}]},
+                {"version": 2, "request_sha256": key, "outputs": ["OK"],
+                 "provenance": [{"created": True}]},
+                {"version": 2, "request_sha256": key, "outputs": ["OK"],
+                 "provenance": [{"created": float("nan")}]},
+                {"version": 2, "request_sha256": key, "outputs": ["OK"],
+                 "provenance": [{"id": "x" * 257}]},
+                {"version": 2, "request_sha256": key, "outputs": ["OK"],
+                 "provenance": [{"id": "owned-fixture-key"}]},
+            ]
+            for envelope in invalid:
+                with self.subTest(envelope=envelope), self.assertRaises(ValueError):
+                    llm.cache.put(key, json.dumps(envelope))
+                    llm.complete("s", "u")
+            llm.cache.conn.close()
+        self.assertEqual(seen, [])
+
     def test_concurrent_same_key_cache_miss_has_one_dispatch(self):
         events = []
         with tempfile.TemporaryDirectory() as temp, provider(
@@ -408,9 +555,7 @@ class BillingDispatchContract(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp, provider([]) as seen:
             llm = self.client(events, cache_path=Path(temp) / "cache.db")
             # Cache lookup sees retained bytes, but decoding fails before transport.
-            import hashlib
-            key = hashlib.sha256(
-                f"{llm.provider}|{llm.model_name}|s|u|1|{llm.temperature}".encode()).hexdigest()
+            key = llm._cache_key("s", "u", 1, llm.temperature)
             llm.cache.put(key, "not JSON")
             with self.assertRaises(ValueError):
                 llm.complete("s", "u")
