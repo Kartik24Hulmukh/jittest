@@ -61,7 +61,12 @@ def manifest(tmp, rows):
 
 def test_real_preregistration_matches_original_frame():
     body, _ = harness.load_manifest(ROOT / "eval/default_product_cohort.json")
-    raw = (ROOT / "eval/layer1b_manifest.json").read_bytes()
+    # Checkout conversion is not the declared source: hash immutable Git bytes.
+    tool_sha = subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "HEAD"],
+                                       env=harness.clean_git_env()).decode().strip()
+    raw = subprocess.check_output(["git", "-C", str(ROOT), "cat-file", "blob",
+                                   f"{tool_sha}:eval/layer1b_manifest.json"],
+                                  env=harness.clean_git_env())
     assert body["sampling_frame_source_sha256"] == harness.sha256(raw)
     assert body["sampling_frame"] == json.loads(raw)["rows"]
     assert len(body["rows"]) == 9
@@ -342,3 +347,31 @@ def test_cli_subprocess_allowlist_removes_fake_secrets_and_proxies(tmp_path):
     request = json.loads((tmp_path / "out/runtime_request.json").read_bytes())
     assert request["environment_variable_names"] == observed["verify"]
     assert "owned-fake-api-secret" not in (tmp_path / "out/runtime_request.json").read_text()
+
+
+
+def test_alternates_metadata_is_raw_lf_posix_path_and_refs_resolve(tmp_path):
+    owned_parent = tmp_path / "owned object store with spaces"
+    owned_parent.mkdir()
+    repo, row, source = fixture_repo(owned_parent)
+    row["test_source_ref"] = row["base_sha"]
+    out = tmp_path / "evidence"
+    out.mkdir()
+    stage = tmp_path / "staged repo with spaces"
+    harness.freeze(row, repo, stage, out)
+    metadata = (stage / ".git/objects/info/alternates").read_bytes()
+    expected_path = (repo / ".git/objects").resolve().as_posix().encode("utf-8")
+    assert metadata == expected_path + b"\n"
+    assert b"\r" not in metadata and b"\\" not in metadata
+    for side in ("base", "head"):
+        recovered = subprocess.check_output(["git", "-C", str(stage), "rev-parse", "--verify",
+                                             f"refs/heads/cohort-{side}^{{commit}}"],
+                                            env=harness.clean_git_env()).decode().strip()
+        assert recovered == row[side + "_sha"]
+        assert subprocess.check_output(["git", "-C", str(stage), "cat-file", "-t", recovered],
+                                       env=harness.clean_git_env()).strip() == b"commit"
+    assert subprocess.check_output(["git", "-C", str(stage), "cat-file", "blob",
+                                    row["base_sha"] + ":" + row["test"]],
+                                   env=harness.clean_git_env()) == source
+    assert (stage / row["test"]).read_bytes() == source
+    assert (out / "candidate.py").read_bytes() == source

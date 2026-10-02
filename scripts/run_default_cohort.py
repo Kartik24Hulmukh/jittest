@@ -198,7 +198,10 @@ def freeze(row: dict, repo: Path, stage: Path, out: Path) -> dict:
     object_path = Path(objects)
     if not object_path.is_absolute():
         object_path = repo / object_path
-    (stage / ".git/objects/info/alternates").write_text(str(object_path.resolve()) + "\n")
+    # Git metadata is a byte contract: forward-slash path and LF on all OSes.
+    # Text-mode CRLF/backslashes can make referenced objects unresolvable.
+    (stage / ".git/objects/info/alternates").write_bytes(
+        object_path.resolve().as_posix().encode("utf-8") + b"\n")
     for side in ("base", "head"):
         git(stage, ["update-ref", f"refs/heads/cohort-{side}", pins[side + "_sha"]],
             out, "stage_ref_" + side)
