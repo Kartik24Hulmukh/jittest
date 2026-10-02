@@ -29,6 +29,8 @@ MODEL_CEILINGS: dict[str, int] = {
     "qwen3.8-27b": 65536,
 }
 
+DEFAULT_MAX_INFLIGHT_PER_MODEL = 4
+
 FAILOVER_CHAINS: dict[str, list[str]] = {
     "glm-4.5": ["glm-5.3"],
 }
@@ -114,7 +116,7 @@ class MeliousRouter:
         default_deadline: float = 120.0,
         max_tokens: int = 1024,
         temperature: float = 0.0,
-        max_inflight_per_model: int = 8,
+        max_inflight_per_model: int = DEFAULT_MAX_INFLIGHT_PER_MODEL,
     ) -> None:
         if (isinstance(max_inflight_per_model, bool)
                 or not isinstance(max_inflight_per_model, int)

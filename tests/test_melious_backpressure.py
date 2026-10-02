@@ -8,10 +8,19 @@ try:
 except ImportError:
     raise unittest.SkipTest("requires jittest[melious]") from None
 
-from jittest.melious import DeadlineExceeded, MeliousRouter
+from jittest.melious import (
+    DEFAULT_MAX_INFLIGHT_PER_MODEL,
+    DeadlineExceeded,
+    MeliousRouter,
+)
 
 
 class BackpressureContract(unittest.TestCase):
+    def test_default_per_model_limit_is_four(self):
+        self.assertEqual(DEFAULT_MAX_INFLIGHT_PER_MODEL, 4)
+        with MeliousRouter(api_key="test") as router:
+            self.assertEqual(router.max_inflight_per_model, 4)
+
     def test_queue_is_bounded_and_timeout_does_not_dispatch(self):
         entered, release = threading.Event(), threading.Event()
         calls = []
