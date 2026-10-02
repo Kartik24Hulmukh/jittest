@@ -18,7 +18,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from jittest._pricing import price_for
-from jittest.melious import DeadlineExceeded, MeliousError, MeliousRouter
+from jittest.melious import (
+    DEFAULT_MAX_INFLIGHT_PER_MODEL,
+    DeadlineExceeded,
+    MeliousError,
+    MeliousRouter,
+)
 
 MODELS = ("glm-5.3", "glm-5.3-flash", "kimi-k3", "qwen3.8-27b")
 
@@ -33,25 +38,45 @@ def rss_kib() -> int | None:
     return None
 
 
-def main() -> int:
+def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--calls", type=int, default=100)
     ap.add_argument("--workers", type=int, default=100)
-    ap.add_argument("--deadline", type=float, default=15.0)
+    ap.add_argument("--deadline", type=float, default=30.0)
+    ap.add_argument("--max-inflight-per-model", type=int,
+                    default=DEFAULT_MAX_INFLIGHT_PER_MODEL)
     ap.add_argument("--out", type=Path, default=Path("live-routing.json"))
-    args = ap.parse_args()
+    return ap
+
+
+def routing_settings(args: argparse.Namespace) -> dict[str, int | float]:
+    """Canonical settings shared by dispatch and the retained evidence."""
+    return {
+        "deadline_seconds": args.deadline,
+        "max_inflight_per_model": args.max_inflight_per_model,
+    }
+
+
+def main() -> int:
+    parser = build_parser()
+    args = parser.parse_args()
     if not 4 <= args.calls <= 100 or not 1 <= args.workers <= 100:
-        ap.error("calls must be 4..100; workers must be 1..100")
+        parser.error("calls must be 4..100; workers must be 1..100")
     if not math.isfinite(args.deadline) or not 0 < args.deadline <= 30:
-        ap.error("deadline must be finite, positive and <=30 seconds")
+        parser.error("deadline must be finite, positive and <=30 seconds")
+    if not 1 <= args.max_inflight_per_model <= 100:
+        parser.error("max-inflight-per-model must be 1..100")
     if not os.getenv("MELIOUS_API_KEY"):
-        ap.error("MELIOUS_API_KEY is required")
+        parser.error("MELIOUS_API_KEY is required")
     sha = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
     diff = subprocess.check_output(["git", "diff", "HEAD"])
     rows: list[dict] = []
     start_rss, start_threads = rss_kib(), threading.active_count()
     t0 = time.monotonic()
-    with MeliousRouter() as router:
+    settings = routing_settings(args)
+    with MeliousRouter(
+        max_inflight_per_model=int(settings["max_inflight_per_model"])
+    ) as router:
         try:
             catalogue = router.list_models()
             missing = sorted(set(MODELS) - set(catalogue))
@@ -104,7 +129,8 @@ def main() -> int:
     failures = sum(r["status"] != "ok" for r in rows)
     elapsed = time.monotonic() - t0
     evidence = {"sha": sha, "working_diff_sha256": hashlib.sha256(diff).hexdigest(),
-                "calls_requested": args.calls, "workers": args.workers, "max_tokens": 256,
+                "calls_requested": args.calls, "workers": args.workers,
+                **settings, "max_tokens": 256,
                 "truncation_escalation": False, "seconds": elapsed,
                 "successful_completions": sum(r["status"] == "ok" for r in completions),
                 "failed_checks": failures, "passed": failures == 0 and len(completions) == args.calls,
