@@ -1,0 +1,213 @@
+name: default-product-public-cohort
+
+# Deliberate, bounded technical replay. No provider calls, publication, or GA gate.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: default-product-public-cohort-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      PYTHONHASHSEED: '0'
+      JITTEST_SANDBOX: required
+      JITTEST_SANDBOX_BACKEND: docker
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Preserve declaration before any build or public material reads
+        shell: bash
+        run: |
+          set -euo pipefail
+          LANE="$RUNNER_TEMP/default-cohort-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir "$LANE"
+          echo "COHORT_LANE=$LANE" >> "$GITHUB_ENV"
+          echo "COHORT_OWNER=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_ENV"
+          echo "COHORT_REGISTRY=default-cohort-registry-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_ENV"
+          python - "$LANE" <<'PY'
+          import hashlib, json, pathlib, sys
+          out = pathlib.Path(sys.argv[1])
+          raw = pathlib.Path('eval/default_product_cohort.json').read_bytes()
+          (out / 'preregistered_manifest.json').write_bytes(raw)
+          expected = '152f191c55c4ff6570962e461c42f2413aa772ce9afc49912fb65916b284778a'
+          if hashlib.sha256(raw).hexdigest() != expected:
+              raise SystemExit('preregistered manifest changed; no substitution')
+          manifest = json.loads(raw)
+          record = {'manifest_sha256': expected, 'qualification_scope': 'nine_predeclared_technical_replays_not_statistical_fpr',
+                    'declared_generation_calls': 0, 'provider_cost_usd': None, 'ci_cost_authority': 'not_measured',
+                    'rows': [{'row_id': row['row_id'], 'status': 'selected_not_attempted'} for row in manifest['rows']]}
+          if len(record['rows']) != 9:
+              raise SystemExit('fixed cohort must have exactly nine rows')
+          (out / 'preexecution-census.json').write_text(json.dumps(record, indent=2) + '\n')
+          PY
+          docker version --format '{{json .}}' > "$LANE/docker-version.json"
+          docker ps -a --no-trunc --format '{{json .}}' > "$LANE/containers-before.jsonl"
+      - name: Build exact trusted source wheel and install outside checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          unset PYTHONPATH PYTHONHOME
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff --exit-code HEAD
+          test -z "$(git ls-files --others --exclude-standard)"
+          python -m pip install 'build==1.2.2.post1' 'hatchling==1.27.0'
+          python -m build --wheel --no-isolation --outdir "$COHORT_LANE/wheel" \
+            > "$COHORT_LANE/source-build.log" 2>&1
+          python - "$COHORT_LANE" "$GITHUB_SHA" <<'PY'
+          import hashlib, json, pathlib, sys, zipfile
+          import build_identity
+          out = pathlib.Path(sys.argv[1])
+          wheels = list((out / 'wheel').glob('*.whl'))
+          if len(wheels) != 1:
+              raise SystemExit('exactly one trusted source wheel required')
+          wheel = wheels[0]
+          with zipfile.ZipFile(wheel) as z:
+              provenance = json.loads(z.read('jittest/_build_provenance.json'))
+          if provenance['source_sha'] != sys.argv[2] or provenance['working_diff_sha256'] != hashlib.sha256(b'').hexdigest():
+              raise SystemExit('source wheel does not bind clean dispatched SHA')
+          build_identity.validate_artifact(wheel, 'wheel', provenance)
+          (out / 'tool-wheel-provenance.json').write_text(json.dumps({'wheel_filename': wheel.name,
+              'wheel_sha256': hashlib.sha256(wheel.read_bytes()).hexdigest(), 'provenance': provenance}, indent=2) + '\n')
+          PY
+          python -m venv "$COHORT_LANE/installed"
+          "$COHORT_LANE/installed/bin/python" -I -m pip install --no-index --no-deps "$COHORT_LANE"/wheel/*.whl \
+            > "$COHORT_LANE/tool-install.log" 2>&1
+          cd "$COHORT_LANE"
+          ./installed/bin/python -I - "$GITHUB_SHA" <<'PY'
+          import hashlib, json, pathlib, sys
+          import jittest
+          package = pathlib.Path(jittest.__file__).resolve()
+          if not package.is_relative_to(pathlib.Path(sys.prefix).resolve()):
+              raise SystemExit('installed tool shadowed by source checkout')
+          provenance = json.loads((package.parent / '_build_provenance.json').read_bytes())
+          if provenance['source_sha'] != sys.argv[1] or provenance['working_diff_sha256'] != hashlib.sha256(b'').hexdigest():
+              raise SystemExit('installed source identity mismatch')
+          pathlib.Path('installed-tool.json').write_text(json.dumps({'python': sys.executable,
+              'package_file': str(package), 'source_sha': provenance['source_sha']}, indent=2) + '\n')
+          PY
+      - name: Clone only the declared public projects as inert Git objects
+        shell: bash
+        env:
+          GIT_CONFIG_GLOBAL: /dev/null
+          GIT_CONFIG_NOSYSTEM: '1'
+          GIT_TERMINAL_PROMPT: '0'
+        run: |
+          set -euo pipefail
+          mkdir "$COHORT_LANE/repos"
+          git -c core.hooksPath=/dev/null clone --no-checkout --template= https://github.com/pallets/flask.git "$COHORT_LANE/repos/flask" > "$COHORT_LANE/clone-flask.log" 2>&1
+          git -c core.hooksPath=/dev/null clone --no-checkout --template= https://github.com/pallets/click.git "$COHORT_LANE/repos/click" > "$COHORT_LANE/clone-click.log" 2>&1
+          git -c core.hooksPath=/dev/null clone --no-checkout --template= https://github.com/Textualize/rich.git "$COHORT_LANE/repos/rich" > "$COHORT_LANE/clone-rich.log" 2>&1
+      - name: Resolve and verify official base and registry pins on this daemon
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/verify_registry_live.py --repo library/python --tag 3.12-slim --backend docker \
+            --out "$COHORT_LANE/python-registry-proof.json" > "$COHORT_LANE/python-registry-resolution.log" 2>&1
+          python scripts/verify_registry_live.py --repo library/registry --tag 2 --backend docker \
+            --out "$COHORT_LANE/registry-registry-proof.json" > "$COHORT_LANE/registry-registry-resolution.log" 2>&1
+      - name: Prepare fixed dependency runtime using only owned loopback registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/prepare_default_cohort_runtime.py \
+            --manifest eval/default_product_cohort.json --repo-root "$COHORT_LANE/repos" \
+            --base-proof "$COHORT_LANE/python-registry-proof.json" \
+            --registry-proof "$COHORT_LANE/registry-registry-proof.json" \
+            --registry-name "$COHORT_REGISTRY" --owner "$COHORT_OWNER" \
+            --output "$COHORT_LANE/runtime"
+          python - "$COHORT_LANE/runtime/runtime-proof.json" <<'PY'
+          import json, os, sys
+          proof = json.load(open(sys.argv[1]))
+          if proof['status'] != 'RUN' or proof['registry_cleanup_returncode'] != 0:
+              raise SystemExit('runtime preparation did not complete and clean up')
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+              f.write('JITTEST_RUNTIME_IMAGE=' + proof['runtime_image'] + '\n')
+          PY
+      - name: Replay all nine through installed public CLI and independent receipt consumer
+        shell: bash
+        run: |
+          set -euo pipefail
+          unset PYTHONPATH PYTHONHOME
+          cd "$COHORT_LANE"
+          # -I isolates the trusted harness interpreter; the runner also uses
+          # clean staged cwd, while --python binds the immutable installed CLI.
+          python -I "$GITHUB_WORKSPACE/scripts/run_default_cohort.py" \
+            --manifest "$GITHUB_WORKSPACE/eval/default_product_cohort.json" \
+            --repo-root "$COHORT_LANE/repos" --output "$COHORT_LANE/cohort" \
+            --python "$COHORT_LANE/installed/bin/python" \
+            --row-timeout 900 --test-timeout 60 --reruns 2 \
+            > "$COHORT_LANE/cohort-run.log" 2>&1
+      - name: Always reconcile owned registry and capture daemon cleanup
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${COHORT_LANE:-}"
+          python - "$COHORT_LANE" "$COHORT_OWNER" <<'PY'
+          import json, pathlib, re, subprocess, sys
+          out, owner = pathlib.Path(sys.argv[1]), sys.argv[2]
+          def query(filename):
+              result = subprocess.run(['docker', 'ps', '-a', '--no-trunc', '--format', '{{json .}}'],
+                  capture_output=True, timeout=30)
+              (out / filename).write_bytes(result.stdout)
+              if result.returncode:
+                  raise SystemExit('daemon inventory unavailable; cleanup not qualified')
+              return [json.loads(line) for line in result.stdout.splitlines() if line.strip()]
+          baseline_file = out / 'containers-before.jsonl'
+          baseline_available = baseline_file.exists()
+          baseline = {json.loads(line)['ID'] for line in baseline_file.read_text().splitlines() if line.strip()} if baseline_available else set()
+          pre = query('containers-before-cleanup.jsonl')
+          proof_path = out / 'runtime/runtime-proof.json'
+          image = json.loads(proof_path.read_bytes()).get('runtime_image') if proof_path.exists() else None
+          removals = []
+          for container in pre:
+              if container['ID'] in baseline:
+                  continue
+              labels = dict(part.split('=', 1) for part in container.get('Labels', '').split(',') if '=' in part)
+              owned_registry = labels.get('jittest.default-cohort-owner') == owner
+              # Exact UUID naming plus this cohort's unique pinned runtime,
+              # absent from a known baseline, attributes core-created containers.
+              owned_test = (baseline_available and image and container['Image'] == image
+                            and re.fullmatch(r'jittest-[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}', container['Names']))
+              if owned_registry or owned_test:
+                  result = subprocess.run(['docker', 'rm', '--force', container['ID']],
+                      capture_output=True, timeout=60)
+                  removals.append({'id': container['ID'], 'name': container['Names'],
+                      'scope': 'owned_runtime_support_label' if owned_registry else 'cohort_runtime_jittest_uuid',
+                      'returncode': result.returncode})
+                  (out / ('cleanup-' + container['ID'] + '.log')).write_bytes(result.stdout + result.stderr)
+          after = query('containers-after.jsonl')
+          survivors = sorted(row['ID'] for row in after if row['ID'] not in baseline)
+          passed = baseline_available and not survivors and all(row['returncode'] == 0 for row in removals)
+          (out / 'container-cleanup.json').write_text(json.dumps({'baseline_available': baseline_available,
+              'removals': removals, 'new_surviving_container_ids': survivors, 'passed': passed,
+              'scope': 'attributable Docker containers only; not universal host process cleanup'}, indent=2) + '\n')
+          if not passed:
+              raise SystemExit('container reconciliation incomplete; no cleanup qualification')
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: default-product-public-cohort-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/default-cohort-${{ github.run_id }}-${{ github.run_attempt }}/preexecution-census.json
+            ${{ runner.temp }}/default-cohort-${{ github.run_id }}-${{ github.run_attempt }}/preregistered_manifest.json
+            ${{ runner.temp }}/default-cohort-${{ github.run_id }}-${{ github.run_attempt }}/*.json
+            ${{ runner.temp }}/default-cohort-${{ github.run_id }}-${{ github.run_attempt }}/*.jsonl
+            ${{ runner.temp }}/default-cohort-${{ github.run_id }}-${{ github.run_attempt }}/*.log
+            ${{ runner.temp }}/default-cohort-${{ github.run_id }}-${{ github.run_attempt }}/wheel/
+            ${{ runner.temp }}/default-cohort-${{ github.run_id }}-${{ github.run_attempt }}/runtime/
+            ${{ runner.temp }}/default-cohort-${{ github.run_id }}-${{ github.run_attempt }}/cohort/
+          if-no-files-found: error
+          retention-days: 90
