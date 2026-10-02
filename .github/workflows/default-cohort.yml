@@ -113,13 +113,16 @@ jobs:
         run: |
           set -euo pipefail
           python scripts/verify_registry_live.py --repo library/python --tag 3.12-slim --backend docker \
-            --out "$COHORT_LANE/python-registry-proof.json" > "$COHORT_LANE/python-registry-resolution.log" 2>&1
+            --out python-registry-proof.json > "$COHORT_LANE/python-registry-resolution.log" 2>&1
           python scripts/verify_registry_live.py --repo library/registry --tag 2 --backend docker \
-            --out "$COHORT_LANE/registry-registry-proof.json" > "$COHORT_LANE/registry-registry-resolution.log" 2>&1
+            --out registry-registry-proof.json > "$COHORT_LANE/registry-registry-resolution.log" 2>&1
       - name: Prepare fixed dependency runtime using only owned loopback registry
         shell: bash
         run: |
           set -euo pipefail
+          # Wheel identity was frozen before these trusted proof outputs existed.
+          mv python-registry-proof.json "$COHORT_LANE/python-registry-proof.json"
+          mv registry-registry-proof.json "$COHORT_LANE/registry-registry-proof.json"
           python scripts/prepare_default_cohort_runtime.py \
             --manifest eval/default_product_cohort.json --repo-root "$COHORT_LANE/repos" \
             --base-proof "$COHORT_LANE/python-registry-proof.json" \
@@ -201,6 +204,8 @@ jobs:
         with:
           name: default-product-public-cohort-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
+            ${{ github.workspace }}/python-registry-proof.json
+            ${{ github.workspace }}/registry-registry-proof.json
             ${{ runner.temp }}/default-cohort-${{ github.run_id }}-${{ github.run_attempt }}/preexecution-census.json
             ${{ runner.temp }}/default-cohort-${{ github.run_id }}-${{ github.run_attempt }}/preregistered_manifest.json
             ${{ runner.temp }}/default-cohort-${{ github.run_id }}-${{ github.run_attempt }}/*.json
