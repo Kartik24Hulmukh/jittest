@@ -1,4 +1,4 @@
-"""Admission and startup consume run_bounded's execution deadline."""
+"""Cross-platform admission and startup consume run_bounded's deadline."""
 from __future__ import annotations
 
 import subprocess
