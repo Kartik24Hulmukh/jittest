@@ -161,14 +161,15 @@ class DryRunLLM(BaseLLM):
 
     def complete(self, system: str, user: str, n: int = 1,
                  temperature: float | None = None) -> list[str]:
-        self.calls.append((system, user))
-        self.usage.calls += 1
-        if self._i < len(self.scripted):
-            reply = self.scripted[self._i]
-            self._i += 1
-        else:
-            reply = self.scripted[-1] if self.scripted else self.DEFAULT
-        return [reply] * max(1, n)
+        with self._dispatch_lock:
+            self.calls.append((system, user))
+            self.usage.calls += 1
+            if self._i < len(self.scripted):
+                reply = self.scripted[self._i]
+                self._i += 1
+            else:
+                reply = self.scripted[-1] if self.scripted else self.DEFAULT
+            return [reply] * max(1, n)
 
 
 class HTTPLLM(BaseLLM):
@@ -455,6 +456,11 @@ class HTTPLLM(BaseLLM):
 
     def complete(self, system: str, user: str, n: int = 1,
                  temperature: float | None = None) -> list[str]:
+        with self._dispatch_lock:
+            return self._complete_invocation(system, user, n, temperature)
+
+    def _complete_invocation(self, system: str, user: str, n: int = 1,
+                             temperature: float | None = None) -> list[str]:
         self._invocation_id = uuid4().hex
         self._dispatch_event = None
         before = len(self.dispatch_ledger) if self.dispatch_ledger is not None else 0
@@ -486,87 +492,100 @@ class HTTPLLM(BaseLLM):
         key = hashlib.sha256(
             f"{self.provider}|{self.model_name}|{system}|{user}|{n}|{temp}"
             .encode()).hexdigest()
-        cached = self.cache.get(key)
-        if cached is not None:
-            cache_event = self._event("cache_hit")
-            if cache_event is not None:
-                cache_event["body_parse_status"] = "failed"
-            result = json.loads(cached)
-            if cache_event is not None:
-                cache_event["body_parse_status"] = "parsed"
-            return result
+        with self.cache.singleflight(key):
+            cached = self.cache.get(key)
+            if cached is not None:
+                cache_event = self._event("cache_hit")
+                if cache_event is not None:
+                    cache_event["body_parse_status"] = "failed"
+                result = json.loads(cached)
+                if cache_event is not None:
+                    cache_event["body_parse_status"] = "parsed"
+                return result
 
-        outputs: list[str] = []
-        for _ in range(max(1, n)):
-            if self.provider == "anthropic":
-                body = self._post(
-                    f"{self.base_url}/messages",
-                    {"model": self.model_name, "max_tokens": 2048,
-                     "temperature": temp, "system": system,
-                     "messages": [{"role": "user", "content": user}]},
-                    {"content-type": "application/json",
-                     "x-api-key": self.api_key or "",
-                     "anthropic-version": "2023-06-01"},
-                )
-                self._billing_totals.add(body.get("billing_cost"))
-                self.usage.provider_billing = self._billing_totals.as_dict()
-                self._mark_response(content_parse_status="failed")
-                blocks = body.get("content", [])
-                if (not isinstance(blocks, list) or any(not isinstance(b, dict) for b in blocks)
-                        or any(not isinstance(b.get("text", ""), str) for b in blocks if b.get("type") == "text")):
-                    raise LLMError("malformed message response")
-                text = "".join(b.get("text", "") for b in blocks if b.get("type") == "text")
-                self._mark_response(content_parse_status="parsed", usage_parse_status="failed")
-                usage = body.get("usage") or {}
-                if not isinstance(usage, dict):
-                    raise LLMError("malformed provider usage")
-                self._mark_response(usage_parse_status="parsed")
-                self._account_response(usage.get("input_tokens"),
-                                       usage.get("output_tokens"),
-                                       system + user, text)
-            else:
-                body = self._post(
-                    f"{self.base_url}/chat/completions",
-                    {"model": self.api_model, "temperature": temp,
-                     "max_tokens": 2048,
-                     "messages": [{"role": "system", "content": system},
-                                  {"role": "user", "content": user}]},
-                    {"content-type": "application/json",
-                     "authorization": f"Bearer {self.api_key or ''}"},
-                )
-                self._billing_totals.add(body.get("billing_cost"))
-                self.usage.provider_billing = self._billing_totals.as_dict()
-                self._mark_response(content_parse_status="failed")
-                choices = body.get("choices", [])
-                if not isinstance(choices, list):
-                    raise LLMError("malformed completion choices")
-                if choices:
-                    if not isinstance(choices[0], dict) or not isinstance(choices[0].get("message"), dict):
-                        raise LLMError("malformed completion message")
-                    text = choices[0]["message"].get("content") or ""
-                    if not isinstance(text, str):
-                        raise LLMError("malformed completion content")
+            outputs: list[str] = []
+            for _ in range(max(1, n)):
+                if self.provider == "anthropic":
+                    body = self._post(
+                        f"{self.base_url}/messages",
+                        {"model": self.model_name, "max_tokens": 2048,
+                         "temperature": temp, "system": system,
+                         "messages": [{"role": "user", "content": user}]},
+                        {"content-type": "application/json",
+                         "x-api-key": self.api_key or "",
+                         "anthropic-version": "2023-06-01"},
+                    )
+                    self._billing_totals.add(body.get("billing_cost"))
+                    self.usage.provider_billing = self._billing_totals.as_dict()
+                    self._mark_response(content_parse_status="failed")
+                    blocks = body.get("content", [])
+                    if (not isinstance(blocks, list)
+                            or any(not isinstance(b, dict) for b in blocks)
+                            or any(not isinstance(b.get("text", ""), str)
+                                   for b in blocks if b.get("type") == "text")):
+                        raise LLMError("malformed message response")
+                    text = "".join(
+                        b.get("text", "") for b in blocks if b.get("type") == "text")
+                    self._mark_response(
+                        content_parse_status="parsed", usage_parse_status="failed")
+                    usage = body.get("usage") or {}
+                    if not isinstance(usage, dict):
+                        raise LLMError("malformed provider usage")
+                    self._mark_response(usage_parse_status="parsed")
+                    self._account_response(
+                        usage.get("input_tokens"),
+                        usage.get("output_tokens"),
+                        system + user,
+                        text,
+                    )
                 else:
-                    text = ""
-                self._mark_response(content_parse_status="parsed", usage_parse_status="failed")
-                usage = body.get("usage") or {}
-                if not isinstance(usage, dict):
-                    raise LLMError("malformed provider usage")
-                self._mark_response(usage_parse_status="parsed")
-                prompt_tokens = usage.get("prompt_tokens")
-                total_tokens = usage.get("total_tokens")
-                completion_tokens = usage.get("completion_tokens")
-                out_tokens: object
-                if (isinstance(total_tokens, int) and not isinstance(total_tokens, bool)
-                        and isinstance(prompt_tokens, int) and not isinstance(prompt_tokens, bool)):
-                    out_tokens = total_tokens - prompt_tokens
-                else:
-                    out_tokens = completion_tokens
-                self._account_response(prompt_tokens, out_tokens, system + user, text)
-            outputs.append(text or "")
+                    body = self._post(
+                        f"{self.base_url}/chat/completions",
+                        {"model": self.api_model, "temperature": temp,
+                         "max_tokens": 2048,
+                         "messages": [{"role": "system", "content": system},
+                                      {"role": "user", "content": user}]},
+                        {"content-type": "application/json",
+                         "authorization": f"Bearer {self.api_key or ''}"},
+                    )
+                    self._billing_totals.add(body.get("billing_cost"))
+                    self.usage.provider_billing = self._billing_totals.as_dict()
+                    self._mark_response(content_parse_status="failed")
+                    choices = body.get("choices", [])
+                    if not isinstance(choices, list):
+                        raise LLMError("malformed completion choices")
+                    if choices:
+                        if (not isinstance(choices[0], dict)
+                                or not isinstance(choices[0].get("message"), dict)):
+                            raise LLMError("malformed completion message")
+                        text = choices[0]["message"].get("content") or ""
+                        if not isinstance(text, str):
+                            raise LLMError("malformed completion content")
+                    else:
+                        text = ""
+                    self._mark_response(
+                        content_parse_status="parsed", usage_parse_status="failed")
+                    usage = body.get("usage") or {}
+                    if not isinstance(usage, dict):
+                        raise LLMError("malformed provider usage")
+                    self._mark_response(usage_parse_status="parsed")
+                    prompt_tokens = usage.get("prompt_tokens")
+                    total_tokens = usage.get("total_tokens")
+                    completion_tokens = usage.get("completion_tokens")
+                    out_tokens: object
+                    if (isinstance(total_tokens, int)
+                            and not isinstance(total_tokens, bool)
+                            and isinstance(prompt_tokens, int)
+                            and not isinstance(prompt_tokens, bool)):
+                        out_tokens = total_tokens - prompt_tokens
+                    else:
+                        out_tokens = completion_tokens
+                    self._account_response(
+                        prompt_tokens, out_tokens, system + user, text)
+                outputs.append(text or "")
 
-        self.cache.put(key, json.dumps(outputs))
-        return outputs
+            self.cache.put(key, json.dumps(outputs))
+            return outputs
 
 
 def build_llm(model: str, dry_run: bool = False, budget_usd: float = 1.0,
