@@ -90,6 +90,9 @@ _RATE_LIMIT_FLOOR = 5.0
 # used to end the request outright. Waiting longer is cheaper than an
 # unmeasured bug.
 _DEFAULT_HTTP_TIMEOUT = 300.0
+_CACHE_CONTRACT_VERSION = 2
+_MAX_TOKENS = 2048
+_ANTHROPIC_VERSION = "2023-06-01"
 
 
 def _env_float(name: str, default: float) -> float:
@@ -204,6 +207,18 @@ class HTTPLLM(BaseLLM):
                            urlsplit(_BASES[provider]).netloc.lower())
         self.api_model = model if explicit_base and not direct_provider else self.model_name
         self.cache = _Cache(cache_path)
+        self._cache_credential_scope = (
+            hashlib.scrypt(
+                (self.api_key or "").encode("utf-8"),
+                salt=b"jittest-cache-credential-scope-v2",
+                n=2**14,
+                r=8,
+                p=1,
+                dklen=32,
+            ).hex()
+            if cache_path
+            else ""
+        )
         self.request_ceiling = request_ceiling
         self.max_attempts = _env_int("JITTEST_MAX_RETRIES", _DEFAULT_MAX_ATTEMPTS)
         self.max_sleep = _env_float("JITTEST_RETRY_MAX_SLEEP", _DEFAULT_MAX_SLEEP)
@@ -238,6 +253,106 @@ class HTTPLLM(BaseLLM):
 
     def _price(self) -> tuple[float, float] | None:
         return price_for(self.model) if "/" in self.model else price_for(self.model_name)
+
+    def _cache_request(self, system: str, user: str, n: int, temp: float) -> dict:
+        """Return the versioned semantic request without retaining secrets."""
+        request_count = max(1, n)
+        if self.provider == "anthropic":
+            adapter = "anthropic_messages"
+            endpoint = f"{self.base_url}/messages"
+            api_version = _ANTHROPIC_VERSION
+            payload = {
+                "model": self.model_name,
+                "max_tokens": _MAX_TOKENS,
+                "temperature": temp,
+                "system": system,
+                "messages": [{"role": "user", "content": user}],
+            }
+        else:
+            adapter = "openai_chat_completions"
+            endpoint = f"{self.base_url}/chat/completions"
+            api_version = None
+            payload = {
+                "model": self.api_model,
+                "temperature": temp,
+                "max_tokens": _MAX_TOKENS,
+                "messages": [
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+            }
+        return {
+            "cache_contract_version": _CACHE_CONTRACT_VERSION,
+            "adapter": adapter,
+            "endpoint": endpoint,
+            "api_version": api_version,
+            "credential_scope_scrypt": self._cache_credential_scope,
+            "request_count": request_count,
+            "payload": payload,
+        }
+
+    def _cache_key(self, system: str, user: str, n: int, temp: float) -> str:
+        request = self._cache_request(system, user, n, temp)
+        canonical = json.dumps(
+            request,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        )
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+    def _valid_cache_provenance(self, item: object) -> bool:
+        if not isinstance(item, dict):
+            return False
+        if not set(item).issubset(
+            {"id", "model", "created", "system_fingerprint"}
+        ):
+            return False
+        for field, value in item.items():
+            if field == "created":
+                if type(value) is not int or value < 0:
+                    return False
+            elif (
+                not isinstance(value, str)
+                or not value
+                or len(value) > 256
+                or bool(self.api_key and self.api_key in value)
+            ):
+                return False
+        return True
+
+    def _response_provenance(self, body: dict) -> dict:
+        candidate = {
+            key: body[key]
+            for key in ("id", "model", "created", "system_fingerprint")
+            if key in body
+        }
+        return candidate if self._valid_cache_provenance(candidate) else {}
+
+    def _decode_cache_envelope(
+        self, cached: str, key: str, count: int
+    ) -> list[str]:
+        envelope = json.loads(cached)
+        if (
+            not isinstance(envelope, dict)
+            or envelope.get("version") != _CACHE_CONTRACT_VERSION
+            or envelope.get("request_sha256") != key
+            or not isinstance(envelope.get("provenance"), list)
+        ):
+            raise ValueError("invalid LLM cache envelope")
+        outputs = envelope.get("outputs")
+        if (
+            not isinstance(outputs, list)
+            or len(outputs) != count
+            or any(not isinstance(output, str) for output in outputs)
+            or len(envelope["provenance"]) != count
+            or any(
+                not self._valid_cache_provenance(item)
+                for item in envelope["provenance"]
+            )
+        ):
+            raise ValueError("invalid LLM cache outputs")
+        return outputs
 
     def _account(self, input_tokens: int, output_tokens: int,
                  estimated: bool = False) -> None:
@@ -489,31 +604,32 @@ class HTTPLLM(BaseLLM):
         else:
             self._guard_budget()
         temp = self.temperature if temperature is None else temperature
-        key = hashlib.sha256(
-            f"{self.provider}|{self.model_name}|{system}|{user}|{n}|{temp}"
-            .encode()).hexdigest()
+        request_count = max(1, n)
+        key = self._cache_key(system, user, n, temp)
         with self.cache.singleflight(key):
             cached = self.cache.get(key)
             if cached is not None:
                 cache_event = self._event("cache_hit")
                 if cache_event is not None:
                     cache_event["body_parse_status"] = "failed"
-                result = json.loads(cached)
+                result = self._decode_cache_envelope(
+                    cached, key, request_count)
                 if cache_event is not None:
                     cache_event["body_parse_status"] = "parsed"
                 return result
 
             outputs: list[str] = []
-            for _ in range(max(1, n)):
+            provenance: list[dict] = []
+            for _ in range(request_count):
                 if self.provider == "anthropic":
                     body = self._post(
                         f"{self.base_url}/messages",
-                        {"model": self.model_name, "max_tokens": 2048,
+                        {"model": self.model_name, "max_tokens": _MAX_TOKENS,
                          "temperature": temp, "system": system,
                          "messages": [{"role": "user", "content": user}]},
                         {"content-type": "application/json",
                          "x-api-key": self.api_key or "",
-                         "anthropic-version": "2023-06-01"},
+                         "anthropic-version": _ANTHROPIC_VERSION},
                     )
                     self._billing_totals.add(body.get("billing_cost"))
                     self.usage.provider_billing = self._billing_totals.as_dict()
@@ -542,7 +658,7 @@ class HTTPLLM(BaseLLM):
                     body = self._post(
                         f"{self.base_url}/chat/completions",
                         {"model": self.api_model, "temperature": temp,
-                         "max_tokens": 2048,
+                         "max_tokens": _MAX_TOKENS,
                          "messages": [{"role": "system", "content": system},
                                       {"role": "user", "content": user}]},
                         {"content-type": "application/json",
@@ -582,9 +698,15 @@ class HTTPLLM(BaseLLM):
                         out_tokens = completion_tokens
                     self._account_response(
                         prompt_tokens, out_tokens, system + user, text)
+                provenance.append(self._response_provenance(body))
                 outputs.append(text or "")
 
-            self.cache.put(key, json.dumps(outputs))
+            self.cache.put(key, json.dumps({
+                "version": _CACHE_CONTRACT_VERSION,
+                "request_sha256": key,
+                "outputs": outputs,
+                "provenance": provenance,
+            }, sort_keys=True, separators=(",", ":")))
             return outputs
 
 
