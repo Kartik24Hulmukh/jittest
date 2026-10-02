@@ -117,6 +117,7 @@ jobs:
           python scripts/verify_registry_live.py --repo library/registry --tag 2 --backend docker \
             --out registry-registry-proof.json > "$COHORT_LANE/registry-registry-resolution.log" 2>&1
       - name: Prepare fixed dependency runtime using only owned loopback registry
+        id: runtime
         shell: bash
         run: |
           set -euo pipefail
@@ -151,6 +152,23 @@ jobs:
             --python "$COHORT_LANE/installed/bin/python" \
             --row-timeout 900 --test-timeout 60 --reruns 2 \
             > "$COHORT_LANE/cohort-run.log" 2>&1
+      - name: Supplemental diagnostics for original four inconclusive rows
+        if: ${{ always() && steps.runtime.outcome == 'success' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          unset PYTHONPATH PYTHONHOME
+          cd "$COHORT_LANE"
+          # Same guarded APIs as public verify, but supplemental and unsigned.
+          # Existing nine-row census/receipts are never rewritten or substituted.
+          "$COHORT_LANE/installed/bin/python" -I "$GITHUB_WORKSPACE/scripts/prepare_default_cohort_runtime.py" \
+            --diagnostic --manifest "$GITHUB_WORKSPACE/eval/default_product_cohort.json" \
+            --repo-root "$COHORT_LANE/repos" --output "$COHORT_LANE/diagnostics" \
+            --runtime-proof "$COHORT_LANE/runtime/runtime-proof.json" \
+            --base-proof "$COHORT_LANE/python-registry-proof.json" \
+            --registry-proof "$COHORT_LANE/registry-registry-proof.json" \
+            --registry-name "$COHORT_REGISTRY" --owner "$COHORT_OWNER" \
+            > "$COHORT_LANE/diagnostic-run.log" 2>&1
       - name: Always reconcile owned registry and capture daemon cleanup
         if: always()
         shell: bash
@@ -214,5 +232,6 @@ jobs:
             ${{ runner.temp }}/default-cohort-${{ github.run_id }}-${{ github.run_attempt }}/wheel/
             ${{ runner.temp }}/default-cohort-${{ github.run_id }}-${{ github.run_attempt }}/runtime/
             ${{ runner.temp }}/default-cohort-${{ github.run_id }}-${{ github.run_attempt }}/cohort/
+            ${{ runner.temp }}/default-cohort-${{ github.run_id }}-${{ github.run_attempt }}/diagnostics/
           if-no-files-found: error
           retention-days: 90
