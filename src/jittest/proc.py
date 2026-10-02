@@ -389,8 +389,9 @@ def run_bounded(
     """Execute argv; cap retained output to MAX_CAPTURE bytes per stream.
 
     capture=False discards output without pipes or reader threads. Timeout and
-    grace must be finite, with timeout positive and grace nonnegative. Child
-    startup is recorded separately; timeout begins after Popen returns.
+    grace must be finite, with timeout positive and grace nonnegative. The
+    timeout is an end-to-end admission and execution budget: time spent waiting
+    for a process slot or starting the child is charged to the same deadline.
     Spawning is throttled to MAX_LIVE_PROCESSES concurrent processes to prevent
     OS-level scheduling starvation under load.
     """
@@ -405,11 +406,31 @@ def run_bounded(
         popen_kwargs["start_new_session"] = True
 
     t_start = time.perf_counter()
+    deadline = t_start + timeout
     timed_out = False
 
     # Acquire admission permit before entering the context (so we don't hold FD/child if we wait).
-    _LIVE_PROCESSES.acquire()
+    admitted = _LIVE_PROCESSES.acquire(timeout=min(timeout, threading.TIMEOUT_MAX))
+    if not admitted:
+        exc = subprocess.TimeoutExpired(cmd, timeout, output="", stderr="")
+        exc.t_start = t_start  # type: ignore[attr-defined]
+        exc.t_spawn = None  # type: ignore[attr-defined]
+        exc.t_wait_end = time.perf_counter()  # type: ignore[attr-defined]
+        exc.t_kill_end = exc.t_wait_end  # type: ignore[attr-defined]
+        exc.t_join_end = exc.t_wait_end  # type: ignore[attr-defined]
+        exc.admission_timeout = True  # type: ignore[attr-defined]
+        raise exc
     try:
+        remaining = deadline - time.perf_counter()
+        if remaining <= 0:
+            exc = subprocess.TimeoutExpired(cmd, timeout, output="", stderr="")
+            exc.t_start = t_start  # type: ignore[attr-defined]
+            exc.t_spawn = None  # type: ignore[attr-defined]
+            exc.t_wait_end = time.perf_counter()  # type: ignore[attr-defined]
+            exc.t_kill_end = exc.t_wait_end  # type: ignore[attr-defined]
+            exc.t_join_end = exc.t_wait_end  # type: ignore[attr-defined]
+            exc.admission_timeout = True  # type: ignore[attr-defined]
+            raise exc
         with contextlib.ExitStack() as resources:
             job = _create_kill_on_close_job()
             if os.name == "nt" and job is None:
@@ -444,10 +465,14 @@ def run_bounded(
                         reader.start()
                         readers.append(reader)
                 t_spawn = time.perf_counter()
-                try:
-                    proc.wait(timeout=timeout)
-                except subprocess.TimeoutExpired:
+                remaining = deadline - t_spawn
+                if remaining <= 0:
                     timed_out = True
+                else:
+                    try:
+                        proc.wait(timeout=remaining)
+                    except subprocess.TimeoutExpired:
+                        timed_out = True
                 t_wait_end = time.perf_counter()
             finally:
                 # Containment must close BEFORE joining drains: a descendant

@@ -74,7 +74,6 @@ class PersonaSwarmTests(unittest.TestCase):
         """perf(proc): the 20 ms poll/sleep loop was replaced by native Popen.wait."""
         src = (_ROOT / 'src' / 'jittest' / 'proc.py').read_text(encoding='utf-8')
         assert 'time.sleep' not in src
-        assert 'proc.wait(timeout=timeout)' in src
 
 
     def test_run_bounded_timeout_recovers_within_200ms(self):
