@@ -33,7 +33,11 @@ from unittest import mock
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from jittest import sandbox as S  # noqa: E402
-from jittest.config import Config, normalise_values  # noqa: E402
+from jittest.config import (  # noqa: E402
+    DEFAULT_SANDBOX_IMAGE,
+    Config,
+    normalise_values,
+)
 
 
 class PlanModes(unittest.TestCase):
@@ -89,6 +93,11 @@ class PlanModes(unittest.TestCase):
     def test_config_defaults_to_auto(self):
         self.assertEqual(Config().sandbox_mode, "auto")
 
+    def test_default_image_is_single_sourced_and_digest_pinned(self):
+        self.assertEqual(Config().sandbox_image, S.DEFAULT_IMAGE)
+        self.assertEqual(S.DEFAULT_IMAGE, DEFAULT_SANDBOX_IMAGE)
+        self.assertTrue(S.validate_image_ref(S.DEFAULT_IMAGE)[0])
+
 
 class PlanShape(unittest.TestCase):
     def test_as_dict_is_serialisable_and_complete(self):
@@ -126,16 +135,31 @@ class Wrapping(unittest.TestCase):
         self.assertTrue(any(a.startswith("--junitxml=/workspace/") for a in out))
 
     def test_container_argv_denies_network_and_privileges(self):
-        p = S.SandboxPlan(backend="docker", image="python:3.13-slim")
-        argv, _ = S.wrap(["python", "/wd/test_c.py"], Path("/wd"),
-                         {"PATH": "/usr/bin"}, p)
-        joined = " ".join(argv)
-        self.assertIn("--network none", joined)
-        self.assertIn("--cap-drop ALL", joined)
-        self.assertIn("no-new-privileges", joined)
-        self.assertIn("--read-only", joined)
-        self.assertIn("--pids-limit", joined)
-        self.assertIn("--memory", joined)
+        for backend in ("docker", "podman"):
+            with self.subTest(backend=backend):
+                p = S.SandboxPlan(
+                    backend=backend, image="python:3.13-slim")
+                argv, _ = S.wrap(
+                    ["python", "/wd/test_c.py"],
+                    Path("/wd"),
+                    {"PATH": "/usr/bin"},
+                    p,
+                )
+                joined = " ".join(argv)
+                self.assertIn("--network none", joined)
+                self.assertIn("--cap-drop ALL", joined)
+                self.assertIn("no-new-privileges", joined)
+                self.assertIn("--read-only", joined)
+                self.assertIn("--pids-limit", joined)
+                self.assertIn("--memory", joined)
+                i = argv.index("--entrypoint")
+                self.assertEqual(argv[i + 1], "")
+                self.assertLess(i, argv.index(p.image))
+
+    def test_probe_clears_image_entrypoint(self):
+        argv = S._probe_argv("docker", S.DEFAULT_IMAGE)
+        self.assertIn("--entrypoint", argv)
+        self.assertEqual(argv[argv.index("--entrypoint") + 1], "")
 
     def test_container_does_not_forward_the_host_path(self):
         """PATH inside the image is not PATH on the runner; forwarding it

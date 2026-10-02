@@ -66,6 +66,8 @@ import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from .config import DEFAULT_SANDBOX_IMAGE
+
 __all__ = [
     "SandboxUnavailable", "SandboxPlan", "detect_backend", "probe_backend",
     "plan", "MODES", "DEFAULT_IMAGE",
@@ -78,7 +80,7 @@ MODES = ("auto", "required", "off")
 # third-party packages in it - the candidate is supposed to import the repository
 # under test and the standard library, and nothing else. Overridable, because a
 # repository whose tests need compiled extensions will need its own image.
-DEFAULT_IMAGE = "python:3.13-slim"
+DEFAULT_IMAGE = DEFAULT_SANDBOX_IMAGE
 
 # Ceilings, not targets. A candidate that needs more than this is not a unit
 # test; a candidate that tries to exceed it is trying to hurt the runner.
@@ -269,7 +271,8 @@ def probe_backend(backend: str, image: str = DEFAULT_IMAGE) -> tuple[bool, str]:
 def _probe_argv(backend: str, image: str) -> list[str]:
     marker = "print('jittest-sandbox-ok')"
     if backend in ("docker", "podman"):
-        return [backend, "run", "--rm", "--network", "none", image,
+        return [backend, "run", "--rm", "--network", "none",
+                "--entrypoint", "", image,
                 "python", "-c", marker]
     bwrap_cmd = [
         "bwrap",
@@ -348,6 +351,29 @@ def plan(mode: str, preferred: str = "", image: str = DEFAULT_IMAGE,
             "docker, bubblewrap): candidates ran unconfined. Credentials were "
             "still withheld by the environment allowlist, but network egress "
             "and filesystem writes outside the checkout were not blocked."])
+
+    if backend in ("docker", "podman"):
+        pinned, pin_error = validate_image_ref(image)
+        if not pinned:
+            if mode == "required":
+                raise SandboxUnavailable(
+                    "sandbox.mode is 'required' but the selected container "
+                    f"image is mutable: {pin_error}")
+            if detect_backend("bubblewrap") == "bubblewrap":
+                backend = "bubblewrap"
+            else:
+                return SandboxPlan(
+                    backend="none",
+                    image=image,
+                    runtime_image=runtime_image,
+                    mode=mode,
+                    notes=[
+                        f"{backend} image {image!r} was refused before probe "
+                        "because it is not digest-pinned; candidates ran "
+                        "unconfined. Configure name@sha256:<64 hex> or require "
+                        "bubblewrap."
+                    ],
+                )
 
     # Defect 73. `docker run` pulls a missing image. In auto mode that turns
     # "isolate if you can" into an unannounced multi-hundred-megabyte download
@@ -519,6 +545,8 @@ def _wrap_container(
         f"{_PACKAGE_ROOT}:{_PACKAGE_MOUNT}:ro",
         "-w",
         "/workspace",
+        "--entrypoint",
+        "",
     ]
 
     # User isolation: fallback to 65534:65534 (nobody:nogroup) when root or on non-POSIX

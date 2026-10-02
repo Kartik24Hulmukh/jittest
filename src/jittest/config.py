@@ -22,7 +22,17 @@ from dataclasses import MISSING, asdict, dataclass, field, fields
 from fnmatch import fnmatch
 from pathlib import Path
 
-__all__ = ["Config", "load_config", "DEFAULT_IGNORES", "normalise_values"]
+__all__ = [
+    "Config", "load_config", "DEFAULT_IGNORES", "DEFAULT_SANDBOX_IMAGE",
+    "normalise_values",
+]
+
+# Approved immutable multi-architecture Python 3.13 manifest captured by the
+# required-isolation GA73 workflow. Execution defaults must never be tags.
+DEFAULT_SANDBOX_IMAGE = (
+    "docker.io/library/python@sha256:"
+    "7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b"
+)
 
 # Generated, vendored or throwaway code. Testing it wastes money and reviewer
 # patience in equal measure.
@@ -98,7 +108,7 @@ class Config:
     # about to be executed. "off" is the pre-0.2.5 behaviour.
     sandbox_mode: str = "auto"
     sandbox_backend: str = ""
-    sandbox_image: str = "python:3.13-slim"
+    sandbox_image: str = DEFAULT_SANDBOX_IMAGE
     # Option C trusted runtime image (docs/RUNTIME-IMAGES.md). Must be pinned
     # by @sha256 digest (Rule 1); the base-branch pyproject value wins over
     # anything the head branch declares (Rule 2, resolved in sandbox.load_runtime_image).
