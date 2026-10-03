@@ -1,0 +1,145 @@
+{
+  "sha": "5ab5c31daab53864a6780e1de9bef13b68ae6b5e",
+  "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "calls_requested": 4,
+  "workers": 4,
+  "deadline_seconds": 30.0,
+  "max_inflight_per_model": 4,
+  "max_tokens": 256,
+  "truncation_escalation": false,
+  "seconds": 1.989479312999947,
+  "successful_completions": 4,
+  "failed_checks": 0,
+  "passed": true,
+  "latency_includes_failures": true,
+  "p50_seconds": 0.6061505039999702,
+  "p95_seconds": 1.6114177309999604,
+  "p99_seconds": 1.6114177309999604,
+  "throughput_calls_per_second": 2.0105763220871986,
+  "rss_start_kib": 20840,
+  "rss_end_kib": 34220,
+  "threads_before": 1,
+  "threads_after": 1,
+  "cost_caveat": "Provider-reported token counts times list prices, not wallet reconciliation or USD per PR. Failed calls may have unobserved spend.",
+  "rows": [
+    {
+      "case": "catalogue",
+      "status": "ok",
+      "model_count": 63,
+      "missing": []
+    },
+    {
+      "case": "completion",
+      "index": 0,
+      "model": "glm-5.3",
+      "routed_model": "glm-5.3",
+      "status": "ok",
+      "seconds": 0.4015608100000918,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 23,
+        "total_tokens": 46,
+        "cached_tokens": 0,
+        "reasoning_tokens": 19
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.000092",
+        "provider_credit_debit_eur": "0.000092",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 1,
+      "model": "glm-5.3-flash",
+      "routed_model": "glm-5.3-flash",
+      "status": "ok",
+      "seconds": 0.6061505039999702,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 14,
+        "total_tokens": 37,
+        "cached_tokens": 0,
+        "reasoning_tokens": 10
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000079",
+        "provider_credit_debit_eur": "0.0000079",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 3,
+      "model": "qwen3.8-27b",
+      "routed_model": "qwen3.8-27b",
+      "status": "ok",
+      "seconds": 0.660009771000091,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 23,
+        "completion_tokens": 36,
+        "total_tokens": 59,
+        "cached_tokens": 0,
+        "reasoning_tokens": 29
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.0000956",
+        "provider_credit_debit_eur": "0.0000956",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 2,
+      "model": "kimi-k3",
+      "routed_model": "kimi-k3",
+      "status": "ok",
+      "seconds": 1.6114177309999604,
+      "attempts": 1,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 135,
+        "completion_tokens": 48,
+        "total_tokens": 183,
+        "cached_tokens": 0,
+        "reasoning_tokens": 35
+      },
+      "provider_billing": {
+        "provider_cost_eur": "0.00106875",
+        "provider_credit_debit_eur": "0.00106875",
+        "provider_billing_complete": true,
+        "provider_response_count": 1,
+        "provider_paid_with": [
+          "credits"
+        ]
+      },
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "invalid_deadline",
+      "status": "ok",
+      "seconds": 1.6523999988748983e-05
+    }
+  ]
+}
