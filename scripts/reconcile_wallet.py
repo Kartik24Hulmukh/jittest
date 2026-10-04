@@ -13,7 +13,7 @@ unaccounted spend instead of assuming it is zero.
 
 Fail-closed contract:
   exit 0 - wallet spend is consistent with local evidence (delta covers debits)
-  exit 1 - inconsistency: local received debits exceed wallet-observed spend
+  exit 1 - inconsistency: debits exceed wallet spend or invoice disagrees
   exit 2 - malformed input (artifact, wallet export, or CLI misuse)
 
 This tool never fabricates missing wallet data. --print-template emits the
@@ -28,7 +28,8 @@ import argparse
 import hashlib
 import json
 import sys
-from decimal import Decimal, InvalidOperation
+from datetime import datetime
+from decimal import Decimal, InvalidOperation, localcontext
 from pathlib import Path
 
 WALLET_SCHEMA = "jittest/wallet-export/1"
@@ -70,23 +71,57 @@ def _parse_amount(value: object, field: str) -> Decimal:
     return amount
 
 
-def load_wallet(path: Path) -> dict:
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise InputError(f"wallet export unreadable: {exc}") from exc
-    if not isinstance(data, dict):
-        raise InputError("wallet export must be a JSON object")
+def _unique_object(pairs: list[tuple[str, object]]) -> dict:
+    result: dict = {}
+    for key, value in pairs:
+        if key in result:
+            raise InputError("duplicate JSON key")
+        result[key] = value
+    return result
+
+
+def _reject_constant(value: str) -> None:
+    raise InputError("nonfinite JSON constant")
+
+
+def _decode_json(raw: str) -> object:
+    return json.loads(raw, object_pairs_hook=_unique_object, parse_constant=_reject_constant)
+
+
+def _validate_wallet(data: dict) -> None:
     if data.get("schema") != WALLET_SCHEMA:
         raise InputError(f"wallet schema must be {WALLET_SCHEMA!r}")
     for field in ("source", "currency", "period_start", "period_end"):
-        if not isinstance(data.get(field), str) or not data[field]:
+        if not isinstance(data.get(field), str) or not data[field].strip():
             raise InputError(f"wallet field {field!r} must be a nonempty string")
+    # Retained provider_credit_debit_eur values cannot be relabeled as USD.
+    if data["currency"] != "EUR":
+        raise InputError("wallet currency must be EUR; USD conversion belongs in GA acceptance")
+    times = []
+    for field in ("period_start", "period_end"):
+        try:
+            stamp = datetime.fromisoformat(data[field].replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise InputError(f"wallet {field} must be an ISO-8601 timestamp") from exc
+        if stamp.tzinfo is None or stamp.utcoffset() is None:
+            raise InputError(f"wallet {field} must include a timezone")
+        times.append(stamp)
+    if times[0] >= times[1]:
+        raise InputError("wallet period_start must precede period_end")
     for field in _AMOUNT_FIELDS:
         _parse_amount(data.get(field), field)
-    invoiced = data.get("invoiced_total")
-    if invoiced is not None:
-        _parse_amount(invoiced, "invoiced_total")
+    if data.get("invoiced_total") is not None:
+        _parse_amount(data["invoiced_total"], "invoiced_total")
+
+
+def load_wallet(path: Path) -> dict:
+    try:
+        data = _decode_json(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise InputError(f"wallet export unreadable: {exc}") from exc
+    if not isinstance(data, dict):
+        raise InputError("wallet export must be a JSON object")
+    _validate_wallet(data)
     return data
 
 
@@ -105,7 +140,7 @@ def _row_billing_debit(row: dict) -> Decimal | None:
 def load_artifact(path: Path) -> dict:
     try:
         raw = path.read_bytes()
-        data = json.loads(raw.decode("utf-8"))
+        data = _decode_json(raw.decode("utf-8"))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise InputError(f"artifact unreadable: {path}: {exc}") from exc
     if not isinstance(data, dict) or not isinstance(data.get("rows"), list):
@@ -113,8 +148,12 @@ def load_artifact(path: Path) -> dict:
     received = Decimal(0)
     calls = failed = unbilled_ok = 0
     for row in data["rows"]:
-        if not isinstance(row, dict) or row.get("case") != "completion":
+        if not isinstance(row, dict):
+            raise InputError("artifact rows must be JSON objects")
+        if row.get("case") != "completion":
             continue
+        if row.get("status") not in ("ok", "failed", "error"):
+            raise InputError("completion row has an unknown status")
         calls += 1
         if row.get("status") != "ok":
             failed += 1
@@ -123,7 +162,11 @@ def load_artifact(path: Path) -> dict:
         if debit is None:
             unbilled_ok += 1
         else:
-            received += debit
+            with localcontext() as ctx:
+                ctx.prec = 512
+                received += debit
+    if calls == 0:
+        raise InputError("artifact contains no completion calls")
     return {
         "path": str(path),
         "sha256": hashlib.sha256(raw).hexdigest(),
@@ -135,7 +178,13 @@ def load_artifact(path: Path) -> dict:
     }
 
 
-def reconcile(wallet: dict, artifacts: list[dict]) -> dict:
+def _reconcile_exact(wallet: dict, artifacts: list[dict]) -> dict:
+    _validate_wallet(wallet)
+    if not artifacts:
+        raise InputError("at least one artifact is required")
+    hashes = [a["sha256"] for a in artifacts]
+    if len(set(hashes)) != len(hashes):
+        raise InputError("duplicate artifact content; each run may be counted only once")
     opening = _parse_amount(wallet["opening_balance"], "opening_balance")
     closing = _parse_amount(wallet["closing_balance"], "closing_balance")
     topups = _parse_amount(wallet["topups_total"], "topups_total")
@@ -153,6 +202,7 @@ def reconcile(wallet: dict, artifacts: list[dict]) -> dict:
     invoice_matches = None
     if invoiced is not None:
         invoice_matches = invoiced == wallet_spend
+        consistent = consistent and invoice_matches
 
     return {
         "schema": REPORT_SCHEMA,
@@ -180,6 +230,14 @@ def reconcile(wallet: dict, artifacts: list[dict]) -> dict:
             "source custody of the dashboard export remains with the owner.",
         ],
     }
+
+
+def reconcile(wallet: dict, artifacts: list[dict]) -> dict:
+    # Inputs allow 128 digits and exponents +/-128. Default Decimal precision
+    # (28) silently rounds subtraction/sums; 512 preserves the supported range.
+    with localcontext() as ctx:
+        ctx.prec = 512
+        return _reconcile_exact(wallet, artifacts)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -215,7 +273,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print(text, end="")
     if not report["consistent"]:
-        print("error: local received debits exceed wallet-observed spend; "
+        print("error: provider debits or invoice disagree with wallet-observed spend; "
               "evidence and wallet statement disagree", file=sys.stderr)
         return 1
     return 0

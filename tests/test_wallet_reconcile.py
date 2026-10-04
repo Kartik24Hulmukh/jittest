@@ -97,14 +97,14 @@ class ReconcileWalletTest(unittest.TestCase):
             ["--wallet", str(wallet), "--artifact", str(artifact),
              "--out", str(self.root / "r.json")]), 1)
 
-    def test_invoice_mismatch_is_reported_not_hidden(self):
+    def test_invoice_mismatch_fails_closed(self):
         artifact = self._write("a.json", _artifact([_ok_row("1.00")]))
         wallet = self._write("w.json", _wallet(opening="10.00", closing="9.00",
                                                invoiced="2.50"))
         out = self.root / "r.json"
         self.assertEqual(reconcile_wallet.main(
             ["--wallet", str(wallet), "--artifact", str(artifact),
-             "--out", str(out)]), 0)
+             "--out", str(out)]), 1)
         report = json.loads(out.read_text(encoding="utf-8"))
         self.assertIs(report["invoice_matches_wallet_delta"], False)
 
@@ -138,6 +138,45 @@ class ReconcileWalletTest(unittest.TestCase):
             artifact = self._write("a.json", bad)
             self.assertEqual(reconcile_wallet.main(
                 ["--wallet", str(wallet), "--artifact", str(artifact)]), 2)
+
+    def test_currency_and_period_validation(self):
+        for bad in (_wallet(currency="USD"), _wallet(period_start="placeholder"),
+                    _wallet(period_end="2026-10-03T00:00:00Z"),
+                    _wallet(period_start="2026-10-04T00:00:00")):
+            with self.assertRaises(reconcile_wallet.InputError):
+                reconcile_wallet.load_wallet(self._write("w.json", bad))
+
+    def test_duplicate_json_keys_and_nonfinite_constants_rejected(self):
+        for raw in ('{"rows": [], "rows": []}', '{"rows": [], "extra": NaN}'):
+            path = self.root / "bad.json"
+            path.write_text(raw, encoding="utf-8")
+            with self.assertRaises(reconcile_wallet.InputError):
+                reconcile_wallet.load_artifact(path)
+        path = self.root / "bad-wallet.json"
+        path.write_text('{"schema": "wrong", "schema": "jittest/wallet-export/1"}')
+        with self.assertRaises(reconcile_wallet.InputError):
+            reconcile_wallet.load_wallet(path)
+
+    def test_duplicate_artifact_bytes_rejected_even_under_different_paths(self):
+        a1 = reconcile_wallet.load_artifact(self._write("a1.json", _artifact([_ok_row("0.001")])))
+        a2 = reconcile_wallet.load_artifact(self._write("a2.json", _artifact([_ok_row("0.001")])))
+        with self.assertRaises(reconcile_wallet.InputError):
+            reconcile_wallet.reconcile(_wallet(), [a1, a2])
+
+    def test_malformed_completion_and_empty_artifact_rejected(self):
+        for rows in ([], [None], [{"case": "completion", "status": "bogus"}]):
+            with self.assertRaises(reconcile_wallet.InputError):
+                reconcile_wallet.load_artifact(self._write("a.json", _artifact(rows)))
+
+    def test_large_decimal_amounts_are_not_rounded(self):
+        # Synthetic arithmetic fixture, never provider or wallet evidence.
+        opening = "123456789012345678901234567890.00000001"
+        closing = "123456789012345678901234567890.00000000"
+        a = reconcile_wallet.load_artifact(self._write("a.json", _artifact([_ok_row("0.00000001")])))
+        r = reconcile_wallet.reconcile(_wallet(opening=opening, closing=closing), [a])
+        self.assertEqual(r["wallet_observed_spend"], "1E-8")
+        self.assertEqual(r["implied_unaccounted_spend"], "0E-8")
+        self.assertTrue(r["consistent"])
 
     def test_missing_arguments_are_usage_errors(self):
         self.assertEqual(reconcile_wallet.main([]), 2)

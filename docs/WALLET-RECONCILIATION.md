@@ -11,9 +11,10 @@ Nine candidate billing routes on `https://api.melious.ai/v1` were probed with
 an authorized key: `credits`, `balance`, `usage`, `billing`, `subscription`,
 `me`, `user/info`, `dashboard/billing`, `credits/balance`. All returned
 HTTP 404. `GET /v1/models` without a token returns HTTP 401 as expected.
-Conclusion: wallet/invoice data is available only from the provider web
-dashboard; an agent cannot pull it. This narrows the #73 cost gate to exactly
-one manual step.
+These probes establish only that those nine routes returned 404, not that
+no billing API exists. Use the owner dashboard export or an authoritative
+provider-supported export. Complete cost acceptance still also needs dispatch
+inventory, failed-call attribution, FX evidence and CI receipts.
 
 ## Procedure (owner, ~5 minutes)
 
@@ -39,8 +40,12 @@ one manual step.
    ```
 
 Exit codes: 0 consistent; 1 local received debits exceed wallet-observed
-spend (evidence and statement disagree; investigate, do not ship); 2 malformed
-input. The report bounds failed/unreceived-call spend as
+spend OR a supplied invoice disagrees with the wallet delta (investigate,
+do not ship); 2 malformed input. Only EUR wallets can reconcile EUR response
+debits. UTC/offset-aware timestamps must define an increasing period. Duplicate
+JSON keys, nonfinite constants, empty completion archives, unknown statuses,
+and repeated artifact content are refused. Arithmetic preserves all supported
+decimal digits, independent of the default Decimal context. The report bounds failed/unreceived-call spend as
 `implied_unaccounted_spend = wallet_observed_spend - received_credit_debits`
 instead of assuming it is zero, and it never invents missing wallet fields.
 
