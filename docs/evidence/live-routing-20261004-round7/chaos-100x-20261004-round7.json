@@ -1,0 +1,54 @@
+{
+  "clients": 100,
+  "distinct_client_scenarios": 100,
+  "elapsed_s": 0.732,
+  "latency_ms": {
+    "max": 235.596,
+    "mean": 47.191,
+    "p50": 32.666,
+    "p95": 215.618,
+    "p99": 228.831
+  },
+  "personas": {
+    "broken_proxy": 11,
+    "confused_dev": 10,
+    "header_flooder": 11,
+    "impatient_canceller": 11,
+    "load_balancer": 10,
+    "mixed_human": 10,
+    "pathological_uri": 8,
+    "scanner": 9,
+    "trickle_writer": 11,
+    "uptime_monitor": 9
+  },
+  "recovery": {
+    "degrade_ms": 229.071,
+    "recovery_ms": 35.284,
+    "slo_ms": 200.0
+  },
+  "requests_sent": 1000,
+  "rps": 1366.5,
+  "rss_ceiling_kb": 47384,
+  "rss_floor_kb": 28116,
+  "scenario_matrix_size": 120,
+  "seed": 20260916,
+  "server_alive_after_chaos": true,
+  "status_codes": {
+    "0": 399,
+    "200": 269,
+    "404": 80,
+    "405": 83,
+    "414": 68,
+    "431": 83,
+    "503": 18
+  },
+  "stderr_tracebacks": 0,
+  "structured_logs": {
+    "invalid_json": 0,
+    "lines": 803,
+    "secret_or_traceback_leaks": 0
+  },
+  "transport_errors": {},
+  "wallet_state_during_run": "exhausted: every completion call in this run failed with provider InsufficientCreditsError; failures are retained as typed rows, not dropped",
+  "credit_debit_fields_policy": "per-row provider_billing.provider_credit_debit_eur is null for failed/unreceived calls; per project invariant, missing debits are never zero-filled or invented"
+}
