@@ -4,18 +4,17 @@ These run the same scenarios that produce the committed evidence artifact, so
 a regression in ceilings, failover, circuit bounding, or timeout enforcement
 fails the suite instead of silently invalidating the evidence.
 """
+import importlib.util
 import sys
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
-
-try:
-    import melious_resilience  # noqa: E402  (imports jittest.melious -> httpx)
-
-    _HAVE_HTTPS = True
-except ImportError:  # optional melious extra not installed
-    _HAVE_HTTPS = False
+# The harness imports jittest.melious lazily, so a module-level import succeeds
+# even without httpx. Probe the real optional dependency instead.
+_HAVE_HTTPS = importlib.util.find_spec("httpx") is not None
+if _HAVE_HTTPS:
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+    import melious_resilience  # noqa: E402
 
 
 @unittest.skipUnless(_HAVE_HTTPS, "requires the melious extra (httpx)")
