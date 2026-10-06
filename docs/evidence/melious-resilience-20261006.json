@@ -1,0 +1,52 @@
+{
+  "sha": "7c97b44e744a17a5c080241855d26f74cdcc9948",
+  "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "evidence_kind": "scripted-transport resilience; no network, no spend",
+  "failover_bar_seconds": 0.2,
+  "failed_checks": 0,
+  "passed": true,
+  "rows": [
+    {
+      "case": "token_ceiling",
+      "status": "ok",
+      "elapsed_ms": 53.113,
+      "detail": "max_tokens=65537 refused pre-network; 0 requests sent"
+    },
+    {
+      "case": "failover_latency",
+      "status": "ok",
+      "elapsed_ms": 2.783,
+      "detail": "glm-4.5 HTTP 404 -> glm-5.3 answered in 2.758 ms (bar: <200 ms), requests=2"
+    },
+    {
+      "case": "circuit_429",
+      "status": "ok",
+      "elapsed_ms": 1501.119,
+      "detail": "pure-429 storm bounded by deadline in 1.50s after 2 attempts"
+    },
+    {
+      "case": "circuit_5xx",
+      "status": "ok",
+      "elapsed_ms": 4502.087,
+      "detail": "pure-503 storm refused after exactly 3 attempts in 4.50s"
+    },
+    {
+      "case": "read_timeout_no_hang",
+      "status": "ok",
+      "elapsed_ms": 0.474,
+      "detail": "httpx read timeout pinned to 0.500s by the 0.5s deadline; ReadTimeout surfaced as a typed error in 0.4 ms"
+    },
+    {
+      "case": "auth_no_retry",
+      "status": "ok",
+      "elapsed_ms": 0.471,
+      "detail": "401 surfaced as AuthenticationError after exactly 1 request (no retry)"
+    },
+    {
+      "case": "billing_no_failover",
+      "status": "ok",
+      "elapsed_ms": 0.473,
+      "detail": "402 surfaced as InsufficientCreditsError after exactly 1 request (no failover)"
+    }
+  ]
+}
