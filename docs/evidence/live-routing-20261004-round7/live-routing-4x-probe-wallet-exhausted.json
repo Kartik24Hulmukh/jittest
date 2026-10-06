@@ -1,0 +1,83 @@
+{
+  "sha": "05138a0340f5437483c84bde35a3134cb40485fa",
+  "working_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "calls_requested": 4,
+  "workers": 4,
+  "deadline_seconds": 30.0,
+  "max_inflight_per_model": 4,
+  "max_tokens": 256,
+  "truncation_escalation": false,
+  "seconds": 0.7543647270649672,
+  "successful_completions": 0,
+  "failed_checks": 4,
+  "passed": false,
+  "latency_includes_failures": true,
+  "p50_seconds": 0.3326107170432806,
+  "p95_seconds": 0.3365771323442459,
+  "p99_seconds": 0.3365771323442459,
+  "throughput_calls_per_second": 5.302474859293777,
+  "rss_start_kib": 22472,
+  "rss_end_kib": 45108,
+  "threads_before": 1,
+  "threads_after": 1,
+  "cost_caveat": "Provider-reported token counts times list prices, not wallet reconciliation or USD per PR. Failed calls may have unobserved spend.",
+  "rows": [
+    {
+      "case": "catalogue",
+      "status": "ok",
+      "model_count": 63,
+      "missing": []
+    },
+    {
+      "case": "completion",
+      "index": 0,
+      "model": "glm-5.3",
+      "status": "failed",
+      "seconds": 0.15328141301870346,
+      "error_type": "InsufficientCreditsError",
+      "error_detail": "billing refusal: account credits/quota exhausted",
+      "cause_type": null,
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 2,
+      "model": "kimi-k3",
+      "status": "failed",
+      "seconds": 0.3326107170432806,
+      "error_type": "InsufficientCreditsError",
+      "error_detail": "billing refusal: account credits/quota exhausted",
+      "cause_type": null,
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 3,
+      "model": "qwen3.8-27b",
+      "status": "failed",
+      "seconds": 0.3333411403000355,
+      "error_type": "InsufficientCreditsError",
+      "error_detail": "billing refusal: account credits/quota exhausted",
+      "cause_type": null,
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "completion",
+      "index": 1,
+      "model": "glm-5.3-flash",
+      "status": "failed",
+      "seconds": 0.3365771323442459,
+      "error_type": "InsufficientCreditsError",
+      "error_detail": "billing refusal: account credits/quota exhausted",
+      "cause_type": null,
+      "list_price_estimate_usd": null
+    },
+    {
+      "case": "invalid_deadline",
+      "status": "ok",
+      "seconds": 2.1930783987045288e-05
+    }
+  ],
+  "wallet_state_during_run": "exhausted: every completion call in this run failed with provider InsufficientCreditsError; failures are retained as typed rows, not dropped",
+  "credit_debit_fields_policy": "per-row provider_billing.provider_credit_debit_eur is null for failed/unreceived calls; per project invariant, missing debits are never zero-filled or invented"
+}
