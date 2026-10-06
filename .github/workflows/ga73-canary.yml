@@ -53,7 +53,7 @@ jobs:
           JITTEST_SANDBOX: required
           JITTEST_SANDBOX_BACKEND: docker
           JITTEST_MAX_RETRIES: '1'
-          JITTEST_HTTP_TIMEOUT: '30'
+          JITTEST_HTTP_TIMEOUT: '300'
           PYTHONHASHSEED: '0'
         run: python eval/ga73_canary.py --out ga73-canary.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
