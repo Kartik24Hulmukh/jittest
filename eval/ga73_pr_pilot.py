@@ -100,7 +100,7 @@ def main() -> int:
             cfg = load_config(args.repo, overrides={'model': MODEL, 'budget_usd': 1.0 - spent,
                 'max_targets': 5, 'candidates_per_target': 4, 'risk_threshold': 0.35})
             llm = build_llm(MODEL, budget_usd=cfg.budget_usd, temperature=cfg.temperature,
-                            request_ceiling=25, http_timeout=30)
+                            request_ceiling=25)
             report = run(args.repo, p['base'], p['head'], cfg, llm,
                          pr_title=p['pr_title'], pr_body=p['pr_body'], pr_ref=p['pr_url'])
             spent += report.cost_usd

@@ -302,7 +302,7 @@ def ensure_repo(spec: BugSpec, workdir: Path,
             return None, _tail(r.stderr) or "git clone failed"
 
     missing = [sha for sha in (spec.fixed_commit, spec.buggy_commit)
-               if not fetch_commit(dest, sha)]
+               if sha and not fetch_commit(dest, sha)]
     if missing:
         return dest, "commits-missing:" + ",".join(s[:12] for s in missing)
     return dest, ""

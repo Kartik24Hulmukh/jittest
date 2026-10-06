@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from eval.false_positives import changed_python_files, select_pairs, summarize_rows  # noqa: E402
 from eval.ga73_collection import collection_screen  # noqa: E402
-from eval.run_bugsinpy import discover, ensure_repo, evaluate_one, summarize  # noqa: E402
+from eval.run_bugsinpy import BugSpec, discover, ensure_repo, evaluate_one, summarize  # noqa: E402
 from jittest.config import load_config  # noqa: E402
 from jittest.llm import build_llm  # noqa: E402
 from jittest.pipeline import run  # noqa: E402
@@ -34,6 +34,10 @@ def main() -> int:
     ap.add_argument("--out", type=Path, default=Path("ga73-measurements.json"))
     ap.add_argument("--bugs-only", action="store_true")
     ap.add_argument("--bug-risk-threshold", type=float, choices=(0.0, 0.35), default=0.0)
+    ap.add_argument("--fp-repo-url", default=None,
+                    help="settled-merge pilot repository; default keeps the predeclared "
+                         "youtube-dl frame. Use a frame with a reachable eligible-sample "
+                         "floor and record the choice in the evidence.")
     args = ap.parse_args()
     evidence = {"scope": "predeclared real-corpus pilot; clean-merge screening proxy, not definitive FPR",
                 "ga_ready": False, "model": MODEL, "independent_adjudication": "pending",
@@ -98,9 +102,17 @@ def main() -> int:
             args.out.write_text(json.dumps(evidence, indent=2) + "\n")
             print("Default bug cohort captured; pair with matching-threshold PR evidence.")
             return 0 if qualified else 1
-        if fp_repo is None:
-            raise ValueError("no approved repository for settled-merge pilot")
-        evidence["fp_repo"] = next(s.repo_url for s in specs if s.project == "youtube-dl")
+        if args.fp_repo_url:
+            fp_spec = BugSpec(project="fp-pilot", bug_id="", repo_url=args.fp_repo_url,
+                              buggy_commit="", fixed_commit="", test_file="")
+            fp_repo, fp_reason = ensure_repo(fp_spec, work)
+            if fp_repo is None:
+                raise ValueError(f"settled-merge pilot repository unavailable: {fp_reason}")
+            evidence["fp_repo"] = args.fp_repo_url
+        else:
+            if fp_repo is None:
+                raise ValueError("no approved repository for settled-merge pilot")
+            evidence["fp_repo"] = next(s.repo_url for s in specs if s.project == "youtube-dl")
         evidence["fp_repo_sha"] = subprocess.check_output(["git", "-C", str(fp_repo), "rev-parse", "HEAD"], text=True).strip()
         pairs, screened = select_pairs(fp_repo, 40, since="5 years ago", until="90 days ago")
         evidence["fp_manifest"] = [{"base": b, "head": h} for b, h in pairs]
@@ -112,7 +124,7 @@ def main() -> int:
             cfg = load_config(fp_repo, overrides={"model": MODEL, "budget_usd": 1.0 - spent,
                 "max_targets": 5, "candidates_per_target": 4, "risk_threshold": 0.35})
             llm = build_llm(MODEL, budget_usd=cfg.budget_usd, temperature=cfg.temperature,
-                            request_ceiling=25, http_timeout=30)
+                            request_ceiling=25)
             report = run(fp_repo, base, head, cfg, llm)
             spent += report.cost_usd
             reported = [f for f in report.findings if f.assessment.should_report]

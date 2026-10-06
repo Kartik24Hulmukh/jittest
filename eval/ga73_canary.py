@@ -66,7 +66,7 @@ def main() -> int:
                     'max_targets': 1, 'candidates_per_target': 4, 'risk_threshold': 0.0,
                     'min_confidence': 0.70, 'persist_candidates': False})
                 llm = build_llm(MODEL, budget_usd=0.50, temperature=cfg.temperature,
-                                request_ceiling=10, http_timeout=30)
+                                request_ceiling=10)
                 report = run(repo, base, head, cfg, llm)
                 evidence['runs'].append(report.as_dict())
                 args.out.write_text(json.dumps(evidence, indent=2) + '\n')
