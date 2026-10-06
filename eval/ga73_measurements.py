@@ -68,7 +68,12 @@ def main() -> int:
             repo, reason = ensure_repo(spec, work)
             if repo is None or reason.startswith("commits-missing"):
                 raise ValueError("frozen corpus revision unavailable")
-            if spec.project == "youtube-dl":
+            if spec.project == "tqdm":
+                # The settled-merge pilot needs a repo with recent mainline
+                # merge activity in the selection window (5y ago -> 90d ago).
+                # youtube-dl is dormant in that window and structurally cannot
+                # meet the 20-pair floor (same trap documented for requests).
+                fp_repo = repo
                 fp_repo = repo
             result = evaluate_one(spec, repo, MODEL, 2.0 - spent, risk_threshold=args.bug_risk_threshold)
             result.runner = "pytest"
@@ -100,7 +105,7 @@ def main() -> int:
             return 0 if qualified else 1
         if fp_repo is None:
             raise ValueError("no approved repository for settled-merge pilot")
-        evidence["fp_repo"] = next(s.repo_url for s in specs if s.project == "youtube-dl")
+        evidence["fp_repo"] = next(s.repo_url for s in specs if s.project == "tqdm")
         evidence["fp_repo_sha"] = subprocess.check_output(["git", "-C", str(fp_repo), "rev-parse", "HEAD"], text=True).strip()
         pairs, screened = select_pairs(fp_repo, 40, since="5 years ago", until="90 days ago")
         evidence["fp_manifest"] = [{"base": b, "head": h} for b, h in pairs]
