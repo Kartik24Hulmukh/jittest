@@ -35,6 +35,17 @@ jobs:
           docker pull "$PIN"
           echo "$PIN" > ga73-runtime-image.txt
           echo "JITTEST_RUNTIME_IMAGE=$PIN" >> "$GITHUB_ENV"
+          # The BugsInPy bug arm runs legacy code and keeps the 3.8-era image above.
+          # The settled-merge pilot samples recent PRs (Click heads require Python
+          # >=3.10 since mid-2025), so it gets a modern pinned image of its own.
+          docker pull python:3.12-slim
+          MODERN=$(docker image inspect -f '{{index .RepoDigests 0}}' python:3.12-slim)
+          docker build --build-arg PYTHON_BASE="$MODERN" -t localhost:5000/jittest-ga73:smoke-modern docker/ga73-smoke
+          docker push localhost:5000/jittest-ga73:smoke-modern
+          FP_PIN=$(docker image inspect -f '{{index .RepoDigests 0}}' localhost:5000/jittest-ga73:smoke-modern)
+          docker pull "$FP_PIN"
+          echo "$FP_PIN" > ga73-fp-runtime-image.txt
+          echo "JITTEST_FP_RUNTIME_IMAGE=$FP_PIN" >> "$GITHUB_ENV"
       - name: Clone pinned corpus as inert data only
         run: |
           git clone https://github.com/soarsmu/BugsInPy /tmp/BugsInPy
@@ -96,5 +107,6 @@ jobs:
             ga73-measurements.json
             ga73-base-image.txt
             ga73-runtime-image.txt
+            ga73-fp-runtime-image.txt
             ga73-fx.xml
           if-no-files-found: error

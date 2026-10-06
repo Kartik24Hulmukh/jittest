@@ -63,6 +63,24 @@ class EvalTimeoutOverrideTest(unittest.TestCase):
         self.assertIn("http_timeout=15",
                       (REPO_ROOT / "eval/preflight_model.py").read_text(encoding="utf-8"))
 
+    def test_fp_arm_uses_dedicated_runtime_image_env(self):
+        """Recent settled-merge heads (Click >=2025) need Python >=3.10 while the
+        BugsInPy arm pins a 3.8-era image; the FP arm must read its own pinned
+        image from JITTEST_FP_RUNTIME_IMAGE and pass it through config."""
+        import inspect
+
+        import eval.ga73_measurements as gm
+        src = inspect.getsource(gm.main)
+        self.assertIn("JITTEST_FP_RUNTIME_IMAGE", src)
+        self.assertIn('"runtime_image": fp_runtime_image', src)
+        self.assertIn("fp_runtime_image_is_shared", src)
+
+    def test_smoke_workflow_builds_and_uploads_the_fp_image(self):
+        text = (REPO_ROOT / ".github" / "workflows" / "ga73-smoke.yml").read_text(encoding="utf-8")
+        self.assertIn("python:3.12-slim", text)
+        self.assertIn("JITTEST_FP_RUNTIME_IMAGE", text)
+        self.assertIn("ga73-fp-runtime-image.txt", text)
+
     def test_measurements_accepts_fp_repo_url(self):
         import inspect
 

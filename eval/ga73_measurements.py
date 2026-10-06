@@ -58,6 +58,14 @@ def main() -> int:
             raise ValueError("frozen corpus and required isolation are mandatory")
         evidence["code_sha"] = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
         evidence["runtime_image"] = os.environ["JITTEST_RUNTIME_IMAGE"]
+        # The BugsInPy arm runs legacy code on the pinned 3.8-era image; the
+        # settled-merge arm samples recent PRs whose projects may require a
+        # modern interpreter (Click heads require >=3.10). JITTEST_FP_RUNTIME_IMAGE
+        # selects a separate pinned image for that arm; absence falls back to the
+        # shared image and is recorded, never hidden.
+        fp_runtime_image = os.environ.get("JITTEST_FP_RUNTIME_IMAGE") or evidence["runtime_image"]
+        evidence["fp_runtime_image"] = fp_runtime_image
+        evidence["fp_runtime_image_is_shared"] = fp_runtime_image == evidence["runtime_image"]
         evidence["host_provisioning"] = False
         specs = discover(args.bugsinpy, 25, PROJECTS)
         evidence["manifest"] = [asdict(s) for s in specs]
@@ -122,7 +130,8 @@ def main() -> int:
                 evidence["fp_abort"] = "accounted_budget_exhausted"
                 break
             cfg = load_config(fp_repo, overrides={"model": MODEL, "budget_usd": 1.0 - spent,
-                "max_targets": 5, "candidates_per_target": 4, "risk_threshold": 0.35})
+                "max_targets": 5, "candidates_per_target": 4, "risk_threshold": 0.35,
+                "runtime_image": fp_runtime_image})
             llm = build_llm(MODEL, budget_usd=cfg.budget_usd, temperature=cfg.temperature,
                             request_ceiling=25)
             report = run(fp_repo, base, head, cfg, llm)
