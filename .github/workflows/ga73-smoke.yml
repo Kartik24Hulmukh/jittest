@@ -67,7 +67,7 @@ jobs:
           JITTEST_SANDBOX_BACKEND: docker
           JITTEST_MAX_RETRIES: '2'
           JITTEST_RETRY_MAX_SLEEP: '1'
-          JITTEST_HTTP_TIMEOUT: '30'
+          JITTEST_HTTP_TIMEOUT: '300'
           PYTHONHASHSEED: '0'
         run: python eval/ga73_smoke.py --bugsinpy /tmp/BugsInPy --out ga73-smoke.json
       - name: Predeclared downstream real-bug and settled-merge pilot
@@ -80,7 +80,7 @@ jobs:
           JITTEST_SANDBOX_BACKEND: docker
           JITTEST_MAX_RETRIES: '1'
           JITTEST_RETRY_MAX_SLEEP: '1'
-          JITTEST_HTTP_TIMEOUT: '30'
+          JITTEST_HTTP_TIMEOUT: '300'
           PYTHONHASHSEED: '0'
         run: python eval/ga73_measurements.py --bugsinpy /tmp/BugsInPy --smoke ga73-smoke.json --out ga73-measurements.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
