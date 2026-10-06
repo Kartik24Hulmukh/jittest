@@ -82,7 +82,11 @@ jobs:
           JITTEST_RETRY_MAX_SLEEP: '1'
           JITTEST_HTTP_TIMEOUT: '300'
           PYTHONHASHSEED: '0'
-        run: python eval/ga73_measurements.py --bugsinpy /tmp/BugsInPy --smoke ga73-smoke.json --out ga73-measurements.json
+        # The default youtube-dl settled-merge frame has exactly 1 eligible merge in the
+        # default window (verified 2026-10-06), below the publication floor of 20, so the
+        # qualification gate could only ever fail closed there. The smoke proves instrument
+        # health on the predeclared Click frame (the ga73-pr-pilot corpus); no new FPR claim.
+        run: python eval/ga73_measurements.py --bugsinpy /tmp/BugsInPy --smoke ga73-smoke.json --fp-repo-url https://github.com/pallets/click --out ga73-measurements.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
