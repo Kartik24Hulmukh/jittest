@@ -74,6 +74,10 @@ class EvalTimeoutOverrideTest(unittest.TestCase):
         self.assertIn("JITTEST_FP_RUNTIME_IMAGE", src)
         self.assertIn('"runtime_image": fp_runtime_image', src)
         self.assertIn("fp_runtime_image_is_shared", src)
+        # The cfg override alone cannot win: load_runtime_image falls back to the
+        # JITTEST_RUNTIME_IMAGE env, which would shadow the override. The FP phase
+        # must rebind the env so the modern image actually governs.
+        self.assertIn('os.environ["JITTEST_RUNTIME_IMAGE"] = fp_runtime_image', src)
 
     def test_smoke_workflow_builds_and_uploads_the_fp_image(self):
         text = (REPO_ROOT / ".github" / "workflows" / "ga73-smoke.yml").read_text(encoding="utf-8")

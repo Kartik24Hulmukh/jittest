@@ -122,6 +122,14 @@ def main() -> int:
                 raise ValueError("no approved repository for settled-merge pilot")
             evidence["fp_repo"] = next(s.repo_url for s in specs if s.project == "youtube-dl")
         evidence["fp_repo_sha"] = subprocess.check_output(["git", "-C", str(fp_repo), "rev-parse", "HEAD"], text=True).strip()
+        # Precedence note: pipeline image selection is pyproject base pin, then the
+        # JITTEST_RUNTIME_IMAGE environment fallback inside load_runtime_image; a
+        # per-call config override only applies when the env is unset. The bug arm
+        # above ran on JITTEST_RUNTIME_IMAGE (3.8-era image for legacy code); the
+        # FP arm rebinds the process env for this final phase so the modern image
+        # actually governs, and passes the same value as an explicit override.
+        if fp_runtime_image != evidence["runtime_image"]:
+            os.environ["JITTEST_RUNTIME_IMAGE"] = fp_runtime_image
         pairs, screened = select_pairs(fp_repo, 40, since="5 years ago", until="90 days ago")
         evidence["fp_manifest"] = [{"base": b, "head": h} for b, h in pairs]
         rows, spent = [], 0.0
