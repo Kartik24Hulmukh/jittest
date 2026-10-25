@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
         with:
           python-version: '3.12'
       - name: Install trusted Jittest and test the acceptance contract
@@ -70,7 +70,7 @@ jobs:
           JITTEST_HTTP_TIMEOUT: '300'
           PYTHONHASHSEED: '0'
         run: python eval/ga73_measurements.py --bugsinpy /tmp/BugsInPy --smoke docs/evidence/ga73-20260930/ci-accepted/ga73-smoke.json --bugs-only --bug-risk-threshold 0.35 --out ga73-default-bugs.json
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: always()
         with:
           name: ga73-default-bugs-${{ github.sha }}
